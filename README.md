@@ -7,8 +7,7 @@ U.S. Government retains certain rights in this software.
 # Python Tensor Toolbox (pyttb)
 
 ## Contributors
-* Danny Dunlavy
-* Nick Johnson
+* Danny Dunlavy, Nick Johnson, Derek Tucker
 
 ## Quick start
 
