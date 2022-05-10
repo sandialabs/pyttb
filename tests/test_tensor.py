@@ -16,7 +16,7 @@ def sample_tensor():
 
 @pytest.fixture()
 def sample_tensor_3way():
-    data = np.array([[[1., 2., 3.], [4., 5., 6.]], [[7., 8., 9.], [10., 11., 12.]]])
+    data = np.array([1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.])
     shape = (2, 3, 2)
     params = {'data':data, 'shape': shape}
     tensorInstance = ttb.tensor().from_data(data, shape)
@@ -501,6 +501,17 @@ def test_tensor_permute(sample_tensor):
     assert (ttb.tensor.from_data(np.array([])).permute(np.array([])).data == np.array([])).all()
 
 @pytest.mark.indevelopment
+def test_tensor_collapse(sample_tensor_3way):
+    (params, tensorInstance) = sample_tensor_3way
+
+    assert tensorInstance.collapse() == 78
+    assert tensorInstance.collapse(fun=np.max) == 12
+
+    with pytest.raises(AssertionError) as excinfo:
+        tensorInstance.collapse(np.array([0, 1]))
+    assert "collapse not implemented for arbitrary subset of dimensions; requires TENMAT class, which is not yet implemented" in str(excinfo)
+
+@pytest.mark.indevelopment
 def test_tensor_contract(sample_tensor):
     (params, tensorInstance) = sample_tensor
 
@@ -518,7 +529,6 @@ def test_tensor_contract(sample_tensor):
     contractableNonScalarTensor = ttb.tensor.from_data(np.arange(1, 82).reshape((3, 3, 3, 3)))
     assert (contractableNonScalarTensor.contract(0, 1).data ==
             np.array([[15, 42, 69], [96, 123, 150], [177, 204, 231]])).all()
-
 @pytest.mark.indevelopment
 def test_tensor__repr__(sample_tensor):
     (params, tensorInstance) = sample_tensor
