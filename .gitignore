@@ -1,6 +1,7 @@
 *~
 .*~
 pyttb.egg-info/
+dist/
 .pytest_cache
 tests/__pycache__
 TensorToolbox/__pycache__
