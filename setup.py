@@ -4,7 +4,7 @@
 
 from setuptools import setup
 
-s etup(
+setup(
     name='pyttb',
     version='0.0.1',
     packages=['TensorToolbox'],
