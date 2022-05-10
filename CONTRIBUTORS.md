@@ -11,5 +11,6 @@ U.S. Government retains certain rights in this software.
 **Primary POC:** Danny Dunlavy, dmdunla@sandia.gov
 
 **Contributors:**
-* Danny Dunlavy - original author 
-* Nick Johnson - original author
+* Danny Dunlavy - original author, `sptensor`, `ktensor`, `tensor`, `cp_als`, `cp_apr` 
+* Nick Johnson - original author, `sptensor`, `ktensor`, `tensor`, `cp_als`, `cp_apr`
+* Derek Tucker - `tensor`
