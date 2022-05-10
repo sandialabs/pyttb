@@ -59,7 +59,8 @@ class tensor(object):
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
-            data = np.reshape(data, np.array(shape))
+            # reshaping using Fortran ordering to match Matlab conventions
+            data = np.reshape(data, np.array(shape), order='F')
 
         # Create the tensor
         tensorInstance = cls()
@@ -147,27 +148,31 @@ class tensor(object):
 
         dims, _ = tt_dimscheck(dims, self.ndims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
-
+        
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
             if fun == "sum":
-                return sum(self.data)
+                return sum(self.data.flatten('F'))
             else:
-                return fun(self.data)
+                return fun(self.data.flatten('F'))
 
-        # Calculate the size of the result
-        newsize = self.shape[remdims]
+        assert False, "collapse not implemented for arbitrary subset of dimensions; requires TENMAT class, which is not yet implemented"
 
-        # Convert to a matrix where each row is going to be collapsed
-        A = ttb.tenmat(self, remdims, dims).double() # TODO depends on tenmat
+        ## Calculate the size of the result
+        ##newsize = self.shape[remdims]
+        #newsize = (self.shape[d] for d in remdims)
+        #print(newsize)
 
-        # Apply the collapse function
-        B = np.zeros((A.shape[0], 1))
-        for i in range(0, A.shape[0]):
-            B[i] = fun(A[i, :])
+        ## Convert to a matrix where each row is going to be collapsed
+        #A = ttb.tenmat(self, remdims, dims).double() # TODO depends on tenmat
 
-        # Form and return the final result
-        return ttb.tensor.from_tensor_type(ttb.tenmat(B, np.arange(0, np.prod(remdims)), np.array([]), newsize)) # TODO depends on tenmat
+        ## Apply the collapse function
+        #B = np.zeros((A.shape[0], 1))
+        #for i in range(0, A.shape[0]):
+        #    B[i] = fun(A[i, :])
+
+        ## Form and return the final result
+        #return ttb.tensor.from_tensor_type(ttb.tenmat(B, np.arange(0, np.prod(remdims)), np.array([]), newsize)) # TODO depends on tenmat
 
     def contract(self, i, j):
         """
