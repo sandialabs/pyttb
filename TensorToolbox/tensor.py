@@ -59,7 +59,7 @@ class tensor(object):
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
-            data = np.reshape(data, np.array(shape))
+            data = np.reshape(data, np.array(shape), order='F')
 
         # Create the tensor
         tensorInstance = cls()
