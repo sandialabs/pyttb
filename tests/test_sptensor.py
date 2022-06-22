@@ -17,7 +17,7 @@ def sample_sptensor():
     return data, sptensorInstance
 
 @pytest.mark.indevelopment
-def test_sptensor_initialization_init():
+def test_sptensor_initialization_empty():
     empty = np.array([], ndmin=2, dtype=int)
 
     # No args

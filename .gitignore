@@ -10,3 +10,4 @@ build/
 .ipynb_checkpoints
 htmlcov
 __pycache__
+.vs*

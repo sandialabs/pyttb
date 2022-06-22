@@ -12,10 +12,11 @@ def test_sptensor_to_dense_matrix():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5]])
     shape = (4, 4, 4)
-    mode0 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 7, 10, 15], [1, 1, 2, 3]))).toarray()
-    mode1 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 7, 10, 15], [1, 1, 2, 3]))).toarray()
-    mode2 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 5, 10, 15], [1, 3, 2, 3]))).toarray()
+    mode0 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3]))).toarray()
+    mode1 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3]))).toarray()
+    mode2 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 5, 10, 15],  [1, 3, 2, 3]))).toarray()
     Ynt = [mode0, mode1, mode2]
+
     sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
     tensorInstance = sptensorInstance.full()
 
