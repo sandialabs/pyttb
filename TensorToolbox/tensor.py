@@ -332,8 +332,10 @@ class tensor(object):
         if isinstance(other, ttb.tensor):
             if self.shape != other.shape:
                 assert False, 'Inner product must be between tensors of the same size'
-            x = np.reshape(self.data, (1, self.data.size))
-            y = np.reshape(other.data, (other.data.size, 1))
+            x = np.reshape(self.data, (self.data.size,))
+            y = np.reshape(other.data, (other.data.size,))
+            #x = np.reshape(self.data, (1, self.data.size))
+            #y = np.reshape(other.data, (other.data.size, 1))
             return x.dot(y)
         elif isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):  # pragma: no cover
             # Reverse arguments and call specializer code

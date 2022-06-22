@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import TensorToolbox as ttb
 
-DEBUG_tests = True
+DEBUG_tests = False
 
 @pytest.fixture()
 def sample_tensor_2way():
@@ -880,7 +880,7 @@ def test_tensor_exp(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert (tensorInstance.exp().data == np.exp(params['data'])).all()
 
 @pytest.mark.indevelopment
-def test_tensor_innerprod(sample_tensor_2way):
+def test_tensor_innerprod(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     # Tensor innerproduct
     assert tensorInstance.innerprod(tensorInstance) == np.arange(1, 7).dot(np.arange(1, 7))
@@ -901,15 +901,21 @@ def test_tensor_innerprod(sample_tensor_2way):
 
     # 2-way
     (params2, tensorInstance2) = sample_tensor_2way
-    assert tensorInstance2.innerprod(tensorInstance2) = 91
+    if DEBUG_tests: 
+        print(f'\ntensorInstance2.innerprod(tensorInstance2): {tensorInstance2.innerprod(tensorInstance2)}')
+    assert tensorInstance2.innerprod(tensorInstance2) == 91
 
     # 3-way
     (params3, tensorInstance3) = sample_tensor_3way
-    assert tensorInstance3.innerprod(tensorInstance3) = 650
+    if DEBUG_tests: 
+        print(f'\ntensorInstance3.innerprod(tensorInstance3): {tensorInstance3.innerprod(tensorInstance3)}')
+    assert tensorInstance3.innerprod(tensorInstance3) == 650
 
     # 4-way
     (params4, tensorInstance4) = sample_tensor_4way
-    assert tensorInstance4.innerprod(tensorInstance4) = 180441
+    if DEBUG_tests: 
+        print(f'\ntensorInstance4.innerprod(tensorInstance4): {tensorInstance4.innerprod(tensorInstance4)}')
+    assert tensorInstance4.innerprod(tensorInstance4) == 180441
 
 @pytest.mark.indevelopment
 def test_tensor_mask(sample_tensor_2way):
