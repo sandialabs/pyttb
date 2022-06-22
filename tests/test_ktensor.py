@@ -301,9 +301,11 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
     assert np.linalg.norm(K.factor_matrices[1] - factor_matrix11) < 1e-8
 
 @pytest.mark.indevelopment
-def test_ktensor_full(sample_ktensor_2way):
-    (data, K) = sample_ktensor_2way
-    assert K.full().isequal(ttb.tensor.from_data(np.array([29., 39., 63., 85.]), (2, 2)))
+def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
+    (data, K2) = sample_ktensor_2way
+    assert K2.full().isequal(ttb.tensor.from_data(np.array([[29., 39.], [63., 85.]]), (2, 2)))
+    (data, K3) = sample_ktensor_3way
+    print(K3.full())
 
 @pytest.mark.indevelopment
 def test_ktensor_innerprod(sample_ktensor_2way):

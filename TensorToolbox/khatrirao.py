@@ -51,12 +51,27 @@ def khatrirao(*listOfMatrices, reverse=False):
         assert False, 'All matrices must have the same number of columns.'
 
     # Computation
+    #print(f'A =\n {listOfMatrices}')
     P = listOfMatrices[0]
+    #print(f'size_P = \n{P.shape}')
+    #print(f'P = \n{P}')
     if ncolFirst == 1:
         for i in listOfMatrices[1:]:
-            P = np.reshape(i, newshape=(ncolFirst, -1))*np.reshape(P, newshape=(-1, ncolFirst))
+            #print(f'size_Ai = \n{i.shape}')
+            #print(f'size_reshape_Ai = \n{np.reshape(i, newshape=(-1, ncolFirst)).shape}')
+            #print(f'size_P = \n{P.shape}')
+            #print(f'size_reshape_P = \n{np.reshape(P, newshape=(ncolFirst, -1)).shape}')
+            P = np.reshape(i, newshape=(-1, ncolFirst))*np.reshape(P, newshape=(ncolFirst, -1),order='F')
+            #print(f'size_P = \n{P.shape}')
+            #print(f'P = \n{P}')
     else:
-        for i in listOfMatrices[1:]:
-            P = np.reshape(i, newshape=(-1, 1, ncolFirst))*np.reshape(P, newshape=(1, -1, ncolFirst))
+         for i in listOfMatrices[1:]:
+            #print(f'size_Ai = \n{i.shape}')
+            #print(f'size_reshape_Ai = \n{np.reshape(i, newshape=(-1, 1, ncolFirst)).shape}')
+            #print(f'size_P = \n{P.shape}')
+            #print(f'size_reshape_P = \n{np.reshape(P, newshape=(1, -1, ncolFirst)).shape}')
+            P = np.reshape(i, newshape=(-1, 1, ncolFirst))*np.reshape(P, newshape=(1, -1, ncolFirst), order='F')
+            #print(f'size_P = \n{P.shape}')
+            #print(f'P = \n{P}')
 
-    return np.reshape(P, newshape=(-1, ncolFirst))
+    return np.reshape(P, newshape=(-1, ncolFirst), order='F')

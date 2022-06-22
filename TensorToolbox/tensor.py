@@ -27,7 +27,9 @@ class tensor(object):
     @classmethod
     def from_data(cls, data, shape=None):
         """
-        Creates a tensor from explicit description
+        Creates a tensor from explicit description. Note that 1D tensors (i.e., when len(shape)==1) 
+        contains a data array that follow the Numpy convention of being a row vector, which is 
+        different than in the Matlab Tensor Toolbox.  
 
         Parameters
         ----------
@@ -48,6 +50,7 @@ class tensor(object):
         else:
             if not isinstance(shape, tuple):
                 assert False, 'Second argument must be a tuple.'
+
 
         # Make sure the number of elements matches what's been specified
         if len(shape) == 0:
@@ -214,7 +217,7 @@ class tensor(object):
         x = self.permute(np.concatenate((remdims, np.array([i, j]))))
 
         # Reshape data to be 3D
-        data = np.reshape(self.data, (m, n, n))
+        data = np.reshape(x.data, (m, n, n), order='F')
 
         # Add diagonal entries for each slice
         newdata = np.zeros((m, 1))
@@ -223,7 +226,7 @@ class tensor(object):
 
         # Reshape result
         if np.prod(newsize) > 1:
-            newdata = np.reshape(newdata, newsize)
+            newdata = np.reshape(newdata, newsize, order='F')
 
         return ttb.tensor.from_data(newdata, newsize)
 
@@ -640,6 +643,32 @@ class tensor(object):
         return np.linalg.norm(self.data)
 
     def nvecs(self, n, r, flipsign=True):
+        """
+        Compute the leading mode-n eigenvectors for a tensor
+        
+        Parameters
+        ----------
+        n: int
+            Mode to unfold
+        r: int
+            Number of eigenvectors to compute
+        flipsign: bool
+            Make each eigenvector's largest element positive
+
+        Returns
+        -------
+        :class:`Numpy.ndarray`
+
+        Examples
+        --------
+        >>> tensor1 = ttb.tensor.from_data(np.array([[1, 2], [3, 4]]))
+        >>> tensor1.nvecs(0,1)
+            array([[0.40455358],
+                   [0.9145143 ]])
+        >>> tensor1.nvecs(0,2)
+            array([[ 0.40455358,  0.9145143 ],
+                   [ 0.9145143 , -0.40455358]])
+        """
         Xn =tt_to_dense_matrix(self, n)
         y = Xn @ Xn.T
 
@@ -704,7 +733,7 @@ class tensor(object):
         if np.prod(self.shape) != np.prod(shape):
             assert False, "Reshaping a tensor cannot change number of elements"
 
-        return ttb.tensor.from_data(np.reshape(self.data, shape), shape)
+        return ttb.tensor.from_data(np.reshape(self.data, shape, order='F'), shape)
 
     def squeeze(self):
         """
@@ -1506,7 +1535,7 @@ class tensor(object):
                 s += ', :, :]'
                 s += ' = \n'
                 s += str(self.data[tuple(np.concatenate((idx[0], np.array([slice(None), slice(None)]))))])
-                #s += '\n'
+                s += '\n'
         #s += '\n'
         return s
 
