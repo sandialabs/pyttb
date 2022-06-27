@@ -24,7 +24,9 @@ def import_data(filename):
     
     if data_type == 'tensor':
     
-        assert False, f"{data_type} is not currently allowed"
+        shape = import_shape(fp)
+        data = import_array(fp, np.prod(shape))
+        return ttb.tensor().from_data(data, shape)
  
     elif data_type == 'sptensor':
     
@@ -35,26 +37,22 @@ def import_data(filename):
  
     elif data_type == 'matrix':         
 
-        assert False, f"{data_type} is not currently allowed"
+        shape = import_shape(fp)
+        mat = import_array(fp, np.prod(shape))
+        mat = np.reshape(mat, np.array(shape))
+        return mat
         
     elif data_type == 'ktensor':
 
         shape = import_shape(fp)
-        #print(f"shape: {shape}")
         r = import_rank(fp)
-        #print(f"rank: {r}")
-        weights = np.array(fp.readline().strip().split(' '),dtype="float")
-        #print(f"weights: {weights}")
+        weights = import_array(fp, r)
         factor_matrices = []
         for n in range(len(shape)):
              fac_type = fp.readline().strip()
-             #print(f"fac_type: {fac_type}")
              fac_shape = import_shape(fp)
-             #print(f"fac_shape: {fac_shape}")
-             fac = np.zeros(fac_shape, dtype="float")
-             for r in range(fac_shape[0]):
-                 fac[r,:] = fp.readline().strip().split(' ')
-                 #print(f"fac: {fac}")
+             fac = import_array(fp, np.prod(fac_shape))
+             fac = np.reshape(fac, np.array(fac_shape))
              factor_matrices.append(fac)
         return ttb.ktensor().from_data(weights, factor_matrices)
     
@@ -87,6 +85,10 @@ def import_sparse_array(fp, n, nz):
     vals = np.zeros((nz, 1))
     for k in range(nz):
         line = fp.readline().strip().split(' ')
-        subs[k,:] = line[:-1]
+        # 1-based indexing in file, 0-based indexing in package
+        subs[k,:] = [np.int64(i)-1 for i in line[:-1]]
         vals[k,0] = line[-1]
     return subs, vals
+
+def import_array(fp, n):
+    return np.fromfile(fp, count=n, sep=' ')
