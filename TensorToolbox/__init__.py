@@ -19,6 +19,7 @@ from TensorToolbox.cp_apr import *
 from TensorToolbox.cp_als import cp_als
 
 from TensorToolbox.import_data import import_data
+from TensorToolbox.export_data import export_data
 
 import warnings
 def ignore_warnings(ignore=True):

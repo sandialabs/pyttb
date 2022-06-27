@@ -8,43 +8,13 @@ import os
 import TensorToolbox as ttb
 
 @pytest.fixture()
-def sample_tensor_2way():
-    data = np.array([[1., 2., 3.], [4., 5., 6.]])
-    shape = (2, 3)
-    params = {'data':data, 'shape': shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
-    return params, tensorInstance
-
-@pytest.fixture()
-def sample_tensor_3way():
-    data = np.array([1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.])
-    shape = (2, 3, 2)
-    params = {'data':np.reshape(data, np.array(shape), order='F'), 'shape': shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
-    return params, tensorInstance
-
-@pytest.fixture()
-def sample_tensor_4way():
-    data = np.arange(1, 82)
-    shape = (3, 3, 3, 3)
-    params = {'data':np.reshape(data, np.array(shape), order='F'), 'shape': shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
-    return params, tensorInstance
-
-@pytest.mark.indevelopment
-def test_import_data_tensor():
+def sample_tensor():
     # truth data
     T = ttb.tensor.from_data(np.ones((3,3,3)), (3,3,3))
+    return T
 
-    # imported data
-    data_filename = os.path.join(os.path.dirname(__file__),'data','tensor.tns')
-    X = ttb.import_data(data_filename)
-
-    assert X.shape == (3, 3, 3)
-    assert T.isequal(X)
- 
-@pytest.mark.indevelopment
-def test_import_data_sptensor():
+@pytest.fixture()
+def sample_sptensor():
     # truth data
     subs = np.array([[0, 0, 0],[0, 2, 2],[1, 1, 1],[1, 2, 0],[1, 2, 1],[1, 2, 2],
                      [1, 3, 1],[2, 0, 0],[2, 0, 1],[2, 2, 0],[2, 2, 1],[2, 3, 0],
@@ -52,6 +22,40 @@ def test_import_data_sptensor():
     vals = np.reshape(np.array(range(1,19)),(18,1))
     shape = (5, 4, 3)
     S = ttb.sptensor().from_data(subs, vals, shape)
+    return S
+
+@pytest.fixture()
+def sample_ktensor():
+    # truth data
+    weights = np.array([3, 2])
+    fm0 = np.array([[1., 5.], [2., 6.], [3., 7.], [4., 8.]])
+    fm1 = np.array([[ 2.,  7.], [ 3.,  8.], [ 4.,  9.], [ 5., 10.], [ 6., 11.]])
+    fm2 = np.array([[3., 6.], [4., 7.], [5., 8.]])
+    factor_matrices = [fm0, fm1, fm2]
+    K = ttb.ktensor.from_data(weights, factor_matrices)
+    return K
+
+@pytest.fixture()
+def sample_array():
+    # truth data
+    M = np.array([[1., 5.], [2., 6.], [3., 7.], [4., 8.]])
+    return M
+
+@pytest.mark.indevelopment
+def test_import_data_tensor(sample_tensor):
+    # truth data
+    T = sample_tensor
+
+    # imported data
+    data_filename = os.path.join(os.path.dirname(__file__),'data','tensor.tns')
+    X = ttb.import_data(data_filename)
+
+    assert T.isequal(X)
+ 
+@pytest.mark.indevelopment
+def test_import_data_sptensor(sample_sptensor):
+    # truth data
+    S = sample_sptensor
 
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__),'data','sptensor.tns')
@@ -60,15 +64,10 @@ def test_import_data_sptensor():
     assert S.isequal(X)
 
 @pytest.mark.indevelopment
-def test_import_data_ktensor():
+def test_import_data_ktensor(sample_ktensor):
     # truth data
-    weights = np.array([3, 2])
-    fm0 = np.array([[1., 5.], [2., 6.], [3., 7.], [4., 8.]])
-    fm1 = np.array([[ 2.,  7.], [ 3.,  8.], [ 4.,  9.], [ 5., 10.], [ 6., 11.]])
-    fm2 = np.array([[3., 6.], [4., 7.], [5., 8.]])
-    factor_matrices = [fm0, fm1, fm2]
-    K = ttb.ktensor.from_data(weights, factor_matrices)
-    
+    K = sample_ktensor
+
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__),'data','ktensor.tns')
     X = ttb.import_data(data_filename)
@@ -76,33 +75,91 @@ def test_import_data_ktensor():
     assert K.isequal(X)
 
 @pytest.mark.indevelopment
-def test_import_data_array():
+def test_import_data_array(sample_array):
     # truth data
-    M = np.array([[1., 5.], [2., 6.], [3., 7.], [4., 8.]])
-    print('\nM')
-    print(M)
-
+    M = sample_array
+    
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__),'data','matrix.tns')
     X = ttb.import_data(data_filename)
-    print('\nX')
-    print(X)
     
     assert (M == X).all()
 
 @pytest.mark.indevelopment
-def test_export_data_tensor():
-    pass
+def test_export_data_tensor(sample_tensor):
+    # truth data
+    T = sample_tensor
+
+    data_filename = os.path.join(os.path.dirname(__file__),'data','tensor.out')
+    ttb.export_data(T, data_filename)
+
+    X = ttb.import_data(data_filename)
+    assert T.isequal(X)
+    os.unlink(data_filename)
+
+    data_filename = os.path.join(os.path.dirname(__file__),'data','tensor_int.out')
+    ttb.export_data(T, data_filename, fmt_data='%d')
+
+    X = ttb.import_data(data_filename)
+    assert T.isequal(X)
+    os.unlink(data_filename)
 
 @pytest.mark.indevelopment
-def test_export_data_sptensor():
-    pass
+def test_export_data_sptensor(sample_sptensor):
+    # truth data
+    S = sample_sptensor
+
+    # imported data
+    data_filename = os.path.join(os.path.dirname(__file__),'data','sptensor.out')
+    ttb.export_data(S, data_filename)
+
+    X = ttb.import_data(data_filename)    
+    assert S.isequal(X)
+    os.unlink(data_filename)
+
+    data_filename = os.path.join(os.path.dirname(__file__),'data','sptensor_int.out')
+    ttb.export_data(S, data_filename, fmt_data='%d')
+
+    X = ttb.import_data(data_filename)    
+    assert S.isequal(X)
+    os.unlink(data_filename)
 
 @pytest.mark.indevelopment
-def test_export_data_ktensor():
-    pass
+def test_export_data_ktensor(sample_ktensor):
+    # truth data
+    K = sample_ktensor
+    
+    # imported data
+    data_filename = os.path.join(os.path.dirname(__file__),'data','ktensor.out')
+    ttb.export_data(K, data_filename)
+
+    X = ttb.import_data(data_filename)
+    assert K.isequal(X)
+    os.unlink(data_filename)
+
+    data_filename = os.path.join(os.path.dirname(__file__),'data','ktensor_int.out')
+    ttb.export_data(K, data_filename, fmt_data='%d', fmt_weights='%d')
+
+    X = ttb.import_data(data_filename)
+    assert K.isequal(X)
+    os.unlink(data_filename)
 
 @pytest.mark.indevelopment
-def test_export_data_array():
-    pass
+def test_export_data_array(sample_array):
+    # truth data
+    M = sample_array
 
+    # imported data
+    data_filename = os.path.join(os.path.dirname(__file__),'data','matrix.out')
+    ttb.export_data(M, data_filename)
+
+    X = ttb.import_data(data_filename)
+    assert (M == X).all()
+    os.unlink(data_filename)
+
+    data_filename = os.path.join(os.path.dirname(__file__),'data','matrix_int.out')
+    ttb.export_data(M, data_filename, fmt_data='%d')
+
+    X = ttb.import_data(data_filename)
+    assert (M == X).all()
+    os.unlink(data_filename)
