@@ -589,18 +589,18 @@ class tensor(object):
 
         if n == 0:
             Ur = ttb.khatrirao(U[1:self.ndims], reverse=True)
-            Y = np.reshape(self.data, (szn, szr))
+            Y = np.reshape(self.data, (szn, szr), order='F')
             return Y @ Ur
         elif n == self.ndims - 1:
             Ul = ttb.khatrirao(U[0:self.ndims - 1], reverse=True)
-            Y = np.reshape(self.data, (szl, szn))
+            Y = np.reshape(self.data, (szl, szn), order='F')
             return Y.T @ Ul
         else:
             Ul = ttb.khatrirao(U[n+1:], reverse=True)
-            Ur = np.reshape(ttb.khatrirao(U[0:self.ndims - 2], reverse=True), (szl, 1, R))
-            Y = np.reshape(self.data, (-1, szr))
+            Ur = np.reshape(ttb.khatrirao(U[0:self.ndims - 2], reverse=True), (szl, 1, R), order='F')
+            Y = np.reshape(self.data, (-1, szr), order='F')
             Y = Y @ Ul
-            Y = np.reshape(Y, (szl, szn, R))
+            Y = np.reshape(Y, (szl, szn, R), order='F')
             V = np.zeros((szn, R))
             for r in range(R):
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
