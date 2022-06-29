@@ -214,7 +214,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
             flag = 1
 
         if (divmod(iter, printitn)[1] == 0) or (printitn > 0 and flag == 0):
-            print(' Iter {}: f = {} f-delta = {}'.format(iter, fit, fitchange))
+            print(f' Iter {iter}: f = {fit:e} f-delta = {fitchange:7.1e}')
 
         # Check for convergence
         if flag == 0:
@@ -235,7 +235,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
         else:
             normresidual = np.sqrt(np.abs(normX**2 + M.norm()**2 - 2 * tensor.innerprod(M)))
             fit = 1 - (normresidual / normX) # fraction explained by model
-        print(' Final f = {}'.format(fit))
+        print(f' Final f = {fit:e}')
 
     output = {}
     output['params'] = (stoptol, maxiters, printitn, dimorder)
