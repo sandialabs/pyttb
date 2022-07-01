@@ -1852,7 +1852,7 @@ class sptensor(object):
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
             subs1 = self.subs[(self.vals < other).transpose()[0], :]
-            if other >= 0:
+            if other > 0:
                 subs2 = self.allsubs()[ttb.tt_setdiff_rows(self.allsubs(), self.subs), :]
                 subs = np.vstack((subs1, subs2))
             else:
