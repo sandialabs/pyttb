@@ -1074,7 +1074,7 @@ def test_tensor__str__(sample_tensor_2way):
     s += 'data'
     s += '[:] = \n'
     s += data.__str__()
-    # s += '\n'
+    s += '\n'
     assert s == tensorInstance.__str__()
 
     # Test 2D
@@ -1087,7 +1087,7 @@ def test_tensor__str__(sample_tensor_2way):
     s += 'data'
     s += '[:, :] = \n'
     s += data.__str__()
-    # s += '\n'
+    s += '\n'
     assert s == tensorInstance.__str__()
 
     # Test 3D,shape in decreasing and increasing order

@@ -265,8 +265,6 @@ class tensor(object):
         ----------
         k: int
             dimension for subscripted indexing
-        n: int
-            dimensions to index
 
         Returns
         -------
@@ -1380,6 +1378,21 @@ class tensor(object):
 
         return ttb.tt_tenfun(tensor_add, self, other)
 
+    def __radd__(self, other):
+        """
+        Reverse binary addition (+) for tensors
+
+        Parameters
+        ----------
+        other: :class:`TensorToolbox.tensor`, float, int
+
+        Returns
+        -------
+        :class:`TensorToolbox.tensor`
+        """
+
+        return self.__add__(other)
+
     def __pow__(self, power):
         """
         Element Wise Power (**) for tensors
@@ -1522,7 +1535,7 @@ class tensor(object):
                 s += '[:]'
                 s += ' = \n'
                 s += str(self.data)
-                # s += '\n'
+                s += '\n'
                 return s
         for i, j in enumerate(range(0, np.prod(self.shape), self.shape[-1]*self.shape[-2])):
             s += 'data'
@@ -1530,7 +1543,7 @@ class tensor(object):
                 s += '[:, :]'
                 s += ' = \n'
                 s += str(self.data)
-                #s += '\n'
+                s += '\n'
             elif self.ndims > 2:
                 idx = ttb.tt_ind2sub(self.shape[:-2], np.array([i]))
                 s += str(idx[0].tolist())[0:-1]
