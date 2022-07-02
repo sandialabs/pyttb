@@ -735,7 +735,8 @@ class ktensor(object):
         [[ 5. -6.]
          [ 7.  8.]]
 
-        Fix the signs using another `ktensor`
+        Fix the signs using another `ktensor`:
+
         >>> K = ttb.ktensor.from_data(weights, [fm0, fm1])
         >>> K2 = K.copy()
         >>> K2.factor_matrices[0][1, 1] = - K2.factor_matrices[0][1, 1]

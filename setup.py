@@ -3,10 +3,11 @@
 # U.S. Government retains certain rights in this software.
 
 from setuptools import setup
+from pyttb import __version__
 
 setup(
     name='pyttb',
-    version='1.3.0',
+    version=__version__,
     packages=['pyttb'],
     package_dir={'': '.'},
     url='',

@@ -28,7 +28,8 @@ pytest --cov=pyttb  tests/ --cov-report=html
 
 ### Documentation
 ```
-make html
+# requires `sphinx`
+sphinx-build ./docs/source ./docs/build/html
 # output can be accessed via docs/build/html/index.html
 ```
 
