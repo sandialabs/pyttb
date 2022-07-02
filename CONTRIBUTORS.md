@@ -4,13 +4,13 @@ LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 U.S. Government retains certain rights in this software.
 ```
 
-# Python Tensor Toolbox (pyttb) Acknowledgments
+# pyttb: Python Tensor Toolbox Acknowledgments
 
 ## Contributors
 
 **Primary POC:** Danny Dunlavy, dmdunla@sandia.gov
 
 **Contributors:**
-* Danny Dunlavy - original author, `sptensor`, `ktensor`, `tensor`, `cp_als`, `cp_apr` 
+* Danny Dunlavy - original author, `sptensor`, `ktensor`, `tensor`, `tenmat`, `cp_als`, `cp_apr` 
 * Nick Johnson - original author, `sptensor`, `ktensor`, `tensor`, `cp_als`, `cp_apr`
 * Derek Tucker - `tensor`

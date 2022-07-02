@@ -8,7 +8,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = PythonTensorToolbox
+SPHINXPROJ    = pyttb
 SOURCEDIR     = ./docs/source
 BUILDDIR      = ./docs/build
 

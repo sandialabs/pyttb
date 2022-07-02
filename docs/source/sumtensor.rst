@@ -1,2 +1,2 @@
-TensorToolbox.sumtensor
+pyttb.sumtensor
 =======================

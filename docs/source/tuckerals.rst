@@ -1,2 +1,2 @@
-TensorToolbox.tucker_als
+pyttb.tucker_als
 ========================

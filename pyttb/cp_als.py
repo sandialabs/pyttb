@@ -2,10 +2,9 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-from TensorToolbox.pyttb_utils import *
-import TensorToolbox as ttb
+import pyttb as ttb
+from .pyttb_utils import *
 import numpy as np
-
 
 def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
            init='random', printitn=1, fixsigns=True):
@@ -14,7 +13,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
     Parameters
     ----------
-    tensor: :class:`TensorToolbox.tensor` or :class:`TensorToolbox.sptensor` or :class:`TensorToolbox.ktensor`
+    tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor` or :class:`pyttb.ktensor`
     rank: int 
         Rank of the decomposition
     stoptol: float
@@ -24,12 +23,12 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
         Order to loop through dimensions (default: [range(tensor.ndims)])
     maxiters: int
         Maximum number of iterations (default: 1000)
-    init: str or :class:`TensorToolbox.ktensor`
+    init: str or :class:`pyttb.ktensor`
         Initial guess (default: "random")
 
-             * "random": initialize using a :class:`TensorToolbox.ktensor` with values chosen from a Normal distribution with mean 1 and standard deviation 0
-             * "nvecs": initialize factor matrices of a :class:`TensorToolbox.ktensor` using the eigenvectors of the outer product of the matricized input tensor
-             * :class:`TensorToolbox.ktensor`: initialize using a specific :class:`TensorToolbox.ktensor` as input - must be the same shape as the input tensor and have the same rank as the input rank
+             * "random": initialize using a :class:`pyttb.ktensor` with values chosen from a Normal distribution with mean 1 and standard deviation 0
+             * "nvecs": initialize factor matrices of a :class:`pyttb.ktensor` using the eigenvectors of the outer product of the matricized input tensor
+             * :class:`pyttb.ktensor`: initialize using a specific :class:`pyttb.ktensor` as input - must be the same shape as the input tensor and have the same rank as the input rank
 
     printitn: int
         Number of iterations to perform before printing iteration status - 0 for no status printing (default: 1)
@@ -38,9 +37,9 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
     Returns
     -------
-    M: :class:`TensorToolbox.ktensor`
+    M: :class:`pyttb.ktensor`
         Resulting ktensor from CP-ALS factorization
-    Minit: :class:`TensorToolbox.ktensor`
+    Minit: :class:`pyttb.ktensor`
         Initial guess
     output: dict
         Information about the computation. Dictionary keys:
@@ -93,7 +92,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
      Iter 1: f = 1.0 f-delta = 0.0
      Final f = 1.0
 
-    Example using :class:`TensorToolbox.ktensor` initialization:
+    Example using :class:`pyttb.ktensor` initialization:
 
     >>> M, Minit, output = ttb.cp_als(K.full(), 2, init=K)
     CP_ALS:
@@ -247,5 +246,5 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
 if __name__ == "__main__":
     import doctest               # pragma: no cover
-    import TensorToolbox as ttb  # pragma: no cover
+    import pyttb as ttb  # pragma: no cover
     doctest.testmod()            # pragma: no cover

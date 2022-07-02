@@ -2,9 +2,10 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import pyttb as ttb
+from .pyttb_utils import *
 import numpy as np
 import os
-import TensorToolbox as ttb
 
 def export_data(data, filename, fmt_data=None, fmt_weights=None):
     """

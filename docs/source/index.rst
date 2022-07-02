@@ -1,7 +1,7 @@
 .. Python Tensor Toolbox documentation master file
 
-Python Tensor Toolbox
-**********************
+pyttb: Python Tensor Toolbox
+****************************
 Tensors (also known as multidimensional arrays or N-way arrays) are used
 in a variety of applications ranging from chemometrics to network
 analysis.
@@ -15,13 +15,13 @@ analysis.
 
 Functionality
 ==============
-The Python Tensor Toolbox provides the following classes and functions
+pyttb provides the following classes and functions
 for manipulating dense, sparse, and structured tensors, along with
 algorithms for computing low-rank tensor models.
 
 - `Tensor Classes`_ 
 
-   The Python Tensor Toolbox supports multiple tensor types, including
+   pyttb supports multiple tensor types, including
    dense and sparse, as well as specially structured tensors, such as
    the Krusal format (stored as factor matrices).
 
@@ -48,7 +48,7 @@ Python API
 Contact
 ================
 
-Please email dmdunla@sandia.gov with any questions about the toolbox
+Please email dmdunla@sandia.gov with any questions about pyttb
 that cannot be resolved via issue reporting. Stories of its usefulness
 are especially welcome. We will try to respond to every email may not
 always be successful due to the volume of emails.

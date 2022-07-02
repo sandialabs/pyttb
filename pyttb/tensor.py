@@ -2,9 +2,9 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import numpy as np
+import pyttb as ttb
 from .pyttb_utils import *
-import TensorToolbox as ttb
+import numpy as np
 from itertools import permutations
 from numpy_groupies import aggregate as accumarray
 import scipy.sparse.linalg
@@ -38,7 +38,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         # CONVERT A MULTIDIMENSIONAL ARRAY
         if not issubclass(data.dtype.type, np.number) and not issubclass(data.dtype.type, np.bool_):
@@ -78,13 +78,13 @@ class tensor(object):
 
         Parameters
         ----------
-        source: :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.tensor`, :class:`TensorToolbox.ktensor`, \
-            :class:`TensorToolbox.ttensor`, :class:`TensorToolbox.sumtensor`, :class:`TensorToolbox.symtensor`, \
-            or :class:`TensorToolbox.symktensor`
+        source: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, :class:`pyttb.ktensor`, \
+            :class:`pyttb.ttensor`, :class:`pyttb.sumtensor`, :class:`pyttb.symtensor`, \
+            or :class:`pyttb.symktensor`
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         # CONVERSION/COPY CONSTRUCTORS
         if isinstance(source, tensor):
@@ -113,7 +113,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         # FUNCTION HANDLE AND SIZE
 
@@ -138,7 +138,7 @@ class tensor(object):
 
         Returns
         -------
-        float, :class:`TensorToolbox.tensor`
+        float, :class:`pyttb.tensor`
         """
         if self.data.size == 0:
             return np.array([])
@@ -247,7 +247,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
 
         Examples
         --------
@@ -304,7 +304,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         return ttb.tensor.from_data(self.data)
 
@@ -314,8 +314,8 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.ktensor`,\
-        :class:`TensorToolbox.ttensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, :class:`pyttb.ktensor`,\
+        :class:`pyttb.ttensor`
 
         Returns
         -------
@@ -347,7 +347,7 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
 
         Returns
         -------
@@ -453,11 +453,11 @@ class tensor(object):
 
         Parameters
         ----------
-        B: int, float, :class:`TensorToolbox.tensor`
+        B: int, float, :class:`pyttb.tensor`
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
 
         def logical_and(x, y):
@@ -471,7 +471,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         return ttb.tensor.from_data(np.logical_not(self.data))
 
@@ -481,11 +481,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def tensor_or(x, y):
             return np.logical_or(x, y)
@@ -498,11 +498,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def tensor_xor(x, y):
             return np.logical_xor(x, y)
@@ -515,7 +515,7 @@ class tensor(object):
 
         Parameters
         ----------
-        W: :class:`TensorToolbox.tensor`
+        W: :class:`pyttb.tensor`
 
         Returns
         -------
@@ -699,7 +699,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
             shapeNew == shapePrevious[order]
 
         """
@@ -741,7 +741,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`, float
+        :class:`pyttb.tensor`, float
 
         Examples
         --------
@@ -1172,7 +1172,7 @@ class tensor(object):
 
         Returns
         -------
-        item: :class:`TensorToolbox.tensor` or :class:`numpy.ndarray`
+        :class:`pyttb.tensor` or :class:`numpy.ndarray`
         """
         # Case 1: Rectangular Subtensor
         if isinstance(item, tuple) and len(item) == self.ndims and item[len(item) - 1] != 'extract':
@@ -1241,11 +1241,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def tensor_equality(x,y):
             return x == y
@@ -1258,11 +1258,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def tensor_notEqual(x, y):
             return x != y
@@ -1275,11 +1275,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def ge(x, y):
             return x >= y
@@ -1292,11 +1292,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def le(x, y):
             return x <= y
@@ -1309,11 +1309,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
 
         def gt(x, y):
@@ -1327,11 +1327,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
 
         def lt(x, y):
@@ -1345,11 +1345,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def minus(x, y):
             return x-y
@@ -1362,11 +1362,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
 
         # If rhs is sumtensor, treat as such
@@ -1384,11 +1384,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
 
         return self.__add__(other)
@@ -1399,11 +1399,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other::class:`TensorToolbox.tensor`, float, int
+        other::class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
 
         def tensor_pow(x, y):
@@ -1417,11 +1417,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def mul(x, y):
             return x*y
@@ -1437,11 +1437,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         return self.__mul__(other)
 
@@ -1451,11 +1451,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def div(x, y):
             # We ignore the divide by zero errors because np.inf/np.nan is an appropriate representation
@@ -1470,11 +1470,11 @@ class tensor(object):
 
         Parameters
         ----------
-        other::class:`TensorToolbox.tensor`, float, int
+        other::class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
         """
         def div(x, y):
             # We ignore the divide by zero errors because np.inf/np.nan is an appropriate representation
@@ -1489,7 +1489,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
             copy of tensor
         """
 
@@ -1501,7 +1501,7 @@ class tensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
             copy of tensor
         """
 

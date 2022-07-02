@@ -4,7 +4,7 @@ LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 U.S. Government retains certain rights in this software.
 ```
 
-# Python Tensor Toolbox (pyttb)
+# pyttb: Python Tensor Toolbox
 
 ## Contributors
 * Danny Dunlavy, Nick Johnson, Derek Tucker
@@ -12,17 +12,17 @@ U.S. Government retains certain rights in this software.
 ## Quick start
 
 ### Install
-* User: ```python3 setup.py install```
-* Developer: ```python3 setup.py develop```
+* User: ```python setup.py install```
+* Developer: ```python setup.py develop```
 
 ### Testing
 ```
-python3 -m pytest
+python -m pytest
 ```
 
 ### Coverage Testing
 ```
-pytest --cov=TensorToolbox  tests/ --cov-report=html
+pytest --cov=pyttb  tests/ --cov-report=html
 # output can be accessed via htmlcov/index.html
 ```
 

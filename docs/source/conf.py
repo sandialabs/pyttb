@@ -25,12 +25,12 @@ sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Python Tensor Toolbox'
+project = 'pyttb'
 copyright = ''
-author = 'Daniel M. Dunlavy, Nicholas Johnson'
+author = 'Danny Dunlavy, Nick Johnson'
 
 # The short X.Y version
-version = '1.0.0'
+version = '1.2.0'
 # The full version, including alpha/beta/rc tags
 release = ''
 
@@ -120,7 +120,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PythonTensorToolboxdoc'
+htmlhelp_basename = 'pyttbdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -147,8 +147,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'PythonTensorToolbox.tex', 'Python Tensor Toolbox Documentation',
-     'Daniel M. Dunlavy, Nicholas Johnson', 'manual'),
+    (master_doc, 'pyttb.tex', 'pyttb Documentation',
+     'Danny Dunlavy, Nick Johnson', 'manual'),
 ]
 
 
@@ -157,7 +157,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pythontensortoolbox', 'Python Tensor Toolbox Documentation',
+    (master_doc, 'pyttb', 'pyttb Documentation',
      [author], 1)
 ]
 
@@ -168,8 +168,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PythonTensorToolbox', 'Python Tensor Toolbox Documentation',
-     author, 'PythonTensorToolbox', 'One line description of project.',
+    (master_doc, 'pyttb', 'pyttb Documentation',
+     author, 'Danny Dunlavy, Nick Johnson', 'Python Tensor Toolbox',
      'Miscellaneous'),
 ]
 

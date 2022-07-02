@@ -1,2 +1,2 @@
-TensorToolbox.symtensor
+pyttb.symtensor
 =======================

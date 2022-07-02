@@ -2,10 +2,10 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import numpy as np
+import pyttb as ttb
 from .pyttb_utils import *
-import TensorToolbox as ttb
 import numpy as np
+
 
 class tenmat(object):
     """
@@ -23,45 +23,6 @@ class tenmat(object):
         self.rindices = np.array([])
         self.cindices = np.array([])
         self.data = np.array([])
-
-    #@classmethod
-    #def from_data(cls, data, rdims, cdims, tshape=None):
-    ## CONVERT A MULTIDIMENSIONAL ARRAY
-    #    if not isinstance(data, np.ndarray) or not issubclass(data.dtype.type, np.number):
-    #        assert False, 'First argument must be a numeric numpy.ndarray.'
-
-    #    # if len(data.shape) <= 1 or np.min(data.shape) == 1:
-    #    if len(data.shape) <= 1 or np.min(data.shape) == 1:
-    #        assert False, 'tenmat objects cannot be created from empty or 1D arrays.'
-    #    elif len(data.shape) == 2:
-    #        # Case I: Called to convert a matrix to a tenmat
-    #        # Avoids converting to tensor and then to tenmat 
-
-    #        # Check fourth argument
-    #        if not isinstance(tshape, tuple):
-    #            assert False, 'Fourth argument must be a tuple.'
-
-    #        # Error checks
-    #        n = len(tshape)
-    #        dims = np.sort(np.hstack([rdims, cdims]))
-    #        if not len(dims) == n or not (np.array(range(n)) == dims).all(): 
-    #            assert False, 'Incorrect specification of dimensions, the sorted concatenation of rdims and cdims must be range(source.ndims).'
-    #        if not np.prod(np.array(tshape)[rdims]) == data.shape[0]:
-    #            assert False, 'data.shape[0] does not match shape specified by rdims and tshape.'
-    #        if not np.prod(np.array(tshape)[cdims]) == data.shape[1]:
-    #            assert False, 'data.shape[1] does not match shape specified by cdims and tshape.'
-        
-    #        # Create tenmat from data
-    #        tenmatInstance = cls()
-    #        tenmatInstance.tshape = tshape
-    #        tenmatInstance.rindices = rdims.copy()
-    #        tenmatInstance.cindices = cdims.copy()
-    #        tenmatInstance.data = data.copy()
-    #        return tenmatInstance
-    #    else:
-    #        # Case II: Called to convert an MDA to a tenmat --- recall after converting MDA to a tensor.
-    #        tenmatInstance = ttb.tenmat.from_tensor_type(ttb.tensor.from_data(data), rdims, cdims)
-    #        return tenmatInstance
 
     @classmethod
     def from_data(cls, data, rdims, cdims, tshape=None):
@@ -172,7 +133,7 @@ class tenmat(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
         """
 
         tenmatInstance = tenmat()
@@ -281,11 +242,11 @@ class tenmat(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tenmat`
+        other: :class:`pyttb.tenmat`
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
         """
         # One argument is a scalar
         if np.isscalar(other):
@@ -317,11 +278,11 @@ class tenmat(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tenmat`
+        other: :class:`pyttb.tenmat`
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
         """
         return self.__mul__(other)
 
@@ -332,11 +293,11 @@ class tenmat(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tenmat`, float, int
+        other: :class:`pyttb.tenmat`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
         """
 
         # One argument is a scalar
@@ -361,11 +322,11 @@ class tenmat(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tenmat`, float, int
+        other: :class:`pyttb.tenmat`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
         """
         return self.__add__(other)
 
@@ -376,11 +337,11 @@ class tenmat(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tenmat`, float, int
+        other: :class:`pyttb.tenmat`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
         """
 
         # One argument is a scalar
@@ -405,11 +366,11 @@ class tenmat(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tenmat`, float, int
+        other: :class:`pyttb.tenmat`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
         """
 
         # One argument is a scalar
@@ -435,7 +396,7 @@ class tenmat(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
             copy of tenmat
         """
 
@@ -449,7 +410,7 @@ class tenmat(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tenmat`
+        :class:`pyttb.tenmat`
             copy of tenmat
         """
 

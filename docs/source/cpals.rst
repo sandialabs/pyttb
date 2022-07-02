@@ -1,7 +1,7 @@
-TensorToolbox.cp_als
+pyttb.cp_als
 ====================
 
-.. automodule:: TensorToolbox.cp_als
+.. automodule:: pyttb.cp_als
     :members:
     :undoc-members:
     :show-inheritance:

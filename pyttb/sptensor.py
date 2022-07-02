@@ -2,9 +2,9 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import numpy as np
+import pyttb as ttb
 from .pyttb_utils import *
-import TensorToolbox as ttb
+import numpy as np
 from numpy_groupies import aggregate as accumarray
 import warnings
 import scipy.sparse as sparse
@@ -21,7 +21,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Empty constructor
         self.subs = np.array([], ndmin=2, dtype=int)
@@ -49,13 +49,13 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
 
         Examples
         --------
         Import required modules:
 
-        >>> import TensorToolbox as ttb
+        >>> import pyttb as ttb
         >>> import numpy as np
 
         Set up input data
@@ -75,17 +75,17 @@ class sptensor(object):
     @classmethod
     def from_tensor_type(cls, source):
         """
-        Contruct an :class:`TensorToolbox.sptensor` from :class:`TensorToolbox.sptensor`,
-        :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptenmat`, :class:`TensorToolbox.sptensor3`
+        Contruct an :class:`pyttb.sptensor` from :class:`pyttb.sptensor`,
+        :class:`pyttb.tensor`, :class:`pyttb.sptenmat`, :class:`pyttb.sptensor3`
 
         Parameters
         ----------
-        source: :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptenmat`,\
-            or :class:`TensorToolbox.sptensor3`
+        source: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, :class:`pyttb.sptenmat`,\
+            or :class:`pyttb.sptensor3`
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Copy Constructor
         if isinstance(source, sptensor):
@@ -129,7 +129,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Random Tensor
         assert callable(function_handle), "function_handle must be callable"
@@ -170,7 +170,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
 
         Examples
         --------
@@ -475,8 +475,8 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.ktensor`,
-        :class:`TensorToolbox.ttensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, :class:`pyttb.ktensor`,
+        :class:`pyttb.ttensor`
 
         Returns
         -------
@@ -522,7 +522,7 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
 
         Returns
         -------
@@ -578,7 +578,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor` Sparse tensor with all zero-values marked from original sparse tensor
+        :class:`pyttb.sptensor` Sparse tensor with all zero-values marked from original sparse tensor
         """
         allsubs = self.allsubs()
         subsIdx = ttb.tt_setdiff_rows(allsubs, self.subs)
@@ -592,7 +592,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:'TensorToolbox.sptensor` or :class:'TensorToolbox.tensor` sptensor.logical_or(<int,float,tensor>) yields
+        :class:'pyttb.sptensor` or :class:'pyttb.tensor` sptensor.logical_or(<int,float,tensor>) yields
         tensor, sptensor.logical_or(sptensor) yields sptensor.
         """
         # Case 1: Argument is a scalar or tensor
@@ -646,7 +646,7 @@ class sptensor(object):
 
         Parameters
         ----------
-        W: :class:`TensorToolbox.sptensor`
+        W: :class:`pyttb.sptensor`
 
         Returns
         -------
@@ -820,7 +820,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         #Error check
         if self.ndims != order.size or np.any(np.sort(order) != np.arange(0, self.ndims)):
@@ -842,7 +842,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
 
         if old_modes is None:
@@ -880,7 +880,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         if isinstance(dims, (float, int)):
             dims = np.array([dims])
@@ -926,7 +926,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor` or float if sptensor is only singleton dimensions
+        :class:`pyttb.sptensor` or float if sptensor is only singleton dimensions
         """
         shapeArray = np.array(self.shape)
 
@@ -1108,7 +1108,7 @@ class sptensor(object):
         Returns
         -------
 
-        :class:`numpy.ndarray` or :class:`TensorToolbox.sptensor`
+        :class:`numpy.ndarray` or :class:`pyttb.sptensor`
 
         Examples
         --------
@@ -1239,7 +1239,7 @@ class sptensor(object):
         Parameters
         ----------
         key: tuple(int),tuple(slice),:class:`numpy.ndarray`
-        value: int,float, :class:`numpy.ndarray`, :class:`TensorToolbox.sptensor`
+        value: int,float, :class:`numpy.ndarray`, :class:`pyttb.sptensor`
 
         """
         # TODO IndexError for value outside of indices
@@ -1513,7 +1513,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Case 1: other is a scalar
         if isinstance(other, (float, int)):
@@ -1574,7 +1574,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
@@ -1637,11 +1637,11 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Case 1: One argument is a scalar
         # Emulating the sparse matrix case here, which creates and returns
@@ -1663,11 +1663,11 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # If other is sumtensor perform sumtensor add
         if isinstance(other, ttb.sumtensor):  # pragma: no cover
@@ -1681,7 +1681,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`, copy of tensor
+        :class:`pyttb.sptensor`, copy of tensor
         """
 
         return ttb.sptensor.from_tensor_type(self)
@@ -1692,7 +1692,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`, copy of tensor
+        :class:`pyttb.sptensor`, copy of tensor
         """
 
         return ttb.sptensor.from_data(self.subs, -1*self.vals, self.shape)
@@ -1703,11 +1703,11 @@ class sptensor(object):
 
         Parameters
         ----------
-        :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.tensor`, float, int
+        :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         if isinstance(other, (float,int)):
             return ttb.sptensor.from_data(self.subs, self.vals*other, self.shape)
@@ -1749,7 +1749,7 @@ class sptensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         if isinstance(other, (float,int)):
             return self.__mul__(other)
@@ -1762,11 +1762,11 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # TODO le,lt,ge,gt have a lot of code duplication, look at generalizing them for future maintainabilty
         # Case 1: One argument is a scalar
@@ -1843,11 +1843,11 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
@@ -1917,11 +1917,11 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Case 1: Argument is a scalar
         if isinstance(other, (float, int)):
@@ -1965,11 +1965,11 @@ class sptensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.sptensor`, :class:`TensorToolbox.tensor`, float, int
+        other: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.sptensor`
+        :class:`pyttb.sptensor`
         """
         # Case 1: Argument is a scalar
         if isinstance(other, (float, int)):

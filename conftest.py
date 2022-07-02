@@ -5,8 +5,8 @@
 # content of conftest.py
 import pytest
 import numpy
-import TensorToolbox
+import pyttb
 @pytest.fixture(autouse=True)
 def add_packages(doctest_namespace):
     doctest_namespace['np'] = numpy
-    doctest_namespace['ttb'] = TensorToolbox
+    doctest_namespace['ttb'] = pyttb

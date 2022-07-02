@@ -1,2 +1,2 @@
-TensorToolbox.hosvd
+pyttb.hosvd
 ===================

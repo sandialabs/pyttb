@@ -2,14 +2,18 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import numpy as np
+import pyttb as ttb
 from .pyttb_utils import *
+import numpy as np
 
-class sptenmat(object):
+class sumtensor(object):
     """
-    SPTENMAT Store sparse tensor as a sparse matrix.
+    SUMTENSOR Class for implicit sum of other tensors.
 
     """
 
     def __init__(self, *args):  # pragma:no cover
-        assert False, "SPTENMAT class not yet implemented"
+        assert False, "SUMTENSOR class not yet implemented"
+
+    def __add__(self, other):  # pragma:no cover
+        assert False, "SUMTENSOR class not yet implemented"

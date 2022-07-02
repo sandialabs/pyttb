@@ -7,11 +7,11 @@ from setuptools import setup
 setup(
     name='pyttb',
     version='1.2.0',
-    packages=['TensorToolbox'],
+    packages=['pyttb'],
     package_dir={'': '.'},
     url='',
     license='',
-    author='Daniel Dunlavy, Nicholas Johnson',
+    author='Danny Dunlavy, Nick Johnson',
     author_email='',
     description='Python Tensor Toolbox (pyttb)',
     install_requires=[

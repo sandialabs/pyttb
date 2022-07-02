@@ -1,7 +1,7 @@
-TensorToolbox.ktensor
+pyttb.ktensor
 ---------------------
 
-.. autoclass:: TensorToolbox.ktensor
+.. autoclass:: pyttb.ktensor
     :members:
     :special-members:
     :exclude-members: weights, factor_matrices, __dict__,__weakref__, __init__, __slots__

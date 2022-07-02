@@ -1,2 +1,2 @@
-TensorToolbox.cparls
+pyttb.cparls
 ====================

@@ -7,3 +7,5 @@ Tensor Classes
     ktensor.rst
     sptensor.rst
     tensor.rst
+    tenmat.rst
+

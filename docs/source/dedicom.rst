@@ -1,2 +1,2 @@
-TensorToolbox.dedicom
+pyttb.dedicom
 =====================

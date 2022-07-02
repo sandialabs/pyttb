@@ -4,9 +4,9 @@
 
 """Classes and functions for working with Kruskal tensors."""
 
+import pyttb as ttb
+from .pyttb_utils import *
 import numpy as np
-from TensorToolbox.pyttb_utils import *
-import TensorToolbox as ttb
 import warnings
 import scipy.sparse as sparse
 import scipy.sparse.linalg
@@ -24,7 +24,7 @@ class ktensor(object):
     of dimensions of the tensor. The shape of the ith element of the list is (n_i, r), where n_i is the length \
     dimension i and r is the rank of the tensor (as well as the length of the weights vector).
 
-    Although the constructor, `__init__()`, can be used to create an empty :class:`TensorToolbox.ktensor`, there
+    Although the constructor, `__init__()`, can be used to create an empty :class:`pyttb.ktensor`, there
     are several class methods that can be used to create an instance of this class:
 
       * :meth:`from_data`
@@ -38,9 +38,9 @@ class ktensor(object):
 
     def __init__(self):
         """
-        Constructor for :class:`TensorToolbox.ktensor`
+        Constructor for :class:`pyttb.ktensor`
 
-        The constructor takes no arguments and returns an empty :class:`TensorToolbox.ktensor`.
+        The constructor takes no arguments and returns an empty :class:`pyttb.ktensor`.
         """
         # Empty constructor
         self.weights = np.array([])  # renamed from lambda to weights
@@ -49,7 +49,7 @@ class ktensor(object):
     @classmethod
     def from_data(cls, weights, *factor_matrices):
         """
-        Construct a :class:`TensorToolbox.ktensor` from weights and factor matrices.
+        Construct a :class:`pyttb.ktensor` from weights and factor matrices.
 
         The length of the list or the number of arguments specified by `factor_matrices` must equal
         the length of `weights`
@@ -61,7 +61,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -135,11 +135,11 @@ class ktensor(object):
 
         Parameters
         ----------
-        source: :class:`TensorToolbox.ktensor`
+        source: :class:`pyttb.ktensor`
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -172,7 +172,7 @@ class ktensor(object):
         [[5. 6.]
          [7. 8.]]
 
-         See also :func:`~TensorToolbox.ktensor.copy`
+         See also :func:`~pyttb.ktensor.copy`
         """
         if isinstance(source, ktensor):
             return cls().from_data(source.weights.copy(), [f.copy() for f in source.factor_matrices])
@@ -198,7 +198,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -258,7 +258,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -350,7 +350,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -446,7 +446,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -520,7 +520,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -693,14 +693,14 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.ktensor`
+        other: :class:`pyttb.ktensor`
             If not None, returns a version of the `ktensor` where some of the signs of
             the columns of the factor matrices have been flipped to better align
             with `other`.
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
             The changes are made in place and a reference to the updated tensor is returned
 
         Example
@@ -827,7 +827,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.tensor`
+        :class:`pyttb.tensor`
 
         Example
         -------
@@ -972,7 +972,7 @@ class ktensor(object):
 
         Parameters
         ----------
-        W: :class:`TensorToolbox.sptensor`
+        W: :class:`pyttb.sptensor`
 
         Returns
         -------
@@ -1116,7 +1116,7 @@ class ktensor(object):
 
         Returns
         --------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
 
         Example
         -------
@@ -1264,7 +1264,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
             shapeNew == shapePrevious[order]
 
         Example
@@ -1372,7 +1372,7 @@ class ktensor(object):
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
             A new `ktensor` whose factor matrices are symmetric
 
         Example
@@ -1619,7 +1619,7 @@ class ktensor(object):
 
         Returns
         -------
-        float or :class:`TensorToolbox.ktensor`
+        float or :class:`pyttb.ktensor`
             The number of dimensions of the returned `ktensor` is N-k, where N=self.ndims and k = number of
             vectors provided as input. If k == N, a scalar is returned
 
@@ -1717,7 +1717,7 @@ class ktensor(object):
 
         Results
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
             The update is performed in place and a reference to self is returned
 
         Example
@@ -1831,11 +1831,11 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.ktensor`
+        other: :class:`pyttb.ktensor`
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
         """
         # TODO include test of other as sumtensor and call sumtensor.__add__
         if not isinstance(other, ktensor):
@@ -1909,11 +1909,11 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.ktensor`
+        other: :class:`pyttb.ktensor`
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
         """
         return ktensor.from_data(-self.weights, self.factor_matrices)
 
@@ -1923,11 +1923,11 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.ktensor`
+        other: :class:`pyttb.ktensor`
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
         """
         return ktensor.from_tensor_type(self)
 
@@ -1955,11 +1955,11 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.ktensor`
+        other: :class:`pyttb.ktensor`
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
         """
         if not isinstance(other, ktensor):
             assert False, 'Cannot subtract instance of this type from a ktensor'
@@ -1979,11 +1979,11 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`, float, int
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
         """
         if isinstance(other, (ttb.sptensor, ttb.tensor)):
             return other.__mul__(self)
@@ -1999,11 +1999,11 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`TensorToolbox.tensor`, :class:`TensorToolbox.sptensor`, float, int
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`TensorToolbox.ktensor`
+        :class:`pyttb.ktensor`
         """
         return self.__mul__(other)
 
@@ -2031,5 +2031,5 @@ class ktensor(object):
 
 if __name__ == "__main__":
     import doctest               # pragma: no cover
-    import TensorToolbox as ttb  # pragma: no cover
+    import pyttb as ttb  # pragma: no cover
     doctest.testmod()            # pragma: no cover

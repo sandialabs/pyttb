@@ -4,7 +4,7 @@ pyttb.egg-info/
 dist/
 .pytest_cache
 tests/__pycache__
-TensorToolbox/__pycache__
+pyttb/__pycache__
 build/
 .coverage
 .ipynb_checkpoints

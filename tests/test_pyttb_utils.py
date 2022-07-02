@@ -2,9 +2,9 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import pyttb as ttb
 import numpy as np
 import pytest
-import TensorToolbox as ttb
 import scipy.sparse as sparse
 
 @pytest.mark.indevelopment

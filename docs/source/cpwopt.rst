@@ -1,2 +1,2 @@
-TensorToolbox.cpwopt
+pyttb.cpwopt
 ====================

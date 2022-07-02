@@ -2,10 +2,10 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import pyttb as ttb
 from .pyttb_utils import *
-import TensorToolbox as ttb
-import time
 import numpy as np
+import time
 from numpy_groupies import aggregate as accumarray
 import warnings
 
@@ -19,7 +19,7 @@ def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=10
     
     Parameters
     ----------
-    tensor: :class:`TensorToolbox.tensor` or :class:`TensorToolbox.sptensor`
+    tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
     rank: int 
         Rank of the decomposition
     algorithm: str 
@@ -30,7 +30,7 @@ def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=10
         Maximum number of seconds to run
     maxiters: int
         Maximum number of iterations
-    init: str or :class:`TensorToolbox.ktensor`
+    init: str or :class:`pyttb.ktensor`
         Initial guess
     maxinneriters: int
         Maximum inner iterations per outer iteration
@@ -57,9 +57,9 @@ def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=10
 
     Returns
     -------
-    M: :class:`TensorToolbox.ktensor`
+    M: :class:`pyttb.ktensor`
         Resulting ktensor from CP APR
-    Minit: :class:`TensorToolbox.ktensor`
+    Minit: :class:`pyttb.ktensor`
         Initial Guess
     output: dict
         Additional output #TODO document this more appropriately
@@ -119,10 +119,10 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
 
     Parameters
     ----------
-    tensor: :class:`TensorToolbox.tensor` or :class:`TensorToolbox.sptensor`
+    tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
     rank: int
         Rank of the decomposition
-    init: :class:`TensorToolbox.ktensor`
+    init: :class:`pyttb.ktensor`
         Initial guess
     stoptol: float
         Tolerance on overall KKT violation
@@ -290,10 +290,10 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
     Parameters
     ----------
     # TODO it looks like this method of define union helps the typ hinting better than or
-    tensor: Union[:class:`TensorToolbox.tensor`,:class:`TensorToolbox.sptensor`]
+    tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
     rank: int
         Rank of the decomposition
-    init: str or :class:`TensorToolbox.ktensor`
+    init: str or :class:`pyttb.ktensor`
         Initial guess
     stoptol: float
         Tolerance on overall KKT violation
@@ -599,10 +599,10 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
 
     Parameters
     ----------
-    tensor: Union[:class:`TensorToolbox.tensor`,:class:`TensorToolbox.sptensor`]
+    tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
     rank: int
         Rank of the decomposition
-    init: str or :class:`TensorToolbox.ktensor`
+    init: str or :class:`pyttb.ktensor`
         Initial guess
     stoptol: float
         Tolerance on overall KKT violation
@@ -910,9 +910,9 @@ def tt_calcpi_prowsubprob(Data, Model, rank, factorIndex, ndims, isSparse=False,
 
     Parameters
     ----------
-    Data :class:`TensorToolbox.sptensor` or :class:`TensorToolbox.tensor`
+    Data :class:`pyttb.sptensor` or :class:`pyttb.tensor`
     isSparse: bool
-    Model :class:`TensorToolbox.ktensor`
+    Model :class:`pyttb.ktensor`
     rank: int
     factorIndex: int
     ndims: int
@@ -925,7 +925,7 @@ def tt_calcpi_prowsubprob(Data, Model, rank, factorIndex, ndims, isSparse=False,
 
     See Also
     --------
-    :class:`TensorToolbox.calculatePi`
+    :class:`pyttb.calculatePi`
 
     """
     # TODO: this can probably be merged with general calculate pi, where default for sparse_indices is slice(None,None,None)
@@ -1357,8 +1357,8 @@ def calculatePi(Data, Model, rank, factorIndex, ndims):
 
     Parameters
     ----------
-    Data: :class:`TensorToolbox.sptensor` or :class:`TensorToolbox.tensor`
-    Model: :class:`TensorToolbox.ktensor`
+    Data: :class:`pyttb.sptensor` or :class:`pyttb.tensor`
+    Model: :class:`pyttb.ktensor`
     rank: int
     factorIndex: int
     ndims: int
@@ -1381,8 +1381,8 @@ def calculatePhi(Data, Model, rank, factorIndex, Pi, epsilon):
 
     Parameters
     ----------
-    Data: :class:`TensorToolbox.sptensor` or :class:`TensorToolbox.tensor`
-    Model: :class:`TensorToolbox.ktensor`
+    Data: :class:`pyttb.sptensor` or :class:`pyttb.tensor`
+    Model: :class:`pyttb.ktensor`
     rank: int
     factorIndex: int
     Pi: :class:`numpy.ndarray`
@@ -1415,8 +1415,8 @@ def tt_loglikelihood(Data, Model):
 
     Parameters
     ----------
-    Data: :class:`TensorToolbox.sptensor` or :class:`TensorToolbox.tensor`
-    Model: :class:`TensorToolbox.ktensor`
+    Data: :class:`pyttb.sptensor` or :class:`pyttb.tensor`
+    Model: :class:`pyttb.ktensor`
 
     Returns
     -------

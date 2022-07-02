@@ -1,2 +1,2 @@
-TensorToolbox.ttensor
+pyttb.ttensor
 =====================

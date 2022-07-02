@@ -2,8 +2,8 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import pyttb as ttb
 import numpy as np
-import TensorToolbox as ttb
 from inspect import signature
 import scipy.sparse as sparse
 
@@ -13,7 +13,7 @@ def tt_to_dense_matrix(tensorInstance, mode, transpose= False):
 
     Parameters
     ----------
-    tensorInstance: :class:`TensorToolbox.tensor` or :class:`TensorToolbox.tensor`
+    tensorInstance: :class:`pyttb.tensor` or :class:`pyttb.tensor`
         Ktensor->matrix is supported but the inverse is not
     mode: int
         Mode around which to unwrap tensor
@@ -39,7 +39,7 @@ def tt_to_dense_matrix(tensorInstance, mode, transpose= False):
 
 def tt_from_dense_matrix(matrix, shape, mode, idx):
     """
-    Helper function to wrap dense matrix into tensor. Inverse of :class:`TensorToolbox.tt_to_dense_matrix`
+    Helper function to wrap dense matrix into tensor. Inverse of :class:`pyttb.tt_to_dense_matrix`
 
     Parameters
     ----------
@@ -51,7 +51,7 @@ def tt_from_dense_matrix(matrix, shape, mode, idx):
 
     Returns
     -------
-    tensorInstance: :class:`TensorToolbox.tensor`
+    tensorInstance: :class:`pyttb.tensor`
     """
     tensorInstance = ttb.tensor.from_data(matrix)
     if idx == 0:
@@ -66,7 +66,7 @@ def tt_to_sparse_matrix(sptensorInstance, mode, transpose= False):
 
     Parameters
     ----------
-    sptensorInstance: :class:`TensorToolbox.sptensor`
+    sptensorInstance: :class:`pyttb.sptensor`
     mode: int
         Mode around which to unwrap tensor
     transpose: bool
@@ -85,7 +85,7 @@ def tt_to_sparse_matrix(sptensorInstance, mode, transpose= False):
 
 def tt_from_sparse_matrix(spmatrix, shape, mode, idx):
     """
-    Helper function to wrap sparse matrix into sptensor. Inverse of :class:`TensorToolbox.tt_to_sparse_matrix`
+    Helper function to wrap sparse matrix into sptensor. Inverse of :class:`pyttb.tt_to_sparse_matrix`
 
     Parameters
     ----------
@@ -97,7 +97,7 @@ def tt_from_sparse_matrix(spmatrix, shape, mode, idx):
 
     Returns
     -------
-    sptensorInstance: :class:`TensorToolbox.sptensor`
+    sptensorInstance: :class:`pyttb.sptensor`
     """
     siz = np.array(shape)
     old = np.setdiff1d(np.arange(len(shape)), mode).astype(int)
@@ -209,7 +209,7 @@ def tt_tenfun(function_handle, *inputs):
 
     Returns
     -------
-    :class:`TensorToolbox.tensor`
+    :class:`pyttb.tensor`
     """
     # Allow inputs to be mutable in case of type conversion
     inputs = list(inputs)
@@ -340,7 +340,7 @@ def tt_irenumber(t, shape, number_range):
 
     Parameters
     ----------
-    t: :class:`TensorToolbox.sptensor`
+    t: :class:`pyttb.sptensor`
     shape: tuple(int)
     range: tuple, len(range) = modes in tensor. Is key from __setitem__
 
