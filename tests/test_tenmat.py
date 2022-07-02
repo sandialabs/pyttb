@@ -345,6 +345,29 @@ def test_tenmat_norm(sample_ndarray_1way, sample_tenmat_4way):
     assert ttb.tenmat().norm() == 0
 
 @pytest.mark.indevelopment
+def test_tenmat__setitem__():
+    ndarrayInstance = np.reshape(np.arange(1, 17), (2,2,2,2), order='F')
+    tensorInstance = ttb.tensor.from_data(ndarrayInstance, shape=(2,2,2,2))
+    tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, rdims=np.array([0,1]))
+
+    # single element -> scalar
+    tenmatInstance2 = ttb.tenmat.from_tensor_type(tenmatInstance)
+    for i in range(4):
+        for j in range(4):
+            tenmatInstance2[i,j] = i * 4 + j + 10
+    for i in range(4):
+        for j in range(4):
+            assert tenmatInstance2[i,j] == i * 4 + j + 10
+
+    # Exceptions
+    
+    # checking that index out of bounds throws exception
+    exc = 'index 5 is out of bounds for axis 1 with size 4'
+    with pytest.raises(IndexError) as excinfo:
+        tenmatInstance2[0,5] = 100
+    assert exc in str(excinfo)
+
+@pytest.mark.indevelopment
 def test_tenmat__getitem__():
     ndarrayInstance = np.reshape(np.arange(1, 17), (4,4), order='F')
     tensorInstance = ttb.tensor.from_data(ndarrayInstance,shape=(4,4))

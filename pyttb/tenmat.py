@@ -220,7 +220,8 @@ class tenmat(object):
         """
         SUBSASGN Subscripted assignment for a tensor.
         """
-        pass
+        self.data[key] = value
+        return
 
     def __getitem__(self, item):
         """
