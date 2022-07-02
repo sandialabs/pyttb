@@ -795,8 +795,9 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                     # Update the L-BFGS approximation.
                     tmp_delm = m_row - m_rowOLD
                     tmp_delg = gradM - gradOLD
-                    tmp_rho = 1 / (tmp_delm.dot(tmp_delg.transpose()))
-                    if np.all(tmp_rho > 0) and not np.any(np.isinf(tmp_rho)):
+                    tmp_delm_dot = tmp_delm.dot(tmp_delg.transpose())
+                    if not np.any(tmp_delm_dot == 0):
+                        tmp_rho = 1 / tmp_delm_dot
                         delm[:, lbfgsPos] = tmp_delm
                         delg[:, lbfgsPos] = tmp_delg
                         rho[lbfgsPos] = tmp_rho
