@@ -1,7 +1,7 @@
 # v1.3.2 (2022-06-27)
-- Update nvecs to use tenmat (Issue #25, PR #31)
-- Full implementation of collapse (Issue #2, PR #32)
-- Added CHANGELOG.md
+- Update `tensor.nvecs` to use `tenmat` (Issue #25, PR #31)
+- Full implementation of `tensor.collapse` (Issue #2, PR #32)
+- Added `CHANGELOG.md`
 
 # v1.3.1 (2022-07-01)
 - Using `pyttb.__version__` for specifying package version in code and docs
