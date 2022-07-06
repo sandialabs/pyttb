@@ -669,7 +669,7 @@ class tensor(object):
             array([[ 0.40455358,  0.9145143 ],
                    [ 0.9145143 , -0.40455358]])
         """
-        Xn =tt_to_dense_matrix(self, n)
+        Xn =ttb.tenmat.from_tensor_type(self, rdims=np.array([n])).double()
         y = Xn @ Xn.T
 
         if r < y.shape[0] - 1:
