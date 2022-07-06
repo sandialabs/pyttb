@@ -97,8 +97,9 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
 
 
 @pytest.mark.indevelopment
-def test_tensor_initialization_from_tensor_type(sample_tensor_2way):
+def test_tensor_initialization_from_tensor_type(sample_tensor_2way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
+    (_, tensorInstance4) = sample_tensor_4way
 
     # Copy Constructor
     tensorCopy = ttb.tensor.from_tensor_type(tensorInstance)
@@ -115,6 +116,22 @@ def test_tensor_initialization_from_tensor_type(sample_tensor_2way):
     b = ttb.tensor.from_tensor_type(a)
     assert (b.data == data).all()
     assert (b.shape == shape)
+
+    # tenmat
+    tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, np.array([0]))
+    tensorTenmatInstance = ttb.tensor.from_tensor_type(tenmatInstance)
+    assert tensorInstance.isequal(tensorTenmatInstance)
+
+    # 1D 1-element tenmat
+    tensorInstance1 = ttb.tensor.from_data(np.array([3]))
+    tenmatInstance1 = ttb.tenmat.from_tensor_type(tensorInstance1, np.array([0]))
+    tensorTenmatInstance1 = ttb.tensor.from_tensor_type(tenmatInstance1)
+    assert tensorInstance1.isequal(tensorTenmatInstance1)
+
+    # 4D tenmat
+    tenmatInstance4 = ttb.tenmat.from_tensor_type(tensorInstance4, np.array([3,0]))
+    tensorTenmatInstance4 = ttb.tensor.from_tensor_type(tenmatInstance4)
+    assert tensorInstance4.isequal(tensorTenmatInstance4)
 
 @pytest.mark.indevelopment
 def test_tensor_initialization_from_function():
@@ -822,9 +839,29 @@ def test_tensor_collapse(sample_tensor_2way, sample_tensor_3way, sample_tensor_4
     assert tensorInstance4.collapse() == 3321
     assert tensorInstance4.collapse(fun=np.max) == 81
 
-    with pytest.raises(AssertionError) as excinfo:
-        tensorInstance2.collapse(np.array([0]))
-    assert "collapse not implemented for arbitrary subset of dimensions; requires TENMAT class, which is not yet implemented" in str(excinfo)
+    # single dimension collapse
+    data = np.array([5, 7, 9])
+    tensorCollapse = tensorInstance2.collapse(np.array([0]))
+    assert (tensorCollapse.data == data).all()
+
+    # single dimension collapse using max function
+    datamax = np.array([4, 5, 6])
+    tensorCollapseMax = tensorInstance2.collapse(np.array([0]), fun=np.max)
+    assert (tensorCollapseMax.data == datamax).all()
+
+    # multiple dimensions collapse
+    data4 = np.array([[ 99, 342, 585],
+                      [126, 369, 612],
+                      [153, 396, 639]])
+    tensorCollapse4 = tensorInstance4.collapse(np.array([0, 2]))
+    assert (tensorCollapse4.data == data4).all()
+
+    # multiple dimensions collapse
+    data4max = np.array([[21, 48, 75],
+                         [24, 51, 78],
+                         [27, 54, 81]])
+    tensorCollapse4Max = tensorInstance4.collapse(np.array([0, 2]), fun=np.max)
+    assert (tensorCollapse4Max.data == data4max).all()
 
 @pytest.mark.indevelopment
 def test_tensor_contract(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
