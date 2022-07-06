@@ -94,12 +94,18 @@ class tensor(object):
             # CONVERSION
             t = source.full()
             return cls.from_data(t.data.copy(), t.shape)
-        elif isinstance(source, ttb.tenmat):  # pragma: no cover
+        elif isinstance(source, ttb.tenmat):
             # RESHAPE TENSOR-AS-MATRIX
             # Here we just reverse what was done in the tenmat constructor.
             # First we reshape the data to be an MDA, then we un-permute
             # it using ipermute.
-            raise NotImplementedError
+            shape = source.tshape
+            order = np.hstack([source.rindices, source.cindices])
+            data = np.reshape(source.data.copy(), np.array(shape)[order], order='F')
+            if order.size > 1:
+                # data = ipermute(data, order)
+                data = np.transpose(data, np.argsort(order))
+            return cls.from_data(data, shape)
 
     @classmethod
     def from_function(cls, function_handle, shape):
@@ -127,7 +133,7 @@ class tensor(object):
         # Create the tensor
         return cls.from_data(data, shape)
 
-    def collapse(self, dims=None, fun="sum"):  # pragma: no cover
+    def collapse(self, dims=None, fun="sum"):
         """
         Collapse tensor along specified dimensions.
 
@@ -159,23 +165,22 @@ class tensor(object):
             else:
                 return fun(self.data.flatten('F'))
 
-        assert False, "collapse not implemented for arbitrary subset of dimensions; requires TENMAT class, which is not yet implemented"
-
-        ## Calculate the size of the result
-        ##newsize = self.shape[remdims]
-        #newsize = (self.shape[d] for d in remdims)
-        #print(newsize)
+        ## Calculate the shape of the result
+        newshape = tuple(np.array(self.shape)[remdims])
 
         ## Convert to a matrix where each row is going to be collapsed
-        #A = ttb.tenmat(self, remdims, dims).double() # TODO depends on tenmat
+        A = ttb.tenmat.from_data(self.data, remdims, dims).double()
 
         ## Apply the collapse function
-        #B = np.zeros((A.shape[0], 1))
-        #for i in range(0, A.shape[0]):
-        #    B[i] = fun(A[i, :])
+        B = np.zeros((A.shape[0], 1))
+        for i in range(0, A.shape[0]):
+            if fun == "sum":
+                B[i] = np.sum(A[i, :])
+            else:
+                B[i] = fun(A[i, :])
 
         ## Form and return the final result
-        #return ttb.tensor.from_tensor_type(ttb.tenmat(B, np.arange(0, np.prod(remdims)), np.array([]), newsize)) # TODO depends on tenmat
+        return ttb.tensor.from_data(B, newshape)
 
     def contract(self, i, j):
         """
@@ -335,7 +340,7 @@ class tensor(object):
             #x = np.reshape(self.data, (1, self.data.size))
             #y = np.reshape(other.data, (other.data.size, 1))
             return x.dot(y)
-        elif isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):  # pragma: no cover
+        elif isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):
             # Reverse arguments and call specializer code
             return other.innerprod(self)
         else:
