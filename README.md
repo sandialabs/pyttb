@@ -4,6 +4,8 @@ LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 U.S. Government retains certain rights in this software.
 ```
 
+[![Coverage Status](https://coveralls.io/repos/github/sandialabs/pyttb/badge.svg?branch=main)](https://coveralls.io/github/sandialabs/pyttb?branch=main)
+
 # pyttb: Python Tensor Toolbox
 
 ## Contributors
