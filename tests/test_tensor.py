@@ -1175,6 +1175,7 @@ def test_tensor_mttkrp(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     tensorInstance = ttb.tensor.from_function(np.ones, (2, 3, 4))
 
+    # 2-way sparse tensor
     weights = np.array([2., 2.])
     fm0 = np.array([[1., 3.], [2., 4.]])
     fm1 = np.array([[5., 8.], [6., 9.], [7., 10.]])
@@ -1194,6 +1195,43 @@ def test_tensor_mttkrp(sample_tensor_2way):
     assert np.allclose(tensorInstance.mttkrp(ktensorInstance, 0), m0)
     assert np.allclose(tensorInstance.mttkrp(ktensorInstance, 1), m1)
     assert np.allclose(tensorInstance.mttkrp(ktensorInstance, 2), m2)
+
+    # 5-way dense tensor
+    shape = (2,3,4,5,6)
+    T = ttb.tensor.from_data(np.arange(1,np.prod(shape)+1), shape)
+    U = [];
+    for s in shape:
+        U.append(np.ones((s,2)))
+
+    data0 = np.array([[129600, 129600],
+                      [129960, 129960]])
+    assert (T.mttkrp(U,0) == data0).all()
+
+    data1 = np.array([[86040, 86040],
+                      [86520, 86520],
+                      [87000, 87000]])
+    assert (T.mttkrp(U,1) == data1).all()
+
+    data2 = np.array([[63270, 63270],
+                      [64350, 64350],
+                      [65430, 65430],
+                      [66510, 66510]])
+    assert (T.mttkrp(U,2) == data2).all()
+
+    data3 = np.array([[45000, 45000],
+                      [48456, 48456],
+                      [51912, 51912],
+                      [55368, 55368],
+                      [58824, 58824]])
+    assert (T.mttkrp(U,3) == data3).all()
+
+    data4 = np.array([[ 7260,  7260],
+                      [21660, 21660],
+                      [36060, 36060],
+                      [50460, 50460],
+                      [64860, 64860],
+                      [79260, 79260]])
+    assert (T.mttkrp(U,4) == data4).all()
 
     # tensor too small
     with pytest.raises(AssertionError) as excinfo:
