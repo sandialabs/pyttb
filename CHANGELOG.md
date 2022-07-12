@@ -1,3 +1,6 @@
+# v1.3.4 (2022-07-12)
+- Fixing issues with PyPi uploads
+
 # v1.3.3 (2022-07-11)
 - Fixed indexing bug in `tensor.mttkrp` (Issue #35, PR #36)
 - Updated LICENSE to compliant format (Issue #33 , PR #34)

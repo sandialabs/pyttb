@@ -6,18 +6,19 @@ from setuptools import setup
 
 setup(
     name='pyttb',
-    version='1.3.3',
+    version='1.3.4',
     packages=['pyttb'],
     package_dir={'': '.'},
     url='',
     license='',
-    author='Danny Dunlavy, Nick Johnson',
+    author='Daniel M. Dunlavy',
     author_email='',
-    description='Python Tensor Toolbox (pyttb)',
+    description='Python Tensor Toolbox',
     install_requires=[
         "numpy",
+        "numpy_groupies",
+        "scipy",
         "pytest",
-        "sphinx_rtd_theme",
-        "numpy_groupies"
+        "sphinx_rtd_theme"
     ]
 )
