@@ -1,3 +1,7 @@
+# v1.3.5 (2022-07-12)
+- Fixing `np.reshape` in `tensor.ttv` (Issue #37, PR #38)
+- Fixing `np.reshape` in remainder of `tensor` (Issue #30, PR #39)
+
 # v1.3.4 (2022-07-12)
 - Fixing issues with PyPi uploads
 
