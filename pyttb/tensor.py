@@ -722,7 +722,6 @@ class tensor(object):
         # Np transpose does error checking on order, acts as permutation
         return ttb.tensor.from_data(np.transpose(self.data, order))
 
-    # TODO should this be a property?
     def reshape(self, *shape):
         """
         Reshapes a tensor
@@ -913,6 +912,8 @@ class tensor(object):
             dims = np.array([dims])
 
         # Check that vector is a list of vectors, if not place single vector as element in list
+        if isinstance(vector, list):
+            return self.ttv(np.array(vector), dims)
         if len(vector.shape) == 1 and isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv(np.array([vector]), dims)
 
@@ -923,13 +924,6 @@ class tensor(object):
         for i in range(dims.size):
             if vector[vidx[i]].shape != (self.shape[dims[i]], ):
                 assert False, "Multiplicand is wrong size"
-
-        # TODO: not sure what this special case handles
-        #if exist('tensor/ttv_single', 'file') == 3:
-        #    c = a
-        #    for i = numel(dims): -1: 1
-        #        c = ttv_single(c, v{vidx(i)}, dims(i))
-        #    return c
 
         # Extract the data
         c = self.data.copy()
@@ -944,7 +938,7 @@ class tensor(object):
         sz = np.array(self.shape)[np.concatenate((remdims, dims))]
 
         for i in range(dims.size-1, -1, -1):
-            c = np.reshape(c, tuple([np.prod(sz[0:n-1]), sz[n-1]]))
+            c = np.reshape(c, tuple([np.prod(sz[0:n-1]), sz[n-1]]), order='F')
             c = c.dot(vector[vidx[i]])
             n -= 1
         # If needed, convert the final result back to tensor
