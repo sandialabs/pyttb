@@ -978,20 +978,54 @@ def test_tensor_squeeze(sample_tensor_2way):
     assert (ttb.tensor.from_data(np.array([[1, 2, 3]])).squeeze().data == np.array([1, 2, 3])).all()
 
 @pytest.mark.indevelopment
-def test_tensor_ttv(sample_tensor_2way):
-    (params, tensorInstance) = sample_tensor_2way
+def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+    (params2, tensorInstance2) = sample_tensor_2way
+    (params3, tensorInstance3) = sample_tensor_3way
+    (params3, tensorInstance4) = sample_tensor_4way
 
     # Wrong shape vector
     with pytest.raises(AssertionError) as excinfo:
-        tensorInstance.ttv(np.array([np.array([1, 2]), np.array([1, 2])]))
+        tensorInstance2.ttv(np.array([np.array([1, 2]), np.array([1, 2])]))
     assert "Multiplicand is wrong size" in str(excinfo)
 
-    # Multiply by single vector
-    assert (tensorInstance.ttv(np.array([2, 2]), 0).data == np.array([2, 2]).dot(params['data'])).all()
+    # 2-way Multiply by single vector
+    T2  = tensorInstance2.ttv(np.array([2, 2]), 0)
+    assert isinstance(T2, ttb.tensor)
+    assert T2.shape == (3,)
+    assert (T2.data == np.array([10,14,18])).all()
 
     # Multiply by multiple vectors, infer dimensions
-    assert (tensorInstance.ttv(np.array([np.array([2, 2]), np.array([1, 1, 1])])) ==
-            np.array([1, 1, 1]).dot(np.array([2, 2]).dot(params['data'])))
+    assert tensorInstance2.ttv(np.array([np.array([2, 2]), np.array([1, 1, 1])])) == 42
+ 
+    # Multiply by multiple vectors as list of numpy.ndarrays
+    assert tensorInstance2.ttv([np.array([2, 2]), np.array([1, 1, 1])]) == 42
+
+    # 3-way Multiply by single vector
+    T3  = tensorInstance3.ttv(2 * np.ones((tensorInstance3.shape[0],)), 0)
+    assert isinstance(T3, ttb.tensor)
+    assert T3.shape == (tensorInstance3.shape[1], tensorInstance3.shape[2])
+    assert (T3.data == np.array([[6,30],[14,38],[22,46]])).all()
+
+    # Multiply by multiple vectors, infer dimensions
+    assert tensorInstance3.ttv(np.array([np.array([2, 2]), np.array([1, 1, 1]), np.array([2, 2])])) == 312
+
+    # 4-way Multiply by single vector
+    T4  = tensorInstance4.ttv(2 * np.ones((tensorInstance4.shape[0],)), 0)
+    assert isinstance(T4, ttb.tensor)
+    assert T4.shape == (tensorInstance4.shape[1], tensorInstance4.shape[2], tensorInstance4.shape[3])
+    data4 = np.array([[[ 12, 174, 336],
+                       [ 66, 228, 390],
+                       [120, 282, 444]],
+                      [[ 30, 192, 354],
+                       [ 84, 246, 408],
+                       [138, 300, 462]],
+                      [[ 48, 210, 372],
+                       [102, 264, 426],
+                       [156, 318, 480]]])
+    assert (T4.data == data4).all()
+
+    # Multiply by multiple vectors, infer dimensions
+    assert tensorInstance4.ttv(np.array([np.array([1, 1, 1]), np.array([1, 1, 1]), np.array([1, 1, 1]), np.array([1, 1, 1])])) == 3321
 
 @pytest.mark.indevelopment
 def test_tensor_ttsv(sample_tensor_2way):
