@@ -981,7 +981,7 @@ def test_tensor_squeeze(sample_tensor_2way):
 def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
     (params3, tensorInstance3) = sample_tensor_3way
-    (params3, tensorInstance4) = sample_tensor_4way
+    (params4, tensorInstance4) = sample_tensor_4way
 
     # Wrong shape vector
     with pytest.raises(AssertionError) as excinfo:
@@ -1028,31 +1028,64 @@ def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert tensorInstance4.ttv(np.array([np.array([1, 1, 1]), np.array([1, 1, 1]), np.array([1, 1, 1]), np.array([1, 1, 1])])) == 3321
 
 @pytest.mark.indevelopment
-def test_tensor_ttsv(sample_tensor_2way):
-    (params, tensorInstance) = sample_tensor_2way
-    tensorInstance = ttb.tensor.from_data(np.ones((4, 4, 4)))
-    vector = np.array([1, 1, 1, 1])
+def test_tensor_ttsv(sample_tensor_4way):
+
+    # 3-way
+    tensorInstance3 = ttb.tensor.from_data(np.ones((4, 4, 4)))
+    vector3 = np.array([4, 3, 2, 1])
+    assert tensorInstance3.ttsv(vector3, version=1) == 1000
+    assert (tensorInstance3.ttsv(vector3, dims=-1, version=1) == 100 * np.ones((4,))).all()
+    assert (tensorInstance3.ttsv(vector3, dims=-2, version=1) == 10 * np.ones((4,4))).all()
 
     # Invalid dims
     with pytest.raises(AssertionError) as excinfo:
-        tensorInstance.ttsv(vector, dims = 1)
+        tensorInstance3.ttsv(vector3, dims = 1)
     assert "Invalid modes in ttsv" in str(excinfo)
 
+    # 4-way tensor
+    (params4, tensorInstance4) = sample_tensor_4way
+    T4ttsv = tensorInstance4.ttsv(np.array([1,2,3]), -3, version=1)
+    data4_3 = np.array([[[222, 276, 330],
+                         [240, 294, 348],
+                         [258, 312, 366]],
+                        [[228, 282, 336],
+                         [246, 300, 354],
+                         [264, 318, 372]],
+                        [[234, 288, 342],
+                         [252, 306, 360],
+                         [270, 324, 378]]])
+    assert (T4ttsv.data == data4_3).all()
 
-    assert tensorInstance.ttsv(vector, version=1) == 64
-    assert (tensorInstance.ttsv(vector, dims=-1, version=1) == np.array([16, 16, 16, 16])).all()
+    # 5-way dense tensor
+    shape = (3,3,3,3,3)
+    T5 = ttb.tensor.from_data(np.arange(1,np.prod(shape)+1), shape)
+    T5ttsv = T5.ttsv(np.array([1,2,3]), -3, version=1)
+    data5_3 = np.array([[[5220, 5544, 5868],
+                         [5328, 5652, 5976],
+                         [5436, 5760, 6084]],
+                        [[5256, 5580, 5904],
+                         [5364, 5688, 6012],
+                         [5472, 5796, 6120]],
+                        [[5292, 5616, 5940],
+                         [5400, 5724, 6048],
+                         [5508, 5832, 6156]]])
+    assert (T5ttsv.data == data5_3).all()
 
-    tensorInstance = ttb.tensor.from_data(np.ones((4, 4, 4, 4)))
-    assert tensorInstance.ttsv(vector, dims=-3, version=1).isequal(tensorInstance.ttv(vector, 0))
+    # Test new algorithm, version=2
 
-    # Test new algorithm
+    # 3-way
+    assert tensorInstance3.ttsv(vector3) == 1000
+    assert (tensorInstance3.ttsv(vector3, dims=-1) == 100 * np.ones((4,))).all()
+    assert (tensorInstance3.ttsv(vector3, dims=-2) == 10 * np.ones((4,4))).all()
 
-    # Only works for all modes of equal length
+    # 4-way tensor
+    T4ttsv2 = tensorInstance4.ttsv(np.array([1,2,3]), -3)
+    assert (T4ttsv2.data == data4_3).all()
+
+    # Incorrect version requested
     with pytest.raises(AssertionError) as excinfo:
-        tensorInstance.ttsv(vector, dims=-1)
-    assert "New version only support vector times all modes" in str(excinfo)
-    tensorInstance = ttb.tensor.from_data(np.ones((4, 4, 4)))
-    assert tensorInstance.ttsv(vector) == 64
+        tensorInstance4.ttsv(np.array([1,2,3]), -3, version=3)
+    assert "Invalid value for version; should be None, 1, or 2" in str(excinfo)
 
 @pytest.mark.indevelopment
 def test_tensor_issymmetric(sample_tensor_2way):
@@ -1083,6 +1116,7 @@ def test_tensor_symmetrize(sample_tensor_2way):
 
     # Test new default version
 
+    # 2-way
     symmetricData = np.array([[[0.5, 0, 0.5, 0], [0, 0, 0, 0], [0.5, 0, 0, 0], [0, 0, 0, 0]],
                               [[0, 0, 0, 0], [0, 2.5, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
                               [[0.5, 0, 0, 0], [0, 0, 0, 0], [0, 0, 3.5, 0], [0, 0, 0, 0]],
@@ -1090,11 +1124,30 @@ def test_tensor_symmetrize(sample_tensor_2way):
     symmetricTensor = ttb.tensor.from_data(symmetricData)
     assert symmetricTensor.symmetrize().isequal(symmetricTensor)
 
+    # 3-way
     symmetricData = np.zeros((4, 4, 4))
     symmetricData[1, 2, 1] = 1
     symmetricTensor = ttb.tensor.from_data(symmetricData)
+    print(f'\nsymmetricTensor:\n{symmetricTensor}')
     assert symmetricTensor.issymmetric() is False
+    print(f'\nsymmetricTensor.symmetrize():\n{symmetricTensor.symmetrize()}')
     assert (symmetricTensor.symmetrize()).issymmetric()
+
+    # 3-way
+    shape = (2,2,2)
+    T3 = ttb.tensor.from_data(np.arange(1,np.prod(shape)+1), shape)
+    T3sym = T3.symmetrize()
+    print(f'\nT3sym:')
+    print(T3sym)
+    data3 = np.array([[[1,     3+1/3],
+                       [3+1/3, 5+2/3]],
+                      [[3+1/3, 5+2/3],
+                       [5+2/3, 8    ]]])
+    assert (T3sym.data == data3).all()
+
+    #T3syms_2_1_3 = T3.symmetrize(grps=[[1], [0,2]])
+    #print(f'\nT3syms_2_1_3:')
+    #print(T3syms_2_1_3)
 
     with pytest.raises(AssertionError) as excinfo:
         symmetricTensor.symmetrize(grps=np.array([[0, 1], [1, 2]]))

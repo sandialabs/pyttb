@@ -335,10 +335,8 @@ class tensor(object):
         if isinstance(other, ttb.tensor):
             if self.shape != other.shape:
                 assert False, 'Inner product must be between tensors of the same size'
-            x = np.reshape(self.data, (self.data.size,))
-            y = np.reshape(other.data, (other.data.size,))
-            #x = np.reshape(self.data, (1, self.data.size))
-            #y = np.reshape(other.data, (other.data.size, 1))
+            x = np.reshape(self.data, (self.data.size,), order='F')
+            y = np.reshape(other.data, (other.data.size,), order='F')
             return x.dot(y)
         elif isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):
             # Reverse arguments and call specializer code
@@ -770,20 +768,16 @@ class tensor(object):
     def symmetrize(self, grps=None, version=None):
         """
         Symmetrize a tensor in the specified modes
-
         Notes
         -----
         It is *the same or less* work to just call X = symmetrize(X) then to first check if X is symmetric and then
         symmetrize it, even if X is already symmetric.
-
         Parameters
         ----------
         grps
         version
-
         Returns
         -------
-
         """
         n = self.ndims
         sz = np.array(self.shape)
@@ -962,7 +956,7 @@ class tensor(object):
         elif dims > 0:
             assert False, "Invalid modes in ttsv"
 
-        if version is not None:  # Calculate the old way
+        if version == 1:  # Calculate the old way
             P = self.ndims
             X = np.array([vector for i in range(P)])
             if dims == 0:
@@ -972,9 +966,7 @@ class tensor(object):
             else:
                 return self.ttv(X, -np.arange(1, -dims+1))
 
-        else:  # Calculate the new way
-            if dims != 0:
-                assert False, "New version only support vector times all modes"
+        elif version == 2 or version is None:  # Calculate the new way
             d = self.ndims
             sz = self.shape[0]  # Sizes of all modes must be the same
 
@@ -983,17 +975,18 @@ class tensor(object):
 
             y = self.data
             for i in range(drem, 0, -1):
-                yy = np.reshape(y, (sz**(dnew + i -1), sz))
+                yy = np.reshape(y, (sz**(dnew + i -1), sz), order='F')
                 y = yy.dot(vector)
 
             # Convert to matrix if 2-way or convert back to tensor if result is >= 3-way
-            # TODO: currently this only support scalar return so these are ignored in coverage
-            if dnew == 2:  # pragma: no cover
-                return np.reshape(y, [sz, sz])
-            elif dnew > 2:  # pragma: no cover
-                return ttb.tensor.from_data(np.reshape(y, sz*np.ones(dnew)))
+            if dnew == 2:  
+                return np.reshape(y, [sz, sz], order='F')
+            elif dnew > 2:  
+                return ttb.tensor.from_data(np.reshape(y, sz*np.ones(dnew, dtype=np.int), order='F'))
             else:
                 return y
+        else:
+            assert False, "Invalid value for version; should be None, 1, or 2"
 
     def __setitem__(self, key, value):
         """
