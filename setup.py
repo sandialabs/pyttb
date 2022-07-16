@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name='pyttb',
-    version='1.3.5',
+    version='1.3.6',
     packages=['pyttb'],
     package_dir={'': '.'},
     url='',

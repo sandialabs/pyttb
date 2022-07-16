@@ -1,3 +1,6 @@
+# v1.3.6 (2022-07-15)
+- Implmented tensor.ttm (Issue #27, PR #40)
+
 # v1.3.5 (2022-07-12)
 - Fixing `np.reshape` in `tensor.ttv` (Issue #37, PR #38)
 - Fixing `np.reshape` in remainder of `tensor` (Issue #30, PR #39)
