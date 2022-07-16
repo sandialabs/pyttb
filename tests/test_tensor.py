@@ -978,6 +978,86 @@ def test_tensor_squeeze(sample_tensor_2way):
     assert (ttb.tensor.from_data(np.array([[1, 2, 3]])).squeeze().data == np.array([1, 2, 3])).all()
 
 @pytest.mark.indevelopment
+def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+    (params2, tensorInstance2) = sample_tensor_2way
+    (params3, tensorInstance3) = sample_tensor_3way
+    (params4, tensorInstance4) = sample_tensor_4way
+
+    M2 = np.reshape(np.arange(1,2*2+1),[2, 2], order='F')
+    M3 = np.reshape(np.arange(1,3*3+1),[3, 3], order='F')
+
+    # 3-way single matrix
+    T3  = tensorInstance3.ttm(M2, 0)
+    assert isinstance(T3, ttb.tensor)
+    assert T3.shape == (2,3,2)
+    data3 = np.array([[[ 7, 31],
+                       [15, 39],
+                       [23, 47]],
+                      [[10, 46],
+                       [22, 58],
+                       [34, 70]]])
+    assert (T3.data == data3).all()
+
+    # 3-way single matrix, transposed
+    T3  = tensorInstance3.ttm(M2, 0, transpose=True)
+    assert isinstance(T3, ttb.tensor)
+    assert T3.shape == (2,3,2)
+    data3 = np.array([[[ 5, 23],
+                       [11, 29],
+                       [17, 35]],
+                      [[11, 53],
+                       [25, 67],
+                       [39, 81]]])
+    assert (T3.data == data3).all()
+
+    # 3-way, two matrices, negative dimension
+    T3  = tensorInstance3.ttm([M2, M2], -2)
+    assert isinstance(T3, ttb.tensor)
+    assert T3.shape == (2,3,2)
+    data3 = np.array([[[100, 138],
+                       [132, 186],
+                       [164, 234]],
+                      [[148, 204],
+                       [196, 276],
+                       [244, 348]]])
+    assert (T3.data == data3).all()
+
+    # 3-way, two matrices, explicit dimensions
+    T3  = tensorInstance3.ttm([M2, M3], [2,1])
+    assert isinstance(T3, ttb.tensor)
+    assert T3.shape == (2,3,2)
+    data3 = np.array([[[408, 576],
+                       [498, 702],
+                       [588, 828]],
+                      [[456, 648],
+                       [558, 792],
+                       [660, 936]]])
+    assert (T3.data == data3).all()
+
+    # 3-way, 3 matrices, no dimensions specified
+    T3  = tensorInstance3.ttm([M2, M3, M2])
+    assert isinstance(T3, ttb.tensor)
+    assert T3.shape == (2,3,2)
+    data3 = np.array([[[1776, 2520],
+                       [2172, 3078],
+                       [2568, 3636]],
+                      [[2640, 3744],
+                       [3228, 4572],
+                       [3816, 5400]]])
+    assert (T3.data == data3).all()
+
+    # 3-way, matrix must be np.ndarray
+    Tmat = ttb.tenmat.from_data(M2, rdims=np.array([0]))
+    with pytest.raises(AssertionError) as excinfo:
+        tensorInstance3.ttm(Tmat,0)
+    assert "matrix must be of type numpy.ndarray" in str(excinfo)
+
+    # 3-way, dims must be in range [0,self.ndims]
+    with pytest.raises(AssertionError) as excinfo:
+        tensorInstance3.ttm(M2, tensorInstance3.ndims + 1)
+    assert "dims must contain values in [0,self.dims]" in str(excinfo)
+
+@pytest.mark.indevelopment
 def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
     (params3, tensorInstance3) = sample_tensor_3way

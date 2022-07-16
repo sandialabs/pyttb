@@ -890,6 +890,58 @@ class tensor(object):
 
             return Y
 
+    def ttm(self, matrix, dims=None, transpose=False):
+        """
+        Tensor times matrix
+
+        Parameters
+        ----------
+        matrix: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
+        dims: :class:`Numpy.ndarray`, int
+        transpose: boolean
+        """
+
+        if dims is None:
+            dims = np.arange(self.ndims)
+        elif isinstance(dims, list):
+            dims = np.array(dims)
+        elif np.isscalar(dims) or isinstance(dims, list):
+            dims = np.array([dims])
+
+        if isinstance(matrix, list):
+            # Check that the dimensions are valid
+            dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(matrix))
+            # Calculate individual products
+            Y = self.ttm(matrix[vidx[0]], dims[0], transpose)
+            for k in range(1,dims.size):
+                Y = Y.ttm(matrix[vidx[k]], dims[k], transpose)
+            return Y
+
+        if not isinstance(matrix, np.ndarray):
+            assert False, "matrix must be of type numpy.ndarray"
+
+        if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
+            assert False, "dims must contain values in [0,self.dims]"
+
+        # old version (ver=0)
+        shape = np.array(self.shape)
+        n = dims[0]
+        order = np.array([n] + list(range(0,n)) + list(range(n+1,self.ndims)))
+        newdata = self.permute(order)
+        ids = np.array(list(range(0,n)) + list(range(n+1,self.ndims)))
+        newdata = np.reshape(newdata.data, (shape[n],np.prod(shape[ids])), order="F")
+        if transpose:
+            newdata = matrix.T @ newdata
+            p = matrix.shape[1]
+        else:
+            newdata = matrix @ newdata
+            p = matrix.shape[0]
+
+        newshape = np.array([p] + list(shape[range(0,n)]) + list(shape[range(n+1,self.ndims)]))
+        Y = np.reshape(newdata, newshape, order="F")
+        Y = np.transpose(Y, np.argsort(order))
+        return ttb.tensor.from_data(Y)
+
     def ttv(self, vector, dims=None):
         """
         Tensor times vector
