@@ -25,7 +25,7 @@ class tenmat(object):
         self.data = np.array([])
 
     @classmethod
-    def from_data(cls, data, rdims, cdims, tshape=None):
+    def from_data(cls, data, rdims, cdims=None, tshape=None):
         # CONVERT A MULTIDIMENSIONAL ARRAY
         
         # Verify that data is a numeric numpy.ndarray
@@ -46,6 +46,10 @@ class tenmat(object):
             else:
                 # make data a 2d array with shape (1, data.shape[0]), i.e., a row vector
                 data = np.reshape(data.copy(), (1, data.shape[0]), order='F')
+
+        # data is ndarray and only rdims is specified
+        if cdims is None:
+            return ttb.tenmat.from_tensor_type(ttb.tensor.from_data(data), rdims)
 
         # use data.shape for tshape if not provided
         if tshape is None:

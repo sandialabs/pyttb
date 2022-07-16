@@ -115,6 +115,10 @@ def test_tenmat_initialization_from_data(sample_ndarray_1way, sample_ndarray_2wa
     assert tenmatNdarray4.shape == tenmatInstance.shape
     assert tenmatNdarray4.tshape == tenmatInstance.tshape
 
+    ## Constructor from 4d array just specifying rdims
+    tenmatNdarray4 = ttb.tenmat.from_data(ndarrayInstance4, np.array([0]))
+    assert (tenmatNdarray4.data == np.reshape(ndarrayInstance4, tenmatNdarray4.shape, order='F')).all()
+
     # Exceptions
 
     ## data is not numpy.ndarray
