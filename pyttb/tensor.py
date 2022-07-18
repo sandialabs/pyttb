@@ -942,6 +942,48 @@ class tensor(object):
         Y = np.transpose(Y, np.argsort(order))
         return ttb.tensor.from_data(Y)
 
+    def ttt(self, other, selfdims=None, otherdims=None):
+        """
+        Tensor mulitplication (tensor times tensor)
+
+        Parameters
+        ----------
+        other: :class:`ttb.tensor`
+        selfdims: :class:`Numpy.ndarray`, int
+        otherdims: :class:`Numpy.ndarray`, int
+        """
+
+        if not isinstance(other, tensor):
+            assert False, "other must be of type tensor"
+
+        if selfdims is None:
+            selfdims = np.array([])
+            selfshape = ()
+        else:
+            selfshape = tuple(np.array(self.shape)[selfdims])
+
+        if otherdims is None:
+            otherdims = selfdims.copy()
+            othershape = ()
+        else:
+            othershape = tuple(np.array(other.shape)[otherdims])
+
+        if not selfshape == othershape:
+            assert False, "Specified dimensions do not match"
+
+        # Compute the product
+
+        # Avoid transpose by reshaping self and computing result = self * other
+        amatrix = ttb.tenmat.from_tensor_type(self, cdims=selfdims)
+        bmatrix = ttb.tenmat.from_tensor_type(other, rdims=otherdims)
+        cmatrix = amatrix * bmatrix
+
+        # Check whether or not the result is a scalar
+        if isinstance(cmatrix, ttb.tenmat):
+            return ttb.tensor.from_tensor_type(cmatrix)
+        else:
+            return cmatrix
+
     def ttv(self, vector, dims=None):
         """
         Tensor times vector
