@@ -1,3 +1,8 @@
+# v1.3.7 (2022-07-17)
+- Implemented `tensor.ttt` (Issue #28, PR #44)
+- Fixed `tenmat` to accept empty arrays for `rdims` or `cdims` (Issue #42, PR #43)
+- Adding GitHub action to publish releases to PyPi
+
 # v1.3.6 (2022-07-15)
 - Implemented `tensor.ttm` (Issue #27, PR #40)
 
