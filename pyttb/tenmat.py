@@ -113,12 +113,19 @@ class tenmat(object):
             elif rdims is None and cdims is not None:
                 rdims = np.setdiff1d(alldims, cdims)
             
-
-            dims = np.hstack([rdims, cdims])
+            # if rdims or cdims is empty, hstack will output an array of float not int
+            if rdims.size == 0:
+                dims = cdims.copy()
+            elif cdims.size == 0:
+                dims = rdims.copy()
+            else:
+                dims = np.hstack([rdims, cdims])
             if not len(dims) == n or not (alldims == np.sort(dims)).all():
                 assert False, 'Incorrect specification of dimensions, the sorted concatenation of rdims and cdims must be range(source.ndims).'
 
-            data = np.reshape(source.permute(dims).data, (np.prod(np.array(tshape)[rdims]), np.prod(np.array(tshape)[cdims])), order='F')
+            rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
+            cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
+            data = np.reshape(source.permute(dims).data, (rprod, cprod), order='F')
 
             # Create tenmat
             tenmatInstance = cls()
