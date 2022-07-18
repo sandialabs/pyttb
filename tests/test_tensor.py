@@ -1058,6 +1058,24 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert "dims must contain values in [0,self.dims]" in str(excinfo)
 
 @pytest.mark.indevelopment
+def test_tensor_ttt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+
+    M31 = ttb.tensor.from_data(np.reshape(np.arange(1,2*3*4+1),[4,3,2], order='F'))
+    M32 = ttb.tensor.from_data(np.reshape(np.arange(1,2*3*4+1),[3,4,2], order='F'))
+
+    # outer product of M31 and M32
+    TTT1 = M31.ttt(M32)
+    assert TTT1.shape == (4,3,2,3,4,2)
+    # choose two random 2-way slices
+    data11 = np.array([1,2,3,4])
+    data12 = np.array([289,306,323,340])
+    data13 = np.array([504,528,552,576])
+    assert (TTT1[:,0,0,0,0,0].data == data11).all()
+    assert (TTT1[:,1,1,1,1,1].data == data12).all()
+    assert (TTT1[:,2,1,2,3,1].data == data13).all()
+
+
+@pytest.mark.indevelopment
 def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
     (params3, tensorInstance3) = sample_tensor_3way
