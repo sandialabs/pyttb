@@ -23,6 +23,14 @@ def sample_ndarray_2way():
     return params, ndarrayInstance
 
 @pytest.fixture()
+def sample_tensor_3way():
+    data = np.array([1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.])
+    shape = (2, 3, 2)
+    params = {'data':np.reshape(data, np.array(shape), order='F'), 'shape': shape}
+    tensorInstance = ttb.tensor().from_data(data, shape)
+    return params, tensorInstance
+
+@pytest.fixture()
 def sample_ndarray_4way():
     shape = (2, 2, 2, 2)
     ndarrayInstance = np.reshape(np.arange(1, 17), shape, order='F')
@@ -184,8 +192,9 @@ def test_tenmat_initialization_from_data(sample_ndarray_1way, sample_ndarray_2wa
         assert exc in str(excinfo)
 
 @pytest.mark.indevelopment
-def test_tenmat_initialization_from_tensor_type(sample_tenmat_4way, sample_tensor_4way):
+def test_tenmat_initialization_from_tensor_type(sample_tenmat_4way, sample_tensor_3way, sample_tensor_4way):
     (_, tensorInstance) = sample_tensor_4way
+    (_, tensorInstance3) = sample_tensor_3way
     (params, tenmatInstance) = sample_tenmat_4way
     tshape = params['tshape']
     rdims = params['rdims']
@@ -208,6 +217,11 @@ def test_tenmat_initialization_from_tensor_type(sample_tenmat_4way, sample_tenso
     assert tenmatInstance.shape == tenmatTensorRdims.shape
     assert tenmatInstance.tshape == tenmatTensorRdims.tshape
 
+    # Constructor from tensor using empty rdims
+    tenmatTensorRdims = ttb.tenmat.from_tensor_type(tensorInstance3, rdims=np.array([]))
+    data = np.reshape(np.arange(1,13),(1,12))
+    assert (tenmatTensorRdims.data == data).all()
+
     # Constructor from tensor using cdims only
     tenmatTensorCdims = ttb.tenmat.from_tensor_type(tensorInstance, cdims=cdims)
     assert (tenmatInstance.data == tenmatTensorCdims.data).all()
@@ -215,6 +229,11 @@ def test_tenmat_initialization_from_tensor_type(sample_tenmat_4way, sample_tenso
     assert (tenmatInstance.cindices == tenmatTensorCdims.cindices).all()
     assert tenmatInstance.shape == tenmatTensorCdims.shape
     assert tenmatInstance.tshape == tenmatTensorCdims.tshape
+
+    # Constructor from tensor using empty cdims
+    tenmatTensorCdims = ttb.tenmat.from_tensor_type(tensorInstance3, cdims=np.array([]))
+    data = np.reshape(np.arange(1,13),(12,1))
+    assert (tenmatTensorCdims.data == data).all()
 
     # Constructor from tensor using rdims and cdims
     tenmatTensorRdimsCdims = ttb.tenmat.from_tensor_type(tensorInstance, rdims=rdims, cdims=cdims)
