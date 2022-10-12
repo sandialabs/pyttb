@@ -375,7 +375,7 @@ def test_ktensor_issymetric(sample_ktensor_2way, sample_ktensor_symmetric):
 def test_ktensor_mask(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     W = ttb.tensor.from_data(np.array([[0, 1], [1, 0]]))
-    assert (K.mask(W) == np.array([[39], [63]])).all()
+    assert (K.mask(W) == np.array([[63], [39]])).all()
 
     # Mask too large
     with pytest.raises(AssertionError) as excinfo:
@@ -614,7 +614,43 @@ def test_ktensor_redistribute(sample_ktensor_2way):
     assert (np.array([[5, 6], [7, 8]]) == K[1]).all()
     assert (np.array([1, 1]) == K.weights).all()
 
-@pytest.mark.indevelopment
+pytest.mark.indevelopment
+def test_ktensor_score():
+    A = ttb.ktensor.from_data(np.array([2, 1, 3]), np.ones((3,3)), np.ones((4,3)), np.ones((5,3)))
+    B = ttb.ktensor.from_data(np.array([2, 4]), np.ones((3,2)), np.ones((4,2)), np.ones((5,2)))
+
+    # defaults
+    score, Aperm, flag, best_perm =  A.score(B)
+    assert score == 0.875
+    assert np.allclose(Aperm.weights, np.array([15.49193338,23.23790008,7.74596669]))
+    assert flag == 1
+    assert (best_perm == np.array([0,2,1])).all()
+
+    # compare just factor matrices (i.e., do not use weights)
+    score, Aperm, flag, best_perm =  A.score(B, weight_penalty=False)
+    assert score == 1.0
+    assert np.allclose(Aperm.weights, np.array([15.49193338,7.74596669,23.23790008]))
+    assert flag == 1
+    assert (best_perm == np.array([0,1,2])).all()
+
+    # compute score using exhaustive search
+    with pytest.raises(AssertionError) as excinfo:
+        score, Aperm, flag, best_perm =  A.score(B, greedy=False)
+    assert "Not yet implemented. Only greedy method is implemented currently." in str(excinfo)
+
+    # try to compute score with tensor type other than ktensor
+    with pytest.raises(AssertionError) as excinfo:
+        score, Aperm, flag, best_perm =  A.score(ttb.tensor.from_tensor_type(B))
+    assert "The first input should be a ktensor" in str(excinfo)
+
+    # try to compute score when ktensor dimensions do not match
+    with pytest.raises(AssertionError) as excinfo:
+        # A is 3x4x5; B is 3x4x4
+        B = ttb.ktensor.from_data(np.array([2, 4]), np.ones((3,2)), np.ones((4,2)), np.ones((4,2)))
+        score, Aperm, flag, best_perm =  A.score(B)
+    assert "Size mismatch" in str(excinfo)
+
+pytest.mark.indevelopment
 def test_ktensor_shape(sample_ktensor_2way, sample_ktensor_3way):
     (data, K0) = sample_ktensor_2way
     assert K0.shape == (2, 2)

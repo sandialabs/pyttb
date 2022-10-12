@@ -426,7 +426,7 @@ class sptensor(object):
             assert False, 'Invalid subscripts'
 
         # Set the default answer to zero
-        a = np.zeros(shape=(p, 1))
+        a = np.zeros(shape=(p, 1), dtype=self.vals.dtype)
 
         # Find which indices already exist and their locations
         loc = ttb.tt_ismember_rows(searchsubs, self.subs)
@@ -1112,18 +1112,20 @@ class sptensor(object):
 
         Examples
         --------
-        >>> X = sptensor(np.array([[4,4,4],[2,2,1],[2,3,2]]),np.array([[3],[5],[1]]),(4,4,4))
-        >>> X[1,2,1] #<-- returns zero
-        >>> X[4,4,4] #<-- returns 3
-        >>> X[3:4,:,:] #<-- returns 1 x 4 x 4 sptensor
+        >>> X = sptensor(np.array([[3,3,3],[1,1,0],[1,2,1]]),np.array([3,5,1]),(4,4,4))
+        >>> X[0,1,0] #<-- returns zero
+        >>> X[3,3,3] #<-- returns 3
+        >>> X[2:3,:,:] #<-- returns 1 x 4 x 4 sptensor
         X = sptensor([6;16;26],[1;1;1],30);
         X([1:6]') <-- extracts a subtensor
-        X([1:6]','extract') %<-- extracts a vector of 6 elements
         """
+        # This does not work like MATLAB TTB; you must call sptensor.extract to get this functionality
+        # X([1:6]','extract') %<-- extracts a vector of 6 elements
+
         #TODO IndexError for value outside of indices
         # TODO Key error if item not in container
         # *** CASE 1: Rectangular Subtensor ***
-        if isinstance(item, tuple) and len(item) == self.ndims and item[len(item)-1] != 'extract':
+        if isinstance(item, tuple) and len(item) == self.ndims:
             # Extract the subdimensions to be extracted from self
             region = item
 
@@ -1160,7 +1162,7 @@ class sptensor(object):
             # Return a single double value for a zero-order sub-tensor
             if newsiz.size == 0:
                 if vals.size == 0:
-                    a = 0
+                    a = np.array([[0]])
                 else:
                     a = vals
                 return a
@@ -1177,21 +1179,22 @@ class sptensor(object):
         # Case 2: EXTRACT
 
         # *** CASE 2a: Subscript indexing ***
-        if len(item) > 1 and isinstance(item[-1], str) and item[-1] == 'extract':
-            # extract array of subscripts
-            srchsubs = np.array(item[0])
-            item = item[0]
+        if isinstance(item, np.ndarray) and len(item.shape) == 2 and item.shape[1] == self.ndims:
+            srchsubs = np.array(item)
 
        # *** CASE 2b: Linear indexing ***
         else:
             # Error checking
-            if not isinstance(item, list) and not isinstance(item, np.ndarray):
+            if isinstance(item, list):
+                idx = np.array(item)
+            elif isinstance(item, np.ndarray):
+                idx = item
+            else:
                 assert False, 'Invalid indexing'
 
-            idx = item
             if len(idx.shape) != 1:
                 assert False, 'Expecting a row index'
-            #idx=np.expand_dims(idx, axis=1)
+
             # extract linear indices and convert to subscripts
             srchsubs = tt_ind2sub(self.shape, idx)
 
