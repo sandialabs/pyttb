@@ -298,10 +298,10 @@ class tensor(object):
 
         :return:
         """
-        idx = np.where(self.data > 0)
-        subs = np.array(idx).transpose()
-        vals = self.data[idx]
-        return subs, vals[:, None]
+        idx = np.nonzero(np.ravel(self.data,order='F'))[0]
+        subs = ttb.tt_ind2sub(self.shape,idx)
+        vals = self.data[tuple(subs.T)][:,None]
+        return subs, vals
 
     def full(self):
         """
@@ -1623,7 +1623,7 @@ class tensor(object):
                 s += str(self.data)
                 s += '\n'
                 return s
-        for i, j in enumerate(range(0, np.prod(self.shape), self.shape[-1]*self.shape[-2])):
+        for i in np.arange(np.prod(self.shape[:-2])):
             s += 'data'
             if self.ndims == 2:
                 s += '[:, :]'

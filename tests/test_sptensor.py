@@ -47,8 +47,11 @@ def test_sptensor_initialization_from_tensor_type(sample_sptensor):
     inputData = np.array([[1, 2, 3], [4, 5, 6]])
     tensorInstance = ttb.tensor.from_data(inputData)
     sptensorFromTensor = ttb.sptensor.from_tensor_type(tensorInstance)
+    print(f'inputData = {inputData}')
+    print(f'tensorInstance = {tensorInstance}')
+    print(f'sptensorFromTensor = {sptensorFromTensor}')
     assert (sptensorFromTensor.subs == ttb.tt_ind2sub(inputData.shape, np.arange(0, inputData.size))).all()
-    assert (sptensorFromTensor.vals == inputData.reshape(inputData.size, 1)).all()
+    assert (sptensorFromTensor.vals == inputData.reshape((inputData.size, 1), order='F')).all()
     assert (sptensorFromTensor.shape == inputData.shape)
 
     # From coo sparse matrix
@@ -220,7 +223,7 @@ def test_sptensor_extract(sample_sptensor, capsys):
     assert (sptensorInstance.extract(np.array([1, 1, 1])) == [[0.5]]).all()
 
 @pytest.mark.indevelopment
-def test_sptensor_getitem(sample_sptensor):
+def test_sptensor__getitem__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     ## Case 1
     # Empty value slice
@@ -238,8 +241,8 @@ def test_sptensor_getitem(sample_sptensor):
 
     # TODO need to understand what this intends to do
     ## Case 2 subscript indexing
-    assert sptensorInstance[np.array([1, 2, 1]), 'extract'] == np.array([[0]])
-    assert (sptensorInstance[np.array([[1, 2, 1], [1, 3, 1]]), 'extract'] == np.array([[0], [0]])).all()
+    assert sptensorInstance[np.array([[1, 2, 1]])] == np.array([[0]])
+    assert (sptensorInstance[np.array([[1, 2, 1], [1, 3, 1]])] == np.array([[0], [0]])).all()
 
     ## Case 2 Linear Indexing
     ind = ttb.tt_sub2ind(data['shape'], np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2]]))
@@ -488,54 +491,54 @@ def test_sptensor_setitem_Case2(sample_sptensor):
 
     # Case II: Single entry, for single sub that exists
     sptensorInstance[np.array([1, 1, 1]).astype(int)] = 999.0
-    assert (sptensorInstance[np.array([1, 1, 1]), 'extract'] == np.array([999])).all()
+    assert (sptensorInstance[np.array([[1, 1, 1]])] == np.array([[999]])).all()
     assert (sptensorInstance.subs == data['subs']).all()
 
     # Case II: Single entry, for multiple subs that exist
     (data, sptensorInstance) = sample_sptensor
     sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]]).astype(int)] = 999.0
-    assert (sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]]), 'extract'] == np.array([[999], [999]])).all()
+    assert (sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]])] == np.array([[999], [999]])).all()
     assert (sptensorInstance.subs == data['subs']).all()
 
     # Case II: Multiple entries, for multiple subs that exist
     (data, sptensorInstance) = sample_sptensor
     sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]]).astype(int)] = np.array([[888], [999]])
-    assert (sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]]), 'extract'] == np.array([[888], [999]])).all()
+    assert (sptensorInstance[np.array([[1, 1, 3], [1, 1, 1]])] == np.array([[999], [888]])).all()
     assert (sptensorInstance.subs == data['subs']).all()
 
     # Case II: Single entry, for single sub that doesn't exist
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([1, 1, 2]).astype(int)] = 999.0
-    assert (copy[np.array([1, 1, 2]), 'extract'] == np.array([999])).all()
+    copy[np.array([[1, 1, 2]]).astype(int)] = 999.0
+    assert (copy[np.array([[1, 1, 2]])] == np.array([999])).all()
     assert (copy.subs == np.concatenate((data['subs'], np.array([[1, 1, 2]])))).all()
 
     # Case II: Single entry, for single sub that doesn't exist, expand dimensions
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([1, 1, 2, 1]).astype(int)] = 999.0
-    assert (copy[np.array([1, 1, 2, 1]), 'extract'] == np.array([999])).all()
+    copy[np.array([[1, 1, 2, 1]]).astype(int)] = 999.0
+    assert (copy[np.array([[1, 1, 2, 1]])] == np.array([999])).all()
     #assert (copy.subs == np.concatenate((data['subs'], np.array([[1, 1, 2]])))).all()
 
     # Case II: Single entry, for multiple subs one that exists and the other doesn't
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
     copy[np.array([[1, 1, 1], [2, 1, 3]]).astype(int)] = 999.0
-    assert (copy[np.array([2, 1, 3]), 'extract'] == np.array([999])).all()
+    assert (copy[np.array([[2, 1, 3]])] == np.array([999])).all()
     assert (copy.subs == np.concatenate((data['subs'], np.array([[2, 1, 3]])))).all()
 
     # Case II: Multiple entries, for multiple subs that don't exist
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
     copy[np.array([[1, 1, 2], [2, 1, 3]]).astype(int)] = np.array([[888], [999]])
-    assert (copy[np.array([[1, 1, 2], [2, 1, 3]]), 'extract'] == np.array([[888], [999]])).all()
+    assert (copy[np.array([[1, 1, 2], [2, 1, 3]])] == np.array([[888], [999]])).all()
     assert (copy.subs == np.concatenate((data['subs'], np.array([[1, 1, 2], [2, 1, 3]])))).all()
 
     # Case II: Multiple entries, for multiple subs that exist and need to be removed
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
     copy[np.array([[1, 1, 1], [1, 1, 3]]).astype(int)] = np.array([[0], [0]])
-    assert (copy[np.array([[1, 1, 2], [2, 1, 3]]), 'extract'] == np.array([[0], [0]])).all()
+    assert (copy[np.array([[1, 1, 2], [2, 1, 3]])] == np.array([[0], [0]])).all()
     assert (copy.subs == np.array([[2, 2, 2], [3, 3, 3]])).all()
 
 @pytest.mark.indevelopment
@@ -619,7 +622,16 @@ def test_sptensor__eq__(sample_sptensor):
 
     denseTensor = ttb.tensor.from_tensor_type(sptensorInstance)
     eqSptensor = sptensorInstance == denseTensor
-    assert (eqSptensor.subs == np.vstack((sptensorInstance.logical_not().subs, data['subs']))).all()
+    print(f"\ndenseTensor = {denseTensor}")
+    print(f"\nsptensorInstance = {sptensorInstance}")
+    print(f"\ntype(eqSptensor.subs) = \n{type(eqSptensor.subs)}")
+    for i in range(eqSptensor.subs.shape[0]):
+        print(f"{i}\t{eqSptensor.subs[i,:]}")
+    print(f"\neqSptensor.subs = \n{eqSptensor.subs}")
+    print(f"\neqSptensor.subs.shape[0] = {eqSptensor.subs.shape[0]}")
+    print(f"\nsptensorInstance.shape = {sptensorInstance.shape}")
+    print(f"\nnp.prod(sptensorInstance.shape) = {np.prod(sptensorInstance.shape)}")
+    assert eqSptensor.subs.shape[0] == np.prod(sptensorInstance.shape)
 
     denseTensor = ttb.tensor.from_data(np.ones((5, 5, 5)))
     with pytest.raises(AssertionError) as excinfo:
