@@ -1360,9 +1360,143 @@ class ktensor(object):
         """
         return tuple([f.shape[0] for f in self.factor_matrices])
 
-    # TODO implement
-    def score(self, other, **kwargs):
-        assert False, "Not yet implemented" # pragma: no cover
+    def score(self, other, weight_penalty=True, threshold=0.99, greedy=True):
+        """
+        Checks if two ktensor instances match except for permutation.
+
+        We define matching as follows. If A (self) and B (other) are single component
+        ktensors that have been normalized so that their weights are weights_a and
+        weights_b, then the score is defined as
+
+            score = penalty * (a1.T*b1) * (a2.T*b2) * ... * (aR.T*bR),
+
+        where the penalty is defined by the weights such that
+
+            penalty = 1 - abs(weights_a - weights_b) / max(weights_a, weights_b).
+
+        The score of multi-component ktensors is a normalized sum of the
+        scores across the best permutation of the components of A. A can have
+        more components than B --- any extra components are ignored in terms of
+        the matching score.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.ktensor`
+            `ktensor` to match against
+        weight_penalty: bool
+            Flag indicating whether or not to consider the weights in the calculations.
+            Default: true
+        threshold: float
+            Threshold specified in the formula above for determining a match.
+            Default: 0.99
+        greedy: bool
+            Flag indicating whether or not to consider all possible matchings
+            (exponentially expensive) or just do a greedy matching. Default: true
+
+        Returns
+        -------
+        int
+            Score (between 0 and 1)
+        :class:`pyttb.ktensor`
+            Copy of `self`, which has been normalized and permuted to best match `other`
+        bool
+            Flag indicating a match according to a user-specified threshold
+        :class:`Numpy.ndarray`
+            Permutation (i.e. array of indices of the modes of self) of the components
+            of self that was used to best match other
+
+        Example
+        -------
+        Create two `ktensor` instances:
+
+        >>> A = ttb.ktensor.from_data(np.array([2, 1, 3]), np.ones((3,3)), np.ones((4,3)), np.ones((5,3)))
+        >>> B = ttb.ktensor.from_data(np.array([2, 4]), np.ones((3,2)), np.ones((4,2)), np.ones((5,2)))
+
+        Compute `score` using `ktensor.weights`:
+
+        >>> score,Aperm,flag,perm = A.score(B)
+        >>> print(score)
+        0.875
+        >>> print(perm)
+        [0 2 1]
+
+        Compute `score` not using `ktensor.weights`:
+
+        >>> score,Aperm,flag,perm = A.score(B,weight_penalty=False)
+        >>> print(score)
+        1.0
+        >>> print(perm)
+        [0 1 2]
+        """
+
+        if not greedy:
+            assert False, "Not yet implemented. Only greedy method is implemented currently."
+
+        if not isinstance(other, ktensor):
+            assert False, "The first input should be a ktensor"
+
+        if not (self.shape == other.shape):
+            assert False, "Size mismatch"
+
+        # Set-up
+        N = self.ndims
+        RA = self.ncomponents
+        RB = other.ncomponents
+
+        # We're matching components in A to B
+        if (RA < RB):
+            assert False, "Tensor A must have at least as many components as tensor B"
+
+        # Make sure columns of factor matrices are normalized
+        A = ttb.ktensor.from_tensor_type(self).normalize()
+        B = ttb.ktensor.from_tensor_type(other).normalize()
+
+        # Compute all possible vector-vector congruences.
+
+        # Compute every pair for each mode
+        Cbig = ttb.tensor.from_function(np.zeros, (RA,RB,N))
+        for n in range(N):
+            Cbig[:,:,n] = np.abs(A.factor_matrices[n].T @ B.factor_matrices[n])
+
+        # Collapse across all modes using the product
+        C = Cbig.collapse(np.array([2]), np.prod).double()
+
+        # Calculate penalty based on differences in the Lambda's
+        # Note that we are assuming the the lambda value are positive because the
+        # ktensor's were previously normalized.
+        if weight_penalty:
+            P = np.zeros((RA, RB))
+            for ra in range(RA):
+                la = A.weights[ra]
+                for rb in range(RB):
+                    lb = B.weights[rb]
+                    if (la == 0) and (lb == 0):
+                        # if both lambda values are zero (0), they match
+                        P[ra, rb] = 1
+                    else:
+                        P[ra, rb] = 1 - (np.abs(la-lb) / np.max([np.abs(la),np.abs(lb)]))
+            C = P * C
+
+        # Option to do greedy matching
+        if greedy:
+            best_perm = -1 * np.ones((RA), dtype=np.int)
+            best_score = 0
+            for r in range(RB):
+                idx = np.argmax(C.reshape(np.prod(C.shape),order='F'))
+                ij = tt_ind2sub((RA, RB), idx)
+                best_score = best_score + C[ij[0], ij[1]]
+                C[ij[0], :] = -10
+                C[:, ij[1]] = -10
+                best_perm[ij[1]] = ij[0]
+            best_score = best_score / RB
+            flag = 1
+
+            # Rearrange the components of A according to the best matching
+            foo = np.arange(RA)
+            tf = np.in1d(foo, best_perm)
+            best_perm[RB:RA+1] = foo[~tf]
+            A.arrange(permutation=best_perm)
+            return best_score, A, flag, best_perm
 
     def symmetrize(self):
         """

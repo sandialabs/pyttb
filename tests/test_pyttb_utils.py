@@ -44,8 +44,8 @@ def test_sptensor_to_sparse_matrix():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5]])
     shape = (4, 4, 4)
-    mode0 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 7, 10, 15], [1, 1, 2, 3])))
-    mode1 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 7, 10, 15], [1, 1, 2, 3])))
+    mode0 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
+    mode1 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
     mode2 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 5, 10, 15], [1, 3, 2, 3])))
     Ynt = [mode0, mode1, mode2]
     sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
@@ -330,15 +330,17 @@ def test_tt_ind2sub_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     idx = np.array([0, 21, 63])
     shape = (4, 4, 4)
+    print(f'\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}')
     assert (ttb.tt_ind2sub(shape, idx) == subs).all()
 
-    subs = np.array([[0, 1], [1, 0]])
+    subs = np.array([[1, 0], [0, 1]])
     idx = np.array([1, 2])
     shape = (2, 2)
+    print(f'\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}')
     assert (ttb.tt_ind2sub(shape, idx) == subs).all()
 
     empty = np.array([])
-    assert (ttb.tt_ind2sub(shape, empty) == empty).all()
+    assert (ttb.tt_ind2sub(shape, empty) == np.empty(shape=(0,len(shape)), dtype=int)).all()
 
 @pytest.mark.indevelopment
 def test_tt_subsubsref_valid():

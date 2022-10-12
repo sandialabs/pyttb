@@ -6,7 +6,7 @@ import pyttb as ttb
 import numpy as np
 import pytest
 
-DEBUG_tests = False
+DEBUG_tests = True
 
 @pytest.fixture()
 def sample_tensor_2way():
@@ -243,14 +243,12 @@ def test_tensor_setitem(sample_tensor_2way):
 
     # Linear Index with constant
     tensorInstance[np.array([0])] = 13.0
-    dataGrowth[0, 0] = 13.0
+    dataGrowth[np.unravel_index([0],dataGrowth.shape,'F')] = 13.0
     assert (tensorInstance.data == dataGrowth).all()
 
     # Linear Index with constant
     tensorInstance[np.array([0, 3, 4])] = 13.0
-    dataGrowth[0, 0] = 13.0
-    dataGrowth[0, 3] = 13.0
-    dataGrowth[0, 4] = 13.0
+    dataGrowth[np.unravel_index([0,3,4],dataGrowth.shape,'F')] = 13
     assert (tensorInstance.data == dataGrowth).all()
 
     # Test Empty Tensor Set Item, subtensor
@@ -276,7 +274,7 @@ def test_tensor_setitem(sample_tensor_2way):
     assert 'Invalid use of tensor setitem' in str(excinfo)
 
 @pytest.mark.indevelopment
-def test_tensor_getitem(sample_tensor_2way):
+def test_tensor__getitem__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     # Case 1 single element
     assert tensorInstance[0, 0] == params['data'][0, 0]
@@ -386,7 +384,7 @@ def test_tensor_full(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way)
     assert (tensorInstance4.full().data == params4['data']).all()
 
 @pytest.mark.indevelopment
-def test_tensor_ge(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+def test_tensor__ge__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
     tensorLarger = ttb.tensor.from_data(params['data']+1)
@@ -415,7 +413,7 @@ def test_tensor_ge(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert not ((tensorInstance >= tensorLarger).data).any()
 
 @pytest.mark.indevelopment
-def test_tensor_gt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+def test_tensor__gt__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
     tensorLarger = ttb.tensor.from_data(params['data']+1)
@@ -444,7 +442,7 @@ def test_tensor_gt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert not ((tensorInstance > tensorLarger).data).any()
 
 @pytest.mark.indevelopment
-def test_tensor_le(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+def test_tensor__le__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
     tensorLarger = ttb.tensor.from_data(params['data'] + 1)
@@ -473,7 +471,7 @@ def test_tensor_le(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert ((tensorInstance <= tensorLarger).data).all()
 
 @pytest.mark.indevelopment
-def test_tensor_lt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+def test_tensor__lt__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
     tensorLarger = ttb.tensor.from_data(params['data'] + 1)
@@ -957,7 +955,8 @@ def test_tensor_innerprod(sample_tensor_2way, sample_tensor_3way, sample_tensor_
 @pytest.mark.indevelopment
 def test_tensor_mask(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
-    assert (tensorInstance.mask(ttb.tensor.from_data(np.ones(params['shape']))) == params['data'].reshape((6,))).all()
+    W = ttb.tensor.from_data(np.array([[0,1,0],[1,0,0]]))
+    assert (tensorInstance.mask(W) == np.array([4,2])).all()
 
     # Wrong shape mask
     with pytest.raises(AssertionError) as excinfo:
@@ -1339,7 +1338,7 @@ def test_tensor__str__(sample_tensor_2way):
         s += '\n'
     assert s == tensorInstance.__str__()
 
-    # Test > 3D
+    # Test 4D
     data = np.random.normal(size=(4, 4, 3, 2))
     tensorInstance = ttb.tensor.from_data(data)
     s = ''
@@ -1347,11 +1346,27 @@ def test_tensor__str__(sample_tensor_2way):
     s += (' x ').join([str(int(d)) for d in tensorInstance.shape])
     s += '\n'
     for i in range(data.shape[0]):
-        for j in range(data.shape[0]):
+       for j in range(data.shape[1]):
             s += 'data'
-            s += '[{}, {}, :, :] = \n'.format(i,j)
-            s += data[i, j, :, :].__str__()
+            s += '[{}, {}, :, :] = \n'.format(j,i)
+            s += data[j, i, :, :].__str__()
             s += '\n'
+    assert s == tensorInstance.__str__()
+
+    # Test 5D
+    data = np.random.normal(size=(2,2,2,2,2))
+    tensorInstance = ttb.tensor.from_data(data)
+    s = ''
+    s += 'tensor of shape '
+    s += (' x ').join([str(int(d)) for d in tensorInstance.shape])
+    s += '\n'
+    for i in range(data.shape[0]):
+       for j in range(data.shape[1]):
+           for k in range(data.shape[2]):
+                s += 'data'
+                s += '[{}, {}, {}, :, :] = \n'.format(k,j,i)
+                s += data[k, j, i, :, :].__str__()
+                s += '\n'
     assert s == tensorInstance.__str__()
 
 

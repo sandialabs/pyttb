@@ -514,9 +514,9 @@ def tt_ind2sub(shape, idx):
     :class:`numpy.ndarray`
     """
     if idx.size == 0:
-        return np.array([])
+        return np.empty(shape=(0,len(shape)), dtype=int)
 
-    return np.array(np.unravel_index(idx, shape)).transpose()
+    return np.array(np.unravel_index(idx, shape, order='F')).transpose()
 
 
 def tt_subsubsref(obj, s):
@@ -575,7 +575,7 @@ def tt_sub2ind(shape, subs):
     """
     if subs.size == 0:
         return np.array([])
-    idx = np.ravel_multi_index(tuple(subs.transpose()), shape)
+    idx = np.ravel_multi_index(tuple(subs.transpose()), shape, order='F')
     return idx
 
 
