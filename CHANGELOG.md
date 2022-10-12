@@ -1,6 +1,10 @@
+# v1.3.8 (2022-10-12)
+- Fixed `pyttb_utils.tt_ind2sub` (Issue #45, PR #47)
+- Implemented `ktensor.score` (Issue #46, PR #47)
+
 # v1.3.7 (2022-07-17)
-- Implemented `tensor.ttt` (Issue #28, PR #44)
 - Fixed `tenmat` to accept empty arrays for `rdims` or `cdims` (Issue #42, PR #43)
+- Implemented `tensor.ttt` (Issue #28, PR #44)
 - Adding GitHub action to publish releases to PyPi
 
 # v1.3.6 (2022-07-15)
