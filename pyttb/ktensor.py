@@ -116,14 +116,14 @@ class ktensor(object):
         # Create ktensor and populate data members
         k = cls()
         k.weights = weights.copy()
-        if k.weights.dtype != np.float:
-            print("converting weights from {} to np.float".format(k.weights.dtype))
-            k.weights = k.weights.astype(np.float)
+        if k.weights.dtype != float:
+            print("converting weights from {} to float".format(k.weights.dtype))
+            k.weights = k.weights.astype(float)
         k.factor_matrices = _factor_matrices
         for i in range(len(k.factor_matrices)):
-            if k.factor_matrices[i].dtype != np.float:
-                print("converting factor_matrices[{}] from {} to np.float".format(i, k.factor_matrices[i].dtype))
-                k.factor_matrices[i] = k.factor_matrices[i].astype(np.float)
+            if k.factor_matrices[i].dtype != float:
+                print("converting factor_matrices[{}] from {} to float".format(i, k.factor_matrices[i].dtype))
+                k.factor_matrices[i] = k.factor_matrices[i].astype(float)
 
         return k
 
@@ -358,7 +358,7 @@ class ktensor(object):
 
         >>> rank = 2
         >>> shape = np.array([2, 3, 4])
-        >>> data = np.arange(1, rank*sum(shape)+1).astype(np.float)
+        >>> data = np.arange(1, rank*sum(shape)+1).astype(float)
         >>> K_without_weights = ttb.ktensor.from_vector(data[:], shape, False)
         >>> print(K_without_weights)
         ktensor of shape 2 x 3 x 4
@@ -378,7 +378,7 @@ class ktensor(object):
 
         Create a `ktensor` from a vector containing elements of both the weights and the factor matrices:
 
-        >>> weights = 2 * np.ones(rank).astype(np.float)
+        >>> weights = 2 * np.ones(rank).astype(float)
         >>> weights_and_data = np.concatenate((weights, data), axis=0)
         >>> K_with_weights = ttb.ktensor.from_vector(weights_and_data[:], shape, True)
         >>> print(K_with_weights)
