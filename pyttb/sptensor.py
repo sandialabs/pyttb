@@ -731,7 +731,7 @@ class sptensor(object):
                 else:
                     Z.append(np.array([]))
             # Perform ttv multiplication
-            V[:, r] = self.ttv(np.array(Z), -(n+1)).double()
+            V[:, r] = self.ttv(Z, -(n+1)).double()
 
         return V
 
@@ -1026,12 +1026,14 @@ class sptensor(object):
         elif isinstance(dims, (float, int)):
             dims = np.array([dims])
 
+        assert len(vector) > 0, 'sptensor.ttv: vector must be nonempty'
+
         # Check that vector is a list of vectors, if not place single vector as element in list
-        if len(vector.shape) == 1 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv(np.array([vector]), dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(dims, self.ndims, vector.shape[0])
+        dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims).astype(int)
 
         # Check that each multiplicand is the right size.
