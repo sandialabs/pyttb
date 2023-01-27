@@ -882,7 +882,7 @@ class ktensor(object):
                 vecs = []
                 for n in range(self.ndims):
                     vecs.append(self.factor_matrices[n][:, r])
-                res = res + self.weights[r] * other.ttv(np.array(vecs))
+                res = res + self.weights[r] * other.ttv(vecs)
             return res
 
     def isequal(self, other):
@@ -1808,7 +1808,7 @@ class ktensor(object):
 
         # Check that vector is a list of vectors, if not place single vector as element in list
         if len(vector.shape) == 1 and isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv(np.array([vector]), dims)
+            return self.ttv([vector], dims)
 
         # Get sorted dims and index for multiplicands
         dims, vidx = ttb.tt_dimscheck(dims, self.ndims, vector.shape[0])
