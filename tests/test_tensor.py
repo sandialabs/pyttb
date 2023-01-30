@@ -1092,7 +1092,7 @@ def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert (T2.data == np.array([10,14,18])).all()
 
     # Multiply by multiple vectors, infer dimensions
-    assert tensorInstance2.ttv(np.array([np.array([2, 2]), np.array([1, 1, 1])])) == 42
+    assert tensorInstance2.ttv([np.array([2, 2]), np.array([1, 1, 1])]) == 42
  
     # Multiply by multiple vectors as list of numpy.ndarrays
     assert tensorInstance2.ttv([np.array([2, 2]), np.array([1, 1, 1])]) == 42
@@ -1104,7 +1104,7 @@ def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert (T3.data == np.array([[6,30],[14,38],[22,46]])).all()
 
     # Multiply by multiple vectors, infer dimensions
-    assert tensorInstance3.ttv(np.array([np.array([2, 2]), np.array([1, 1, 1]), np.array([2, 2])])) == 312
+    assert tensorInstance3.ttv([np.array([2, 2]), np.array([1, 1, 1]), np.array([2, 2])]) == 312
 
     # 4-way Multiply by single vector
     T4  = tensorInstance4.ttv(2 * np.ones((tensorInstance4.shape[0],)), 0)

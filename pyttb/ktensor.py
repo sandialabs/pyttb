@@ -1479,7 +1479,7 @@ class ktensor(object):
 
         # Option to do greedy matching
         if greedy:
-            best_perm = -1 * np.ones((RA), dtype=np.int)
+            best_perm = -1 * np.ones((RA), dtype=int)
             best_score = 0
             for r in range(RB):
                 idx = np.argmax(C.reshape(np.prod(C.shape),order='F'))

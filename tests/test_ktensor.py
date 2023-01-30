@@ -762,15 +762,15 @@ def test_ktensor_ttv(sample_ktensor_3way):
     vec2 = np.array([1, 1])
     vec3 = np.array([1, 1, 1])
     vec4 = np.array([1, 1, 1, 1])
-    assert K.ttv(np.array([vec2, vec3, vec4])) == 30348
+    assert K.ttv([vec2, vec3, vec4]) == 30348
 
     # Wrong shape
     with pytest.raises(AssertionError) as excinfo:
-        K.ttv(np.array([vec2, vec3, np.array([1,2])]))
+        K.ttv([vec2, vec3, np.array([1,2])])
     assert "Multiplicand is wrong size" in str(excinfo)
 
     # Multiple dimensions, but fewer than all dimensions, not in same order as ktensor dimensions
-    K2 = K.ttv(np.array([vec4, vec3]), dims=np.array([2, 1]))
+    K2 = K.ttv([vec4, vec3], dims=np.array([2, 1]))
     weights = np.array([1800., 3564.])
     fm0 = np.array([[1., 3.], [2., 4.]])
     assert (K2.isequal(ttb.ktensor.from_data(weights, fm0)))

@@ -137,9 +137,9 @@ class sptensor(object):
         if (nonzeros < 0) or (nonzeros >= np.prod(shape)):
             assert False, "Requested number of non-zeros must be positive and less than the total size"
         elif nonzeros < 1:
-            nonzeros = np.int(np.ceil(np.prod(shape) * nonzeros))
+            nonzeros = int(np.ceil(np.prod(shape) * nonzeros))
         else:
-            nonzeros = np.int(np.floor(nonzeros))
+            nonzeros = int(np.floor(nonzeros))
 
         # Keep iterating until we find enough unique non-zeros or we give up
         subs = np.array([])

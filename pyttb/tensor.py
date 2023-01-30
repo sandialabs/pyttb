@@ -1076,7 +1076,7 @@ class tensor(object):
             if dnew == 2:  
                 return np.reshape(y, [sz, sz], order='F')
             elif dnew > 2:  
-                return ttb.tensor.from_data(np.reshape(y, sz*np.ones(dnew, dtype=np.int), order='F'))
+                return ttb.tensor.from_data(np.reshape(y, sz*np.ones(dnew, dtype=int), order='F'))
             else:
                 return y
         else:
