@@ -1030,7 +1030,7 @@ class sptensor(object):
 
         # Check that vector is a list of vectors, if not place single vector as element in list
         if isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv(np.array([vector]), dims)
+            return self.ttv([vector], dims)
 
         # Get sorted dims and index for multiplicands
         dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))

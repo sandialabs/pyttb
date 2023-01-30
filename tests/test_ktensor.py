@@ -21,8 +21,8 @@ def sample_ktensor_2way():
 def sample_ktensor_3way():
     rank = 2
     shape = np.array([2, 3, 4])
-    vector = np.arange(1, rank*sum(shape)+1).astype(np.float)
-    weights = 2 * np.ones(rank).astype(np.float)
+    vector = np.arange(1, rank*sum(shape)+1).astype(float)
+    weights = 2 * np.ones(rank).astype(float)
     vector_with_weights = np.concatenate((weights, vector), axis=0)
     #vector_with_weights = vector_with_weights.reshape((len(vector_with_weights), 1))
     # ground truth
@@ -100,8 +100,8 @@ def test_ktensor_from_data(sample_ktensor_2way, capsys):
     weights_int = np.array([1, 2])
     K2 = ttb.ktensor.from_data(weights_int, data["factor_matrices"])
     out, err = capsys.readouterr()
-    assert "converting weights from int64 to np.float" in out or \
-           "converting weights from int32 to np.float" in out
+    assert "converting weights from int64 to float" in out or \
+           "converting weights from int32 to float" in out
 
     # Weights that are int should be converted
     fm0 = np.array([[1, 2], [3, 4]])
@@ -109,8 +109,8 @@ def test_ktensor_from_data(sample_ktensor_2way, capsys):
     factor_matrices = [fm0, fm1]
     K3 = ttb.ktensor.from_data(data["weights"], factor_matrices)
     out, err = capsys.readouterr()
-    assert "converting factor_matrices[0] from int64 to np.float" in out or \
-           "converting factor_matrices[0] from int32 to np.float" in out
+    assert "converting factor_matrices[0] from int64 to float" in out or \
+           "converting factor_matrices[0] from int32 to float" in out
 
 @pytest.mark.indevelopment
 def test_ktensor_from_function():
