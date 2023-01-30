@@ -1806,7 +1806,7 @@ class ktensor(object):
         elif isinstance(dims, (float, int)):
             dims = np.array([dims])
 
-        assert len(vector) > 0, 'sptensor.ttv: vector must be nonempty'
+        assert len(vector) > 0, 'ktensor.ttv: vector must be nonempty'
 
         # Check that vector is a list of vectors, if not place single vector as element in list
         if isinstance(vector[0], (int, float, np.int_, np.float_)):
