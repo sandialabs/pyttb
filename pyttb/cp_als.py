@@ -100,6 +100,11 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
      Iter 1: f = 0.9999999836180988 f-delta = 0.0
      Final f = 0.9999999836180988
     """
+    try:
+        from PyGenten import pyGenten
+        genten_backend = True
+    except:
+        genten_backend = False
 
     # Extract number of dimensions and norm of tensor
     N = tensor.ndims
@@ -137,6 +142,56 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
     else:
         assert False, "The selected initialization method is not supported"
+
+    if isinstance(tensor, ttb.tensor) and genten_backend:
+        print("Genten is supported")
+
+        U = init.copy().factor_matrices
+
+        pyGenten.initializeKokkos()
+
+        sizes = pyGenten.IndxArray(N)
+        sizes_np = np.array(sizes, copy=False)
+        sizes_np[0:N] = tensor.shape[0:N]
+
+        print(tensor.data.flatten())
+        values = pyGenten.Array(tensor.data.flatten())
+        x = pyGenten.Tensor(sizes, values)
+
+        weights = pyGenten.Array(U[0].shape[0])
+        genten_factor_matrices = pyGenten.FacMatArray(len(U))
+        for i in range(0, len(U)):
+            factor_matrix = pyGenten.FacMatrix(U[i])
+            genten_factor_matrices.set_factor(i, factor_matrix)
+
+        u = pyGenten.Ktensor(weights, genten_factor_matrices)
+
+        algParams = pyGenten.AlgParams()
+        algParams.maxiters = maxiters
+        algParams.tol = stoptol
+        algParams.printitn = printitn
+        perfInfo = pyGenten.PerfHistory()
+
+        numIters = 10
+        resNorm = 1.
+        perfIter = 10
+        pyGenten.cpals(x, u, algParams, numIters, resNorm, perfIter, perfInfo)
+
+        fit = 0
+
+        output = {}
+        output['params'] = (stoptol, maxiters, printitn, dimorder)
+        output['iters'] = numIters
+        output['normresidual'] = resNorm
+        output['fit'] = fit
+
+        weights = np.array(u.weights(), copy=False)
+        for i in range(0, len(U)):
+            U[i] = np.array(u[i], copy=False)
+
+        M = ttb.ktensor.from_data(weights, U)
+
+        return M, init, output
 
     # Set up for iterates and fit
     U = init.copy().factor_matrices
