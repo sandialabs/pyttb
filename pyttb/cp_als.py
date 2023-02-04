@@ -125,12 +125,12 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
         for n in dimorder:
             if init.factor_matrices[n].shape != (tensor.shape[n], rank):
                 assert False, "Mode {} of the initial guess is the wrong size".format(n)
-    elif init.lower() == 'random':
+    elif isinstance(init, str) and init.lower() == 'random':
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(np.random.uniform(0, 1, (tensor.shape[n], rank)))
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
-    elif init.lower() == 'nvecs':
+    elif isinstance(init, str) and init.lower() == 'nvecs':
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(tensor.nvecs(n, rank))
