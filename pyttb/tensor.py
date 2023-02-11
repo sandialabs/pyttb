@@ -10,6 +10,7 @@ from numpy_groupies import aggregate as accumarray
 import scipy.sparse.linalg
 import warnings
 
+
 class tensor(object):
     """
     TENSOR Class for dense tensors.
@@ -27,9 +28,9 @@ class tensor(object):
     @classmethod
     def from_data(cls, data, shape=None):
         """
-        Creates a tensor from explicit description. Note that 1D tensors (i.e., when len(shape)==1) 
-        contains a data array that follow the Numpy convention of being a row vector, which is 
-        different than in the Matlab Tensor Toolbox.  
+        Creates a tensor from explicit description. Note that 1D tensors (i.e., when len(shape)==1)
+        contains a data array that follow the Numpy convention of being a row vector, which is
+        different than in the Matlab Tensor Toolbox.
 
         Parameters
         ----------
@@ -41,29 +42,32 @@ class tensor(object):
         :class:`pyttb.tensor`
         """
         # CONVERT A MULTIDIMENSIONAL ARRAY
-        if not issubclass(data.dtype.type, np.number) and not issubclass(data.dtype.type, np.bool_):
-            assert False, 'First argument must be a multidimensional array.'
+        if not issubclass(data.dtype.type, np.number) and not issubclass(
+            data.dtype.type, np.bool_
+        ):
+            assert False, "First argument must be a multidimensional array."
 
         # Create or check second argument
         if shape is None:
             shape = data.shape
         else:
             if not isinstance(shape, tuple):
-                assert False, 'Second argument must be a tuple.'
-
+                assert False, "Second argument must be a tuple."
 
         # Make sure the number of elements matches what's been specified
         if len(shape) == 0:
             if data.size > 0:
-                assert False, 'Empty tensor cannot contain any elements'
+                assert False, "Empty tensor cannot contain any elements"
 
         elif np.prod(shape) != data.size:
-            assert False, 'TTB:WrongSize, Size of data does not match specified size of tensor'
+            assert (
+                False
+            ), "TTB:WrongSize, Size of data does not match specified size of tensor"
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
             # reshaping using Fortran ordering to match Matlab conventions
-            data = np.reshape(data, np.array(shape), order='F')
+            data = np.reshape(data, np.array(shape), order="F")
 
         # Create the tensor
         tensorInstance = cls()
@@ -90,7 +94,17 @@ class tensor(object):
         if isinstance(source, tensor):
             # COPY CONSTRUCTOR
             return cls.from_data(source.data.copy(), source.shape)
-        elif isinstance(source, (ttb.ktensor, ttb.ttensor, ttb.sptensor, ttb.sumtensor, ttb.symtensor, ttb.symktensor)):
+        elif isinstance(
+            source,
+            (
+                ttb.ktensor,
+                ttb.ttensor,
+                ttb.sptensor,
+                ttb.sumtensor,
+                ttb.symtensor,
+                ttb.symktensor,
+            ),
+        ):
             # CONVERSION
             t = source.full()
             return cls.from_data(t.data.copy(), t.shape)
@@ -101,7 +115,7 @@ class tensor(object):
             # it using ipermute.
             shape = source.tshape
             order = np.hstack([source.rindices, source.cindices])
-            data = np.reshape(source.data.copy(), np.array(shape)[order], order='F')
+            data = np.reshape(source.data.copy(), np.array(shape)[order], order="F")
             if order.size > 1:
                 data = np.transpose(data, np.argsort(order))
             return cls.from_data(data, shape)
@@ -124,7 +138,7 @@ class tensor(object):
 
         # Check size
         if not isinstance(shape, tuple):
-            assert False, 'TTB:BadInput, Shape must be a tuple'
+            assert False, "TTB:BadInput, Shape must be a tuple"
 
         # Generate data
         data = function_handle(shape)
@@ -156,13 +170,13 @@ class tensor(object):
 
         dims, _ = tt_dimscheck(dims, self.ndims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
-        
+
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
             if fun == "sum":
-                return sum(self.data.flatten('F'))
+                return sum(self.data.flatten("F"))
             else:
-                return fun(self.data.flatten('F'))
+                return fun(self.data.flatten("F"))
 
         ## Calculate the shape of the result
         newshape = tuple(np.array(self.shape)[remdims])
@@ -221,7 +235,7 @@ class tensor(object):
         x = self.permute(np.concatenate((remdims, np.array([i, j]))))
 
         # Reshape data to be 3D
-        data = np.reshape(x.data, (m, n, n), order='F')
+        data = np.reshape(x.data, (m, n, n), order="F")
 
         # Add diagonal entries for each slice
         newdata = np.zeros((m, 1))
@@ -230,7 +244,7 @@ class tensor(object):
 
         # Reshape result
         if np.prod(newsize) > 1:
-            newdata = np.reshape(newdata, newsize, order='F')
+            newdata = np.reshape(newdata, newsize, order="F")
 
         return ttb.tensor.from_data(newdata, newsize)
 
@@ -297,9 +311,9 @@ class tensor(object):
 
         :return:
         """
-        idx = np.nonzero(np.ravel(self.data,order='F'))[0]
-        subs = ttb.tt_ind2sub(self.shape,idx)
-        vals = self.data[tuple(subs.T)][:,None]
+        idx = np.nonzero(np.ravel(self.data, order="F"))[0]
+        subs = ttb.tt_ind2sub(self.shape, idx)
+        vals = self.data[tuple(subs.T)][:, None]
         return subs, vals
 
     def full(self):
@@ -333,9 +347,9 @@ class tensor(object):
         """
         if isinstance(other, ttb.tensor):
             if self.shape != other.shape:
-                assert False, 'Inner product must be between tensors of the same size'
-            x = np.reshape(self.data, (self.data.size,), order='F')
-            y = np.reshape(other.data, (other.data.size,), order='F')
+                assert False, "Inner product must be between tensors of the same size"
+            x = np.reshape(self.data, (self.data.size,), order="F")
+            y = np.reshape(other.data, (other.data.size,), order="F")
             return x.dot(y)
         elif isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):
             # Reverse arguments and call specializer code
@@ -357,14 +371,17 @@ class tensor(object):
             True if tensors are identical, false otherwise
         """
 
-        if not isinstance(other, (ttb.tensor, ttb.sptensor)) or self.shape != other.shape:
+        if (
+            not isinstance(other, (ttb.tensor, ttb.sptensor))
+            or self.shape != other.shape
+        ):
             return False
         elif isinstance(other, ttb.tensor):
             return np.all(self.data == other.data)
         elif isinstance(other, ttb.sptensor):
             return np.all(self.data == other.full().data)
 
-    def issymmetric(self, grps=None, version=None, return_details = False):
+    def issymmetric(self, grps=None, version=None, return_details=False):
         """
         Determine if a dense tensor is symmetric in specified modes.
 
@@ -392,7 +409,6 @@ class tensor(object):
         # the algorithm is much slower
         if version is None:  # Use new algorithm
             for i in range(0, len(grps)):
-
                 # Extract current group
                 thisgrp = grps[i]
 
@@ -431,10 +447,8 @@ class tensor(object):
             all_diffs = np.zeros((cnt, 1))
             all_perms = np.zeros((cnt, n))
             for i in range(0, len(grps)):
-
                 # Compute the permutations for this group of symmetries
                 for idx, perm in enumerate(permutations(grps[i])):
-
                     all_perms[idx, :] = perm
 
                     # Do the permutation and see if it is a match, if not record the difference.
@@ -442,7 +456,9 @@ class tensor(object):
                     if np.array_equal(self.data, Y.data):
                         all_diffs[idx] = 0
                     else:
-                        all_diffs[idx] = np.max(np.abs(self.data.ravel() - Y.data.ravel()))
+                        all_diffs[idx] = np.max(
+                            np.abs(self.data.ravel() - Y.data.ravel())
+                        )
 
             if return_details == False:
                 return bool((all_diffs == 0).all())
@@ -489,6 +505,7 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def tensor_or(x, y):
             return np.logical_or(x, y)
 
@@ -506,6 +523,7 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def tensor_xor(x, y):
             return np.logical_xor(x, y)
 
@@ -551,7 +569,7 @@ class tensor(object):
 
         # check that we have a tensor that can perform mttkrp
         if self.ndims < 2:
-            assert False, 'MTTKRP is invalid for tensors with fewer than 2 dimensions'
+            assert False, "MTTKRP is invalid for tensors with fewer than 2 dimensions"
 
         # extract the list of factor matrices if given a ktensor
         if isinstance(U, ttb.ktensor):
@@ -565,11 +583,11 @@ class tensor(object):
 
         # check that we have a list (or list extracted from a ktensor)
         if not isinstance(U, list):
-            assert False, 'Second argument should be a list of arrays or a ktensor'
+            assert False, "Second argument should be a list of arrays or a ktensor"
 
         # check that list is the correct length
         if len(U) != self.ndims:
-            assert False, 'Second argument contains the wrong number of arrays'
+            assert False, "Second argument contains the wrong number of arrays"
 
         if n == 0:
             R = U[1].shape[1]
@@ -581,26 +599,26 @@ class tensor(object):
             if i == n:
                 continue
             if U[i].shape[0] != self.shape[i]:
-                assert False, 'Entry {} of list of arrays is wrong size'.format(i)
+                assert False, "Entry {} of list of arrays is wrong size".format(i)
 
         szl = int(np.prod(self.shape[0:n]))
-        szr = int(np.prod(self.shape[n+1:]))
+        szr = int(np.prod(self.shape[n + 1 :]))
         szn = self.shape[n]
 
         if n == 0:
-            Ur = ttb.khatrirao(U[1:self.ndims], reverse=True)
-            Y = np.reshape(self.data, (szn, szr), order='F')
+            Ur = ttb.khatrirao(U[1 : self.ndims], reverse=True)
+            Y = np.reshape(self.data, (szn, szr), order="F")
             return Y @ Ur
         elif n == self.ndims - 1:
-            Ul = ttb.khatrirao(U[0:self.ndims - 1], reverse=True)
-            Y = np.reshape(self.data, (szl, szn), order='F')
+            Ul = ttb.khatrirao(U[0 : self.ndims - 1], reverse=True)
+            Y = np.reshape(self.data, (szl, szn), order="F")
             return Y.T @ Ul
         else:
-            Ul = ttb.khatrirao(U[n+1:], reverse=True)
-            Ur = np.reshape(ttb.khatrirao(U[0:n], reverse=True), (szl, 1, R), order='F')
-            Y = np.reshape(self.data, (-1, szr), order='F')
+            Ul = ttb.khatrirao(U[n + 1 :], reverse=True)
+            Ur = np.reshape(ttb.khatrirao(U[0:n], reverse=True), (szl, 1, R), order="F")
+            Y = np.reshape(self.data, (-1, szr), order="F")
             Y = Y @ Ul
-            Y = np.reshape(Y, (szl, szn, R), order='F')
+            Y = np.reshape(Y, (szl, szn, R), order="F")
             V = np.zeros((szn, R))
             for r in range(R):
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
@@ -647,7 +665,7 @@ class tensor(object):
     def nvecs(self, n, r, flipsign=True):
         """
         Compute the leading mode-n eigenvectors for a tensor
-        
+
         Parameters
         ----------
         n: int
@@ -671,7 +689,7 @@ class tensor(object):
             array([[ 0.40455358,  0.9145143 ],
                    [ 0.9145143 , -0.40455358]])
         """
-        Xn =ttb.tenmat.from_tensor_type(self, rdims=np.array([n])).double()
+        Xn = ttb.tenmat.from_tensor_type(self, rdims=np.array([n])).double()
         y = Xn @ Xn.T
 
         if r < y.shape[0] - 1:
@@ -679,7 +697,9 @@ class tensor(object):
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
         else:
-            warnings.warn('Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve')
+            warnings.warn(
+                "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
+            )
             w, v = scipy.linalg.eigh(y)
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
@@ -734,7 +754,7 @@ class tensor(object):
         if np.prod(self.shape) != np.prod(shape):
             assert False, "Reshaping a tensor cannot change number of elements"
 
-        return ttb.tensor.from_data(np.reshape(self.data, shape, order='F'), shape)
+        return ttb.tensor.from_data(np.reshape(self.data, shape, order="F"), shape)
 
     def squeeze(self):
         """
@@ -792,7 +812,6 @@ class tensor(object):
         if version is None:  # Use default newer faster version
             ngrps = len(grps)
             for i in range(0, ngrps):
-
                 # Extract current group
                 thisgrp = grps[i]
 
@@ -801,8 +820,8 @@ class tensor(object):
                     assert False, "Dimension mismatch for symmetrization"
 
                 # Check for no overlap in the sets
-                if i < ngrps-1:
-                    if not np.intersect1d(thisgrp, grps[i+1:, :]).size == 0:
+                if i < ngrps - 1:
+                    if not np.intersect1d(thisgrp, grps[i + 1 :, :]).size == 0:
                         assert False, "Cannot have overlapping symmetries"
 
                 # Construct matrix ind where each row is the multi-index for one element of tensor
@@ -826,8 +845,8 @@ class tensor(object):
                 classNum = accumarray(linclassidx, 1)
                 # We ignore this division error state because if we don't have an entry in linclassidx we won't
                 # reference the inf or nan in the slice below
-                with np.errstate(divide='ignore', invalid='ignore'):
-                    avg = classSum/classNum
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    avg = classSum / classNum
 
                 newdata = avg[linclassidx]
                 data = np.reshape(newdata, self.shape)
@@ -835,7 +854,6 @@ class tensor(object):
             return ttb.tensor.from_data(data)
 
         else:  # Original version
-
             # Check tensor dimensions for compatibility with symmetrization
             ngrps = len(grps)
             for i in range(0, ngrps):
@@ -846,7 +864,7 @@ class tensor(object):
 
             # Check for no overlap in sets
             for i in range(0, ngrps):
-                for j in range(i+1, ngrps):
+                for j in range(i + 1, ngrps):
                     if not np.intersect1d(grps[i, :], grps[j, :]).size == 0:
                         assert False, "Cannot have overlapping symmetries"
 
@@ -862,7 +880,7 @@ class tensor(object):
             sym_perms = np.tile(np.arange(0, n), [total_perms, 1])
             for i in range(0, ngrps):
                 ntimes = np.prod(combo_lengths[0:i], dtype=int)
-                ncopies = np.prod(combo_lengths[i+1:], dtype=int)
+                ncopies = np.prod(combo_lengths[i + 1 :], dtype=int)
                 nelems = len(combos[i])
 
                 idx = 0
@@ -912,7 +930,7 @@ class tensor(object):
             dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(matrix))
             # Calculate individual products
             Y = self.ttm(matrix[vidx[0]], dims[0], transpose)
-            for k in range(1,dims.size):
+            for k in range(1, dims.size):
                 Y = Y.ttm(matrix[vidx[k]], dims[k], transpose)
             return Y
 
@@ -925,10 +943,10 @@ class tensor(object):
         # old version (ver=0)
         shape = np.array(self.shape)
         n = dims[0]
-        order = np.array([n] + list(range(0,n)) + list(range(n+1,self.ndims)))
+        order = np.array([n] + list(range(0, n)) + list(range(n + 1, self.ndims)))
         newdata = self.permute(order)
-        ids = np.array(list(range(0,n)) + list(range(n+1,self.ndims)))
-        newdata = np.reshape(newdata.data, (shape[n],np.prod(shape[ids])), order="F")
+        ids = np.array(list(range(0, n)) + list(range(n + 1, self.ndims)))
+        newdata = np.reshape(newdata.data, (shape[n], np.prod(shape[ids])), order="F")
         if transpose:
             newdata = matrix.T @ newdata
             p = matrix.shape[1]
@@ -936,7 +954,9 @@ class tensor(object):
             newdata = matrix @ newdata
             p = matrix.shape[0]
 
-        newshape = np.array([p] + list(shape[range(0,n)]) + list(shape[range(n+1,self.ndims)]))
+        newshape = np.array(
+            [p] + list(shape[range(0, n)]) + list(shape[range(n + 1, self.ndims)])
+        )
         Y = np.reshape(newdata, newshape, order="F")
         Y = np.transpose(Y, np.argsort(order))
         return ttb.tensor.from_data(Y)
@@ -999,15 +1019,19 @@ class tensor(object):
             dims = np.array([dims])
 
         # Check that vector is a list of vectors, if not place single vector as element in list
-        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv([vector], dims)
+        if isinstance(vector, list):
+            return self.ttv(np.array(vector), dims)
+        if len(vector.shape) == 1 and isinstance(
+            vector[0], (int, float, np.int_, np.float_)
+        ):
+            return self.ttv(np.array([vector]), dims)
 
         # Get sorted dims and index for multiplicands
         dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):
-            if vector[vidx[i]].shape != (self.shape[dims[i]], ):
+            if vector[vidx[i]].shape != (self.shape[dims[i]],):
                 assert False, "Multiplicand is wrong size"
 
         # Extract the data
@@ -1022,8 +1046,8 @@ class tensor(object):
         n = self.ndims
         sz = np.array(self.shape)[np.concatenate((remdims, dims))]
 
-        for i in range(dims.size-1, -1, -1):
-            c = np.reshape(c, tuple([np.prod(sz[0:n-1]), sz[n-1]]), order='F')
+        for i in range(dims.size - 1, -1, -1):
+            c = np.reshape(c, tuple([np.prod(sz[0 : n - 1]), sz[n - 1]]), order="F")
             c = c.dot(vector[vidx[i]])
             n -= 1
         # If needed, convert the final result back to tensor
@@ -1032,7 +1056,7 @@ class tensor(object):
         else:
             return c[0]
 
-    def ttsv(self, vector, dims=None, version = None):
+    def ttsv(self, vector, dims=None, version=None):
         """
         Tensor times same vector in multiple modes
 
@@ -1053,9 +1077,9 @@ class tensor(object):
             if dims == 0:
                 return self.ttv(X)
             elif (dims == -1) or (dims == -2):  # Return scalar or matrix
-                return (self.ttv(X, -np.arange(1, -dims+1))).double()
+                return (self.ttv(X, -np.arange(1, -dims + 1))).double()
             else:
-                return self.ttv(X, -np.arange(1, -dims+1))
+                return self.ttv(X, -np.arange(1, -dims + 1))
 
         elif version == 2 or version is None:  # Calculate the new way
             d = self.ndims
@@ -1066,14 +1090,16 @@ class tensor(object):
 
             y = self.data
             for i in range(drem, 0, -1):
-                yy = np.reshape(y, (sz**(dnew + i -1), sz), order='F')
+                yy = np.reshape(y, (sz ** (dnew + i - 1), sz), order="F")
                 y = yy.dot(vector)
 
             # Convert to matrix if 2-way or convert back to tensor if result is >= 3-way
-            if dnew == 2:  
-                return np.reshape(y, [sz, sz], order='F')
-            elif dnew > 2:  
-                return ttb.tensor.from_data(np.reshape(y, sz*np.ones(dnew, dtype=int), order='F'))
+            if dnew == 2:
+                return np.reshape(y, [sz, sz], order="F")
+            elif dnew > 2:
+                return ttb.tensor.from_data(
+                    np.reshape(y, sz * np.ones(dnew, dtype=np.int), order="F")
+                )
             else:
                 return y
         else:
@@ -1106,26 +1132,27 @@ class tensor(object):
         X(1,1,4) = 1 %<- grows the size of the tensor
         """
         # Figure out if we are doing a subtensor, a list of subscripts or a list of linear indices
-        type = 'error'
+        type = "error"
         if self.ndims <= 1:
             if isinstance(key, np.ndarray):
-                type = 'subscripts'
+                type = "subscripts"
             else:
-                type = 'subtensor'
+                type = "subtensor"
         else:
             if isinstance(key, np.ndarray):
-                if (len(key.shape) > 1 and key.shape[1] >= self.ndims):
-                    type = 'subscripts'
+                if len(key.shape) > 1 and key.shape[1] >= self.ndims:
+                    type = "subscripts"
                 elif len(key.shape) == 1 or key.shape[1] == 1:
-                    type = 'linear indices'
+                    type = "linear indices"
             elif isinstance(key, tuple):
-                validSubtensor = [isinstance(keyElement, (int, slice)) for keyElement in key]
+                validSubtensor = [
+                    isinstance(keyElement, (int, slice)) for keyElement in key
+                ]
                 if np.all(validSubtensor):
-                    type = 'subtensor'
-
+                    type = "subtensor"
 
         # Case 1: Rectangular Subtensor
-        if type == 'subtensor':
+        if type == "subtensor":
             # Extract array of subscripts
             subs = key
 
@@ -1144,7 +1171,9 @@ class tensor(object):
             if n == 0:
                 newsiz = (bsiz[n:] + 1).astype(int)
             else:
-                newsiz = np.concatenate((np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n :] + 1)).astype(int)
+                newsiz = np.concatenate(
+                    (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
+                ).astype(int)
             if (newsiz != self.shape).any():
                 # We need to enlarge x.data.
                 newData = np.zeros(shape=tuple(newsiz))
@@ -1162,13 +1191,17 @@ class tensor(object):
             return
 
         # Case 2a: Subscript indexing
-        if type == 'subscripts':
+        if type == "subscripts":
             # Extract array of subscripts
             subs = key
 
             # Will the size change? If so we first need to resize x
             n = self.ndims
-            if len(subs.shape) == 1 and len(self.shape) == 1 and self.shape[0] < subs.shape[0]:
+            if (
+                len(subs.shape) == 1
+                and len(self.shape) == 1
+                and self.shape[0] < subs.shape[0]
+            ):
                 bsiz = subs
             elif len(subs.shape) == 1:
                 bsiz = np.array([np.max(subs, axis=0)])
@@ -1178,7 +1211,9 @@ class tensor(object):
             if n == 0:
                 newsiz = (bsiz[n:] + 1).astype(int)
             else:
-                newsiz = np.concatenate((np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)).astype(int)
+                newsiz = np.concatenate(
+                    (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
+                ).astype(int)
 
             if (newsiz != self.shape).any():
                 # We need to enlarge x.data.
@@ -1200,10 +1235,12 @@ class tensor(object):
             return
 
         # Case 2b: Linear Indexing
-        if type == 'linear indices':
+        if type == "linear indices":
             idx = key
             if (idx > np.prod(self.shape)).any():
-                assert False, 'TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized'
+                assert (
+                    False
+                ), "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
             idx = tt_ind2sub(self.shape, idx)
             if idx.shape[0] == 1:
                 self.data[tuple(idx[0, :])] = value
@@ -1212,7 +1249,7 @@ class tensor(object):
                 self.data[actualIdx] = value
             return
 
-        assert False, 'Invalid use of tensor setitem'
+        assert False, "Invalid use of tensor setitem"
 
     def __getitem__(self, item):
         """
@@ -1258,7 +1295,11 @@ class tensor(object):
         :class:`pyttb.tensor` or :class:`numpy.ndarray`
         """
         # Case 1: Rectangular Subtensor
-        if isinstance(item, tuple) and len(item) == self.ndims and item[len(item) - 1] != 'extract':
+        if (
+            isinstance(item, tuple)
+            and len(item) == self.ndims
+            and item[len(item) - 1] != "extract"
+        ):
             # Copy the subscripts
             region = item
 
@@ -1267,8 +1308,8 @@ class tensor(object):
 
             # Determine the subscripts
             newsiz = []  # future new size
-            kpdims = []   # dimensions to keep
-            rmdims = []   # dimensions to remove
+            kpdims = []  # dimensions to keep
+            rmdims = []  # dimensions to remove
 
             # Determine the new size and what dimensions to keep
             for i in range(0, len(region)):
@@ -1294,7 +1335,7 @@ class tensor(object):
             return a
 
         # *** CASE 2a: Subscript indexing ***
-        if len(item) > 1 and isinstance(item[-1], str) and item[-1] == 'extract':
+        if len(item) > 1 and isinstance(item[-1], str) and item[-1] == "extract":
             # Extract array of subscripts
             subs = np.array(item[0])
             a = np.squeeze(self.data[tuple(subs.transpose())])
@@ -1303,7 +1344,7 @@ class tensor(object):
 
         # Case 2b: Linear Indexing
         if len(item) >= 2 and not isinstance(item[-1], str):
-            assert False, 'Linear indexing requires single input array'
+            assert False, "Linear indexing requires single input array"
         idx = item[0]
         a = np.squeeze(self.data[tuple(ttb.tt_ind2sub(self.shape, idx).transpose())])
         # Todo if row make column?
@@ -1321,7 +1362,8 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
-        def tensor_equality(x,y):
+
+        def tensor_equality(x, y):
             return x == y
 
         return ttb.tt_tenfun(tensor_equality, self, other)
@@ -1338,6 +1380,7 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def tensor_notEqual(x, y):
             return x != y
 
@@ -1355,6 +1398,7 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def ge(x, y):
             return x >= y
 
@@ -1372,6 +1416,7 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def le(x, y):
             return x <= y
 
@@ -1425,8 +1470,9 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def minus(x, y):
-            return x-y
+            return x - y
 
         return ttb.tt_tenfun(minus, self, other)
 
@@ -1497,8 +1543,9 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def mul(x, y):
-            return x*y
+            return x * y
 
         if isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):
             other = other.full()
@@ -1531,10 +1578,11 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def div(x, y):
             # We ignore the divide by zero errors because np.inf/np.nan is an appropriate representation
-            with np.errstate(divide='ignore', invalid='ignore'):
-                return x/y
+            with np.errstate(divide="ignore", invalid="ignore"):
+                return x / y
 
         return ttb.tt_tenfun(div, self, other)
 
@@ -1550,10 +1598,11 @@ class tensor(object):
         -------
         :class:`pyttb.tensor`
         """
+
         def div(x, y):
             # We ignore the divide by zero errors because np.inf/np.nan is an appropriate representation
-            with np.errstate(divide='ignore', invalid='ignore'):
-                return x/y
+            with np.errstate(divide="ignore", invalid="ignore"):
+                return x / y
 
         return ttb.tt_tenfun(div, other, self)
 
@@ -1579,7 +1628,7 @@ class tensor(object):
             copy of tensor
         """
 
-        return ttb.tensor.from_data(-1*self.data)
+        return ttb.tensor.from_data(-1 * self.data)
 
     def __repr__(self):
         """
@@ -1591,41 +1640,49 @@ class tensor(object):
             Contains the shape and data as strings on different lines.
         """
         if self.ndims == 0:
-            s = ''
-            s += 'empty tensor of shape '
+            s = ""
+            s += "empty tensor of shape "
             s += str(self.shape)
-            s += '\n'
-            s += 'data = []'
+            s += "\n"
+            s += "data = []"
             return s
 
-        s = ''
-        s += 'tensor of shape '
-        s += (' x ').join([str(int(d)) for d in self.shape])
-        s += '\n'
+        s = ""
+        s += "tensor of shape "
+        s += (" x ").join([str(int(d)) for d in self.shape])
+        s += "\n"
 
         if self.ndims == 1:
-            s += 'data'
+            s += "data"
             if self.ndims == 1:
-                s += '[:]'
-                s += ' = \n'
+                s += "[:]"
+                s += " = \n"
                 s += str(self.data)
-                s += '\n'
+                s += "\n"
                 return s
         for i in np.arange(np.prod(self.shape[:-2])):
-            s += 'data'
+            s += "data"
             if self.ndims == 2:
-                s += '[:, :]'
-                s += ' = \n'
+                s += "[:, :]"
+                s += " = \n"
                 s += str(self.data)
-                s += '\n'
+                s += "\n"
             elif self.ndims > 2:
                 idx = ttb.tt_ind2sub(self.shape[:-2], np.array([i]))
                 s += str(idx[0].tolist())[0:-1]
-                s += ', :, :]'
-                s += ' = \n'
-                s += str(self.data[tuple(np.concatenate((idx[0], np.array([slice(None), slice(None)]))))])
-                s += '\n'
-        #s += '\n'
+                s += ", :, :]"
+                s += " = \n"
+                s += str(
+                    self.data[
+                        tuple(
+                            np.concatenate(
+                                (idx[0], np.array([slice(None), slice(None)]))
+                            )
+                        )
+                    ]
+                )
+                s += "\n"
+        # s += '\n'
         return s
 
     __str__ = __repr__
