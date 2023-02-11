@@ -24,6 +24,8 @@ setup(
     extras_require={
         'testing': [
             'black',
+            'isort',
+            'pylint',
         ]
     }
 )
