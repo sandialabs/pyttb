@@ -3,6 +3,7 @@
 # U.S. Government retains certain rights in this software.
 
 """Classes and functions for working with Kruskal tensors."""
+from __future__ import annotations
 
 import pyttb as ttb
 from .pyttb_utils import *
@@ -128,7 +129,7 @@ class ktensor(object):
         return k
 
     @classmethod
-    def from_tensor_type(cls, source):
+    def from_tensor_type(cls, source) -> ktensor:
         """
         Construct a ktensor from another ktensor. A deep copy of the data from the input ktensor
         is used for the new ktensor.

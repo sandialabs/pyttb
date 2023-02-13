@@ -26,6 +26,7 @@ setup(
             'black',
             'isort',
             'pylint',
+            'mypy'
         ]
     }
 )

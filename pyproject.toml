@@ -47,3 +47,16 @@ variable-naming-style = "any"
 [tool.pylint.design]
 # MATLAB Tensortoolbox interface
 max-public-methods = 40
+
+[tool.mypy]
+warn_unused_configs = true
+plugins = "numpy.typing.mypy_plugin"
+
+[[tool.mypy.overrides]]
+module = [
+    "scipy",
+    "scipy.sparse",
+    "scipy.sparse.linalg",
+    "numpy_groupies"
+]
+ignore_missing_imports = true
