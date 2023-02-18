@@ -325,9 +325,9 @@ class tensor:
         Examples
         --------
         >>> tensor1 = ttb.tensor.from_data(np.array([[1, 2], [3, 4]]))
-        >>> tensor1.exp().data
-        array([[ 2.71828183,  7.3890561 ],
-               [20.08553692, 54.59815003]])
+        >>> tensor1.exp().data  # doctest: +ELLIPSIS
+        array([[ 2.7182...,  7.3890... ],
+               [20.0855..., 54.5981...]])
         """
         return ttb.tensor.from_data(np.exp(self.data))
 
@@ -791,12 +791,12 @@ class tensor:
         Examples
         --------
         >>> tensor1 = ttb.tensor.from_data(np.array([[1, 2], [3, 4]]))
-        >>> tensor1.nvecs(0,1)
-        array([[0.40455358],
-               [0.9145143 ]])
-        >>> tensor1.nvecs(0,2)
-        array([[ 0.40455358,  0.9145143 ],
-               [ 0.9145143 , -0.40455358]])
+        >>> tensor1.nvecs(0,1)  # doctest: +ELLIPSIS
+        array([[0.4045...],
+               [0.9145...]])
+        >>> tensor1.nvecs(0,2)  # doctest: +ELLIPSIS
+        array([[ 0.4045...,  0.9145...],
+               [ 0.9145..., -0.4045...]])
         """
         Xn = ttb.tenmat.from_tensor_type(self, rdims=np.array([n])).double()
         y = Xn @ Xn.T

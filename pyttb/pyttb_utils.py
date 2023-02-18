@@ -130,7 +130,9 @@ def tt_union_rows(MatrixA, MatrixB):
     >>> a = np.array([[1,2],[3,4]])
     >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
     >>> ttb.tt_union_rows(a,b)
-    [[1,2],[3,4],[0,0]]
+    array([[0, 0],
+           [1, 2],
+           [3, 4]])
     """
     #TODO ismember and uniqe are very similar in function
     if MatrixA.size > 0:
@@ -329,9 +331,9 @@ def tt_intersect_rows(MatrixA, MatrixB):
     >>> a = np.array([[1,2],[3,4]])
     >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
     >>> ttb.tt_intersect_rows(a,b)
-    [0,1]
+    array([0, 1])
     >>> ttb.tt_intersect_rows(b,a)
-    [1,2]
+    array([1, 2])
     """
     #TODO ismember and uniqe are very similar in function
     if MatrixA.size > 0:
@@ -500,7 +502,8 @@ def tt_ismember_rows(search, source):
     >>> a = np.array([[4, 6], [1, 9], [2, 6]])
     >>> b = np.array([[1, 7],[1, 8],[2, 6],[2, 1],[2, 4],[4, 6],[4, 7],[5, 9],[5, 2],[5, 1]])
     >>> results = tt_ismember_rows(a,b)
-    array([5 , -1, 2])
+    >>> print(results)
+    [ 5 -1  2]
 
     """
     results = np.ones(shape=search.shape[0])*-1
