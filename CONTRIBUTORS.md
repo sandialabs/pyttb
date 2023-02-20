@@ -8,9 +8,17 @@ U.S. Government retains certain rights in this software.
 
 ## Contributors
 
-**Primary POC:** Danny Dunlavy, dmdunla@sandia.gov
+**Primary POC:** [Danny Dunlavy](@dmdunla)
 
-**Contributors:**
-* Danny Dunlavy - original author, `sptensor`, `ktensor`, `tensor`, `tenmat`, `cp_als`, `cp_apr` 
-* Nick Johnson - original author, `sptensor`, `ktensor`, `tensor`, `cp_als`, `cp_apr`
-* Derek Tucker - `tensor`
+**Main Developers:**
+
+- [Danny Dunlavy](@dmdunla) - original author, `sptensor`, `ktensor`, `tensor`, `tenmat`, `cp_als`, `cp_apr`, 
+[PRs](https://github.com/sandialabs/pyttb/commits?author=dmdunla) 
+- [Nick Johnson](@ntjohnson1) - original author, `sptensor`, `ktensor`, `tensor`, `cp_als`, `cp_apr`, 
+[PRs](https://github.com/sandialabs/pyttb/commits?author=ntjohnson1)
+
+**Other Contributors:**
+- [Brian Kelley](@brian_kelley) - `numpy` compatability, 
+[PRs](https://github.com/sandialabs/pyttb/commits?author=brian-kelley)
+- [Derek Tucker](@jdtuck)[#1] - `tensor`, 
+[PRs](https://github.com/sandialabs/pyttb/commits?author=jdtuck)

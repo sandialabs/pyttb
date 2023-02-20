@@ -1,3 +1,6 @@
+# v1.3.9 (2023-02-20)
+- Remove deprecated `numpy` code associated with aliases to built-in types and ragged arrays (Issue #48, PR #49)
+
 # v1.3.8 (2022-10-12)
 - Fixed `pyttb_utils.tt_ind2sub` (Issue #45, PR #47)
 - Implemented `ktensor.score` (Issue #46, PR #47)
