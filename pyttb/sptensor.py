@@ -137,9 +137,9 @@ class sptensor(object):
         if (nonzeros < 0) or (nonzeros >= np.prod(shape)):
             assert False, "Requested number of non-zeros must be positive and less than the total size"
         elif nonzeros < 1:
-            nonzeros = np.int(np.ceil(np.prod(shape) * nonzeros))
+            nonzeros = int(np.ceil(np.prod(shape) * nonzeros))
         else:
-            nonzeros = np.int(np.floor(nonzeros))
+            nonzeros = int(np.floor(nonzeros))
 
         # Keep iterating until we find enough unique non-zeros or we give up
         subs = np.array([])
@@ -731,7 +731,7 @@ class sptensor(object):
                 else:
                     Z.append(np.array([]))
             # Perform ttv multiplication
-            V[:, r] = self.ttv(np.array(Z), -(n+1)).double()
+            V[:, r] = self.ttv(Z, -(n+1)).double()
 
         return V
 
@@ -1027,11 +1027,11 @@ class sptensor(object):
             dims = np.array([dims])
 
         # Check that vector is a list of vectors, if not place single vector as element in list
-        if len(vector.shape) == 1 and isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv(np.array([vector]), dims)
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+            return self.ttv([vector], dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(dims, self.ndims, vector.shape[0])
+        dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims).astype(int)
 
         # Check that each multiplicand is the right size.

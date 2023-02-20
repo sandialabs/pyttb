@@ -186,11 +186,11 @@ def test_sptensor_full(sample_sptensor):
 def test_sptensor_subdims(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
-    assert (sptensorInstance.subdims(np.array([[1], [1], [1, 3]])) == np.array([0, 1])).all()
+    assert (sptensorInstance.subdims([[1], [1], [1, 3]]) == np.array([0, 1])).all()
     assert (sptensorInstance.subdims((1, 1, slice(None, None, None))) == np.array([0, 1])).all()
 
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.subdims(np.array([[1], [1, 3]]))
+        sptensorInstance.subdims([[1], [1, 3]])
     assert "Number of subdimensions must equal number of dimensions" in str(excinfo)
 
 @pytest.mark.indevelopment
@@ -1290,7 +1290,7 @@ def test_sptensor_ttv(sample_sptensor):
 
     # Wrong shape vector
     with pytest.raises(AssertionError) as excinfo:
-        onesSptensor.ttv(np.array([vector, np.array([1,2])]))
+        onesSptensor.ttv([vector, np.array([1,2])])
     assert "Multiplicand is wrong size" in str(excinfo)
 
     # Returns vector shaped object

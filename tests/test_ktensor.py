@@ -21,8 +21,8 @@ def sample_ktensor_2way():
 def sample_ktensor_3way():
     rank = 2
     shape = np.array([2, 3, 4])
-    vector = np.arange(1, rank*sum(shape)+1).astype(np.float)
-    weights = 2 * np.ones(rank).astype(np.float)
+    vector = np.arange(1, rank*sum(shape)+1).astype(float)
+    weights = 2 * np.ones(rank).astype(float)
     vector_with_weights = np.concatenate((weights, vector), axis=0)
     #vector_with_weights = vector_with_weights.reshape((len(vector_with_weights), 1))
     # ground truth
@@ -100,8 +100,8 @@ def test_ktensor_from_data(sample_ktensor_2way, capsys):
     weights_int = np.array([1, 2])
     K2 = ttb.ktensor.from_data(weights_int, data["factor_matrices"])
     out, err = capsys.readouterr()
-    assert "converting weights from int64 to np.float" in out or \
-           "converting weights from int32 to np.float" in out
+    assert "converting weights from int64 to float" in out or \
+           "converting weights from int32 to float" in out
 
     # Weights that are int should be converted
     fm0 = np.array([[1, 2], [3, 4]])
@@ -109,8 +109,8 @@ def test_ktensor_from_data(sample_ktensor_2way, capsys):
     factor_matrices = [fm0, fm1]
     K3 = ttb.ktensor.from_data(data["weights"], factor_matrices)
     out, err = capsys.readouterr()
-    assert "converting factor_matrices[0] from int64 to np.float" in out or \
-           "converting factor_matrices[0] from int32 to np.float" in out
+    assert "converting factor_matrices[0] from int64 to float" in out or \
+           "converting factor_matrices[0] from int32 to float" in out
 
 @pytest.mark.indevelopment
 def test_ktensor_from_function():
@@ -762,15 +762,15 @@ def test_ktensor_ttv(sample_ktensor_3way):
     vec2 = np.array([1, 1])
     vec3 = np.array([1, 1, 1])
     vec4 = np.array([1, 1, 1, 1])
-    assert K.ttv(np.array([vec2, vec3, vec4])) == 30348
+    assert K.ttv([vec2, vec3, vec4]) == 30348
 
     # Wrong shape
     with pytest.raises(AssertionError) as excinfo:
-        K.ttv(np.array([vec2, vec3, np.array([1,2])]))
+        K.ttv([vec2, vec3, np.array([1,2])])
     assert "Multiplicand is wrong size" in str(excinfo)
 
     # Multiple dimensions, but fewer than all dimensions, not in same order as ktensor dimensions
-    K2 = K.ttv(np.array([vec4, vec3]), dims=np.array([2, 1]))
+    K2 = K.ttv([vec4, vec3], dims=np.array([2, 1]))
     weights = np.array([1800., 3564.])
     fm0 = np.array([[1., 3.], [2., 4.]])
     assert (K2.isequal(ttb.ktensor.from_data(weights, fm0)))
