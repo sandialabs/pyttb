@@ -921,7 +921,7 @@ class tensor(object):
             assert False, "matrix must be of type numpy.ndarray"
 
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
-            assert False, "dims must contain values in [0,self.dims]"
+            assert False, "dims must contain values in [0,self.dims)"
 
         # old version (ver=0)
         shape = np.array(self.shape)

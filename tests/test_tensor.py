@@ -1054,7 +1054,7 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     # 3-way, dims must be in range [0,self.ndims]
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance3.ttm(M2, tensorInstance3.ndims + 1)
-    assert "dims must contain values in [0,self.dims]" in str(excinfo)
+    assert "dims must contain values in [0,self.dims)" in str(excinfo)
 
 @pytest.mark.indevelopment
 def test_tensor_ttt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
