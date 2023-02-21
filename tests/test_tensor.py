@@ -199,7 +199,7 @@ def test_tensor_ndims(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert ttb.tensor.from_data(np.array([])) == 0
 
 @pytest.mark.indevelopment
-def test_tensor_setitem(sample_tensor_2way):
+def test_tensor__setitem__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
     # Subtensor assign with constant
@@ -567,6 +567,9 @@ def test_tensor__add__(sample_tensor_2way):
     # Tensor + scalar
     assert ((tensorInstance + 1).data == 1 + (params['data'])).all()
 
+    # scalar + Tensor
+    assert ((1 + tensorInstance).data == 1 + (params['data'])).all()
+
 @pytest.mark.indevelopment
 def test_tensor__sub__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
@@ -864,6 +867,14 @@ def test_tensor_collapse(sample_tensor_2way, sample_tensor_3way, sample_tensor_4
     tensorCollapse4Max = tensorInstance4.collapse(np.array([0, 2]), fun=np.max)
     assert (tensorCollapse4Max.data == data4max).all()
 
+    # Empty tensor collapse
+    empty_data = np.array([])
+    empty_tensor = ttb.tensor.from_data(empty_data)
+    assert np.all(empty_tensor.collapse() == empty_data)
+
+    # Empty dims
+    assert tensorInstance2.collapse(empty_data).isequal(tensorInstance2)
+
 @pytest.mark.indevelopment
 def test_tensor_contract(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
@@ -1075,6 +1086,17 @@ def test_tensor_ttt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert (TTT1[:,0,0,0,0,0].data == data11).all()
     assert (TTT1[:,1,1,1,1,1].data == data12).all()
     assert (TTT1[:,2,1,2,3,1].data == data13).all()
+
+    TTT1_with_dims = M31.ttt(M31, selfdims=np.array([0,1,2]), otherdims=np.array([0,1,2]))
+    assert np.allclose(TTT1_with_dims, M31.innerprod(M31))
+
+    # Negative tests
+    with pytest.raises(AssertionError):
+        invalid_tensor_type = []
+        M31.ttt(invalid_tensor_type)
+
+    with pytest.raises(AssertionError):
+        M31.ttt(M31, selfdims=np.array([0, 1, 2]), otherdims=np.array([0, 2, 1]))
 
 
 @pytest.mark.indevelopment

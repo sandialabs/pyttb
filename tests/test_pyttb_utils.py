@@ -3,6 +3,7 @@
 # U.S. Government retains certain rights in this software.
 
 import pyttb as ttb
+import logging
 import numpy as np
 import pytest
 import scipy.sparse as sparse
@@ -172,8 +173,6 @@ def test_tt_tenfun():
     assert "Tensor 2 is not the same size as the first tensor input" in str(excinfo)
 
 
-
-
 @pytest.mark.indevelopment
 def test_tt_setdiff_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6], [99, 0]])
@@ -184,12 +183,21 @@ def test_tt_setdiff_rows():
     b = np.array([[1, 7], [1, 8]])
     assert (ttb.tt_setdiff_rows(a, b) == np.array([0, 1])).all()
 
+    a = np.array([[4, 6], [1, 9]])
+    b = np.array([])
+    assert (ttb.tt_setdiff_rows(a, b) == np.arange(a.shape[0])).all()
+    assert (ttb.tt_setdiff_rows(b, a) == b).all()
 
 @pytest.mark.indevelopment
 def test_tt_intersect_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6]])
     b = np.array([[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]])
     assert (ttb.tt_intersect_rows(a, b) == np.array([2, 0])).all()
+
+    a = np.array([[4, 6], [1, 9]])
+    b = np.array([])
+    assert (ttb.tt_intersect_rows(a, b) == b).all()
+    assert (ttb.tt_intersect_rows(a, b) == ttb.tt_intersect_rows(b, a)).all()
 
 
 @pytest.mark.indevelopment
@@ -330,13 +338,13 @@ def test_tt_ind2sub_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     idx = np.array([0, 21, 63])
     shape = (4, 4, 4)
-    print(f'\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}')
+    logging.debug(f'\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}')
     assert (ttb.tt_ind2sub(shape, idx) == subs).all()
 
     subs = np.array([[1, 0], [0, 1]])
     idx = np.array([1, 2])
     shape = (2, 2)
-    print(f'\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}')
+    logging.debug(f'\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}')
     assert (ttb.tt_ind2sub(shape, idx) == subs).all()
 
     empty = np.array([])

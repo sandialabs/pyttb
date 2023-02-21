@@ -125,6 +125,13 @@ def test_cpapr_mu(capsys):
     capsys.readouterr()
     assert output['nTotalIters'] == 2
 
+    # Edge cases
+    # Confirm timeout works
+    non_correct_answer = ktensorInstance*2
+    _ = ttb.cp_apr(tensorInstance, 2, init=non_correct_answer, stoptime=-1)
+    out, _ = capsys.readouterr()
+    assert "time limit exceeded" in out
+
 @pytest.mark.indevelopment
 def test_cpapr_pdnr(capsys):
     # Test simple case
@@ -138,6 +145,23 @@ def test_cpapr_pdnr(capsys):
     M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pdnr")
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
+
+    # Try solve with sptensor
+    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    np.random.seed(123)
+    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr")
+    capsys.readouterr()
+    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
+    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr", precompinds=False)
+    capsys.readouterr()
+    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
+
+    # Edge cases
+    # Confirm timeout works
+    non_correct_answer = ktensorInstance*2
+    _ = ttb.cp_apr(tensorInstance, 2, init=non_correct_answer, algorithm="pdnr", stoptime=-1)
+    out, _ = capsys.readouterr()
+    assert "time limit exceeded" in out
 
 @pytest.mark.indevelopment
 def test_cpapr_pqnr(capsys):
@@ -164,6 +188,22 @@ def test_cpapr_pqnr(capsys):
     M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr")
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
+
+    # Try solve with sptensor
+    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    np.random.seed(123)
+    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr")
+    capsys.readouterr()
+    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
+    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr", precompinds=False)
+    capsys.readouterr()
+    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
+
+    # Edge cases
+    # Confirm timeout works
+    _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr", stoptime=-1)
+    out, _ = capsys.readouterr()
+    assert "time limit exceeded" in out
 
 
 # PDNR tests below
@@ -367,3 +407,22 @@ def test_getSearchDirPqnr():
     search, pred = ttb.getSearchDirPqnr(model_row, phi, 1e-6, delta_model, delta_grad, phi, 1, 5, False)
     # This only verifies that for the right shaped input nothing crashes. Doesn't verify correctness
     assert True
+
+def test_cp_apr_negative_tests():
+    dense_tensor = ttb.tensor.from_data(np.ones((2, 2, 2)))
+    bad_weights = np.array([8.])
+    bad_factors = [np.array([[1.]])] * 3
+    bad_initial_guess_shape = ttb.ktensor.from_data(bad_weights, bad_factors)
+    with pytest.raises(AssertionError):
+        ttb.cp_apr(dense_tensor, init=bad_initial_guess_shape, rank=1)
+    good_weights = np.array([8.] * 3)
+    good_factor = np.array([[1., 1., 1.], [1., 1., 1.]])
+    bad_initial_guess_factors = ttb.ktensor.from_data(good_weights, [-1. * good_factor] * 3)
+    with pytest.raises(AssertionError):
+        ttb.cp_apr(dense_tensor, init=bad_initial_guess_factors, rank=3)
+    bad_initial_guess_weight = ttb.ktensor.from_data(-1. * good_weights, [good_factor] * 3)
+    with pytest.raises(AssertionError):
+        ttb.cp_apr(dense_tensor, init=bad_initial_guess_weight, rank=3)
+
+    with pytest.raises(AssertionError):
+        ttb.cp_apr(dense_tensor, rank=1, algorithm='UNSUPPORTED_ALG')

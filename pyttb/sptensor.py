@@ -380,7 +380,6 @@ class sptensor(object):
         Parameters
         ----------
         k: int Dimension for subscript indexing
-        n: int 1 for linear indexing, ndims for subscript
 
         Returns
         -------
@@ -419,11 +418,14 @@ class sptensor(object):
         invalid = (searchsubs < 0) | (searchsubs >= np.array(self.shape))
         badloc = np.where(np.sum(invalid, axis=1) > 0)
         if badloc[0].size > 0:
-            print('The following subscripts are invalid: \n')
+            error_msg = "The following subscripts are invalid: \n"
             badsubs = searchsubs[badloc, :]
             for i in np.arange(0, badloc[0].size):
-                print('\tsubscript = {}) \n'.format(tt_intvec2str(badsubs[i, :])))
-            assert False, 'Invalid subscripts'
+                error_msg += f"\tsubscript = {tt_intvec2str(badsubs[i, :])} \n"
+            assert False, (
+                f"{error_msg}"
+                'Invalid subscripts'
+            )
 
         # Set the default answer to zero
         a = np.zeros(shape=(p, 1), dtype=self.vals.dtype)
@@ -687,7 +689,7 @@ class sptensor(object):
         >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
-        >>> sptensorInstance.from_data(subs, vals, shape)
+        >>> sptensorInstance = sptensor.from_data(subs, vals, shape)
         >>> sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0)
         [[0, 0, 0, 0],
         [2, 2, 2, 2],
@@ -962,7 +964,7 @@ class sptensor(object):
         --------
         >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
-        >>> shape = np.array([4, 4, 4])
+        >>> shape = (4, 4, 4)
         >>> sp = sptensor.from_data(subs,vals,shape)
         >>> region = np.ndarray([1, [1], [1,3]])
         >>> loc = sp.subdims(region)
@@ -1706,7 +1708,7 @@ class sptensor(object):
 
         Parameters
         ----------
-        :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
+        other: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
 
         Returns
         -------
@@ -1748,7 +1750,7 @@ class sptensor(object):
 
         Parameters
         ----------
-        float, int
+        other: float, int
 
         Returns
         -------

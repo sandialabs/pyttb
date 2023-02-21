@@ -13,7 +13,7 @@ class tenmat(object):
 
     """
 
-    def __init__(self, *args):
+    def __init__(self):
         """
         TENSOR Create empty tensor.
         """
@@ -190,10 +190,7 @@ class tenmat(object):
         -------
         int
         """
-        if self.shape == (0,):
-            return 0
-        else:
-            return len(self.shape)
+        return len(self.shape)
 
     def norm(self):
         """

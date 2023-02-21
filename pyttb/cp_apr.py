@@ -15,7 +15,7 @@ def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=10
            kappa=0.01, kappatol=1e-10, epsActive=1e-8, mu0=1e-5, precompinds=True, inexact=True,
            lbfgsMem=3):
     """
-    Compute nonnegative CP with alternating Poisson regression.
+    Compute non-negative CP with alternating Poisson regression.
     
     Parameters
     ----------
@@ -376,9 +376,10 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
         sparseIx = []
         for n in range(N):
             num_rows = M[n].shape[0]
-            sparseIx.append(np.zeros((num_rows, 1)))
+            row_indices = []
             for jj in range(num_rows):
-                sparseIx[n][jj] = np.where(tensor.subs[:, n] == jj)[0]
+                row_indices.append(np.where(tensor.subs[:, n] == jj)[0])
+            sparseIx.append(row_indices)
 
         if printitn > 0:
             print('done\n')
@@ -426,7 +427,7 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                         M.factor_matrices[n][jj, :] = 0
                         continue
 
-                    x_row = tensor.vals(sparse_indices)
+                    x_row = tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
                     Pi = ttb.tt_calcpi_prowsubprob(tensor, M, rank, n, N, isSparse, sparse_indices)
@@ -683,9 +684,10 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
         sparseIx = []
         for n in range(N):
             num_rows = M[n].shape[0]
-            sparseIx.append(np.zeros((num_rows, 1)))
+            row_indices = []
             for jj in range(num_rows):
-                sparseIx[n][jj] = np.where(tensor.subs[:, n] == jj)[0]
+                row_indices.append(np.where(tensor.subs[:, n] == jj)[0])
+            sparseIx.append(row_indices)
 
         if printitn > 0:
             print('done\n')
@@ -726,7 +728,7 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                         M.factor_matrices[n][jj, :] = 0
                         continue
 
-                    x_row = tensor.vals(sparse_indices)
+                    x_row = tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
                     Pi = ttb.tt_calcpi_prowsubprob(tensor, M, rank, n, N, isSparse, sparse_indices)
@@ -1227,7 +1229,7 @@ def tt_loglikelihood_row(isSparse, data_row, model_row, Pi):
     """
     term1 = -np.sum(model_row)
     if isSparse:
-        term2 = np.sum(data_row.transpose() * np.log(model_row.dot(Pi)))
+        term2 = np.sum(data_row.transpose() * np.log(model_row.dot(Pi.transpose())))
     else:
         b_pi = model_row.dot(Pi.transpose())
         term2 = 0
