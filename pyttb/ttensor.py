@@ -61,7 +61,7 @@ class ttensor(object):
         ttensorInstance = ttensor()
         if isinstance(core, tensor):
             ttensorInstance.core = tensor.from_data(core.data, core.shape)
-            ttensorInstance.u = factors
+            ttensorInstance.u = factors.copy()
         else:
             # TODO support any tensor type with supported ops
             raise ValueError("TTENSOR doesn't yet support generic cores, only tensor")
@@ -271,7 +271,7 @@ class ttensor(object):
 
         Parameters
         ----------
-        float, int
+        other: float, int
 
         Returns
         -------
@@ -290,7 +290,7 @@ class ttensor(object):
 
         Parameters
         ----------
-        float, int
+        other: float, int
 
         Returns
         -------
@@ -345,7 +345,7 @@ class ttensor(object):
         if remdims.size == 0:
             return newcore
         else:
-            return ttensor(newcore, [self.u[dim] for dim in remdims])
+            return ttensor.from_data(newcore, [self.u[dim] for dim in remdims])
 
     def mttkrp(self, U, n):
         """
@@ -393,3 +393,66 @@ class ttensor(object):
             return np.sqrt(tmp)
         else:
             return self.full().norm()
+
+    def permute(self, order):
+        """
+        Permute dimensions for a ttensor
+
+        Parameters
+        ----------
+        order: :class:`Numpy.ndarray`
+
+        Returns
+        -------
+        :class:`pyttb.ttensor`
+        """
+        if not np.array_equal(np.arange(0, self.ndims), np.sort(order)):
+            raise ValueError("Invalid permutation")
+        new_core = self.core.permute(order)
+        new_u = [self.u[idx] for idx in order]
+        return ttensor.from_data(new_core, new_u)
+
+    def ttm(self, matrix, dims=None, transpose=False):
+        """
+        Tensor times matrix for ttensor
+
+        Parameters
+        ----------
+        matrix: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
+        dims: :class:`Numpy.ndarray`, int
+        transpose: bool
+        """
+        if dims is None:
+            dims = np.arange(self.ndims)
+        elif isinstance(dims, list):
+            dims = np.array(dims)
+        elif np.isscalar(dims) or isinstance(dims, list):
+            dims = np.array([dims])
+
+        if not isinstance(matrix, list):
+            return self.ttm([matrix], dims, transpose)
+
+        # Check that the dimensions are valid
+        dims, vidx = ttb_utils.tt_dimscheck(dims, self.ndims, len(matrix))
+
+        # Determine correct size index
+        size_idx = int(not transpose)
+
+        # Check that each multiplicand is the right size.
+        for i in range(len(dims)):
+            import logging
+            logging.warning(
+                f"Matrix shape: \n\t{matrix[vidx[i]].shape}"
+            )
+            if matrix[vidx[i]].shape[size_idx] != self.shape[dims[i]]:
+                raise ValueError(f"Multiplicand {i} is wrong size")
+
+        # Do the actual multiplications in the specified modes.
+        new_u = self.u.copy()
+        for i in range(len(dims)):
+            if transpose:
+                new_u[dims[i]] = matrix[vidx[i]].transpose().dot(new_u[dims[i]])
+            else:
+                new_u[dims[i]] = matrix[vidx[i]].dot(new_u[dims[i]])
+
+        return ttensor.from_data(self.core, new_u)

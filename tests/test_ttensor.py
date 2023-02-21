@@ -142,3 +142,24 @@ def test_ttensor_mttkrp(random_ttensor):
 def test_ttensor_norm(random_ttensor):
     ttensorInstance = random_ttensor
     assert np.isclose(ttensorInstance.norm(), ttensorInstance.full().norm())
+
+@pytest.mark.indevelopment
+def test_ttensor_permute(random_ttensor):
+    ttensorInstance = random_ttensor
+    original_order = np.arange(0, len(ttensorInstance.core.shape))
+    permuted_tensor = ttensorInstance.permute(original_order)
+    assert ttensorInstance.isequal(permuted_tensor)
+
+@pytest.mark.indevelopment
+def test_ttensor_ttm(random_ttensor):
+    ttensorInstance = random_ttensor
+    row_length = 9
+    matrices = [
+        np.random.random((row_length, u.shape[0])) for u in ttensorInstance.u
+    ]
+    final_value = ttensorInstance.ttm(matrices, np.arange(len(matrices)))
+    reverse_value = ttensorInstance.ttm(list(reversed(matrices)), np.arange(len(matrices)-1, -1, -1))
+    assert final_value.isequal(reverse_value), (
+        f"TTensor value is: \n{final_value}\n\n"
+        f"Full value is: \n{reverse_value}"
+    )
