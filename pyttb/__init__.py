@@ -19,6 +19,7 @@ from pyttb.pyttb_utils import *
 from pyttb.khatrirao import khatrirao
 from pyttb.cp_apr import *
 from pyttb.cp_als import cp_als
+from pyttb.tucker_als import tucker_als
 
 from pyttb.import_data import import_data
 from pyttb.export_data import export_data
