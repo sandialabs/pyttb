@@ -37,3 +37,64 @@ def test_ttensor_initialization_from_tensor_type(sample_ttensor):
     assert ttensorCopy.core == ttensorInstance.core
     assert ttensorCopy.u == ttensorInstance.u
     assert ttensorCopy.shape == ttensorInstance.shape
+
+@pytest.mark.indevelopment
+def test_ttensor_full(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    tensor = ttensorInstance.full()
+    # This sanity check only works for all 1's
+    assert tensor.double() == np.prod(ttensorInstance.core.shape)
+
+@pytest.mark.indevelopment
+def test_ttensor_double(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    # This sanity check only works for all 1's
+    assert ttensorInstance.double() == np.prod(ttensorInstance.core.shape)
+
+@pytest.mark.indevelopment
+def test_ttensor_ndims(sample_ttensor):
+    ttensorInstance = sample_ttensor
+
+    assert ttensorInstance.ndims == 3
+
+def test_ttensor__pos__(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    ttensorInstance2 = +ttensorInstance
+
+    assert ttensorInstance.isequal(ttensorInstance2)
+
+def test_sptensor__neg__(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    ttensorInstance2 = -ttensorInstance
+    ttensorInstance3 = -ttensorInstance2
+
+    assert not ttensorInstance.isequal(ttensorInstance2)
+    assert ttensorInstance.isequal(ttensorInstance3)
+
+@pytest.mark.indevelopment
+def test_ttensor_innerproduct(sample_ttensor):
+    ttensorInstance = sample_ttensor
+
+    # TODO these are an overly simplistic edge case for ttensors that are a single float
+
+    # ttensor innerprod ttensor
+    assert ttensorInstance.innerprod(ttensorInstance) == ttensorInstance.double()**2
+
+    # ttensor innerprod tensor
+    assert ttensorInstance.innerprod(ttensorInstance.full()) == ttensorInstance.double() ** 2
+
+def test_ttensor__mul__(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    mul_factor = 2
+
+    # This sanity check only works for all 1's
+    assert (ttensorInstance * mul_factor).double() == np.prod(ttensorInstance.core.shape) * mul_factor
+    assert (ttensorInstance * float(2)).double() == np.prod(ttensorInstance.core.shape) * float(mul_factor)
+
+def test_ttensor__rmul__(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    mul_factor = 2
+
+    # This sanity check only works for all 1's
+    assert (mul_factor * ttensorInstance).double() == np.prod(ttensorInstance.core.shape) * mul_factor
+    assert (float(2) * ttensorInstance).double() == np.prod(ttensorInstance.core.shape) * float(mul_factor)

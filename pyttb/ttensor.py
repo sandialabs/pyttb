@@ -2,7 +2,11 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-from pyttb import tensor
+from pyttb import (
+    ktensor,
+    tensor,
+    sptensor,
+)
 import numpy as np
 import textwrap
 
@@ -134,3 +138,163 @@ class ttensor(object):
         return display_string
 
     __str__ = __repr__
+
+    def full(self):
+        """
+        Convert a ttensor to a (dense) tensor.
+
+        Returns
+        -------
+        :class:`pyttb.tensor`
+        """
+        recomposed_tensor = self.core.ttm(self.u)
+
+        # There is a small chance tensor could be sparse so ensure we cast that to dense.
+        if not isinstance(recomposed_tensor, tensor):
+            recomposed_tensor = tensor(recomposed_tensor)
+        return recomposed_tensor
+
+    def double(self):
+        """
+        Convert ttensor to an array of doubles
+
+        Returns
+        -------
+        :class:`numpy.ndarray`
+            copy of tensor data
+        """
+        return self.full().double()
+
+    @property
+    def ndims(self):
+        """
+        Number of dimensions of a ttensor.
+
+        Returns
+        -------
+        int
+            Number of dimensions of ttensor
+        """
+        return len(self.u)
+
+    def isequal(self, other):
+        """
+        Component equality for ttensors
+
+        Parameters
+        ----------
+        other: :class:`pyttb.ttensor`
+
+        Returns
+        -------
+        bool: True if ttensors decompositions are identical, false otherwise
+        """
+        if not isinstance(other, ttensor):
+            return False
+        if self.ndims != other.ndims:
+            return False
+        return self.core.isequal(other.core) and all(
+                np.array_equal(this_factor, other_factor) for this_factor, other_factor in zip(self.u, other.u)
+        )
+
+    def __pos__(self):
+        """
+        Unary plus (+) for ttensors. Does nothing.
+
+        Returns
+        -------
+        :class:`pyttb.ttensor`, copy of tensor
+        """
+
+        return ttensor.from_tensor_type(self)
+
+    def __neg__(self):
+        """
+        Unary minus (-) for ttensors
+
+        Returns
+        -------
+        :class:`pyttb.ttensor`, copy of tensor
+        """
+
+        return ttensor.from_data(-self.core, self.u)
+
+    def innerprod(self, other):
+        """
+        Efficient inner product with a ttensor
+
+        Parameters
+        ----------
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, :class:`pyttb.ktensor`,
+        :class:`pyttb.ttensor`
+
+        Returns
+        -------
+        float
+        """
+        if isinstance(other, ttensor):
+            if self.shape != other.shape:
+                raise ValueError(
+                    "ttensors must have same shape to perform an innerproduct, but this ttensor "
+                    f"has shape {self.shape} and the other has {other.shape}"
+                )
+            if np.prod(self.core.shape) > np.prod(other.core.shape):
+                # Reverse arguments so the ttensor with the smaller core comes first.
+                return other.innerprod(self)
+            W = []
+            for (this_factor, other_factor) in zip(self.u, other.u):
+                W.append(this_factor.transpose().dot(other_factor))
+            J = other.core.ttm(W)
+            return self.core.innerprod(J)
+        elif isinstance(other, (tensor, sptensor)):
+            if self.shape != other.shape:
+                raise ValueError(
+                    "ttensors must have same shape to perform an innerproduct, but this ttensor "
+                    f"has shape {self.shape} and the other has {other.shape}"
+                )
+            if np.prod(self.shape) < np.prod(self.core.shape):
+                Z = self.full()
+                return Z.innerprod(other)
+            Z = other.ttm(self.u, transpose=True)
+            return Z.innerprod(self.core)
+        elif isinstance(other, ktensor):
+            # Call ktensor implementation
+            # TODO needs ttensor ttv
+            return other.innerprod(self)
+        else:
+            raise ValueError(f"Inner product between ttensor and {type(other)} is not supported")
+
+    def __mul__(self, other):
+        """
+        Element wise multiplication (*) for ttensors (only scalars supported)
+
+        Parameters
+        ----------
+        float, int
+
+        Returns
+        -------
+        :class:`pyttb.ttensor`
+        """
+        if isinstance(other, (float, int, np.number)):
+            return ttensor.from_data(self.core * other, self.u)
+        raise ValueError(
+            "This object cannot be multiplied by ttensor. Convert to full if trying to "
+            "multiply ttensor by another tensor."
+        )
+
+    def __rmul__(self, other):
+        """
+        Element wise right multiplication (*) for ttensors (only scalars supported)
+
+        Parameters
+        ----------
+        float, int
+
+        Returns
+        -------
+        :class:`pyttb.ttensor`
+        """
+        if isinstance(other, (float, int, np.number)):
+            return self.__mul__(other)
+        raise ValueError("This object cannot be multiplied by ttensor")
