@@ -14,7 +14,7 @@ U.S. Government retains certain rights in this software.
 
 - [Danny Dunlavy](@dmdunla) - original author, `sptensor`, `ktensor`, `tensor`, `tenmat`, `cp_als`, `cp_apr`, 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=dmdunla) 
-- [Nick Johnson](@ntjohnson1) - original author, `sptensor`, `ktensor`, `tensor`, `cp_als`, `cp_apr`, 
+- [Nick Johnson](@ntjohnson1) - original author, `sptensor`, `ktensor`, `tensor`, `ttensor`, `cp_als`, `cp_apr`, 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=ntjohnson1)
 
 **Other Contributors:**

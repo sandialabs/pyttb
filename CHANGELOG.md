@@ -1,3 +1,11 @@
+# v1.4.0 (2023-02-21)
+- New: 
+  - Added `ttensor` class and associated tests (Issue #10, PR #51)
+- Fixed/Completed:
+  -  Tensor slicing now passes through to `numpy` array slicing (Issue #41, PR #50)
+- Updated/Ongoing:
+  - Included more testing for improved coverage (Issue #14, PR #52)
+
 # v1.3.9 (2023-02-20)
 - Remove deprecated `numpy` code associated with aliases to built-in types and ragged arrays (Issue #48, PR #49)
 

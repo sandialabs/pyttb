@@ -1,6 +1,6 @@
 [project]
 name = "pyttb"
-version = "1.3.9"
+version = "1.4.0"
 description = "Python Tensor Toolbox"
 authors = [
   {name="Daniel M. Dunlavy", email="dmdunla@sandia.gov"},
