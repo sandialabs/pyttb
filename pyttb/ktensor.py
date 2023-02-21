@@ -1785,13 +1785,13 @@ class ktensor(object):
         >>> vec2 = np.array([1, 1])
         >>> vec3 = np.array([1, 1, 1])
         >>> vec4 = np.array([1, 1, 1, 1])
-        >>> K1 = K.ttv(np.array([vec2, vec3, vec4]))
+        >>> K1 = K.ttv([vec2, vec3, vec4])
         >>> print(K1)
         30348.0
 
         Compute the product of a `ktensor` and multiple vectors out of order (results in a `ktensor`):
 
-        >>> K2 = K.ttv(np.array([vec4, vec3]), np.array([2, 1]))
+        >>> K2 = K.ttv([vec4, vec3], np.array([2, 1]))
         >>> print(K2)
         ktensor of shape 2
         weights=[1800. 3564.]
