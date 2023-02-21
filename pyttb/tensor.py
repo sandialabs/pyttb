@@ -103,7 +103,6 @@ class tensor(object):
             order = np.hstack([source.rindices, source.cindices])
             data = np.reshape(source.data.copy(), np.array(shape)[order], order='F')
             if order.size > 1:
-                # data = ipermute(data, order)
                 data = np.transpose(data, np.argsort(order))
             return cls.from_data(data, shape)
 
@@ -944,7 +943,7 @@ class tensor(object):
 
     def ttt(self, other, selfdims=None, otherdims=None):
         """
-        Tensor mulitplication (tensor times tensor)
+        Tensor multiplication (tensor times tensor)
 
         Parameters
         ----------
@@ -1464,7 +1463,7 @@ class tensor(object):
 
     def __radd__(self, other):
         """
-        Reverse binary addition (+) for tensors
+        Right binary addition (+) for tensors
 
         Parameters
         ----------
