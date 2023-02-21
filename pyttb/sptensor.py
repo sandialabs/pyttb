@@ -1712,7 +1712,7 @@ class sptensor(object):
         -------
         :class:`pyttb.sptensor`
         """
-        if isinstance(other, (float,int)):
+        if isinstance(other, (float, int, np.number)):
             return ttb.sptensor.from_data(self.subs, self.vals*other, self.shape)
 
         if isinstance(other, (ttb.sptensor,ttb.tensor,ttb.ktensor)) and self.shape != other.shape:
@@ -1754,7 +1754,7 @@ class sptensor(object):
         -------
         :class:`pyttb.sptensor`
         """
-        if isinstance(other, (float,int)):
+        if isinstance(other, (float, int, np.number)):
             return self.__mul__(other)
         else:
             assert False, "This object cannot be multiplied by sptensor"
@@ -2173,15 +2173,14 @@ class sptensor(object):
 
     __str__ = __repr__
 
-    def ttm(self, matrices, mode, dims=None, transpose=False):
+    def ttm(self, matrices, dims=None, transpose=False):
         """
         Sparse tensor times matrix.
 
         Parameters
         ----------
         matrices: A matrix or list of matrices
-        mode:
-        dims:
+        dims: :class:`Numpy.ndarray`, int
         transpose: Transpose matrices to be multiplied
 
         Returns
@@ -2190,10 +2189,15 @@ class sptensor(object):
         """
         if dims is None:
             dims = np.arange(self.ndims)
+        elif isinstance(dims, list):
+            dims = np.array(dims)
+        elif np.isscalar(dims) or isinstance(dims, list):
+            dims = np.array([dims])
+
         # Handle list of matrices
         if isinstance(matrices, list):
             # Check dimensions are valid
-            [dims, vidx] = tt_dimscheck(mode, self.ndims, len(matrices))
+            [dims, vidx] = tt_dimscheck(dims, self.ndims, len(matrices))
             # Calculate individual products
             Y = self.ttm(matrices[vidx[0]], dims[0], transpose=transpose)
             for i in range(1, dims.size):
@@ -2208,22 +2212,23 @@ class sptensor(object):
         if transpose:
             matrices = matrices.transpose()
 
-        # Check mode
-        if not np.isscalar(mode) or mode < 0 or mode > self.ndims-1:
-            assert False, "Mode must be in [0, ndims)"
+        # Ensure this is the terminal single dimension case
+        if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
+            assert False, "dims must contain values in [0,self.dims)"
+        dims = dims[0]
 
         # Compute the product
 
         # Check that sizes match
-        if self.shape[mode] != matrices.shape[1]:
+        if self.shape[dims] != matrices.shape[1]:
             assert False, "Matrix shape doesn't match tensor shape"
 
         # Compute the new size
         siz = np.array(self.shape)
-        siz[mode] = matrices.shape[0]
+        siz[dims] = matrices.shape[0]
 
         # Compute self[mode]'
-        Xnt = ttb.tt_to_sparse_matrix(self, mode, True)
+        Xnt = ttb.tt_to_sparse_matrix(self, dims, True)
 
         # Reshape puts the reshaped things after the unchanged modes, transpose then puts it in front
         idx = 0
@@ -2231,10 +2236,10 @@ class sptensor(object):
         # Convert to sparse matrix and do multiplication; generally result is sparse
         Z = Xnt.dot(matrices.transpose())
 
-        # Rearrange back into sparse tensor of original shape
-        Ynt = ttb.tt_from_sparse_matrix(Z, self.shape, mode, idx)
+        # Rearrange back into sparse tensor of correct shape
+        Ynt = ttb.tt_from_sparse_matrix(Z, siz, dims, idx)
 
-        if Z.nnz <= 0.5 * np.prod(siz):
+        if not isinstance(Z, np.ndarray) and Z.nnz <= 0.5 * np.prod(siz):
             return Ynt
         else:
             # TODO evaluate performance loss by casting into sptensor then tensor. I assume minimal since we are already

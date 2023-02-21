@@ -1365,25 +1365,25 @@ def test_sptensor_ttm(sample_sptensor):
     result[:, 3, 3] = 3.5
     result = ttb.tensor.from_data(result)
     result = ttb.sptensor.from_tensor_type(result)
-    assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), mode=0).isequal(result)
-    assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), mode=0, transpose=True).isequal(result)
+    assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=0).isequal(result)
+    assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=0, transpose=True).isequal(result)
 
     # This is a multiway multiplication yielding a sparse tensor, yielding a dense tensor relies on tensor.ttm
     matrix = sparse.coo_matrix(np.eye(4))
     list_of_matrices = [matrix, matrix, matrix]
-    assert sptensorInstance.ttm(list_of_matrices, mode=np.array([0, 1, 2])).isequal(sptensorInstance)
+    assert sptensorInstance.ttm(list_of_matrices, dims=np.array([0, 1, 2])).isequal(sptensorInstance)
 
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.ttm(sparse.coo_matrix(np.ones((5, 5))), mode=0)
+        sptensorInstance.ttm(sparse.coo_matrix(np.ones((5, 5))), dims=0)
     assert "Matrix shape doesn't match tensor shape" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.ttm(np.array([1, 2, 3, 4]), mode=0)
+        sptensorInstance.ttm(np.array([1, 2, 3, 4]), dims=0)
     assert "Sptensor.ttm: second argument must be a matrix" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), mode=4)
-    assert "Mode must be in [0, ndims)" in str(excinfo)
+        sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=4)
+    assert "dims must contain values in [0,self.dims)" in str(excinfo)
 
     sptensorInstance[0, :, :] = 1
     sptensorInstance[3, :, :] = 1
@@ -1397,17 +1397,20 @@ def test_sptensor_ttm(sample_sptensor):
     # TODO: Ensure mode mappings are consistent between matlab and numpy
     # MATLAB is opposite orientation so the mapping from matlab to numpy is
     # {3:0, 2:2, 1:1}
-    assert (sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), mode=1).isequal(ttb.tensor.from_data(result)))
+    assert (sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=1).isequal(ttb.tensor.from_data(result)))
 
     result = 2*np.ones((4, 4, 4))
     result[:, 1, 1] = 2.5
     result[:, 1, 3] = 3.5
     result[:, 2, 2] = 4.5
-    assert (sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), mode=0).isequal(ttb.tensor.from_data(result)))
+    assert (sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=0).isequal(ttb.tensor.from_data(result)))
 
     result = np.zeros((4, 4, 4))
     result[0, :, :] = 4.0
     result[3, :, :] = 4.0
     result[1, 1, :] = 2
     result[2, 2, :] = 2.5
-    assert (sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), mode=2).isequal(ttb.tensor.from_data(result)))
+    assert (sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=2).isequal(ttb.tensor.from_data(result)))
+
+    # Confirm reshape for non-square matrix
+    assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((1, 4))), dims=2).shape == (4,4,1)
