@@ -456,3 +456,58 @@ class ttensor(object):
                 new_u[dims[i]] = matrix[vidx[i]].dot(new_u[dims[i]])
 
         return ttensor.from_data(self.core, new_u)
+
+    def reconstruct(self, samples=None, modes=None):
+        """
+        Reconstruct or partially reconstruct tensor from ttensor.
+
+        Parameters
+        ----------
+        samples: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
+        modes: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
+
+        Returns
+        -------
+        :class:`pyttb.ttensor`
+        """
+        # Default to sampling full tensor
+        full_tensor_sampling = samples is None and modes is None
+        if full_tensor_sampling:
+            return self.full()
+
+        if modes is None:
+            modes = np.arange(self.ndims)
+        elif isinstance(modes, list):
+            modes = np.array([modes])
+        elif np.isscalar(modes):
+            modes = np.array([modes])
+
+        if np.isscalar(samples):
+            samples = [np.array([samples])]
+        elif not isinstance(samples, list):
+            samples = [samples]
+
+        unequal_lengths = len(samples) != len(modes)
+        if unequal_lengths:
+            raise ValueError(
+                "If samples and modes provides lengths must be equal, but "
+                f"samples had length {len(samples)} and modes {len(modes)}"
+            )
+
+        full_samples = [np.array([])] * self.ndims
+        for sample, mode in zip(samples, modes):
+            full_samples[mode] = sample
+
+        shape = self.shape
+        new_u = []
+        for k in range(self.ndims):
+            if len(full_samples[k]) == 0:
+                # Skip empty samples
+                new_u.append(self.u[k])
+                continue
+            elif len(full_samples[k].shape) == 2 and full_samples[k].shape[-1] == shape[k]:
+                new_u.append(full_samples[k] * self.u[k])
+            else:
+                new_u.append(self.u[k][full_samples[k], :])
+
+        return ttensor.from_data(self.core, new_u).full()

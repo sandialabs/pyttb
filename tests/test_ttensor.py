@@ -163,3 +163,12 @@ def test_ttensor_ttm(random_ttensor):
         f"TTensor value is: \n{final_value}\n\n"
         f"Full value is: \n{reverse_value}"
     )
+
+@pytest.mark.indevelopment
+def test_ttensor_reconstruct(random_ttensor):
+    ttensorInstance = random_ttensor
+    # TODO: This slice drops the singleton dimension, should it? If so should ttensor squeeze during reconstruct?
+    full_slice = ttensorInstance.full()[:, 1, :]
+    ttensor_slice = ttensorInstance.reconstruct(1, 1)
+    assert np.all(np.isclose(full_slice.double(), ttensor_slice.squeeze().double()))
+    assert ttensorInstance.reconstruct().isequal(ttensorInstance.full())
