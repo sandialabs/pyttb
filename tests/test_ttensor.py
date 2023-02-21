@@ -8,8 +8,21 @@ import pytest
 
 @pytest.fixture()
 def sample_ttensor():
+    """Simple TTENSOR to verify by hand"""
     core = ttb.tensor.from_data(np.ones((2, 2, 2)))
     factors = [np.ones((1, 2))] * len(core.shape)
+    ttensorInstance = ttb.ttensor().from_data(core, factors)
+    return ttensorInstance
+
+@pytest.fixture()
+def random_ttensor():
+    """Arbitrary TTENSOR to verify consistency between alternative operations"""
+    core = ttb.tensor.from_data(np.random.random((2, 3, 4)))
+    factors = [
+        np.random.random((5, 2)),
+        np.random.random((2, 3)),
+        np.random.random((4, 4)),
+    ]
     ttensorInstance = ttb.ttensor().from_data(core, factors)
     return ttensorInstance
 
@@ -57,12 +70,14 @@ def test_ttensor_ndims(sample_ttensor):
 
     assert ttensorInstance.ndims == 3
 
+@pytest.mark.indevelopment
 def test_ttensor__pos__(sample_ttensor):
     ttensorInstance = sample_ttensor
     ttensorInstance2 = +ttensorInstance
 
     assert ttensorInstance.isequal(ttensorInstance2)
 
+@pytest.mark.indevelopment
 def test_sptensor__neg__(sample_ttensor):
     ttensorInstance = sample_ttensor
     ttensorInstance2 = -ttensorInstance
@@ -83,6 +98,7 @@ def test_ttensor_innerproduct(sample_ttensor):
     # ttensor innerprod tensor
     assert ttensorInstance.innerprod(ttensorInstance.full()) == ttensorInstance.double() ** 2
 
+@pytest.mark.indevelopment
 def test_ttensor__mul__(sample_ttensor):
     ttensorInstance = sample_ttensor
     mul_factor = 2
@@ -91,6 +107,7 @@ def test_ttensor__mul__(sample_ttensor):
     assert (ttensorInstance * mul_factor).double() == np.prod(ttensorInstance.core.shape) * mul_factor
     assert (ttensorInstance * float(2)).double() == np.prod(ttensorInstance.core.shape) * float(mul_factor)
 
+@pytest.mark.indevelopment
 def test_ttensor__rmul__(sample_ttensor):
     ttensorInstance = sample_ttensor
     mul_factor = 2
@@ -98,3 +115,30 @@ def test_ttensor__rmul__(sample_ttensor):
     # This sanity check only works for all 1's
     assert (mul_factor * ttensorInstance).double() == np.prod(ttensorInstance.core.shape) * mul_factor
     assert (float(2) * ttensorInstance).double() == np.prod(ttensorInstance.core.shape) * float(mul_factor)
+
+@pytest.mark.indevelopment
+def test_ttensor_ttv(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    mul_factor = 1
+    trivial_vectors = [np.array([mul_factor])]*len(ttensorInstance.shape)
+    final_value = sample_ttensor.ttv(trivial_vectors)
+    assert final_value == np.prod(ttensorInstance.core.shape)
+
+@pytest.mark.indevelopment
+def test_ttensor_mttkrp(random_ttensor):
+    ttensorInstance = random_ttensor
+    column_length = 6
+    vectors = [
+        np.random.random((u.shape[0], column_length)) for u in ttensorInstance.u
+    ]
+    final_value = ttensorInstance.mttkrp(vectors, 2)
+    full_value = ttensorInstance.full().mttkrp(vectors, 2)
+    assert np.all(np.isclose(final_value, full_value)), (
+        f"TTensor value is: \n{final_value}\n\n"
+        f"Full value is: \n{full_value}"
+    )
+
+@pytest.mark.indevelopment
+def test_ttensor_norm(random_ttensor):
+    ttensorInstance = random_ttensor
+    assert np.isclose(ttensorInstance.norm(), ttensorInstance.full().norm())

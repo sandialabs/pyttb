@@ -7,6 +7,7 @@ from pyttb import (
     tensor,
     sptensor,
 )
+from pyttb import pyttb_utils as ttb_utils
 import numpy as np
 import textwrap
 
@@ -298,3 +299,97 @@ class ttensor(object):
         if isinstance(other, (float, int, np.number)):
             return self.__mul__(other)
         raise ValueError("This object cannot be multiplied by ttensor")
+
+    def ttv(self, vector, dims=None):
+        """
+        TTensor times vector
+
+        Parameters
+        ----------
+        vector: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
+        dims: :class:`Numpy.ndarray`, int
+        """
+        if dims is None:
+            dims = np.array([])
+        # TODO make helper function to check scalar since re-used many places
+        elif isinstance(dims, (float, int)):
+            dims = np.array([dims])
+
+        # Check that vector is a list of vectors, if not place single vector as element in list
+        if isinstance(vector, list):
+            return self.ttv(np.array(vector), dims)
+        if len(vector.shape) == 1 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+            return self.ttv(np.array([vector]), dims)
+
+        # Get sorted dims and index for multiplicands
+        dims, vidx = ttb_utils.tt_dimscheck(dims, self.ndims, vector.shape[0])
+
+        # Check that each multiplicand is the right size.
+        for i in range(dims.size):
+            if vector[vidx[i]].shape != (self.shape[dims[i]],):
+                assert False, "Multiplicand is wrong size"
+
+        # Get remaining dimensions when we're done
+        remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
+
+        # Create W to multiply with core, only populated remaining dims
+        W = [None] * len(dims)
+        for i in range(dims.size):
+            dim_idx = dims[i]
+            W[dim_idx] = self.u[dim_idx].transpose().dot(vector[vidx[i]])
+
+        # Create new core
+        newcore = self.core.ttv(W, dims)
+
+        # Create final result
+        if remdims.size == 0:
+            return newcore
+        else:
+            return ttensor(newcore, [self.u[dim] for dim in remdims])
+
+    def mttkrp(self, U, n):
+        """
+        Matricized tensor times Khatri-Rao product for ttensors.
+
+        Parameters
+        ----------
+        U: array of matrices or ktensor
+        n: multiplies by all modes except n
+
+        Returns
+        -------
+        :class:`numpy.ndarray`
+        """
+
+        if n == 0:
+            R = U[1].shape[-1]
+        else:
+            R = U[0].shape[-1]
+
+        W = [None] * self.ndims
+        for i in range(0, self.ndims):
+            if i == n:
+                continue
+            W[i] = self.u[i].transpose().dot(U[i])
+
+        Y = self.core.mttkrp(W, n)
+
+        # Find each column of answer by multiplying by weights
+        return self.u[n].dot(Y)
+
+    def norm(self):
+        """
+        Compute the norm of a ttensor.
+        Returns
+        -------
+        norm: float, Frobenius norm of Tensor
+        """
+        if np.prod(self.shape) > np.prod(self.core.shape):
+            V = []
+            for factor in self.u:
+                V.append(factor.transpose().dot(factor))
+            Y = self.core.ttm(V)
+            tmp = Y.innerprod(self.core)
+            return np.sqrt(tmp)
+        else:
+            return self.full().norm()
