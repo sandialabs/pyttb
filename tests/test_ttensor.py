@@ -172,3 +172,10 @@ def test_ttensor_reconstruct(random_ttensor):
     ttensor_slice = ttensorInstance.reconstruct(1, 1)
     assert np.all(np.isclose(full_slice.double(), ttensor_slice.squeeze().double()))
     assert ttensorInstance.reconstruct().isequal(ttensorInstance.full())
+
+@pytest.mark.indevelopment
+def test_ttensor_nvecs(random_ttensor):
+    ttensorInstance = random_ttensor
+    ttensor_eigvals = ttensorInstance.nvecs(0, 2)
+    full_eigvals = ttensorInstance.full().nvecs(0, 2)
+    assert np.allclose(ttensor_eigvals, full_eigvals)

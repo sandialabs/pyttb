@@ -4,12 +4,16 @@
 
 from pyttb import (
     ktensor,
+    tenmat,
     tensor,
     sptensor,
+    sptenmat,
 )
 from pyttb import pyttb_utils as ttb_utils
 import numpy as np
+import scipy
 import textwrap
+import warnings
 
 class ttensor(object):
     """
@@ -511,3 +515,59 @@ class ttensor(object):
                 new_u.append(self.u[k][full_samples[k], :])
 
         return ttensor.from_data(self.core, new_u).full()
+
+    def nvecs(self, n, r, flipsign = True):
+        """
+        Compute the leading mode-n vectors for a ttensor.
+
+        Parameters
+        ----------
+        n: mode for tensor matricization
+        r: number of eigenvalues
+        flipsign: Make each column's largest element positive if true
+
+        Returns
+        -------
+        :class:`numpy.ndarray`
+        """
+        # Compute inner product of all n-1 factors
+        V = []
+        for factor_idx, factor in enumerate(self.u):
+            if factor_idx == n:
+                V.append(factor)
+            else:
+                V.append(factor.transpose().dot(factor))
+        H = self.core.ttm(V)
+
+        if isinstance(H, sptensor):
+            raise NotImplementedError("TTensor doesn't support sparse core yet")
+        else:
+            HnT = tenmat.from_tensor_type(H.full(), cdims=np.array([n])).double()
+
+        G = self.core
+
+        if isinstance(G, sptensor):
+            raise NotImplementedError("TTensor doesn't support sparse core yet")
+        else:
+            GnT = tenmat.from_tensor_type(G.full(), cdims=np.array([n])).double()
+
+        # Compute Xn * Xn'
+        Y = HnT.transpose().dot(GnT.dot(self.u[n].transpose()))
+
+        # TODO: Lifted from tensor, consider common location
+        if r < Y.shape[0] - 1:
+            w, v = scipy.sparse.linalg.eigsh(Y, r)
+            v = v[:, (-np.abs(w)).argsort()]
+            v = v[:, :r]
+        else:
+            warnings.warn('Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve')
+            w, v = scipy.linalg.eigh(Y)
+            v = v[:, (-np.abs(w)).argsort()]
+            v = v[:, :r]
+
+        if flipsign:
+            idx = np.argmax(np.abs(v), axis=0)
+            for i in range(v.shape[1]):
+                if v[idx[i], i] < 0:
+                    v[:, i] *= -1
+        return v
