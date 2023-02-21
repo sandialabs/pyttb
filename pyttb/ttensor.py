@@ -15,6 +15,8 @@ import scipy
 import textwrap
 import warnings
 
+ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet"
+
 class ttensor(object):
     """
     TTENSOR Class for Tucker tensors (decomposed).
@@ -55,7 +57,7 @@ class ttensor(object):
         >>> import numpy as np
 
         Set up input data
-        # Create sptensor with explicit data description
+        # Create ttensor with explicit data description
 
         >>> core_values = np.ones((2,2,2))
         >>> core = ttb.tensor.from_data(core_values)
@@ -98,6 +100,8 @@ class ttensor(object):
         """
         # Confirm all factors are matrices
         for factor_idx, factor in enumerate(self.u):
+            if not isinstance(factor, np.ndarray):
+                raise ValueError(f"Factor matrices must be numpy arrays but factor {factor_idx} was {type(factor)}")
             if len(factor.shape) != 2:
                 raise ValueError(f"Factor matrix {factor_idx} has shape {factor.shape} and is not a matrix!")
 
@@ -156,7 +160,7 @@ class ttensor(object):
 
         # There is a small chance tensor could be sparse so ensure we cast that to dense.
         if not isinstance(recomposed_tensor, tensor):
-            recomposed_tensor = tensor(recomposed_tensor)
+            raise ValueError(ALT_CORE_ERROR)
         return recomposed_tensor
 
     def double(self):
@@ -331,7 +335,7 @@ class ttensor(object):
         # Check that each multiplicand is the right size.
         for i in range(dims.size):
             if vector[vidx[i]].shape != (self.shape[dims[i]],):
-                assert False, "Multiplicand is wrong size"
+                raise ValueError("Multiplicand is wrong size")
 
         # Get remaining dimensions when we're done
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
@@ -364,11 +368,7 @@ class ttensor(object):
         -------
         :class:`numpy.ndarray`
         """
-
-        if n == 0:
-            R = U[1].shape[-1]
-        else:
-            R = U[0].shape[-1]
+        # NOTE: MATLAB version calculates an unused R here
 
         W = [None] * self.ndims
         for i in range(0, self.ndims):
@@ -444,10 +444,6 @@ class ttensor(object):
 
         # Check that each multiplicand is the right size.
         for i in range(len(dims)):
-            import logging
-            logging.warning(
-                f"Matrix shape: \n\t{matrix[vidx[i]].shape}"
-            )
             if matrix[vidx[i]].shape[size_idx] != self.shape[dims[i]]:
                 raise ValueError(f"Multiplicand {i} is wrong size")
 
@@ -482,7 +478,7 @@ class ttensor(object):
         if modes is None:
             modes = np.arange(self.ndims)
         elif isinstance(modes, list):
-            modes = np.array([modes])
+            modes = np.array(modes)
         elif np.isscalar(modes):
             modes = np.array([modes])
 
@@ -500,7 +496,10 @@ class ttensor(object):
 
         full_samples = [np.array([])] * self.ndims
         for sample, mode in zip(samples, modes):
-            full_samples[mode] = sample
+            if np.isscalar(sample):
+                full_samples[mode] = np.array([sample])
+            else:
+                full_samples[mode] = sample
 
         shape = self.shape
         new_u = []
@@ -510,7 +509,7 @@ class ttensor(object):
                 new_u.append(self.u[k])
                 continue
             elif len(full_samples[k].shape) == 2 and full_samples[k].shape[-1] == shape[k]:
-                new_u.append(full_samples[k] * self.u[k])
+                new_u.append(full_samples[k].dot(self.u[k]))
             else:
                 new_u.append(self.u[k][full_samples[k], :])
 
@@ -540,14 +539,14 @@ class ttensor(object):
         H = self.core.ttm(V)
 
         if isinstance(H, sptensor):
-            raise NotImplementedError("TTensor doesn't support sparse core yet")
+            raise NotImplementedError(ALT_CORE_ERROR)
         else:
             HnT = tenmat.from_tensor_type(H.full(), cdims=np.array([n])).double()
 
         G = self.core
 
         if isinstance(G, sptensor):
-            raise NotImplementedError("TTensor doesn't support sparse core yet")
+            raise NotImplementedError(ALT_CORE_ERROR)
         else:
             GnT = tenmat.from_tensor_type(G.full(), cdims=np.array([n])).double()
 
