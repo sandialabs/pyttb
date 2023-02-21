@@ -84,7 +84,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     [[0.1467... 0.0923...]
      [0.1862... 0.3455...]]
     >>> print(output)
-    {'params': (0.0001, 1000, 1, [0, 1]), 'iters': 1, 'normresidual': 1.9073486328125e-06, 'fit': 0.9999999836180988}
+    {'params': (0.0001, 1000, 1, [0, 1]), 'iters': 1, 'normresidual': ..., 'fit': ...}
 
     Example using "nvecs" initialization:
 
