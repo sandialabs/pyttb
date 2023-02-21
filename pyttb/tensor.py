@@ -1272,7 +1272,6 @@ class tensor(object):
             rmdims = []   # dimensions to remove
 
             # Determine the new size and what dimensions to keep
-            # Determine the new size and what dimensions to keep
             for i in range(0, len(region)):
                 if isinstance(region[i], slice):
                     newsiz.append(self.shape[i])
@@ -1289,19 +1288,11 @@ class tensor(object):
 
             # If the size is zero, then the result is returned as a scalar
             # otherwise, we convert the result to a tensor
-
             if newsiz.size == 0:
                 a = newdata
             else:
-                if rmdims.size == 0:
-                    a = ttb.tensor.from_data(newdata)
-                else:
-                    # If extracted data is a vector then no need to tranpose it
-                    if len(newdata.shape) == 1:
-                        a = ttb.tensor.from_data(newdata)
-                    else:
-                        a = ttb.tensor.from_data(np.transpose(newdata, np.concatenate((kpdims, rmdims))))
-            return ttb.tt_subsubsref(a, item)
+                a = ttb.tensor.from_data(newdata)
+            return a
 
         # *** CASE 2a: Subscript indexing ***
         if len(item) > 1 and isinstance(item[-1], str) and item[-1] == 'extract':

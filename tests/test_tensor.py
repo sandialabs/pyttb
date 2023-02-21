@@ -280,6 +280,9 @@ def test_tensor__getitem__(sample_tensor_2way):
     assert tensorInstance[0, 0] == params['data'][0, 0]
     # Case 1 Subtensor
     assert (tensorInstance[:, :] == tensorInstance).data.all()
+    three_way_data = np.random.random((2, 3, 4))
+    two_slices = (slice(None,None,None), 0, slice(None,None,None))
+    assert (ttb.tensor.from_data(three_way_data)[two_slices].double() == three_way_data[two_slices]).all()
     # Case 1 Subtensor
     assert (tensorInstance[np.array([0, 1]), :].data == tensorInstance.data[[0, 1], :]).all()
     # Case 1 Subtensor
