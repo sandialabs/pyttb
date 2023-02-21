@@ -3,6 +3,7 @@
 # U.S. Government retains certain rights in this software.
 
 import pyttb as ttb
+import logging
 import numpy as np
 import pytest
 import scipy.sparse as sparse
@@ -47,9 +48,9 @@ def test_sptensor_initialization_from_tensor_type(sample_sptensor):
     inputData = np.array([[1, 2, 3], [4, 5, 6]])
     tensorInstance = ttb.tensor.from_data(inputData)
     sptensorFromTensor = ttb.sptensor.from_tensor_type(tensorInstance)
-    print(f'inputData = {inputData}')
-    print(f'tensorInstance = {tensorInstance}')
-    print(f'sptensorFromTensor = {sptensorFromTensor}')
+    logging.debug(f'inputData = {inputData}')
+    logging.debug(f'tensorInstance = {tensorInstance}')
+    logging.debug(f'sptensorFromTensor = {sptensorFromTensor}')
     assert (sptensorFromTensor.subs == ttb.tt_ind2sub(inputData.shape, np.arange(0, inputData.size))).all()
     assert (sptensorFromTensor.vals == inputData.reshape((inputData.size, 1), order='F')).all()
     assert (sptensorFromTensor.shape == inputData.shape)
@@ -58,6 +59,11 @@ def test_sptensor_initialization_from_tensor_type(sample_sptensor):
     inputData = sparse.random(11, 4, 0.2)
     sptensorFromCOOMatrix = ttb.sptensor.from_tensor_type(sparse.coo_matrix(inputData))
     assert (sptensorFromCOOMatrix.spmatrix() != sparse.coo_matrix(inputData)).nnz == 0
+
+    # Negative Tests
+    with pytest.raises(AssertionError):
+        invalid_tensor_type = []
+        ttb.sptensor.from_tensor_type(invalid_tensor_type)
 
 @pytest.mark.indevelopment
 def test_sptensor_initialization_from_function():
@@ -247,6 +253,8 @@ def test_sptensor__getitem__(sample_sptensor):
     ## Case 2 Linear Indexing
     ind = ttb.tt_sub2ind(data['shape'], np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2]]))
     assert (sptensorInstance[ind] == np.array([[0.5], [1.5], [2.5]])).all()
+    list_ind = list(ind)
+    assert (sptensorInstance[list_ind] == np.array([[0.5], [1.5], [2.5]])).all()
     ind2 = ttb.tt_sub2ind(data['shape'], np.array([[1, 1, 1], [1, 1, 3]]))
     assert (sptensorInstance[ind2] == np.array([[0.5], [1.5]])).all()
     with pytest.raises(AssertionError) as excinfo:
@@ -622,15 +630,15 @@ def test_sptensor__eq__(sample_sptensor):
 
     denseTensor = ttb.tensor.from_tensor_type(sptensorInstance)
     eqSptensor = sptensorInstance == denseTensor
-    print(f"\ndenseTensor = {denseTensor}")
-    print(f"\nsptensorInstance = {sptensorInstance}")
-    print(f"\ntype(eqSptensor.subs) = \n{type(eqSptensor.subs)}")
+    logging.debug(f"\ndenseTensor = {denseTensor}")
+    logging.debug(f"\nsptensorInstance = {sptensorInstance}")
+    logging.debug(f"\ntype(eqSptensor.subs) = \n{type(eqSptensor.subs)}")
     for i in range(eqSptensor.subs.shape[0]):
-        print(f"{i}\t{eqSptensor.subs[i,:]}")
-    print(f"\neqSptensor.subs = \n{eqSptensor.subs}")
-    print(f"\neqSptensor.subs.shape[0] = {eqSptensor.subs.shape[0]}")
-    print(f"\nsptensorInstance.shape = {sptensorInstance.shape}")
-    print(f"\nnp.prod(sptensorInstance.shape) = {np.prod(sptensorInstance.shape)}")
+        logging.debug(f"{i}\t{eqSptensor.subs[i,:]}")
+    logging.debug(f"\neqSptensor.subs = \n{eqSptensor.subs}")
+    logging.debug(f"\neqSptensor.subs.shape[0] = {eqSptensor.subs.shape[0]}")
+    logging.debug(f"\nsptensorInstance.shape = {sptensorInstance.shape}")
+    logging.debug(f"\nnp.prod(sptensorInstance.shape) = {np.prod(sptensorInstance.shape)}")
     assert eqSptensor.subs.shape[0] == np.prod(sptensorInstance.shape)
 
     denseTensor = ttb.tensor.from_data(np.ones((5, 5, 5)))
@@ -1372,6 +1380,7 @@ def test_sptensor_ttm(sample_sptensor):
     matrix = sparse.coo_matrix(np.eye(4))
     list_of_matrices = [matrix, matrix, matrix]
     assert sptensorInstance.ttm(list_of_matrices, dims=np.array([0, 1, 2])).isequal(sptensorInstance)
+    assert sptensorInstance.ttm(list_of_matrices, dims=[0, 1, 2]).isequal(sptensorInstance)
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.ttm(sparse.coo_matrix(np.ones((5, 5))), dims=0)
