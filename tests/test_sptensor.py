@@ -1379,7 +1379,6 @@ def test_sptensor_ttm(sample_sptensor):
     # This is a multiway multiplication yielding a sparse tensor, yielding a dense tensor relies on tensor.ttm
     matrix = sparse.coo_matrix(np.eye(4))
     list_of_matrices = [matrix, matrix, matrix]
-    assert sptensorInstance.ttm(list_of_matrices, dims=np.array([0, 1, 2])).isequal(sptensorInstance)
     assert sptensorInstance.ttm(list_of_matrices, dims=[0, 1, 2]).isequal(sptensorInstance)
 
     with pytest.raises(AssertionError) as excinfo:

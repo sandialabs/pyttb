@@ -1714,7 +1714,7 @@ class sptensor(object):
         -------
         :class:`pyttb.sptensor`
         """
-        if isinstance(other, (float,int)):
+        if isinstance(other, (float, int, np.number)):
             return ttb.sptensor.from_data(self.subs, self.vals*other, self.shape)
 
         if isinstance(other, (ttb.sptensor,ttb.tensor,ttb.ktensor)) and self.shape != other.shape:
@@ -1756,7 +1756,7 @@ class sptensor(object):
         -------
         :class:`pyttb.sptensor`
         """
-        if isinstance(other, (float,int)):
+        if isinstance(other, (float, int, np.number)):
             return self.__mul__(other)
         else:
             assert False, "This object cannot be multiplied by sptensor"
