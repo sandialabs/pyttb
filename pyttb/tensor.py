@@ -1161,11 +1161,7 @@ class tensor:
 
         # Check that vector is a list of vectors, if not place single vector as element
         # in list
-        if isinstance(vector, list):
-            return self.ttv(np.array(vector), dims)
-        if len(vector.shape) == 1 and isinstance(
-            vector[0], (int, float, np.int_, np.float_)
-        ):
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv(np.array([vector]), dims)
 
         # Get sorted dims and index for multiplicands
@@ -1459,7 +1455,6 @@ class tensor:
             newsiz = []  # future new size
             kpdims = []  # dimensions to keep
             rmdims = []  # dimensions to remove
-
 
             # Determine the new size and what dimensions to keep
             for i, a_region in enumerate(region):
