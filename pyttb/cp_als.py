@@ -101,7 +101,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
      Final f = 0.9999999836180988
     """
     try:
-        from PyGenten import pyGenten
+        import pygenten
         genten_backend = True
     except:
         genten_backend = False
@@ -148,48 +148,49 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
         U = init.copy().factor_matrices
 
-        pyGenten.initializeKokkos()
+        pygenten.initializeKokkos()
 
-        sizes = pyGenten.IndxArray(N)
+        sizes = pygenten.IndxArray(N)
         sizes_np = np.array(sizes, copy=False)
         sizes_np[0:N] = tensor.shape[0:N]
 
-        print(tensor.data.flatten())
-        values = pyGenten.Array(tensor.data.flatten())
-        x = pyGenten.Tensor(sizes, values)
+        #print(tensor.data.flatten())
+        values = pygenten.Array(tensor.data.flatten())
+        x = pygenten.Tensor(sizes, values)
 
-        weights = pyGenten.Array(U[0].shape[0])
-        genten_factor_matrices = pyGenten.FacMatArray(len(U))
-        for i in range(0, len(U)):
-            factor_matrix = pyGenten.FacMatrix(U[i])
+        weights = pygenten.Array(U[0].shape[1])
+        genten_factor_matrices = pygenten.FacMatArray(N)
+        for i in range(0, N):
+            factor_matrix = pygenten.FacMatrix(U[i])
             genten_factor_matrices.set_factor(i, factor_matrix)
 
-        u = pyGenten.Ktensor(weights, genten_factor_matrices)
+        u = pygenten.Ktensor(weights, genten_factor_matrices)
 
-        algParams = pyGenten.AlgParams()
-        algParams.maxiters = maxiters
-        algParams.tol = stoptol
-        algParams.printitn = printitn
-        perfInfo = pyGenten.PerfHistory()
-
-        numIters = 10
-        resNorm = 1.
-        perfIter = 10
-        pyGenten.cpals(x, u, algParams, numIters, resNorm, perfIter, perfInfo)
-
-        fit = 0
+        args = {}
+        args['init'] = u
+        args['rank'] = rank
+        args['maxiters'] = maxiters
+        args['tol'] = stoptol
+        args['printitn'] = printitn
+        u, perfInfo = pygenten.cp_als(x, **args)
 
         output = {}
         output['params'] = (stoptol, maxiters, printitn, dimorder)
-        output['iters'] = numIters
-        output['normresidual'] = resNorm
-        output['fit'] = fit
+        output['iters'] = perfInfo.lastEntry().iteration
+        output['normresidual'] = perfInfo.lastEntry().residual
+        output['fit'] = perfInfo.lastEntry().fit
 
         weights = np.array(u.weights(), copy=False)
         for i in range(0, len(U)):
             U[i] = np.array(u[i], copy=False)
 
         M = ttb.ktensor.from_data(weights, U)
+
+        # Arrange the final tensor so that the columns are normalized.
+        M.arrange()
+        # Fix the signs if requested
+        if fixsigns:
+            M = M.fixsigns()
 
         return M, init, output
 
