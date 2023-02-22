@@ -6,6 +6,7 @@ import pyttb as ttb
 import numpy as np
 from inspect import signature
 import scipy.sparse as sparse
+from typing import Optional, Tuple, overload
 
 def tt_to_dense_matrix(tensorInstance, mode, transpose= False):
     """
@@ -126,10 +127,12 @@ def tt_union_rows(MatrixA, MatrixB):
 
     Examples
     --------
-    >>>a = np.array([[1,2],[3,4]])
-    >>>b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>>ttb.tt_union_rows(a,b)
-    [[1,2],[3,4],[0,0]]
+    >>> a = np.array([[1,2],[3,4]])
+    >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
+    >>> ttb.tt_union_rows(a,b)
+    array([[0, 0],
+           [1, 2],
+           [3, 4]])
     """
     #TODO ismember and uniqe are very similar in function
     if MatrixA.size > 0:
@@ -146,7 +149,18 @@ def tt_union_rows(MatrixA, MatrixB):
     union = np.vstack((MatrixB[np.sort(idxB[np.where(location < 0)])], MatrixA[np.sort(idxA)]))
     return union
 
-def tt_dimscheck(dims, N, M=None):
+
+@overload
+def tt_dimscheck(dims: np.ndarray, N: int, M: None =None) -> Tuple[np.ndarray, None]:
+    ...
+
+
+@overload
+def tt_dimscheck(dims: np.ndarray, N: int, M: int) -> Tuple[np.ndarray, np.ndarray]:
+    ...
+
+
+def tt_dimscheck(dims: np.ndarray, N: int, M: Optional[int] =None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """
     Used to preprocess dimensions for tensor dimensions
 
@@ -314,12 +328,12 @@ def tt_intersect_rows(MatrixA, MatrixB):
 
     Examples
     --------
-    >>>a = np.array([[1,2],[3,4]])
-    >>>b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>>ttb.tt_intersect_rows(a,b)
-    [0,1]
-    >>>ttb.tt_intersect_rows(b,a)
-    [1,2]
+    >>> a = np.array([[1,2],[3,4]])
+    >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
+    >>> ttb.tt_intersect_rows(a,b)
+    array([0, 1])
+    >>> ttb.tt_intersect_rows(b,a)
+    array([1, 2])
     """
     #TODO ismember and uniqe are very similar in function
     if MatrixA.size > 0:
@@ -488,7 +502,8 @@ def tt_ismember_rows(search, source):
     >>> a = np.array([[4, 6], [1, 9], [2, 6]])
     >>> b = np.array([[1, 7],[1, 8],[2, 6],[2, 1],[2, 4],[4, 6],[4, 7],[5, 9],[5, 2],[5, 1]])
     >>> results = tt_ismember_rows(a,b)
-    array([5 , -1, 2])
+    >>> print(results)
+    [ 5 -1  2]
 
     """
     results = np.ones(shape=search.shape[0])*-1
@@ -501,7 +516,7 @@ def tt_ismember_rows(search, source):
     return results.astype(int)
 
 
-def tt_ind2sub(shape, idx):
+def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     """
     Multiple subscripts from linear indices.
 

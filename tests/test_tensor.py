@@ -694,32 +694,22 @@ def test_tensor_reshape(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
     # Reshape with tuple
     tensorInstance2 = tensorInstance2.reshape((3, 2))
     if DEBUG_tests:
-        print('\ntensorInstance2.reshape(3, 2):')
-        print(tensorInstance2.reshape(3, 2))
+        print('\ntensorInstance2.reshape((3, 2)):')
+        print(tensorInstance2.reshape((3, 2)))
     assert tensorInstance2.shape == (3, 2)
     data = np.array([[1., 5.], 
                      [4., 3.], 
                      [2., 6.]])
     assert (tensorInstance2.data == data).all()
 
-    # Reshape with multiple arguments
-    tensorInstance2a = tensorInstance2.reshape(2, 3)
-    if DEBUG_tests:
-        print('\ntensorInstance.reshape(2, 3):')
-        print(tensorInstance2.reshape(2, 3))
-    assert tensorInstance2a.shape == (2, 3)
-    data2 = np.array([[1., 2., 3.], 
-                      [4., 5., 6.]])
-    assert (tensorInstance2a.data == data2).all()
-
     with pytest.raises(AssertionError) as excinfo:
-        tensorInstance2.reshape(3, 3)
+        tensorInstance2.reshape((3, 3))
     assert "Reshaping a tensor cannot change number of elements" in str(excinfo)
 
     (params3, tensorInstance3) = sample_tensor_3way
     tensorInstance3 = tensorInstance3.reshape((3, 2, 2))
     if DEBUG_tests:
-        print('\ntensorInstance3.reshape(3, 2, 2):')
+        print('\ntensorInstance3.reshape((3, 2, 2)):')
         print(tensorInstance3)
     assert tensorInstance3.shape == (3, 2, 2)
     data3 = np.array([[[1., 7.], [4., 10.]], 
@@ -730,7 +720,7 @@ def test_tensor_reshape(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
     (params4, tensorInstance4) = sample_tensor_4way
     tensorInstance4 = tensorInstance4.reshape((1, 3, 3, 9))
     if DEBUG_tests:
-        print('\ntensorInstance4.reshape(1, 3, 3, 9):')
+        print('\ntensorInstance4.reshape((1, 3, 3, 9)):')
         print(tensorInstance4)
     assert tensorInstance4.shape == (1, 3, 3, 9)
     data4 = np.array([[[[ 1, 10, 19, 28, 37, 46, 55, 64, 73], 
@@ -985,7 +975,9 @@ def test_tensor_squeeze(sample_tensor_2way):
     assert (tensorInstance.squeeze().data == params['data']).all()
 
     # All singleton dimensions
-    assert (ttb.tensor.from_data(np.array([[[4]]])).squeeze() == 4)
+    squeeze_result = ttb.tensor.from_data(np.array([[[4]]])).squeeze()
+    assert (squeeze_result == 4)
+    assert np.isscalar(squeeze_result)
 
     # A singleton dimension
     assert (ttb.tensor.from_data(np.array([[1, 2, 3]])).squeeze().data == np.array([1, 2, 3])).all()

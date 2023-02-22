@@ -20,5 +20,13 @@ setup(
         "scipy",
         "pytest",
         "sphinx_rtd_theme"
-    ]
+    ],
+    extras_require={
+        'testing': [
+            'black',
+            'isort',
+            'pylint',
+            'mypy'
+        ]
+    }
 )

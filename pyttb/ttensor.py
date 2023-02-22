@@ -61,7 +61,7 @@ class ttensor(object):
 
         >>> core_values = np.ones((2,2,2))
         >>> core = ttb.tensor.from_data(core_values)
-        >>> factors = [np.ones((1,2))] * len(core_values)
+        >>> factors = [np.ones((1,2))] * len(core_values.shape)
         >>> K0 = ttb.ttensor.from_data(core, factors)
         """
         ttensorInstance = ttensor()
@@ -109,7 +109,7 @@ class ttensor(object):
         core_order = len(self.core.shape)
         num_matrices = len(self.u)
         if core_order != num_matrices:
-            raise ValueError(f"CORE has order {core_order} but there are {num_matrices}")
+            raise ValueError(f"CORE has order {core_order} but there are {num_matrices} factors")
         for factor_idx, factor in enumerate(self.u):
             if factor.shape[-1] != self.core.shape[factor_idx]:
                 raise ValueError(f"Factor matrix {factor_idx} does not have {self.core.shape[factor_idx]} columns")

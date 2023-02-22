@@ -176,7 +176,7 @@ class sptensor(object):
         --------
         >>> subs = np.array([[1, 2], [1, 3]])
         >>> vals = np.array([[6], [7]])
-        >>> shape = np.array([4, 4, 4])
+        >>> shape = np.array([4, 4])
         >>> K0 = ttb.sptensor.from_aggregator(subs,vals)
         >>> K1 = ttb.sptensor.from_aggregator(subs,vals,shape)
         >>> function_handle = sum
@@ -691,10 +691,10 @@ class sptensor(object):
         >>> shape = (4, 4, 4)
         >>> sptensorInstance = sptensor.from_data(subs, vals, shape)
         >>> sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0)
-        [[0, 0, 0, 0],
-        [2, 2, 2, 2],
-        [2.5, 2.5, 2.5, 2.5],
-        [3.5, 3.5, 3.5, 3.5]]
+        array([[0. , 0. , 0. , 0. ],
+               [2. , 2. , 2. , 2. ],
+               [2.5, 2.5, 2.5, 2.5],
+               [3.5, 3.5, 3.5, 3.5]])
 
         """
         # In the sparse case, it is most efficient to do a series of TTV operations
@@ -966,15 +966,14 @@ class sptensor(object):
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
         >>> sp = sptensor.from_data(subs,vals,shape)
-        >>> region = np.ndarray([1, [1], [1,3]])
+        >>> region = [np.array([1]), np.array([1]), np.array([1,3])]
         >>> loc = sp.subdims(region)
         >>> print(loc)
-            loc = [0,1]
+        [0 1]
         >>> region = (1, 1, slice(None, None, None))
         >>> loc = sp.subdims(region)
         >>> print(loc)
-            loc = [0,1]
-
+        [0 1]
         """
         if len(region) != self.ndims:
             assert False, "Number of subdimensions must equal number of dimensions"
@@ -1114,12 +1113,10 @@ class sptensor(object):
 
         Examples
         --------
-        >>> X = sptensor(np.array([[3,3,3],[1,1,0],[1,2,1]]),np.array([3,5,1]),(4,4,4))
-        >>> X[0,1,0] #<-- returns zero
-        >>> X[3,3,3] #<-- returns 3
-        >>> X[2:3,:,:] #<-- returns 1 x 4 x 4 sptensor
-        X = sptensor([6;16;26],[1;1;1],30);
-        X([1:6]') <-- extracts a subtensor
+        >>> X = sptensor.from_data(np.array([[3,3,3],[1,1,0],[1,2,1]]),np.array([3,5,1]),(4,4,4))
+        >>> _ = X[0,1,0] #<-- returns zero
+        >>> _ = X[3,3,3] #<-- returns 3
+        >>> _ = X[2:3,:,:] #<-- returns 1 x 4 x 4 sptensor
         """
         # This does not work like MATLAB TTB; you must call sptensor.extract to get this functionality
         # X([1:6]','extract') %<-- extracts a vector of 6 elements

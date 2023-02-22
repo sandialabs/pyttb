@@ -24,11 +24,12 @@ def khatrirao(*listOfMatrices, reverse=False):
 
     Examples
     --------
-    >>>A = np.random.norm(size=(5,2))
-    >>>khatrirao(A,B) #<-- Khatri-Rao of A and B
-    >>>>khatrirao(B,A,reverse=True) #<-- same thing as above
-    >>>>khatrirao([A,A,B]) #<-- passing a list
-    >>>>khatrirao([B,A,A},reverse = True) #<-- same as above
+    >>> A = np.random.normal(size=(5,2))
+    >>> B = np.random.normal(size=(5,2))
+    >>> _ = khatrirao(A,B) #<-- Khatri-Rao of A and B
+    >>> _ = khatrirao(B,A,reverse=True) #<-- same thing as above
+    >>> _ = khatrirao([A,A,B]) #<-- passing a list
+    >>> _ = khatrirao([B,A,A],reverse = True) #<-- same as above
     """
     #Determine if list of matrices of multiple matrix arguments
     if isinstance(listOfMatrices[0], list):

@@ -3,9 +3,10 @@
 # U.S. Government retains certain rights in this software.
 
 """Classes and functions for working with Kruskal tensors."""
+from __future__ import annotations
 
 import pyttb as ttb
-from .pyttb_utils import *
+from pyttb.pyttb_utils import *
 import numpy as np
 import warnings
 import scipy.sparse as sparse
@@ -128,7 +129,7 @@ class ktensor(object):
         return k
 
     @classmethod
-    def from_tensor_type(cls, source):
+    def from_tensor_type(cls, source) -> ktensor:
         """
         Construct a ktensor from another ktensor. A deep copy of the data from the input ktensor
         is used for the new ktensor.
@@ -266,21 +267,21 @@ class ktensor(object):
 
         >>> np.random.seed(1)
         >>> K_random = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 4), 2)
-        >>> print(K_random)
+        >>> print(K_random)  # doctest: +ELLIPSIS
         ktensor of shape 2 x 3 x 4
         weights=[1. 1.]
         factor_matrices[0] =
-        [[4.17022005e-01 7.20324493e-01]
-         [1.14374817e-04 3.02332573e-01]]
+        [[4.1702...e-01 7.2032...e-01]
+         [1.1437...e-04 3.0233...e-01]]
         factor_matrices[1] =
-        [[0.14675589 0.09233859]
-         [0.18626021 0.34556073]
-         [0.39676747 0.53881673]]
+        [[0.1467... 0.0923...]
+         [0.1862... 0.3455...]
+         [0.3967... 0.5388...]]
         factor_matrices[2] =
-        [[0.41919451 0.6852195 ]
-         [0.20445225 0.87811744]
-         [0.02738759 0.67046751]
-         [0.4173048  0.55868983]]
+        [[0.4191... 0.6852...]
+         [0.2044... 0.8781...]
+         [0.0273... 0.6704...]
+         [0.4173...  0.5586...]]
 
         Create a `ktensor` with entries equal to 1:
 
@@ -528,41 +529,41 @@ class ktensor(object):
 
         >>> np.random.seed(1)
         >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 4), 2)
-        >>> print(K)
+        >>> print(K)  # doctest: +ELLIPSIS
         ktensor of shape 2 x 3 x 4
         weights=[1. 1.]
         factor_matrices[0] =
-        [[4.17022005e-01 7.20324493e-01]
-         [1.14374817e-04 3.02332573e-01]]
+        [[4.1702...e-01 7.2032...e-01]
+         [1.1437...e-04 3.0233...e-01]]
         factor_matrices[1] =
-        [[0.14675589 0.09233859]
-         [0.18626021 0.34556073]
-         [0.39676747 0.53881673]]
+        [[0.1467... 0.0923...]
+         [0.1862... 0.3455...]
+         [0.3967... 0.5388...]]
         factor_matrices[2] =
-        [[0.41919451 0.6852195 ]
-         [0.20445225 0.87811744]
-         [0.02738759 0.67046751]
-         [0.4173048  0.55868983]]
+        [[0.4191... 0.6852...]
+         [0.2044... 0.8781...]
+         [0.0273... 0.6704...]
+         [0.4173... 0.5586...]]
 
         Create a copy of the `ktensor` and change the weights:
 
         >>> K1 = K.copy()
         >>> K1.weights = np.array([2., 3.])
-        >>> print(K1)
+        >>> print(K1)  # doctest: +ELLIPSIS
         ktensor of shape 2 x 3 x 4
         weights=[2. 3.]
         factor_matrices[0] =
-        [[4.17022005e-01 7.20324493e-01]
-         [1.14374817e-04 3.02332573e-01]]
+        [[4.1702...e-01 7.2032...e-01]
+         [1.1437...e-04 3.023...e-01]]
         factor_matrices[1] =
-        [[0.14675589 0.09233859]
-         [0.18626021 0.34556073]
-         [0.39676747 0.53881673]]
+        [[0.1467... 0.0923...]
+         [0.1862... 0.3455...]
+         [0.3967... 0.5388...]]
         factor_matrices[2] =
-        [[0.41919451 0.6852195 ]
-         [0.20445225 0.87811744]
-         [0.02738759 0.67046751]
-         [0.4173048  0.55868983]]
+        [[0.4191... 0.6852...]
+         [0.2044... 0.8781...]
+         [0.0273... 0.6704...]
+         [0.4173... 0.5586...]]
         """
         return ttb.ktensor.from_tensor_type(self)
 
@@ -742,15 +743,15 @@ class ktensor(object):
         >>> K2.factor_matrices[0][1, 1] = - K2.factor_matrices[0][1, 1]
         >>> K2.factor_matrices[1][1, 1] = - K2.factor_matrices[1][1, 1]
         >>> K = K.fixsigns(K2)
-        >>> print(K)
+        >>> print(K)  # doctest: +ELLIPSIS
         ktensor of shape 2 x 2
-        weights=[27.20294102 89.4427191 ]
+        weights=[27.2029... 89.4427...]
         factor_matrices[0] =
-        [[ 0.31622777 -0.4472136 ]
-         [ 0.9486833  -0.89442719]]
+        [[ 0.3162... -0.4472...]
+         [ 0.9486... -0.8944...]]
         factor_matrices[1] =
-        [[ 0.58123819 -0.6       ]
-         [ 0.81373347 -0.8       ]]
+        [[ 0.5812... -0.6...]
+         [ 0.8137... -0.8...]]
         """
         if other == None:
             for r in range(self.ncomponents):
@@ -841,6 +842,7 @@ class ktensor(object):
         data[:, :] = 
         [[29. 39.]
          [63. 85.]]
+        <BLANKLINE>
         """
         data = self.weights @ ttb.khatrirao(self.factor_matrices, reverse=True).T
         return ttb.tensor.from_data(data, self.shape)
@@ -992,8 +994,8 @@ class ktensor(object):
 
         >>> W = ttb.tensor.from_data(np.array([[0, 1], [1, 0]]))
         >>> print(K.mask(W))
-        [[39.]
-         [63.]]
+        [[63.]
+         [39.]]
         """
         # Error check
         if len(W.shape) != len(self.shape) or np.any(np.array(W.shape) > np.array(self.shape)):
@@ -1122,16 +1124,16 @@ class ktensor(object):
         Example
         -------
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> print(K.normalize())
+        >>> print(K.normalize())  # doctest: +ELLIPSIS
         ktensor of shape 2 x 3 x 4
-        weights=[4.89897949 4.89897949]
+        weights=[4.898... 4.898...]
         factor_matrices[0] =
-        [[0.70710678 0.70710678]
-         [0.70710678 0.70710678]]
+        [[0.7071... 0.7071...]
+         [0.7071... 0.7071...]]
         factor_matrices[1] =
-        [[0.57735027 0.57735027]
-         [0.57735027 0.57735027]
-         [0.57735027 0.57735027]]
+        [[0.5773... 0.5773...]
+         [0.5773... 0.5773...]
+         [0.5773... 0.5773...]]
         factor_matrices[2] =
         [[0.5 0.5]
          [0.5 0.5]
@@ -1214,16 +1216,16 @@ class ktensor(object):
 
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
         >>> nvecs1 = K.nvecs(0, 1)
-        >>> print(nvecs1)
-        [[0.70710678]
-         [0.70710678]]
+        >>> print(nvecs1) # doctest: +ELLIPSIS
+        [[0.70710678...]
+         [0.70710678...]]
 
         Compute first 2 leading eigenvectors for dimension 0:
 
         >>> nvecs2 = K.nvecs(0, 2)
-        >>> print(nvecs2)
-        [[ 0.70710678  0.70710678]
-         [ 0.70710678 -0.70710678]]
+        >>> print(nvecs2) # doctest: +ELLIPSIS
+        [[ 0.70710678...  0.70710678...]
+         [ 0.70710678... -0.70710678...]]
         """
         M = self.weights[:, None] @ self.weights[:, None].T
         for i in range(self.ndims):
@@ -1409,12 +1411,9 @@ class ktensor(object):
         -------
         Create two `ktensor` instances:
 
-        >>> A = ttb.ktensor.from_data(np.array([2, 1, 3]), np.ones((3,3)), np.ones((4,3)), np.ones((5,3)))
-        >>> B = ttb.ktensor.from_data(np.array([2, 4]), np.ones((3,2)), np.ones((4,2)), np.ones((5,2)))
-
-        Compute `score` using `ktensor.weights`:
-
-        >>> score,Aperm,flag,perm = A.score(B)
+        >>> A = ttb.ktensor.from_data(np.array([2., 1., 3.]), np.ones((3,3)), np.ones((4,3)), np.ones((5,3)))
+        >>> B = ttb.ktensor.from_data(np.array([2., 4.]), np.ones((3,2)), np.ones((4,2)), np.ones((5,2)))
+        >>> score,Aperm,flag,perm = A.score(B)  #  Compute `score` using `ktensor.weights`
         >>> print(score)
         0.875
         >>> print(perm)
@@ -1530,15 +1529,15 @@ class ktensor(object):
         Make the factor matrices of the `ktensor` symmetric:
 
         >>> K1 = K.symmetrize()
-        >>> print(K1)
+        >>> print(K1) # doctest: +ELLIPSIS
         ktensor of shape 2 x 2
         weights=[1. 1.]
         factor_matrices[0] =
-        [[2.34043142 4.95196735]
-         [4.59606911 8.01245149]]
+        [[2.3404... 4.9519...]
+         [4.5960... 8.0124...]]
         factor_matrices[1] =
-        [[2.34043142 4.95196735]
-         [4.59606911 8.01245149]]
+        [[2.3404... 4.9519...]
+         [4.5960... 8.0124...]]
         """
         # Check tensor dimensions for compatibility with symmetrization
         assert (self.shape == self.shape[0]*np.ones(self.ndims)).all(), "Tensor is not cubic -- cannot be symmetrized"
@@ -1606,20 +1605,20 @@ class ktensor(object):
         Spread weights equally to all factors and return list of factor matrices:
 
         >>> fm_list = K.tolist()
-        >>> for fm in fm_list: print(fm)
-        [[1.         2.82842712]
-         [3.         5.65685425]]
-        [[ 5.          8.48528137]
-         [ 7.         11.3137085 ]]
+        >>> for fm in fm_list: print(fm) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        [[1. 2.8284...]
+         [3. 5.6568...]]
+        [[ 5. 8.4852...]
+         [ 7. 11.313...]]
 
         Shift weight to single factor matrix and return list of factor matrices:
 
         >>> fm_list = K.tolist(0)
-        >>> for fm in fm_list: print(fm)
-        [[ 8.60232527 40.        ]
-         [25.8069758  80.        ]]
-        [[0.58123819 0.6       ]
-         [0.81373347 0.8       ]]
+        >>> for fm in fm_list: print(fm)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        [[ 8.6023... 40. ]
+         [25.8069... 80. ]]
+        [[0.5812... 0.6...]
+         [0.8137... 0.8...]]
         """
         if mode is not None:
             if isinstance(mode, int) and mode in range(self.ndims):
@@ -1786,13 +1785,13 @@ class ktensor(object):
         >>> vec2 = np.array([1, 1])
         >>> vec3 = np.array([1, 1, 1])
         >>> vec4 = np.array([1, 1, 1, 1])
-        >>> K1 = K.ttv(np.array([vec2, vec3, vec4]))
+        >>> K1 = K.ttv([vec2, vec3, vec4])
         >>> print(K1)
         30348.0
 
         Compute the product of a `ktensor` and multiple vectors out of order (results in a `ktensor`):
 
-        >>> K2 = K.ttv(np.array([vec4, vec3]), np.array([2, 1]))
+        >>> K2 = K.ttv([vec4, vec3], np.array([2, 1]))
         >>> print(K2)
         ktensor of shape 2
         weights=[1800. 3564.]
@@ -2166,5 +2165,5 @@ class ktensor(object):
 
 if __name__ == "__main__":
     import doctest               # pragma: no cover
-    import pyttb as ttb  # pragma: no cover
+
     doctest.testmod()            # pragma: no cover

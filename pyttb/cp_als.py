@@ -3,7 +3,7 @@
 # U.S. Government retains certain rights in this software.
 
 import pyttb as ttb
-from .pyttb_utils import *
+from pyttb.pyttb_utils import *
 import numpy as np
 
 def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
@@ -51,6 +51,8 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
     Example
     -------
+    Random initialization causes slight pertubation in intermediate results.
+    `...` is our place holder for these numeric values.
     Example using default values ("random" initialization):
 
     >>> weights = np.array([1., 2.])
@@ -58,47 +60,47 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     >>> fm1 = np.array([[5., 6.], [7., 8.]])
     >>> K = ttb.ktensor.from_data(weights, [fm0, fm1])
     >>> np.random.seed(1)
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2)
+    >>> M, Minit, output = ttb.cp_als(K.full(), 2) # doctest: +ELLIPSIS
     CP_ALS:
-     Iter 0: f = 0.9999999836180988 f-delta = 0.9999999836180988
-     Iter 1: f = 0.9999999836180988 f-delta = 0.0
-     Final f = 0.9999999836180988
-    >>> print(M)
+     Iter 0: f = ... f-delta = ...
+     Iter 1: f = ... f-delta = ...
+     Final f = ...
+    >>> print(M) # doctest: +ELLIPSIS
     ktensor of shape 2 x 2
-    weights=[108.47158396   8.61141076]
+    weights=[108.4715... 8.6114...]
     factor_matrices[0] =
-    [[0.41877462 0.39899343]
-     [0.9080902  0.91695378]]
+    [[0.4187... 0.3989...]
+     [0.9080... 0.9169...]]
     factor_matrices[1] =
-    [[0.61888633 0.25815611]
-     [0.78548056 0.96610322]]
-    >>> print(Minit)
+    [[0.6188... 0.2581...]
+     [0.7854... 0.9661...]]
+    >>> print(Minit) # doctest: +ELLIPSIS
     ktensor of shape 2 x 2
     weights=[1. 1.]
     factor_matrices[0] =
-    [[4.17022005e-01 7.20324493e-01]
-     [1.14374817e-04 3.02332573e-01]]
+    [[4.1702...e-01 7.2032...e-01]
+     [1.1437...e-04 3.0233...e-01]]
     factor_matrices[1] =
-    [[0.14675589 0.09233859]
-     [0.18626021 0.34556073]]
+    [[0.1467... 0.0923...]
+     [0.1862... 0.3455...]]
     >>> print(output)
-    {'params': (0.0001, 1000, 1, [0, 1]), 'iters': 1, 'normresidual': 1.9073486328125e-06, 'fit': 0.9999999836180988}
+    {'params': (0.0001, 1000, 1, [0, 1]), 'iters': 1, 'normresidual': ..., 'fit': ...}
 
     Example using "nvecs" initialization:
 
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init="nvecs")
+    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init="nvecs") # doctest: +ELLIPSIS
     CP_ALS:
-     Iter 0: f = 1.0 f-delta = 1.0
-     Iter 1: f = 1.0 f-delta = 0.0
-     Final f = 1.0
+     Iter 0: f = ... f-delta = ...
+     Iter 1: f = ... f-delta = ...
+     Final f = ...
 
     Example using :class:`pyttb.ktensor` initialization:
 
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init=K)
+    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init=K) # doctest: +ELLIPSIS
     CP_ALS:
-     Iter 0: f = 0.9999999836180988 f-delta = 0.9999999836180988
-     Iter 1: f = 0.9999999836180988 f-delta = 0.0
-     Final f = 0.9999999836180988
+     Iter 0: f = ... f-delta = ...
+     Iter 1: f = ... f-delta = ...
+     Final f = ...
     """
 
     # Extract number of dimensions and norm of tensor
@@ -246,5 +248,5 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
 if __name__ == "__main__":
     import doctest               # pragma: no cover
-    import pyttb as ttb  # pragma: no cover
+
     doctest.testmod()            # pragma: no cover
