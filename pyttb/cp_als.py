@@ -8,15 +8,23 @@ import pyttb as ttb
 from pyttb.pyttb_utils import *
 
 
-def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
-           init='random', printitn=1, fixsigns=True):
+def cp_als(
+    tensor,
+    rank,
+    stoptol=1e-4,
+    maxiters=1000,
+    dimorder=None,
+    init="random",
+    printitn=1,
+    fixsigns=True,
+):
     """
     Compute CP decomposition with alternating least squares
 
     Parameters
     ----------
     tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor` or :class:`pyttb.ktensor`
-    rank: int 
+    rank: int
         Rank of the decomposition
     stoptol: float
         Tolerance used for termination - when the change in the fitness function in successive iterations drops
@@ -116,7 +124,9 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
         if not isinstance(dimorder, list):
             assert False, "Dimorder must be a list"
         elif tuple(range(N)) != tuple(sorted(dimorder)):
-                assert False, "Dimorder must be a list or permutation of range(tensor.ndims)"
+            assert (
+                False
+            ), "Dimorder must be a list or permutation of range(tensor.ndims)"
 
     # Error checking
     assert rank > 0, "Number of components requested must be positive"
@@ -125,16 +135,18 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     if isinstance(init, ttb.ktensor):
         # User provided an initial ktensor; validate it
         assert init.ndims == N, "Initial guess does not have {} modes".format(N)
-        assert init.ncomponents == rank, "Initial guess does not have {} components".format(rank)
+        assert (
+            init.ncomponents == rank
+        ), "Initial guess does not have {} components".format(rank)
         for n in dimorder:
             if init.factor_matrices[n].shape != (tensor.shape[n], rank):
                 assert False, "Mode {} of the initial guess is the wrong size".format(n)
-    elif isinstance(init, str) and init.lower() == 'random':
+    elif isinstance(init, str) and init.lower() == "random":
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(np.random.uniform(0, 1, (tensor.shape[n], rank)))
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
-    elif isinstance(init, str) and init.lower() == 'nvecs':
+    elif isinstance(init, str) and init.lower() == "nvecs":
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(tensor.nvecs(n, rank))
@@ -150,21 +162,19 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     U_mttkrp = np.zeros((tensor.shape[dimorder[-1]], rank))
 
     if printitn > 0:
-      print('CP_ALS:')
+        print("CP_ALS:")
 
     # Main Loop: Iterate until convergence
 
-    UtU = np.zeros((rank,rank,N))
+    UtU = np.zeros((rank, rank, N))
     for n in range(N):
-        UtU[:,:,n] = U[n].T @ U[n]
+        UtU[:, :, n] = U[n].T @ U[n]
 
     for iter in range(maxiters):
-
         fitold = fit
 
         # Iterate over all N modes of the tensor
         for n in dimorder:
-
             # Calculate Unew = X_(n) * khatrirao(all U except n, 'r').
             Unew = tensor.mttkrp(U, n)
 
@@ -173,14 +183,14 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
                 U_mttkrp = Unew
 
             # Compute the matrix of coefficients for linear system
-            Y = np.prod(UtU,axis=2,where=[i!=n for i in range(N)])
+            Y = np.prod(UtU, axis=2, where=[i != n for i in range(N)])
             # don't try to solve linear system with Y = 0
             if (Y == np.zeros(Y.shape)).all():
                 Unew = np.zeros(Unew.shape)
             else:
                 Unew = np.linalg.solve(Y.T, Unew.T).T
             # TODO: should we have issparse implemented? I am not sure when the following will occur
-            #if issparse(Unew):
+            # if issparse(Unew):
             #    Unew = full(Unew)   # for the case R=1
 
             # Normalize each vector to prevent singularities in coefmatrix
@@ -194,18 +204,20 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
                 Unew = Unew / weights
 
             U[n] = Unew
-            UtU[:,:,n] = U[n].T @ U[n]
+            UtU[:, :, n] = U[n].T @ U[n]
 
         M = ttb.ktensor.from_data(weights, U)
 
         # This is equivalent to innerprod(X,P).
-        iprod = np.sum(np.sum(M.factor_matrices[dimorder[-1]] * U_mttkrp, 0) * weights, 0)
+        iprod = np.sum(
+            np.sum(M.factor_matrices[dimorder[-1]] * U_mttkrp, 0) * weights, 0
+        )
         if normX == 0:
-            normresidual = M.norm()**2 - 2 * iprod
+            normresidual = M.norm() ** 2 - 2 * iprod
             fit = normresidual
         else:
             # the following input to np.sqrt can be negative due to rounding and truncation errors, so np.abs is used
-            normresidual = np.sqrt(np.abs(normX**2 + M.norm()**2 - 2 * iprod))
+            normresidual = np.sqrt(np.abs(normX**2 + M.norm() ** 2 - 2 * iprod))
             fit = 1 - (normresidual / normX)  # fraction explained by model
 
         fitchange = np.abs(fitold - fit)
@@ -217,7 +229,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
             flag = 1
 
         if (divmod(iter, printitn)[1] == 0) or (printitn > 0 and flag == 0):
-            print(f' Iter {iter}: f = {fit:e} f-delta = {fitchange:7.1e}')
+            print(f" Iter {iter}: f = {fit:e} f-delta = {fitchange:7.1e}")
 
         # Check for convergence
         if flag == 0:
@@ -233,22 +245,25 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
     if printitn > 0:
         if normX == 0:
-            normresidual = M.norm()**2 - 2 * tensor.innerprod(M)
+            normresidual = M.norm() ** 2 - 2 * tensor.innerprod(M)
             fit = normresidual
         else:
-            normresidual = np.sqrt(np.abs(normX**2 + M.norm()**2 - 2 * tensor.innerprod(M)))
-            fit = 1 - (normresidual / normX) # fraction explained by model
-        print(f' Final f = {fit:e}')
+            normresidual = np.sqrt(
+                np.abs(normX**2 + M.norm() ** 2 - 2 * tensor.innerprod(M))
+            )
+            fit = 1 - (normresidual / normX)  # fraction explained by model
+        print(f" Final f = {fit:e}")
 
     output = {}
-    output['params'] = (stoptol, maxiters, printitn, dimorder)
-    output['iters'] = iter
-    output['normresidual'] = normresidual
-    output['fit'] = fit
+    output["params"] = (stoptol, maxiters, printitn, dimorder)
+    output["iters"] = iter
+    output["normresidual"] = normresidual
+    output["fit"] = fit
 
     return M, init, output
+
 
 if __name__ == "__main__":
     import doctest  # pragma: no cover
 
-    doctest.testmod()            # pragma: no cover
+    doctest.testmod()  # pragma: no cover
