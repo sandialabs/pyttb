@@ -1,5 +1,6 @@
-import pyttb as ttb
 import pytest
+
+import pyttb as ttb
 
 
 def test_package_smoke():

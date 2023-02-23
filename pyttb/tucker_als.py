@@ -1,7 +1,10 @@
 
 from numbers import Real
+
 import numpy as np
+
 from pyttb.ttensor import ttensor
+
 
 def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
            init='random', printitn=1):

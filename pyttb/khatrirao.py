@@ -4,6 +4,7 @@
 
 import numpy as np
 
+
 def khatrirao(*listOfMatrices, reverse=False):
     """
     KHATRIRAO Khatri-Rao product of matrices.

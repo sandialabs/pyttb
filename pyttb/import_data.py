@@ -2,10 +2,14 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import pyttb as ttb
-from .pyttb_utils import *
-import numpy as np
 import os
+
+import numpy as np
+
+import pyttb as ttb
+
+from .pyttb_utils import *
+
 
 def import_data(filename):
 

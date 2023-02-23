@@ -2,13 +2,16 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import pyttb as ttb
-from .pyttb_utils import *
-import numpy as np
-from numpy_groupies import aggregate as accumarray
 import warnings
+
+import numpy as np
 import scipy.sparse as sparse
 import scipy.sparse.linalg
+from numpy_groupies import aggregate as accumarray
+
+import pyttb as ttb
+
+from .pyttb_utils import *
 
 
 class sptensor(object):

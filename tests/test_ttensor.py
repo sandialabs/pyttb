@@ -3,9 +3,11 @@
 # U.S. Government retains certain rights in this software.
 
 import numpy as np
-import pyttb as ttb
 import pytest
 import scipy.sparse as sparse
+
+import pyttb as ttb
+
 
 @pytest.fixture()
 def sample_ttensor():

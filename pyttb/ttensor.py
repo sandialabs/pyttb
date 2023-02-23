@@ -2,18 +2,15 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-from pyttb import (
-    ktensor,
-    tenmat,
-    tensor,
-    sptensor,
-    sptenmat,
-)
-from pyttb import pyttb_utils as ttb_utils
-import numpy as np
-import scipy
 import textwrap
 import warnings
+
+import numpy as np
+import scipy
+
+from pyttb import ktensor
+from pyttb import pyttb_utils as ttb_utils
+from pyttb import sptenmat, sptensor, tenmat, tensor
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet"
 

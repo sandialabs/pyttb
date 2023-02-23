@@ -2,12 +2,15 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import pyttb as ttb
-from .pyttb_utils import *
-import numpy as np
 import time
-from numpy_groupies import aggregate as accumarray
 import warnings
+
+import numpy as np
+from numpy_groupies import aggregate as accumarray
+
+import pyttb as ttb
+
+from .pyttb_utils import *
 
 
 def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=1000,

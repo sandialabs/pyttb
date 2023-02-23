@@ -2,11 +2,14 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import pyttb as ttb
 import logging
+
 import numpy as np
 import pytest
 import scipy.sparse as sparse
+
+import pyttb as ttb
+
 
 @pytest.mark.indevelopment
 def test_sptensor_to_dense_matrix():

@@ -2,9 +2,11 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import numpy as np
+
 import pyttb as ttb
 from pyttb.pyttb_utils import *
-import numpy as np
+
 
 def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
            init='random', printitn=1, fixsigns=True):
@@ -247,6 +249,6 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     return M, init, output
 
 if __name__ == "__main__":
-    import doctest               # pragma: no cover
+    import doctest  # pragma: no cover
 
     doctest.testmod()            # pragma: no cover

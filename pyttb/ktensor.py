@@ -5,12 +5,15 @@
 """Classes and functions for working with Kruskal tensors."""
 from __future__ import annotations
 
-import pyttb as ttb
-from pyttb.pyttb_utils import *
-import numpy as np
 import warnings
+
+import numpy as np
 import scipy.sparse as sparse
 import scipy.sparse.linalg
+
+import pyttb as ttb
+from pyttb.pyttb_utils import *
+
 
 class ktensor(object):
     """
@@ -2164,6 +2167,6 @@ class ktensor(object):
     __str__ = __repr__
 
 if __name__ == "__main__":
-    import doctest               # pragma: no cover
+    import doctest  # pragma: no cover
 
     doctest.testmod()            # pragma: no cover

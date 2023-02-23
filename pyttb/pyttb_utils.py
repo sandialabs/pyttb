@@ -2,11 +2,14 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import pyttb as ttb
-import numpy as np
 from inspect import signature
-import scipy.sparse as sparse
 from typing import Optional, Tuple, overload
+
+import numpy as np
+import scipy.sparse as sparse
+
+import pyttb as ttb
+
 
 def tt_to_dense_matrix(tensorInstance, mode, transpose= False):
     """
