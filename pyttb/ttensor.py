@@ -14,6 +14,7 @@ from pyttb import sptenmat, sptensor, tenmat, tensor
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet"
 
+
 class ttensor(object):
     """
     TTENSOR Class for Tucker tensors (decomposed).
@@ -98,18 +99,26 @@ class ttensor(object):
         # Confirm all factors are matrices
         for factor_idx, factor in enumerate(self.u):
             if not isinstance(factor, np.ndarray):
-                raise ValueError(f"Factor matrices must be numpy arrays but factor {factor_idx} was {type(factor)}")
+                raise ValueError(
+                    f"Factor matrices must be numpy arrays but factor {factor_idx} was {type(factor)}"
+                )
             if len(factor.shape) != 2:
-                raise ValueError(f"Factor matrix {factor_idx} has shape {factor.shape} and is not a matrix!")
+                raise ValueError(
+                    f"Factor matrix {factor_idx} has shape {factor.shape} and is not a matrix!"
+                )
 
         # Verify size consistency
         core_order = len(self.core.shape)
         num_matrices = len(self.u)
         if core_order != num_matrices:
-            raise ValueError(f"CORE has order {core_order} but there are {num_matrices} factors")
+            raise ValueError(
+                f"CORE has order {core_order} but there are {num_matrices} factors"
+            )
         for factor_idx, factor in enumerate(self.u):
             if factor.shape[-1] != self.core.shape[factor_idx]:
-                raise ValueError(f"Factor matrix {factor_idx} does not have {self.core.shape[factor_idx]} columns")
+                raise ValueError(
+                    f"Factor matrix {factor_idx} does not have {self.core.shape[factor_idx]} columns"
+                )
 
     @property
     def shape(self):
@@ -131,15 +140,12 @@ class ttensor(object):
         str
             Contains the core, and factor matrices as strings on different lines.
         """
-        display_string = (
-            f"Tensor of shape: {self.shape}\n"
-            f"\tCore is a "
-        )
-        display_string += textwrap.indent(str(self.core), '\t')
+        display_string = f"Tensor of shape: {self.shape}\n" f"\tCore is a "
+        display_string += textwrap.indent(str(self.core), "\t")
 
         for factor_idx, factor in enumerate(self.u):
             display_string += f"\tU[{factor_idx}] = \n"
-            display_string += textwrap.indent(str(factor), '\t\t')
+            display_string += textwrap.indent(str(factor), "\t\t")
             display_string += "\n"
         return display_string
 
@@ -200,7 +206,8 @@ class ttensor(object):
         if self.ndims != other.ndims:
             return False
         return self.core.isequal(other.core) and all(
-                np.array_equal(this_factor, other_factor) for this_factor, other_factor in zip(self.u, other.u)
+            np.array_equal(this_factor, other_factor)
+            for this_factor, other_factor in zip(self.u, other.u)
         )
 
     def __pos__(self):
@@ -248,7 +255,7 @@ class ttensor(object):
                 # Reverse arguments so the ttensor with the smaller core comes first.
                 return other.innerprod(self)
             W = []
-            for (this_factor, other_factor) in zip(self.u, other.u):
+            for this_factor, other_factor in zip(self.u, other.u):
                 W.append(this_factor.transpose().dot(other_factor))
             J = other.core.ttm(W)
             return self.core.innerprod(J)
@@ -268,7 +275,9 @@ class ttensor(object):
             # TODO needs ttensor ttv
             return other.innerprod(self)
         else:
-            raise ValueError(f"Inner product between ttensor and {type(other)} is not supported")
+            raise ValueError(
+                f"Inner product between ttensor and {type(other)} is not supported"
+            )
 
     def __mul__(self, other):
         """
@@ -503,14 +512,17 @@ class ttensor(object):
                 # Skip empty samples
                 new_u.append(self.u[k])
                 continue
-            elif len(full_samples[k].shape) == 2 and full_samples[k].shape[-1] == shape[k]:
+            elif (
+                len(full_samples[k].shape) == 2
+                and full_samples[k].shape[-1] == shape[k]
+            ):
                 new_u.append(full_samples[k].dot(self.u[k]))
             else:
                 new_u.append(self.u[k][full_samples[k], :])
 
         return ttensor.from_data(self.core, new_u).full()
 
-    def nvecs(self, n, r, flipsign = True):
+    def nvecs(self, n, r, flipsign=True):
         """
         Compute the leading mode-n vectors for a ttensor.
 
@@ -554,7 +566,9 @@ class ttensor(object):
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
         else:
-            warnings.warn('Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve')
+            warnings.warn(
+                "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
+            )
             w, v = scipy.linalg.eigh(Y)
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]

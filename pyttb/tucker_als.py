@@ -1,4 +1,3 @@
-
 from numbers import Real
 
 import numpy as np
@@ -6,8 +5,9 @@ import numpy as np
 from pyttb.ttensor import ttensor
 
 
-def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
-           init='random', printitn=1):
+def tucker_als(
+    tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None, init="random", printitn=1
+):
     """
     Compute Tucker decomposition with alternating least squares
 
@@ -53,11 +53,17 @@ def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
     # TODO: These argument checks look common with CP-ALS factor out
     if not isinstance(stoptol, Real):
-        raise ValueError(f"stoptol must be a real valued scalar but received: {stoptol}")
+        raise ValueError(
+            f"stoptol must be a real valued scalar but received: {stoptol}"
+        )
     if not isinstance(maxiters, Real) or maxiters < 0:
-        raise ValueError(f"maxiters must be a non-negative real valued scalar but received: {maxiters}")
+        raise ValueError(
+            f"maxiters must be a non-negative real valued scalar but received: {maxiters}"
+        )
     if not isinstance(printitn, Real):
-        raise ValueError(f"printitn must be a real valued scalar but received: {printitn}")
+        raise ValueError(
+            f"printitn must be a real valued scalar but received: {printitn}"
+        )
 
     if isinstance(rank, Real) or len(rank) == 1:
         rank = rank * np.ones(N, dtype=int)
@@ -69,26 +75,30 @@ def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
         if not isinstance(dimorder, list):
             raise ValueError("Dimorder must be a list")
         elif tuple(range(N)) != tuple(sorted(dimorder)):
-            raise ValueError("Dimorder must be a list or permutation of range(tensor.ndims)")
+            raise ValueError(
+                "Dimorder must be a list or permutation of range(tensor.ndims)"
+            )
 
     if isinstance(init, list):
         Uinit = init
         if len(init) != N:
-            raise ValueError(f"Init needs to be of length tensor.ndim (which was {N}) but only got length {len(init)}.")
+            raise ValueError(
+                f"Init needs to be of length tensor.ndim (which was {N}) but only got length {len(init)}."
+            )
         for n in dimorder[1::]:
             correct_shape = (tensor.shape[n], rank[n])
             if Uinit[n].shape != correct_shape:
                 raise ValueError(
                     f"Init factor {n} had incorrect shape. Expected {correct_shape} but got {Uinit[n].shape}"
                 )
-    elif isinstance(init, str) and init.lower() == 'random':
+    elif isinstance(init, str) and init.lower() == "random":
         Uinit = [None] * N
         # Observe that we don't need to calculate an initial guess for the
         # first index in dimorder because that will be solved for in the first
         # inner iteration.
         for n in range(1, N):
             Uinit[n] = np.random.uniform(0, 1, (tensor.shape[n], rank[n]))
-    elif isinstance(init, str) and init.lower() in ('nvecs', 'eigs'):
+    elif isinstance(init, str) and init.lower() in ("nvecs", "eigs"):
         # Compute an orthonormal basis for the dominant
         # Rn-dimensional left singular subspace of
         # X_(n) (0 <= n < N).
@@ -97,7 +107,9 @@ def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
             print(f" Computing {rank[n]} leading e-vector for factor {n}.\n")
             Uinit[n] = tensor.nvecs(n, rank[n])
     else:
-        raise ValueError(f"The selected initialization method is not supported. Provided: {init}")
+        raise ValueError(
+            f"The selected initialization method is not supported. Provided: {init}"
+        )
 
     # Set up for iterations - initializing U and the fit.
     U = Uinit.copy()
@@ -112,7 +124,9 @@ def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
         # Iterate over all N modes of the tensor
         for n in dimorder:
-            if n == 0:  # TODO proposal to change ttm to include_dims and exclude_dims to resolve -0 ambiguity
+            if (
+                n == 0
+            ):  # TODO proposal to change ttm to include_dims and exclude_dims to resolve -0 ambiguity
                 dims = np.arange(1, tensor.ndims)
                 Utilde = tensor.ttm(U, dims, True)
             else:
@@ -127,7 +141,7 @@ def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
         # Compute fit
         # TODO this abs is missing from MATLAB, but I get negative numbers for trivial examples
-        normresidual = np.sqrt(abs(normX**2 - core.norm()**2))
+        normresidual = np.sqrt(abs(normX**2 - core.norm() ** 2))
         fit = 1 - (normresidual / normX)  # fraction explained by model
         fitchange = abs(fitold - fit)
 
@@ -142,9 +156,9 @@ def tucker_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     solution = ttensor.from_data(core, U)
 
     output = {}
-    output['params'] = (stoptol, maxiters, printitn, dimorder)
-    output['iters'] = iter
-    output['normresidual'] = normresidual
-    output['fit'] = fit
+    output["params"] = (stoptol, maxiters, printitn, dimorder)
+    output["iters"] = iter
+    output["normresidual"] = normresidual
+    output["fit"] = fit
 
     return solution, Uinit, output

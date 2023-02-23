@@ -2,7 +2,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-__version__ = '1.3.8'
+__version__ = "1.3.8"
 
 import warnings
 
@@ -27,8 +27,9 @@ from pyttb.tucker_als import tucker_als
 
 def ignore_warnings(ignore=True):
     if ignore:
-        warnings.simplefilter('ignore')
+        warnings.simplefilter("ignore")
     else:
-        warnings.simplefilter('default')
+        warnings.simplefilter("default")
+
 
 ignore_warnings(True)

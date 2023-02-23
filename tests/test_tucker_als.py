@@ -6,26 +6,28 @@ import pyttb as ttb
 
 @pytest.fixture()
 def sample_tensor():
-    data = np.array([[29, 39.], [63., 85.]])
+    data = np.array([[29, 39.0], [63.0, 85.0]])
     shape = (2, 2)
-    params = {'data': data, 'shape': shape}
+    params = {"data": data, "shape": shape}
     tensorInstance = ttb.tensor().from_data(data, shape)
     return params, tensorInstance
+
 
 @pytest.mark.indevelopment
 def test_tucker_als_tensor_default_init(capsys, sample_tensor):
     (data, T) = sample_tensor
     (Solution, Uinit, output) = ttb.tucker_als(T, 2)
     capsys.readouterr()
-    assert pytest.approx(output['fit'], 1) == 0
+    assert pytest.approx(output["fit"], 1) == 0
 
     (Solution, Uinit, output) = ttb.tucker_als(T, 2, init=Uinit)
     capsys.readouterr()
-    assert pytest.approx(output['fit'], 1) == 0
+    assert pytest.approx(output["fit"], 1) == 0
 
-    (Solution, Uinit, output) = ttb.tucker_als(T, 2, init='nvecs')
+    (Solution, Uinit, output) = ttb.tucker_als(T, 2, init="nvecs")
     capsys.readouterr()
-    assert pytest.approx(output['fit'], 1) == 0
+    assert pytest.approx(output["fit"], 1) == 0
+
 
 @pytest.mark.indevelopment
 def test_tucker_als_tensor_incorrect_init(capsys, sample_tensor):
@@ -48,6 +50,7 @@ def test_tucker_als_tensor_incorrect_init(capsys, sample_tensor):
     with pytest.raises(ValueError):
         _ = ttb.tucker_als(T, 2, init=wrong_shape)
 
+
 @pytest.mark.indevelopment
 def test_tucker_als_tensor_incorrect_steptol(capsys, sample_tensor):
     (data, T) = sample_tensor
@@ -55,6 +58,7 @@ def test_tucker_als_tensor_incorrect_steptol(capsys, sample_tensor):
     non_scalar = np.array([1])
     with pytest.raises(ValueError):
         _ = ttb.tucker_als(T, 2, stoptol=non_scalar)
+
 
 @pytest.mark.indevelopment
 def test_tucker_als_tensor_incorrect_maxiters(capsys, sample_tensor):
@@ -68,6 +72,7 @@ def test_tucker_als_tensor_incorrect_maxiters(capsys, sample_tensor):
     with pytest.raises(ValueError):
         _ = ttb.tucker_als(T, 2, maxiters=non_scalar)
 
+
 @pytest.mark.indevelopment
 def test_tucker_als_tensor_incorrect_printitn(capsys, sample_tensor):
     (data, T) = sample_tensor
@@ -75,6 +80,7 @@ def test_tucker_als_tensor_incorrect_printitn(capsys, sample_tensor):
     non_scalar = np.array([1])
     with pytest.raises(ValueError):
         _ = ttb.tucker_als(T, 2, printitn=non_scalar)
+
 
 @pytest.mark.indevelopment
 def test_tucker_als_tensor_incorrect_dimorder(capsys, sample_tensor):
