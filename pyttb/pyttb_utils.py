@@ -152,12 +152,12 @@ def tt_union_rows(MatrixA, MatrixB):
 
 @overload
 def tt_dimscheck(dims: np.ndarray, N: int, M: None =None) -> Tuple[np.ndarray, None]:
-    ...
+    ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
 def tt_dimscheck(dims: np.ndarray, N: int, M: int) -> Tuple[np.ndarray, np.ndarray]:
-    ...
+    ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_dimscheck(dims: np.ndarray, N: int, M: Optional[int] =None) -> Tuple[np.ndarray, Optional[np.ndarray]]:

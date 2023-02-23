@@ -324,13 +324,11 @@ class ttensor(object):
             dims = np.array([dims])
 
         # Check that vector is a list of vectors, if not place single vector as element in list
-        if isinstance(vector, list):
-            return self.ttv(np.array(vector), dims)
-        if len(vector.shape) == 1 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv(np.array([vector]), dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb_utils.tt_dimscheck(dims, self.ndims, vector.shape[0])
+        dims, vidx = ttb_utils.tt_dimscheck(dims, self.ndims, len(vector))
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):

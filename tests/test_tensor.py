@@ -133,6 +133,10 @@ def test_tensor_initialization_from_tensor_type(sample_tensor_2way, sample_tenso
     tensorTenmatInstance4 = ttb.tensor.from_tensor_type(tenmatInstance4)
     assert tensorInstance4.isequal(tensorTenmatInstance4)
 
+    # Non-tensor type
+    with pytest.raises(ValueError):
+        ttb.tensor.from_tensor_type(1)
+
 @pytest.mark.indevelopment
 def test_tensor_initialization_from_function():
     def function_handle(x):
@@ -1090,6 +1094,11 @@ def test_tensor_ttt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     with pytest.raises(AssertionError):
         M31.ttt(M31, selfdims=np.array([0, 1, 2]), otherdims=np.array([0, 2, 1]))
 
+    M2 = ttb.tensor.from_data(np.reshape(np.arange(0, 2), [1, 2], order="F"))
+    result = M2.ttt(M2, 0, 0)
+    row_vector = M2.data
+    column_vector = M2.data.transpose()
+    assert np.allclose(result.data, row_vector * column_vector)
 
 @pytest.mark.indevelopment
 def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):

@@ -429,19 +429,11 @@ class tensor:
         >>> X.isequal(Y)
         False
         """
-
-        if (
-            not isinstance(other, (ttb.tensor, ttb.sptensor))
-            or self.shape != other.shape
-        ):
-            return False
         if isinstance(other, ttb.tensor):
             return np.all(self.data == other.data)
         if isinstance(other, ttb.sptensor):
             return np.all(self.data == other.full().data)
-        raise ValueError(
-            f"Unsupported type for tensor equality, received {type(other)}"
-        )
+        return False
 
     # TODO: We should probably always return details and let caller drop them
     # pylint: disable=too-many-branches, too-many-locals
@@ -1116,23 +1108,27 @@ class tensor:
         if selfdims is None:
             selfdims = np.array([], dtype=int)
         elif isinstance(selfdims, int):
-            selfdims = np.array(selfdims)
+            selfdims = np.array([selfdims])
         selfshape = tuple(np.array(self.shape)[selfdims])
 
         if otherdims is None:
             otherdims = selfdims.copy()
         elif isinstance(otherdims, int):
-            otherdims = np.array(otherdims)
+            otherdims = np.array([otherdims])
         othershape = tuple(np.array(other.shape)[otherdims])
 
-        if selfshape != othershape:
-            assert False, "Specified dimensions do not match"
+        if np.any(selfshape != othershape):
+            assert (
+                False
+            ), f"Specified dimensions do not match got {selfshape} and {othershape}"
 
         # Compute the product
 
         # Avoid transpose by reshaping self and computing result = self * other
         amatrix = ttb.tenmat.from_tensor_type(self, cdims=selfdims)
         bmatrix = ttb.tenmat.from_tensor_type(other, rdims=otherdims)
+        print(amatrix)
+        print(bmatrix)
         cmatrix = amatrix * bmatrix
 
         # Check whether or not the result is a scalar
