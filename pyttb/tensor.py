@@ -413,7 +413,7 @@ class tensor:
             return other.innerprod(self)
         assert False, "Inner product between tensor and that class is not supported"
 
-    def isequal(self, other: Union[tensor, ttb.sptensor]) -> Union[bool, np.bool_]:
+    def isequal(self, other: Union[tensor, ttb.sptensor]) -> bool:
         """
         Exact equality for tensors
 
@@ -429,9 +429,9 @@ class tensor:
         False
         """
         if isinstance(other, ttb.tensor):
-            return np.all(self.data == other.data)
+            return bool(np.all(self.data == other.data))
         if isinstance(other, ttb.sptensor):
-            return np.all(self.data == other.full().data)
+            return bool(np.all(self.data == other.full().data))
         return False
 
     # TODO: We should probably always return details and let caller drop them

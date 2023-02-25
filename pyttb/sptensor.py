@@ -2,7 +2,10 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 """Sparse Tensor Implementation"""
+from __future__ import annotations
+
 import warnings
+from typing import Any, Callable, Optional, Tuple, Union, overload
 
 import numpy as np
 import scipy.sparse.linalg
@@ -23,22 +26,22 @@ from pyttb.pyttb_utils import (
 )
 
 
-def tt_to_sparse_matrix(sptensorInstance, mode, transpose=False):
+def tt_to_sparse_matrix(
+    sptensorInstance: sptensor, mode: int, transpose: bool = False
+) -> sparse.coo_matrix:
     """
     Helper function to unwrap sptensor into sparse matrix, should replace the core need
     for sptenmat
 
     Parameters
     ----------
-    sptensorInstance: :class:`pyttb.sptensor`
-    mode: int
-        Mode around which to unwrap tensor
-    transpose: bool
-        Whether or not to tranpose unwrapped tensor
+    sptensorInstance: sparse tensor to unwrap
+    mode: Mode around which to unwrap tensor
+    transpose: Whether or not to tranpose unwrapped tensor
 
     Returns
     -------
-    spmatrix: :class:`Scipy.sparse.coo_matrix`
+    spmatrix: unwrapped tensor
     """
     old = np.setdiff1d(np.arange(sptensorInstance.ndims), mode).astype(int)
     spmatrix = sptensorInstance.reshape(
@@ -49,7 +52,9 @@ def tt_to_sparse_matrix(sptensorInstance, mode, transpose=False):
     return spmatrix
 
 
-def tt_from_sparse_matrix(spmatrix, shape, mode, idx):
+def tt_from_sparse_matrix(
+    spmatrix: sparse.coo_matrix, shape: Any, mode: int, idx: int
+) -> sptensor:
     """
     Helper function to wrap sparse matrix into sptensor.
     Inverse of :class:`pyttb.tt_to_sparse_matrix`
@@ -76,7 +81,7 @@ def tt_from_sparse_matrix(spmatrix, shape, mode, idx):
     # unchanged ones
     sptensorInstance = sptensorInstance.reshape(
         shape,
-        np.concatenate((np.arange(1, mode + 1), [0], np.arange(mode + 1, len(shape)))),
+        np.concatenate([np.arange(1, mode + 1), [0], np.arange(mode + 1, len(shape))]),
     )
 
     return sptensorInstance
@@ -109,19 +114,17 @@ class sptensor:
         #    return
 
     @classmethod
-    def from_data(cls, subs, vals, shape):
+    def from_data(
+        cls, subs: np.ndarray, vals: np.ndarray, shape: Tuple[int, ...]
+    ) -> sptensor:
         """
         Construct an sptensor from fully defined SUB, VAL and SIZE matrices.
 
         Parameters
         ----------
-        subs: :class:`numpy.ndarray`
-        vals: :class:`numpy.ndarray`
-        shape: tuple
-
-        Returns
-        -------
-        :class:`pyttb.sptensor`
+        subs: location of non-zero entries
+        vals: values for non-zero entries
+        shape: shape of sparse tensor
 
         Examples
         --------
@@ -145,19 +148,15 @@ class sptensor:
         return sptensorInstance
 
     @classmethod
-    def from_tensor_type(cls, source):
+    def from_tensor_type(
+        cls, source: Union[sptensor, ttb.tensor, sparse.coo_matrix]
+    ) -> sptensor:
         """
-        Contruct an :class:`pyttb.sptensor` from :class:`pyttb.sptensor`,
-        :class:`pyttb.tensor`, :class:`pyttb.sptenmat`, :class:`pyttb.sptensor3`
+        Contruct an :class:`pyttb.sptensor` from compatible tensor types
 
         Parameters
         ----------
-        source: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, \
-            :class:`pyttb.sptenmat`, or :class:`pyttb.sptensor3`
-
-        Returns
-        -------
-        :class:`pyttb.sptensor`
+        source: Source tensor to create sptensor from
         """
         # Copy Constructor
         if isinstance(source, sptensor):
@@ -189,7 +188,12 @@ class sptensor:
         assert False, "Invalid Tensor Type To initialize Sptensor"
 
     @classmethod
-    def from_function(cls, function_handle, shape, nonzeros):
+    def from_function(
+        cls,
+        function_handle: Callable[[Tuple[float, float]], np.ndarray],
+        shape: Tuple[int, ...],
+        nonzeros: float,
+    ) -> sptensor:
         """
         Creates a sparse tensor of the specified shape with NZ nonzeros created from
         the specified function handle
@@ -217,6 +221,7 @@ class sptensor:
             nonzeros = int(np.ceil(np.prod(shape) * nonzeros))
         else:
             nonzeros = int(np.floor(nonzeros))
+        nonzeros = int(nonzeros)
 
         # Keep iterating until we find enough unique non-zeros or we give up
         subs = np.array([])
@@ -236,7 +241,7 @@ class sptensor:
         return cls().from_data(subs, vals, shape)
 
     @classmethod
-    def from_aggregator(cls, subs, vals, shape=None, function_handle="sum"):
+    def from_aggregator(cls, subs, vals, shape=None, function_handle="sum") -> sptensor:
         """
         Construct an sptensor from fully defined SUB, VAL and shape matrices,
         after an aggregation is applied
@@ -307,12 +312,13 @@ class sptensor:
         return cls().from_data(newsubs, newvals, shape)
 
     # TODO decide if property
-    def allsubs(self):
+    def allsubs(self) -> np.ndarray:
         """
         Generate all possible subscripts for sparse tensor
+
         Returns
         -------
-        s: :class:`numpy.ndarray` all possible subscripts for sptensor
+        s: All possible subscripts for sptensor
         """
 
         # Generate all possible indices
@@ -429,13 +435,9 @@ class sptensor:
             return ttb.tensor.from_tensor_type(y)
         return y
 
-    def double(self):
+    def double(self) -> np.ndarray:
         """
         Convert sptensor to dense multidimensional array
-
-        Returns
-        -------
-        :class:`numpy.ndarray`
         """
         a = np.zeros(self.shape)
         if self.nnz > 0:
@@ -461,33 +463,25 @@ class sptensor:
             return ttb.sptensor.from_data(np.array([]), np.array([]), self.shape)
         return ttb.sptensor.from_data(self.subs[idx, :], vals[idx], self.shape)
 
-    def end(self, k=None):
+    def end(self, k: Optional[int] = None) -> int:
         """
         Last index of indexing expression for sparse tensor
 
         Parameters
         ----------
         k: int Dimension for subscript indexing
-
-        Returns
-        -------
-        int:
         """
         if k is not None:
             return self.shape[k] - 1
         return np.prod(self.shape) - 1
 
-    def extract(self, searchsubs):
+    def extract(self, searchsubs: np.ndarray) -> np.ndarray:
         """
         Extract value for a sptensor.
 
         Parameters
         ----------
-        searchsubs: :class:`numpy.ndarray` subscripts to find in sptensor
-
-        Returns
-        -------
-        :class:`numpy.ndarray`
+        searchsubs: subscripts to find in sptensor
 
         See Also
         --------
@@ -521,22 +515,20 @@ class sptensor:
         a[nzsubs] = self.vals[loc[nzsubs]]
         return a
 
-    def find(self):
+    def find(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         FIND Find subscripts of nonzero elements in a sparse tensor.
 
         Returns
         -------
-        subs: :class:`numpy.ndarray`
-        vals: :class:`numpy.ndarray`
+        subs: Subscripts of nonzero elements
+        vals: Values at corresponding subscripts
         """
         return self.subs, self.vals
 
-    def full(self):
+    def full(self) -> ttb.tensor:
         """
         FULL Convert a sparse tensor to a (dense) tensor.
-
-        :return: tensor
         """
         # Handle the completely empty (no shape) case
         if len(self.shape) == 0:
@@ -555,18 +547,15 @@ class sptensor:
         B[idx.astype(int)] = self.vals.transpose()[0]
         return B
 
-    def innerprod(self, other):
+    def innerprod(
+        self, other: Union[sptensor, ttb.tensor, ttb.ktensor, ttb.ttensor]
+    ) -> float:
         """
         Efficient inner product with a sparse tensor
 
         Parameters
         ----------
-        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, :class:`pyttb.ktensor`,
-        :class:`pyttb.ttensor`
-
-        Returns
-        -------
-        float
+        other: Other tensor to take innerproduct with
         """
         # If all entries are zero innerproduct must be 0
         if self.nnz == 0:
@@ -600,17 +589,13 @@ class sptensor:
 
         assert False, f"Inner product between sptensor and {type(other)} not supported"
 
-    def isequal(self, other):
+    def isequal(self, other: Union[sptensor, ttb.tensor]) -> bool:
         """
         Exact equality for sptensors
 
         Parameters
         ----------
-        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
-
-        Returns
-        -------
-        bool: True if sptensors are identical, false otherwise
+        other: Other tensor to compare against
         """
         if self.shape != other.shape:
             return False
@@ -620,12 +605,17 @@ class sptensor:
             return other.isequal(self)
         return False
 
-    def logical_and(self, B):
+    def logical_and(self, B: Union[float, sptensor, ttb.tensor]) -> sptensor:
         """
         Logical and with self and another object
 
-        :param B: Scalar, tensor, or sptensor
-        :return: Indicator tensor
+        Parameters
+        ----------
+        B: Other value to compare with
+
+        Returns
+        ----------
+        Indicator tensor
         """
         # Case 1: One argument is a scalar
         if isinstance(B, (int, float)):
@@ -663,13 +653,13 @@ class sptensor:
         # Otherwise
         assert False, "The arguments must be two sptensors or an sptensor and a scalar."
 
-    def logical_not(self):
+    def logical_not(self) -> sptensor:
         """
         Logical NOT for sptensors
 
         Returns
         -------
-        :class:`pyttb.sptensor` Sparse tensor with all zero-values marked from original
+        Sparse tensor with all zero-values marked from original
         sparse tensor
         """
         allsubs = self.allsubs()
@@ -678,15 +668,23 @@ class sptensor:
         trueVector = np.ones(shape=(subs.shape[0], 1), dtype=bool)
         return sptensor.from_data(subs, trueVector, self.shape)
 
-    def logical_or(self, B):
+    @overload
+    def logical_or(self, B: Union[float, ttb.tensor]) -> ttb.tensor:
+        ...  # pragma: no cover see coveragepy/issues/970
+
+    @overload
+    def logical_or(self, B: sptensor) -> sptensor:
+        ...  # pragma: no cover see coveragepy/issues/970
+
+    def logical_or(
+        self, B: Union[float, ttb.tensor, sptensor]
+    ) -> Union[ttb.tensor, sptensor]:
         """
-        Logical OR for sptensors
+        Logical OR for sptensor and another value
 
         Returns
         -------
-        :class:'pyttb.sptensor` or :class:'pyttb.tensor`
-            sptensor.logical_or(<int,float,tensor>) yields tensor
-            sptensor.logical_or(sptensor) yields sptensor
+        Indicator tensor
         """
         # Case 1: Argument is a scalar or tensor
         if isinstance(B, (float, int, ttb.tensor)):
@@ -710,16 +708,27 @@ class sptensor:
 
         assert False, "Sptensor Logical Or argument must be scalar or sptensor"
 
-    def logical_xor(self, other):
+    @overload
+    def logical_xor(self, other: Union[float, ttb.tensor]) -> ttb.tensor:
+        ...  # pragma: no cover see coveragepy/issues/970
+
+    @overload
+    def logical_xor(self, other: sptensor) -> sptensor:
+        ...  # pragma: no cover see coveragepy/issues/970
+
+    def logical_xor(
+        self, other: Union[float, ttb.tensor, sptensor]
+    ) -> Union[ttb.tensor, sptensor]:
         """
         Logical XOR for sptensors
 
         Parameters
         ----------
+        other: Other value to xor against
 
         Returns
         -------
-
+        Indicator tensor
         """
         # Case 1: Argument is a scalar or dense tensor
         if isinstance(other, (float, int, ttb.tensor)):
@@ -741,17 +750,17 @@ class sptensor:
 
         assert False, "The argument must be an sptensor, tensor or scalar"
 
-    def mask(self, W):
+    def mask(self, W: sptensor) -> np.ndarray:
         """
         Extract values as specified by a mask tensor
 
         Parameters
         ----------
-        W: :class:`pyttb.sptensor`
+        W: Mask tensor
 
         Returns
         -------
-        :class:`Numpy.ndarray`
+        Extracted values
         """
         # Error check
         if len(W.shape) != len(self.shape) or np.any(
@@ -839,36 +848,24 @@ class sptensor:
         return V
 
     @property
-    def ndims(self):
+    def ndims(self) -> int:
         """
         NDIMS Number of dimensions of a sparse tensor.
-
-        Returns
-        -------
-        int
-            Number of dimensions of Sptensor
         """
         return len(self.shape)
 
     @property
-    def nnz(self):
+    def nnz(self) -> int:
         """
         Number of nonzeros in sparse tensor
-
-        Returns
-        -------
-        nnz: int
         """
         if self.subs.size == 0:
             return 0
         return self.subs.shape[0]
 
-    def norm(self):
+    def norm(self) -> np.floating:
         """
-        Compute the norm of a sparse tensor.
-        Returns
-        -------
-        norm: float, Frobenius norm of Tensor
+        Compute the Frobenius norm of a sparse tensor.
         """
         return np.linalg.norm(self.vals)
 
@@ -912,7 +909,7 @@ class sptensor:
                     v[:, i] *= -1
         return v
 
-    def ones(self):
+    def ones(self) -> sptensor:
         """
         Replace nonzero elements of sparse tensor with ones
         """
@@ -920,17 +917,13 @@ class sptensor:
         oneVals.fill(1)
         return ttb.sptensor.from_data(self.subs, oneVals, self.shape)
 
-    def permute(self, order):
+    def permute(self, order: np.ndarray) -> sptensor:
         """
         Rearrange the dimensions of a sparse tensor
 
         Parameters
         ----------
-        order: :class:`Numpy.ndarray`
-
-        Returns
-        -------
-        :class:`pyttb.sptensor`
+        order: Updated order of dimensions
         """
         # Error check
         if self.ndims != order.size or np.any(
@@ -947,7 +940,11 @@ class sptensor:
             self.subs, self.vals, tuple(np.array(self.shape)[order])
         )
 
-    def reshape(self, new_shape, old_modes=None):
+    def reshape(
+        self,
+        new_shape: Tuple[int, ...],
+        old_modes: Optional[Union[np.ndarray, int]] = None,
+    ) -> sptensor:
         """
         Reshape specified modes of sparse tensor
 
@@ -992,7 +989,7 @@ class sptensor:
             tuple(np.concatenate((keep_shape, new_shape))),
         )
 
-    def scale(self, factor, dims):
+    def scale(self, factor: np.ndarray, dims: Union[float, np.ndarray]) -> sptensor:
         """
         Scale along specified dimensions for sparse tensors
 
@@ -1007,7 +1004,7 @@ class sptensor:
         """
         if isinstance(dims, (float, int)):
             dims = np.array([dims])
-        dims = ttb.tt_dimscheck(dims, self.ndims)
+        dims, _ = ttb.tt_dimscheck(dims, self.ndims)
 
         if isinstance(factor, ttb.tensor):
             shapeArray = np.array(self.shape)
@@ -1015,7 +1012,7 @@ class sptensor:
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
-                self.vals * factor[self.subs[:, dims[0]], "extract"][:, None],
+                self.vals * factor[self.subs[:, dims], "extract"][:, None],
                 self.shape,
             )
         if isinstance(factor, ttb.sptensor):
@@ -1023,7 +1020,7 @@ class sptensor:
             if np.any(factor.shape != shapeArray[dims]):
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
-                self.subs, self.vals * factor.extract(self.subs[:, dims[0]]), self.shape
+                self.subs, self.vals * factor.extract(self.subs[:, dims]), self.shape
             )
         if isinstance(factor, np.ndarray):
             shapeArray = np.array(self.shape)
@@ -1031,19 +1028,15 @@ class sptensor:
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
-                self.vals * factor[self.subs[:, dims[0]].transpose()[0]],
+                self.vals * factor[self.subs[:, dims].transpose()[0]],
                 self.shape,
             )
         assert False, "Invalid scaling factor"
 
-    def spmatrix(self):
+    def spmatrix(self) -> sparse.coo_matrix:
         """
         Converts a two-way sparse tensor to a sparse matrix in
         scipy.sparse.coo_matrix format
-
-        Returns
-        -------
-        :class:`scipy.sparse.coo_matrix`
         """
         if self.ndims != 2:
             assert False, "Sparse tensor must be two dimensional"
@@ -1054,7 +1047,7 @@ class sptensor:
             (self.vals.transpose()[0], self.subs.transpose()), self.shape
         )
 
-    def squeeze(self):
+    def squeeze(self) -> Union[sptensor, float]:
         """
         Remove singleton dimensions from a sparse tensor
 
