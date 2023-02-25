@@ -1,19 +1,20 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
-
+"""PYTTB shared utilities across tensor types"""
 from inspect import signature
 from typing import Optional, Tuple, overload
 
 import numpy as np
-import scipy.sparse as sparse
+from scipy import sparse
 
 import pyttb as ttb
 
 
 def tt_to_dense_matrix(tensorInstance, mode, transpose=False):
     """
-    Helper function to unwrap tensor into dense matrix, should replace the core need for tenmat
+    Helper function to unwrap tensor into dense matrix, should replace the core need
+    for tenmat
 
     Parameters
     ----------
@@ -46,7 +47,8 @@ def tt_to_dense_matrix(tensorInstance, mode, transpose=False):
 
 def tt_from_dense_matrix(matrix, shape, mode, idx):
     """
-    Helper function to wrap dense matrix into tensor. Inverse of :class:`pyttb.tt_to_dense_matrix`
+    Helper function to wrap dense matrix into tensor.
+    Inverse of :class:`pyttb.tt_to_dense_matrix`
 
     Parameters
     ----------
@@ -72,7 +74,8 @@ def tt_from_dense_matrix(matrix, shape, mode, idx):
 
 def tt_to_sparse_matrix(sptensorInstance, mode, transpose=False):
     """
-    Helper function to unwrap sptensor into sparse matrix, should replace the core need for sptenmat
+    Helper function to unwrap sptensor into sparse matrix, should replace the core need
+    for sptenmat
 
     Parameters
     ----------
@@ -92,13 +95,13 @@ def tt_to_sparse_matrix(sptensorInstance, mode, transpose=False):
     ).spmatrix()
     if transpose:
         return spmatrix.transpose()
-    else:
-        return spmatrix
+    return spmatrix
 
 
 def tt_from_sparse_matrix(spmatrix, shape, mode, idx):
     """
-    Helper function to wrap sparse matrix into sptensor. Inverse of :class:`pyttb.tt_to_sparse_matrix`
+    Helper function to wrap sparse matrix into sptensor.
+    Inverse of :class:`pyttb.tt_to_sparse_matrix`
 
     Parameters
     ----------
@@ -118,7 +121,8 @@ def tt_from_sparse_matrix(spmatrix, shape, mode, idx):
 
     # This expands the compressed dimension back to full size
     sptensorInstance = sptensorInstance.reshape(siz[old], idx)
-    # This puts the modes in the right order, reshape places modified modes after the unchanged ones
+    # This puts the modes in the right order, reshape places modified modes after the
+    # unchanged ones
     sptensorInstance = sptensorInstance.reshape(
         shape,
         np.concatenate((np.arange(1, mode + 1), [0], np.arange(mode + 1, len(shape)))),
@@ -206,8 +210,8 @@ def tt_dimscheck(
     # Save dimensions of dims
     P = len(dims)
 
-    # Reorder dims from smallest to largest
-    # (this matters in particular for the vector multiplicand case, where the order affects the result)
+    # Reorder dims from smallest to largest (this matters in particular for the vector
+    # multiplicand case, where the order affects the result)
     sidx = np.argsort(dims)
     sdims = dims[sidx]
     vidx = None
@@ -217,24 +221,25 @@ def tt_dimscheck(
         if M > N:
             assert False, "Cannot have more multiplicands than dimensions"
 
-        # Check that the number of multiplicands must either be full dimensional or equal to the specified dimensions
-        # (M==N) or M(==P) respectively
-        if M != N and M != P:
+        # Check that the number of multiplicands must either be full dimensional or
+        # equal to the specified dimensions (M==N) or M(==P) respectively
+        if M not in (N, P):
             assert False, "Invalid number of multiplicands"
 
         # Check sizes to determine how to index multiplicands
         if P == M:
-            # Case 1: Number of items in dims and number of multiplicands are equal; therfore, index in order of sdims
+            # Case 1: Number of items in dims and number of multiplicands are equal;
+            # therfore, index in order of sdims
             vidx = sidx
         else:
-            # Case 2: Number of multiplicands is equal to the number of dimensions of tensor;
-            # therefore, index multiplicands by dimensions in dims argument.
+            # Case 2: Number of multiplicands is equal to the number of dimensions of
+            # tensor; therefore, index multiplicands by dimensions in dims argument.
             vidx = sdims
 
     return sdims, vidx
 
 
-def tt_tenfun(function_handle, *inputs):
+def tt_tenfun(function_handle, *inputs):  # pylint:disable=too-many-branches
     """
     Apply a function to each element in a tensor
 
@@ -256,13 +261,13 @@ def tt_tenfun(function_handle, *inputs):
     assert callable(function_handle), "function_handle must be callable"
 
     # Convert inputs to tensors if they aren't already
-    for i in range(0, len(inputs)):
-        if isinstance(inputs[i], ttb.tensor) or isinstance(inputs[i], (float, int)):
+    for i, an_input in enumerate(inputs):
+        if isinstance(an_input, (ttb.tensor, float, int)):
             continue
-        elif isinstance(inputs[i], np.ndarray):
-            inputs[i] = ttb.tensor.from_data(inputs[i])
+        if isinstance(an_input, np.ndarray):
+            inputs[i] = ttb.tensor.from_data(an_input)
         elif isinstance(
-            inputs[i],
+            an_input,
             (
                 ttb.ktensor,
                 ttb.ttensor,
@@ -272,11 +277,12 @@ def tt_tenfun(function_handle, *inputs):
                 ttb.symktensor,
             ),
         ):
-            inputs[i] = ttb.tensor.from_tensor_type(inputs[i])
+            inputs[i] = ttb.tensor.from_tensor_type(an_input)
         else:
             assert False, "Invalid input to ten fun"
 
-    # It's ok if there are two input and one is a scalar; otherwise all inputs have to be the same size
+    # It's ok if there are two input and one is a scalar; otherwise all inputs have to
+    # be the same size
     if (
         (len(inputs) == 2)
         and isinstance(inputs[0], (float, int))
@@ -290,15 +296,15 @@ def tt_tenfun(function_handle, *inputs):
     ):
         sz = inputs[0].shape
     else:
-        for i in range(0, len(inputs)):
-            if isinstance(inputs[i], (float, int)):
-                assert False, "Argument {} is a scalar but expected a tensor".format(i)
+        for i, an_input in enumerate(inputs):
+            if isinstance(an_input, (float, int)):
+                assert False, f"Argument {i} is a scalar but expected a tensor"
             elif i == 0:
-                sz = inputs[i].shape
-            elif sz != inputs[i].shape:
+                sz = an_input.shape
+            elif sz != an_input.shape:
                 assert (
                     False
-                ), "Tensor {} is not the same size as the first tensor input".format(i)
+                ), f"Tensor {i} is not the same size as the first tensor input"
 
     # Number of inputs for function handle
     nfunin = len(signature(function_handle).parameters)
@@ -322,8 +328,8 @@ def tt_tenfun(function_handle, *inputs):
         X = np.reshape(X, (1, -1))
     else:
         X = np.zeros((len(inputs), np.prod(sz)))
-        for i in range(0, len(inputs)):
-            X[i, :] = np.reshape(inputs[i].data, (np.prod(sz)))
+        for i, an_input in enumerate(inputs):
+            X[i, :] = np.reshape(an_input.data, (np.prod(sz)))
     data = function_handle(X)
     data = np.reshape(data, sz)
     Z = ttb.tensor.from_data(data)
@@ -395,7 +401,7 @@ def tt_intersect_rows(MatrixA, MatrixB):
     return location[np.where(location >= 0)]
 
 
-def tt_irenumber(t, shape, number_range):
+def tt_irenumber(t, shape, number_range):  # pylint: disable=unused-argument
     """
     RENUMBER indices for sptensor subsasgn
 
@@ -409,25 +415,25 @@ def tt_irenumber(t, shape, number_range):
     -------
     newsubs: :class:`numpy.ndarray`
     """
-    # TODO shape is unused. Should it be used? I don't particularly understand what this is meant to be doing
+    # TODO shape is unused. Should it be used? I don't particularly understand what
+    #  this is meant to be doing
     nz = t.nnz
     if nz == 0:
         newsubs = np.array([])
         return newsubs
-    else:
-        newsubs = t.subs.astype(int)
-        for i in range(0, len(number_range)):
-            r = number_range[i]
-            if isinstance(r, slice):
-                newsubs[:, i] = (newsubs[:, i])[r]
-            elif isinstance(r, int):
-                # This appears to be inserting new keys as rows to our subs here
-                newsubs = np.insert(newsubs, obj=i, values=r, axis=1)
-            else:
-                if isinstance(r, list):
-                    r = np.array(r)
-                newsubs[:, i] = r[newsubs[:, i]]
-        return newsubs
+
+    newsubs = t.subs.astype(int)
+    for i, r in enumerate(number_range):
+        if isinstance(r, slice):
+            newsubs[:, i] = (newsubs[:, i])[r]
+        elif isinstance(r, int):
+            # This appears to be inserting new keys as rows to our subs here
+            newsubs = np.insert(newsubs, obj=i, values=r, axis=1)
+        else:
+            if isinstance(r, list):
+                r = np.array(r)
+            newsubs[:, i] = r[newsubs[:, i]]
+    return newsubs
 
 
 def tt_assignment_type(x, subs, rhs):
@@ -444,13 +450,12 @@ def tt_assignment_type(x, subs, rhs):
     -------
     objectType
     """
-    if type(x) == type(rhs):
+    if type(x) is type(rhs):
         return "subtensor"
     # If subscripts is a tuple that contains an nparray
-    elif isinstance(subs, tuple) and len(subs) >= 2:
+    if isinstance(subs, tuple) and len(subs) >= 2:
         return "subtensor"
-    else:
-        return "subscripts"
+    return "subscripts"
 
 
 def tt_renumber(subs, shape, number_range):
@@ -476,8 +481,8 @@ def tt_renumber(subs, shape, number_range):
     """
     newshape = np.array(shape)
     newsubs = subs
-    for i in range(0, len(shape)):
-        if not (number_range[i] == slice(None, None, None)):
+    for i in range(0, len(shape)):  # pylint: disable=consider-using-enumerate
+        if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
                     if isinstance(number_range[i], (int, float)):
@@ -529,12 +534,14 @@ def tt_renumberdim(idx, shape, number_range):
     return newidx, newshape
 
 
+# TODO make more efficient, decide if we want to support the multiple response
+#  matlab does
+# pylint: disable=line-too-long
+# https://stackoverflow.com/questions/22699756/python-version-of-ismember-with-rows-and-index
+# For thoughts on how to speed this up
 def tt_ismember_rows(search, source):
     """
     Find location of search rows in source array
-    https://stackoverflow.com/questions/22699756/python-version-of-ismember-with-rows-and-index
-    For thoughts on how to speed this up
-    #TODO make more efficient, decide if we want to support the multiple response matlab does
 
     Parameters
     ----------
@@ -551,10 +558,10 @@ def tt_ismember_rows(search, source):
     Examples
     --------
     >>> a = np.array([[4, 6], [1, 9], [2, 6]])
-    >>> b = np.array([[1, 7],[1, 8],[2, 6],[2, 1],[2, 4],[4, 6],[4, 7],[5, 9],[5, 2],[5, 1]])
+    >>> b = np.array([[2, 6],[2, 1],[2, 4],[4, 6],[4, 7],[5, 9],[5, 2],[5, 1]])
     >>> results = tt_ismember_rows(a,b)
     >>> print(results)
-    [ 5 -1  2]
+    [ 3 -1  0]
 
     """
     results = np.ones(shape=search.shape[0]) * -1
@@ -585,7 +592,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     return np.array(np.unravel_index(idx, shape, order="F")).transpose()
 
 
-def tt_subsubsref(obj, s):
+def tt_subsubsref(obj, s):  # pylint: disable=unused-argument
     """
     Helper function for tensor toolbox subsref.
 
@@ -598,7 +605,8 @@ def tt_subsubsref(obj, s):
     -------
     Still uncertain to this functionality
     """
-    # TODO figure out when subsref yields key of length>1 for now ignore this logic and just return
+    # TODO figure out when subsref yields key of length>1 for now ignore this logic and
+    #  just return
     # if len(s) == 1:
     #    return obj
     # else:
@@ -608,7 +616,8 @@ def tt_subsubsref(obj, s):
 
 def tt_intvec2str(v):
     """
-    Print integer vector to a string with brackets. Numpy should already handle this so it is a placeholder stub
+    Print integer vector to a string with brackets. Numpy should already handle this so
+    it is a placeholder stub
 
     Parameters
     ----------
@@ -774,10 +783,7 @@ def isrow(v):
     -------
     bool
     """
-    if v.ndim == 2 and v.shape[0] == 1 and v.shape[1] >= 1:
-        return True
-    else:
-        return False
+    return v.ndim == 2 and v.shape[0] == 1 and v.shape[1] >= 1
 
 
 def isvector(a):
@@ -794,13 +800,11 @@ def isvector(a):
     -------
     bool
     """
-    if a.ndim == 1 or (a.ndim == 2 and (a.shape[0] == 1 or a.shape[1] == 1)):
-        return True
-    else:
-        return False
+    return a.ndim == 1 or (a.ndim == 2 and (a.shape[0] == 1 or a.shape[1] == 1))
 
 
-# TODO: this is a challenge, since it may need to apply to either Python built in types or numpy types
+# TODO: this is a challenge, since it may need to apply to either Python built in types
+#  or numpy types
 def islogical(a):
     """
     ISLOGICAL Checks if vector is a logical vector.
@@ -815,4 +819,4 @@ def islogical(a):
     -------
     bool
     """
-    return type(a) == bool
+    return isinstance(a, bool)
