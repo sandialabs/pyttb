@@ -32,8 +32,8 @@ jobs:
         pip install .
     - name: Check auto-formatters
       run: |
-        isort --check pyttb/ tests/
-        black --check pyttb/ tests/
+        isort --check .
+        black --check .
 #    - name: Lint with flake8
 #      run: |
 #        # stop the build if there are Python syntax errors or undefined names

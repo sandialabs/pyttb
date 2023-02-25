@@ -13,11 +13,8 @@ def test_formatting():
 
     source_dir = os.path.dirname(ttb.__file__)
     root_dir = os.path.dirname(source_dir)
-    test_dir = os.path.dirname(__file__)
-    subprocess.run(f"isort {source_dir} --check --settings-path {root_dir}", check=True)
-    subprocess.run(f"isort {test_dir} --check --settings-path {root_dir}", check=True)
-    subprocess.run(f"black --check {source_dir}", check=True)
-    subprocess.run(f"black --check {test_dir}", check=True)
+    subprocess.run(f"isort {root_dir} --check --settings-path {root_dir}", check=True)
+    subprocess.run(f"black --check {root_dir}", check=True)
 
 
 @pytest.mark.packaging
