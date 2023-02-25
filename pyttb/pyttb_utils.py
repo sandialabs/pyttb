@@ -6,7 +6,6 @@ from inspect import signature
 from typing import Optional, Tuple, overload
 
 import numpy as np
-from scipy import sparse
 
 import pyttb as ttb
 
@@ -70,65 +69,6 @@ def tt_from_dense_matrix(matrix, shape, mode, idx):
         np.concatenate((np.arange(1, mode + 1), [0], np.arange(mode + 1, len(shape))))
     )
     return tensorInstance
-
-
-def tt_to_sparse_matrix(sptensorInstance, mode, transpose=False):
-    """
-    Helper function to unwrap sptensor into sparse matrix, should replace the core need
-    for sptenmat
-
-    Parameters
-    ----------
-    sptensorInstance: :class:`pyttb.sptensor`
-    mode: int
-        Mode around which to unwrap tensor
-    transpose: bool
-        Whether or not to tranpose unwrapped tensor
-
-    Returns
-    -------
-    spmatrix: :class:`Scipy.sparse.coo_matrix`
-    """
-    old = np.setdiff1d(np.arange(sptensorInstance.ndims), mode).astype(int)
-    spmatrix = sptensorInstance.reshape(
-        (np.prod(np.array(sptensorInstance.shape)[old]),), old
-    ).spmatrix()
-    if transpose:
-        return spmatrix.transpose()
-    return spmatrix
-
-
-def tt_from_sparse_matrix(spmatrix, shape, mode, idx):
-    """
-    Helper function to wrap sparse matrix into sptensor.
-    Inverse of :class:`pyttb.tt_to_sparse_matrix`
-
-    Parameters
-    ----------
-    spmatrix: :class:`Scipy.sparse.coo_matrix`
-    mode: int
-        Mode around which tensor was unwrapped
-    idx: int
-        in {0,1}, idx of mode in spmatrix, s.b. 0 for tranpose=True
-
-    Returns
-    -------
-    sptensorInstance: :class:`pyttb.sptensor`
-    """
-    siz = np.array(shape)
-    old = np.setdiff1d(np.arange(len(shape)), mode).astype(int)
-    sptensorInstance = ttb.sptensor.from_tensor_type(sparse.coo_matrix(spmatrix))
-
-    # This expands the compressed dimension back to full size
-    sptensorInstance = sptensorInstance.reshape(siz[old], idx)
-    # This puts the modes in the right order, reshape places modified modes after the
-    # unchanged ones
-    sptensorInstance = sptensorInstance.reshape(
-        shape,
-        np.concatenate((np.arange(1, mode + 1), [0], np.arange(mode + 1, len(shape)))),
-    )
-
-    return sptensorInstance
 
 
 def tt_union_rows(MatrixA, MatrixB):
