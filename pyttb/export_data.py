@@ -17,7 +17,7 @@ def export_data(data, filename, fmt_data=None, fmt_weights=None):
     if isinstance(data, ttb.tensor):
         print('tensor', file=fp)
         export_size(fp, data.shape)
-        export_array(fp, data.data, fmt_data)
+        export_array(fp, data.data.transpose(), fmt_data)
 
     elif isinstance(data, ttb.sptensor):
         print('sptensor', file=fp)
