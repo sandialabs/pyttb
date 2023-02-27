@@ -148,17 +148,19 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
 
         U = init.copy().factor_matrices
 
-        pygenten.initializeKokkos()
-
         sizes = pygenten.IndxArray(N)
         sizes_np = np.array(sizes, copy=False)
         sizes_np[0:N] = tensor.shape[0:N]
 
         #print(tensor.data.flatten())
-        values = pygenten.Array(tensor.data.flatten())
+
+        # Need to transpose the numpy arrays because it always uses "C"
+        # ordering internally, whereas GenTen uses "F"
+        values = pygenten.Array(tensor.data.transpose().flatten())
         x = pygenten.Tensor(sizes, values)
 
-        weights = pygenten.Array(U[0].shape[1])
+        #weights = pygenten.Array(U[0].shape[1])
+        weights = pygenten.Array(init.weights)
         genten_factor_matrices = pygenten.FacMatArray(N)
         for i in range(0, N):
             factor_matrix = pygenten.FacMatrix(U[i])
