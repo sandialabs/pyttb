@@ -146,27 +146,8 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     if isinstance(tensor, ttb.tensor) and genten_backend:
         print("Genten is supported")
 
-        U = init.copy().factor_matrices
-
-        sizes = pygenten.IndxArray(N)
-        sizes_np = np.array(sizes, copy=False)
-        sizes_np[0:N] = tensor.shape[0:N]
-
-        #print(tensor.data.flatten())
-
-        # Need to transpose the numpy arrays because it always uses "C"
-        # ordering internally, whereas GenTen uses "F"
-        values = pygenten.Array(tensor.data.transpose().flatten())
-        x = pygenten.Tensor(sizes, values)
-
-        #weights = pygenten.Array(U[0].shape[1])
-        weights = pygenten.Array(init.weights)
-        genten_factor_matrices = pygenten.FacMatArray(N)
-        for i in range(0, N):
-            factor_matrix = pygenten.FacMatrix(U[i])
-            genten_factor_matrices.set_factor(i, factor_matrix)
-
-        u = pygenten.Ktensor(weights, genten_factor_matrices)
+        x = pygenten.Tensor(tensor.data)
+        u = pygenten.Ktensor(init.weights, init.factor_matrices);
 
         args = {}
         args['init'] = u
@@ -182,9 +163,10 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
         output['normresidual'] = perfInfo.lastEntry().residual
         output['fit'] = perfInfo.lastEntry().fit
 
-        weights = np.array(u.weights(), copy=False)
-        for i in range(0, len(U)):
-            U[i] = np.array(u[i], copy=False)
+        weights = np.array(u.weights(), copy=True)
+        U = []
+        for i in range(0, N):
+            U.append(np.array(u[i], copy=True))
 
         M = ttb.ktensor.from_data(weights, U)
 
