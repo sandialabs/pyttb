@@ -146,29 +146,21 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     if isinstance(tensor, ttb.tensor) and genten_backend:
         print("Genten is supported")
 
-        x = pygenten.Tensor(tensor.data)
-        u = pygenten.Ktensor(init.weights, init.factor_matrices);
-
+        # Call pygenten
         args = {}
-        args['init'] = u
+        args['init'] = init
         args['rank'] = rank
         args['maxiters'] = maxiters
         args['tol'] = stoptol
         args['printitn'] = printitn
-        u, perfInfo = pygenten.cp_als(x, **args)
+        M, perfInfo = pygenten.cp_als(tensor, **args)
 
+        # Set output
         output = {}
         output['params'] = (stoptol, maxiters, printitn, dimorder)
         output['iters'] = perfInfo.lastEntry().iteration
         output['normresidual'] = perfInfo.lastEntry().residual
         output['fit'] = perfInfo.lastEntry().fit
-
-        weights = np.array(u.weights(), copy=True)
-        U = []
-        for i in range(0, N):
-            U.append(np.array(u[i], copy=True))
-
-        M = ttb.ktensor.from_data(weights, U)
 
         # Arrange the final tensor so that the columns are normalized.
         M.arrange()
