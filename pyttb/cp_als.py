@@ -143,7 +143,7 @@ def cp_als(tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None,
     else:
         assert False, "The selected initialization method is not supported"
 
-    if isinstance(tensor, ttb.tensor) and genten_backend:
+    if genten_backend and (isinstance(tensor, ttb.tensor) or isinstance(tensor, ttb.sptensor)):
         # Call pygenten
         args = {}
         args['init'] = init
