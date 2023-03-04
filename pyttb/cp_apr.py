@@ -2,27 +2,46 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import pyttb as ttb
-from .pyttb_utils import *
-import numpy as np
 import time
-from numpy_groupies import aggregate as accumarray
 import warnings
 
+import numpy as np
+from numpy_groupies import aggregate as accumarray
 
-def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=1000,
-           init='random', maxinneriters=10, epsDivZero=1e-10, printitn=1, printinneritn=0,
-           kappa=0.01, kappatol=1e-10, epsActive=1e-8, mu0=1e-5, precompinds=True, inexact=True,
-           lbfgsMem=3):
+import pyttb as ttb
+
+from .pyttb_utils import *
+
+
+def cp_apr(
+    tensor,
+    rank,
+    algorithm="mu",
+    stoptol=1e-4,
+    stoptime=1e6,
+    maxiters=1000,
+    init="random",
+    maxinneriters=10,
+    epsDivZero=1e-10,
+    printitn=1,
+    printinneritn=0,
+    kappa=0.01,
+    kappatol=1e-10,
+    epsActive=1e-8,
+    mu0=1e-5,
+    precompinds=True,
+    inexact=True,
+    lbfgsMem=3,
+):
     """
     Compute non-negative CP with alternating Poisson regression.
-    
+
     Parameters
     ----------
     tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
-    rank: int 
+    rank: int
         Rank of the decomposition
-    algorithm: str 
+    algorithm: str
         in {'mu', 'pdnr, 'pqnr'}
     stoptol: float
         Tolerance on overall KKT violation
@@ -45,7 +64,7 @@ def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=10
     kappatol:
         MU ALGORITHM PARAMETER: Tolerance on complementary slackness
     epsActive: float
-        PDNR & PQNR ALGORITHM PARAMETER: Bertsekas tolerance for active set 
+        PDNR & PQNR ALGORITHM PARAMETER: Bertsekas tolerance for active set
     mu0: float
         PDNR ALGORITHM PARAMETER: Initial Damping Parameter
     precompinds: bool
@@ -71,49 +90,104 @@ def cp_apr(tensor, rank, algorithm='mu', stoptol=1e-4, stoptime=1e6, maxiters=10
     assert rank > 0, "Number of components requested must be positive"
 
     # Check that the data is non-negative.
-    tmp = (tensor < 0.0)
-    assert tmp.nnz == 0, "Data tensor must be nonnegative for Poisson-based factorization"
+    tmp = tensor < 0.0
+    assert (
+        tmp.nnz == 0
+    ), "Data tensor must be nonnegative for Poisson-based factorization"
 
     # Set up an initial guess for the factor matrices.
     if isinstance(init, ttb.ktensor):
         # User provided an initial ktensor; validate it
         assert init.ndims == N, "Initial guess does not have the right number of modes"
-        assert init.ncomponents == rank, "Initial guess does not have the right number of componenets"
+        assert (
+            init.ncomponents == rank
+        ), "Initial guess does not have the right number of componenets"
         for n in range(N):
             if init.shape[n] != tensor.shape[n]:
                 assert False, "Mode {} of the initial guess is the wrong size".format(n)
             if np.min(init.factor_matrices[n]) < 0.0:
                 assert False, "Initial guess has negative element in mode {}".format(n)
         if np.min(init.weights) < 0:
-            assert False, 'Initial guess has a negative ktensor weight'
+            assert False, "Initial guess has a negative ktensor weight"
 
-    elif init.lower() == 'random':
+    elif init.lower() == "random":
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(np.random.uniform(0, 1, (tensor.shape[n], rank)))
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
 
     # Call solver based on the couce of algorithm parameter, passing all the other input parameters
-    if algorithm.lower() == 'mu':
-        M, output = tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-                                    printinneritn, kappa, kappatol)
-        output['algorithm'] = 'mu'
-    elif algorithm.lower() == 'pdnr':
-        M, output = tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-                                    printinneritn, epsActive, mu0, precompinds, inexact)
-        output['algorithm'] = 'pdnr'
-    elif algorithm.lower() == 'pqnr':
-        M, output = tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-                                    printinneritn, epsActive, lbfgsMem, precompinds)
-        output['algorithm'] = 'pqnr'
+    if algorithm.lower() == "mu":
+        M, output = tt_cp_apr_mu(
+            tensor,
+            rank,
+            init,
+            stoptol,
+            stoptime,
+            maxiters,
+            maxinneriters,
+            epsDivZero,
+            printitn,
+            printinneritn,
+            kappa,
+            kappatol,
+        )
+        output["algorithm"] = "mu"
+    elif algorithm.lower() == "pdnr":
+        M, output = tt_cp_apr_pdnr(
+            tensor,
+            rank,
+            init,
+            stoptol,
+            stoptime,
+            maxiters,
+            maxinneriters,
+            epsDivZero,
+            printitn,
+            printinneritn,
+            epsActive,
+            mu0,
+            precompinds,
+            inexact,
+        )
+        output["algorithm"] = "pdnr"
+    elif algorithm.lower() == "pqnr":
+        M, output = tt_cp_apr_pqnr(
+            tensor,
+            rank,
+            init,
+            stoptol,
+            stoptime,
+            maxiters,
+            maxinneriters,
+            epsDivZero,
+            printitn,
+            printinneritn,
+            epsActive,
+            lbfgsMem,
+            precompinds,
+        )
+        output["algorithm"] = "pqnr"
     else:
         assert False, "{} is not a supported cp_als algorithm".format(algorithm)
 
     return M, init, output
 
 
-def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-                                    printinneritn, kappa, kappatol):
+def tt_cp_apr_mu(
+    tensor,
+    rank,
+    init,
+    stoptol,
+    stoptime,
+    maxiters,
+    maxinneriters,
+    epsDivZero,
+    printitn,
+    printinneritn,
+    kappa,
+    kappatol,
+):
     """
     Compute nonnegative CP with alternating Poisson regression.
 
@@ -158,11 +232,11 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
     # TODO I vote no duplicate error checking, copy error checking from cp_apr for initial guess here if disagree
 
     # Initialize output arrays
-    #fnEvals = np.zeros((maxiters,))
+    # fnEvals = np.zeros((maxiters,))
     kktViolations = -np.ones((maxiters,))
     # TODO we initialize nInnerIters of size max outer iters?
     nInnerIters = np.zeros((maxiters,))
-    #nzeros = np.zeros((maxiters,))
+    # nzeros = np.zeros((maxiters,))
     nViolations = np.zeros((maxiters,))
     nTimes = np.zeros((maxiters,))
 
@@ -170,14 +244,14 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
     # TODO replace with copy
     M = ttb.ktensor.from_tensor_type(init)
     M.normalize(normtype=1)
-    Phi = [] #np.zeros((N,))#cell(N,1)
+    Phi = []  # np.zeros((N,))#cell(N,1)
     for n in range(N):
         # TODO prepopulation Phi instead of appen should be faster
         Phi.append(np.zeros(M[n].shape))
     kktModeViolations = np.zeros((N,))
 
     if printitn > 0:
-        print('\nCP_APR:\n')
+        print("\nCP_APR:\n")
 
     # Start the wall clock timer.
     start = time.time()
@@ -195,7 +269,7 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
                 V = (Phi[n] > 0) & (M[n] < kappatol)
                 if np.any(V):
                     nViolations[iter] += 1
-                    M.factor_matrices[n][V>0] += kappa
+                    M.factor_matrices[n][V > 0] += kappa
 
             # Shift the weight from lambda to mode n
             M.redistribute(mode=n)
@@ -206,7 +280,6 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
 
             # Do the multiplicative updates
             for i in range(maxinneriters):
-
                 # Count the inner iterations
                 nInnerIters[iter] += 1
 
@@ -214,7 +287,9 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
                 Phi[n] = calculatePhi(tensor, M, rank, n, Pi, epsDivZero)
 
                 # Check for convergence
-                kktModeViolations[n] = np.max(np.abs(vectorizeForMu(np.minimum(M.factor_matrices[n], 1 - Phi[n]))))
+                kktModeViolations[n] = np.max(
+                    np.abs(vectorizeForMu(np.minimum(M.factor_matrices[n], 1 - Phi[n])))
+                )
                 if kktModeViolations[n] < stoptol:
                     break
                 else:
@@ -226,26 +301,33 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
 
                 # Print status
                 if printinneritn != 0 and divmod(i, printinneritn)[1] == 0:
-                    print('\t\tMode = {}, Inner Iter = {}, KKT violation = {}\n'.format(n, i, kktModeViolations[n]))
+                    print(
+                        "\t\tMode = {}, Inner Iter = {}, KKT violation = {}\n".format(
+                            n, i, kktModeViolations[n]
+                        )
+                    )
 
             # Shift weight from mode n back to lambda
             M.normalize(normtype=1, mode=n)
 
         kktViolations[iter] = np.max(kktModeViolations)
         if divmod(iter, printitn)[1] == 0:
-            print('\tIter {}: Inner Its = {} KKT violation = {}, nViolations = {}'.format(iter, nInnerIters[iter],
-                                                                                          kktViolations[iter], nViolations[iter]))
+            print(
+                "\tIter {}: Inner Its = {} KKT violation = {}, nViolations = {}".format(
+                    iter, nInnerIters[iter], kktViolations[iter], nViolations[iter]
+                )
+            )
 
         nTimes[iter] = time.time() - start
 
         # Check for convergence
         if isConverged:
             if printitn > 0:
-                print('Exiting because all subproblems reached KKT tol.\n')
+                print("Exiting because all subproblems reached KKT tol.\n")
             break
         if nTimes[iter] > stoptime:
             if printitn > 0:
-                print('Exiting because time limit exceeded.\n')
+                print("Exiting because time limit exceeded.\n")
             break
 
     t_stop = time.time() - start
@@ -257,29 +339,56 @@ def tt_cp_apr_mu(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters,
 
     if printitn > 0:
         normTensor = tensor.norm()
-        normresidual = np.sqrt(normTensor**2+M.norm()**2 - 2*tensor.innerprod(M))
-        fit = 1 - (normresidual/ normTensor) #fraction explained by model
-        print('===========================================\n')
-        print(' Final log-likelihood = {} \n'.format(obj))
-        print(' Final least squares fit = {} \n'.format(fit))
-        print(' Final KKT violation = {}\n'.format(kktViolations[iter]))
-        print(' Total inner iterations = {}\n'.format(sum(nInnerIters)))
-        print(' Total execution time = {} secs\n'.format(t_stop))
+        normresidual = np.sqrt(
+            normTensor**2 + M.norm() ** 2 - 2 * tensor.innerprod(M)
+        )
+        fit = 1 - (normresidual / normTensor)  # fraction explained by model
+        print("===========================================\n")
+        print(" Final log-likelihood = {} \n".format(obj))
+        print(" Final least squares fit = {} \n".format(fit))
+        print(" Final KKT violation = {}\n".format(kktViolations[iter]))
+        print(" Total inner iterations = {}\n".format(sum(nInnerIters)))
+        print(" Total execution time = {} secs\n".format(t_stop))
 
     output = {}
-    output['params'] = (stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn, printinneritn, kappa, kappatol)
-    output['kktViolations'] = kktViolations[:iter+1]
-    output['nInnerIters'] = nInnerIters[:iter+1]
-    output['nViolations'] = nViolations[:iter+1]
-    output['nTotalIters'] = np.sum(nInnerIters)
-    output['times'] = nTimes[:iter+1]
-    output['totalTime'] = t_stop
-    output['obj'] = obj
+    output["params"] = (
+        stoptol,
+        stoptime,
+        maxiters,
+        maxinneriters,
+        epsDivZero,
+        printitn,
+        printinneritn,
+        kappa,
+        kappatol,
+    )
+    output["kktViolations"] = kktViolations[: iter + 1]
+    output["nInnerIters"] = nInnerIters[: iter + 1]
+    output["nViolations"] = nViolations[: iter + 1]
+    output["nTotalIters"] = np.sum(nInnerIters)
+    output["times"] = nTimes[: iter + 1]
+    output["totalTime"] = t_stop
+    output["obj"] = obj
 
     return M, output
 
-def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-                                    printinneritn, epsActive, mu0, precompinds, inexact):
+
+def tt_cp_apr_pdnr(
+    tensor,
+    rank,
+    init,
+    stoptol,
+    stoptime,
+    maxiters,
+    maxinneriters,
+    epsDivZero,
+    printitn,
+    printinneritn,
+    epsActive,
+    mu0,
+    precompinds,
+    inexact,
+):
     """
     Compute nonnegative CP with alternating Poisson regression
     computes an estimate of the best rank-R
@@ -337,7 +446,7 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
     # Values will be restored to zero later if the unfolded X for the row has no zeros.
     for n in range(N):
         rowsum = np.sum(init[n], axis=1)
-        tmpIdx = np.where(rowsum==0)[0]
+        tmpIdx = np.where(rowsum == 0)[0]
         if tmpIdx.size != 0:
             init[n][tmpIdx, 0] = 1e-8
 
@@ -363,7 +472,7 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
     if printitn > 0:
         print("\nCP_PDNR (alternating Poisson regression using damped Newton)\n")
 
-    dispLineWarn = (printinneritn > 0)
+    dispLineWarn = printinneritn > 0
 
     # Start the wall clock timer.
     start = time.time()
@@ -372,7 +481,7 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
         # Precompute sparse index sets for all the row subproblems.
         # Takes more memory but can cut exectuion time significantly in some cases.
         if printitn > 0:
-            print('\tPrecomuting sparse index sets...')
+            print("\tPrecomuting sparse index sets...")
         sparseIx = []
         for n in range(N):
             num_rows = M[n].shape[0]
@@ -382,7 +491,7 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
             sparseIx.append(row_indices)
 
         if printitn > 0:
-            print('done\n')
+            print("done\n")
 
     e_vec = np.ones((1, rank))
 
@@ -391,12 +500,11 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
     # Main loop: iterate until convergence or a max threshold is reached
     for iter in range(maxiters):
         isConverged = True
-        kktModeViolations = np.zeros((N, ))
-        countInnerIters = np.zeros((N, ))
+        kktModeViolations = np.zeros((N,))
+        countInnerIters = np.zeros((N,))
 
         # Alternate thru each factor matrix, A_1, A_2, ..., A_N.
         for n in range(N):
-
             # Shift the weight from lambda to mode n.
             M.redistribute(mode=n)
 
@@ -430,7 +538,9 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                     x_row = tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
-                    Pi = ttb.tt_calcpi_prowsubprob(tensor, M, rank, n, N, isSparse, sparse_indices)
+                    Pi = ttb.tt_calcpi_prowsubprob(
+                        tensor, M, rank, n, N, isSparse, sparse_indices
+                    )
 
                 else:
                     x_row = X_mat[jj, :]
@@ -446,7 +556,9 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
 
                 for i in range(innerIterMaximum):
                     # Calculate the gradient.
-                    [phi_row, ups_row] = calc_partials(isSparse, Pi, epsDivZero, x_row, m_row)
+                    [phi_row, ups_row] = calc_partials(
+                        isSparse, Pi, epsDivZero, x_row, m_row
+                    )
                     gradM = (e_vec - phi_row).transpose()
 
                     # Compute the row subproblem kkt_violation.
@@ -455,19 +567,25 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                     # kkt_violation = np.norm(np.abs(np.minimum(m_row, gradM.transpose())))
 
                     # We now use \| KKT \|_{inf}:
-                    kkt_violation = np.max(np.abs(np.minimum(m_row, gradM.transpose()[0])))
+                    kkt_violation = np.max(
+                        np.abs(np.minimum(m_row, gradM.transpose()[0]))
+                    )
 
                     # Report largest row subproblem initial violation
                     if i == 0 and kkt_violation > kktModeViolations[n]:
                         kktModeViolations[n] = kkt_violation
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
-                        print('\tMode = {}, Row = {}, InnerIt = {}'.format(n, jj, i))
+                        print("\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i))
 
                         if i == 0:
-                            print(', RowKKT = {}\n'.format(kkt_violation))
+                            print(", RowKKT = {}\n".format(kkt_violation))
                         else:
-                            print(', RowKKT = {}, RowObj = {}\n'.format(kkt_violation, -f_new))
+                            print(
+                                ", RowKKT = {}, RowObj = {}\n".format(
+                                    kkt_violation, -f_new
+                                )
+                            )
 
                     # Check for row subproblem convergence.
                     if kkt_violation < stoptol:
@@ -478,14 +596,33 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
 
                     # Calculate the search direction
                     # TODO clean up reshaping gradM to row
-                    search_dir, predicted_red = getSearchDirPdnr(Pi, ups_row, rank, gradM.transpose()[0], m_row, mu, epsActive)
+                    search_dir, predicted_red = getSearchDirPdnr(
+                        Pi, ups_row, rank, gradM.transpose()[0], m_row, mu, epsActive
+                    )
 
                     # Perform a projected linesearch and update variables.
                     # Start from a unit step length, decrease by 1/2,
                     # stop with sufficicent decrease of 1.0e-4 or at most 10 steps.
-                    m_rowNew, f_old, f_unit, f_new, num_evals = \
-                        ttb.tt_linesearch_prowsubprob(search_dir.transpose()[0], gradM.transpose(), m_row, 1, 1/2, 10,
-                                                      1.0e-4, isSparse, x_row, Pi, phi_row, dispLineWarn)
+                    (
+                        m_rowNew,
+                        f_old,
+                        f_unit,
+                        f_new,
+                        num_evals,
+                    ) = ttb.tt_linesearch_prowsubprob(
+                        search_dir.transpose()[0],
+                        gradM.transpose(),
+                        m_row,
+                        1,
+                        1 / 2,
+                        10,
+                        1.0e-4,
+                        isSparse,
+                        x_row,
+                        Pi,
+                        phi_row,
+                        dispLineWarn,
+                    )
                     fnEvals[iter] += num_evals
                     m_row = m_rowNew
 
@@ -494,10 +631,10 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                     rho = actual_red / -predicted_red
                     if predicted_red == 0:
                         mu *= 10
-                    elif rho < 1/4:
-                        mu *= 7/2
-                    elif rho > 3/4:
-                        mu *= 2/7
+                    elif rho < 1 / 4:
+                        mu *= 7 / 2
+                    elif rho > 3 / 4:
+                        mu *= 2 / 7
 
                 M.factor_matrices[n][jj, :] = m_row
                 countInnerIters[n] += i
@@ -516,7 +653,7 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
         # Save output items for the outer iteration.
         num_zero = 0
         for n in range(N):
-            num_zero += np.count_nonzero(M[n] == 0)#[0].size
+            num_zero += np.count_nonzero(M[n] == 0)  # [0].size
 
         nzeros[iter] = num_zero
         kktViolations[iter] = np.max(kktModeViolations)
@@ -527,10 +664,17 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
             # Print outer iteration status.
             if printitn > 0 and np.mod(iter, printitn) == 0:
                 fnVals[iter] = -tt_loglikelihood(tensor, M)
-                print("{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".
-                      format(iter, nInnerIters[iter], kktViolations[iter], fnVals[iter], num_zero))
+                print(
+                    "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".format(
+                        iter,
+                        nInnerIters[iter],
+                        kktViolations[iter],
+                        fnVals[iter],
+                        num_zero,
+                    )
+                )
 
-        times[iter] = time.time()-start
+        times[iter] = time.time() - start
 
         # Check for convergence
         if isConverged and inexact == False:
@@ -541,7 +685,7 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
             print("EXiting because time limit exceeded\n")
             break
 
-    t_stop = time.time()-start
+    t_stop = time.time() - start
 
     # Clean up final result
     M.normalize(sort=True, normtype=1)
@@ -550,33 +694,58 @@ def tt_cp_apr_pdnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
 
     if printitn > 0:
         normTensor = tensor.norm()
-        normresidual = np.sqrt(normTensor ** 2 + M.norm() ** 2 - 2 * tensor.innerprod(M))
+        normresidual = np.sqrt(
+            normTensor**2 + M.norm() ** 2 - 2 * tensor.innerprod(M)
+        )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
-        print('===========================================\n')
-        print(' Final log-likelihood = {} \n'.format(obj))
-        print(' Final least squares fit = {} \n'.format(fit))
-        print(' Final KKT violation = {}\n'.format(kktViolations[iter]))
-        print(' Total inner iterations = {}\n'.format(sum(nInnerIters)))
-        print(' Total execution time = {} secs\n'.format(t_stop))
+        print("===========================================\n")
+        print(" Final log-likelihood = {} \n".format(obj))
+        print(" Final least squares fit = {} \n".format(fit))
+        print(" Final KKT violation = {}\n".format(kktViolations[iter]))
+        print(" Total inner iterations = {}\n".format(sum(nInnerIters)))
+        print(" Total execution time = {} secs\n".format(t_stop))
 
     output = {}
-    output['params'] = (
-        stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-        printinneritn, epsActive, mu0, precompinds, inexact)
-    output['kktViolations'] = kktViolations[:iter + 1]
-    output['obj'] = obj
-    output['fnEvals'] = fnEvals[:iter + 1]
-    output['fnVals'] = fnVals[:iter + 1]
-    output['nInnerIters'] = nInnerIters[:iter + 1]
-    output["nZeros"] = nzeros[:iter + 1]
-    output['times'] = times[:iter + 1]
-    output['totalTime'] = t_stop
-
+    output["params"] = (
+        stoptol,
+        stoptime,
+        maxiters,
+        maxinneriters,
+        epsDivZero,
+        printitn,
+        printinneritn,
+        epsActive,
+        mu0,
+        precompinds,
+        inexact,
+    )
+    output["kktViolations"] = kktViolations[: iter + 1]
+    output["obj"] = obj
+    output["fnEvals"] = fnEvals[: iter + 1]
+    output["fnVals"] = fnVals[: iter + 1]
+    output["nInnerIters"] = nInnerIters[: iter + 1]
+    output["nZeros"] = nzeros[: iter + 1]
+    output["times"] = times[: iter + 1]
+    output["totalTime"] = t_stop
 
     return M, output
 
-def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-                                    printinneritn, epsActive, lbfgsMem, precompinds):
+
+def tt_cp_apr_pqnr(
+    tensor,
+    rank,
+    init,
+    stoptol,
+    stoptime,
+    maxiters,
+    maxinneriters,
+    epsDivZero,
+    printitn,
+    printinneritn,
+    epsActive,
+    lbfgsMem,
+    precompinds,
+):
     """
     Compute nonnegative CP with alternating Poisson regression.
 
@@ -671,7 +840,7 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
     if printitn > 0:
         print("\nCP_PQNR (alternating Poisson regression using quasi-Newton)\n")
 
-    dispLineWarn = (printinneritn > 0)
+    dispLineWarn = printinneritn > 0
 
     # Start the wall clock timer.
     start = time.time()
@@ -680,7 +849,7 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
         # Precompute sparse index sets for all the row subproblems.
         # Takes more memory but can cut exectuion time significantly in some cases.
         if printitn > 0:
-            print('\tPrecomuting sparse index sets...')
+            print("\tPrecomuting sparse index sets...")
         sparseIx = []
         for n in range(N):
             num_rows = M[n].shape[0]
@@ -690,7 +859,7 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
             sparseIx.append(row_indices)
 
         if printitn > 0:
-            print('done\n')
+            print("done\n")
 
     # Main loop: iterate until convergence or a max threshold is reached
     for iter in range(maxiters):
@@ -700,7 +869,6 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
 
         # Alternate thru each factor matrix, A_1, A_2, ..., A_N.
         for n in range(N):
-
             # Shift the weight from lambda to mode n.
             M.redistribute(mode=n)
 
@@ -731,7 +899,9 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                     x_row = tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
-                    Pi = ttb.tt_calcpi_prowsubprob(tensor, M, rank, n, N, isSparse, sparse_indices)
+                    Pi = ttb.tt_calcpi_prowsubprob(
+                        tensor, M, rank, n, N, isSparse, sparse_indices
+                    )
 
                 else:
                     x_row = X_mat[jj, :]
@@ -742,7 +912,7 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                 # Initialize L-BFGS storage for the row subproblem.
                 delm = np.zeros((rank, lbfgsMem))
                 delg = np.zeros((rank, lbfgsMem))
-                rho = np.zeros((lbfgsMem, ))
+                rho = np.zeros((lbfgsMem,))
                 lbfgsPos = 0
                 m_rowOLD = []
                 gradOLD = []
@@ -760,11 +930,24 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                         # TODO: fix in a future release.
                         m_rowOLD = m_row
                         gradOLD = gradM
-                        m_row, f, f_unit, f_new, num_evals = \
-                            tt_linesearch_prowsubprob(-gradM.transpose(), gradM.transpose(), m_rowOLD, 1, 1/2, 10, 1e-4,
-                                                      isSparse, x_row, Pi, phi_row, dispLineWarn)
+                        m_row, f, f_unit, f_new, num_evals = tt_linesearch_prowsubprob(
+                            -gradM.transpose(),
+                            gradM.transpose(),
+                            m_rowOLD,
+                            1,
+                            1 / 2,
+                            10,
+                            1e-4,
+                            isSparse,
+                            x_row,
+                            Pi,
+                            phi_row,
+                            dispLineWarn,
+                        )
                         fnEvals[iter] += num_evals
-                        gradM, phi_row = calc_grad(isSparse, Pi, epsDivZero, x_row, m_row)
+                        gradM, phi_row = calc_grad(
+                            isSparse, Pi, epsDivZero, x_row, m_row
+                        )
 
                     # Compute the row subproblem kkt_violation.
 
@@ -773,19 +956,23 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
 
                     # We now use \| KKT \|_{inf}:
                     kkt_violation = np.max(np.abs(np.minimum(m_row, gradM)))
-                    #print("Intermediate Printing m_row: {}\n and gradM{}".format(m_row, gradM))
+                    # print("Intermediate Printing m_row: {}\n and gradM{}".format(m_row, gradM))
 
                     # Report largest row subproblem initial violation
                     if i == 0 and kkt_violation > kktModeViolations[n]:
                         kktModeViolations[n] = kkt_violation
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
-                        print('\tMode = {}, Row = {}, InnerIt = {}'.format(n, jj, i))
+                        print("\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i))
 
                         if i == 0:
-                            print(', RowKKT = {}\n'.format(kkt_violation))
+                            print(", RowKKT = {}\n".format(kkt_violation))
                         else:
-                            print(', RowKKT = {}, RowObj = {}\n'.format(kkt_violation, -f_new))
+                            print(
+                                ", RowKKT = {}, RowObj = {}\n".format(
+                                    kkt_violation, -f_new
+                                )
+                            )
 
                     # Check for row subproblem convergence.
                     if kkt_violation < stoptol:
@@ -807,21 +994,34 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                         # Rho is required to be postive; if not, then skip the L-BFGS update pair. The recommended
                         # safeguard for full BFGS is Powell damping, but not clear how to damp in 2-loop L-BFGS
                         if dispLineWarn:
-                            warnings.warn('WARNING: skipping L-BFGS update, rho whould be 1 / {}'.
-                                          format(tmp_delm*tmp_delg))
+                            warnings.warn(
+                                "WARNING: skipping L-BFGS update, rho whould be 1 / {}".format(
+                                    tmp_delm * tmp_delg
+                                )
+                            )
                         # Roll back lbfgsPos since it will increment later.
                         if lbfgsPos == 0:
-                            if rho[lbfgsMem-1] > 0:
-                                lbfgsPos = lbfgsMem-1
+                            if rho[lbfgsMem - 1] > 0:
+                                lbfgsPos = lbfgsMem - 1
                             else:
                                 # Fatal error, should not happen.
-                                assert False, 'ERROR: L-BFGS first iterate is bad'
+                                assert False, "ERROR: L-BFGS first iterate is bad"
 
                         else:
                             lbfgsPos -= 1
 
                     # Calculate search direction
-                    search_dir = getSearchDirPqnr(m_row, gradM, epsActive, delm, delg, rho, lbfgsPos, i, dispLineWarn)
+                    search_dir = getSearchDirPqnr(
+                        m_row,
+                        gradM,
+                        epsActive,
+                        delm,
+                        delg,
+                        rho,
+                        lbfgsPos,
+                        i,
+                        dispLineWarn,
+                    )
 
                     lbfgsPos = np.mod(lbfgsPos, lbfgsMem)
 
@@ -831,9 +1031,20 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
                     # Perform a projected linesearch and update variables.
                     # Start from a unit step length, decrease by 1/2,
                     # stop with sufficicent decrease of 1.0e-4 or at most 10 steps.
-                    m_row, f, f_unit, f_new, num_evals = \
-                        ttb.tt_linesearch_prowsubprob(search_dir.transpose()[0], gradOLD.transpose(), m_rowOLD, 1,
-                                                      1 / 2, 10, 1.0e-4, isSparse, x_row, Pi, phi_row, dispLineWarn)
+                    m_row, f, f_unit, f_new, num_evals = ttb.tt_linesearch_prowsubprob(
+                        search_dir.transpose()[0],
+                        gradOLD.transpose(),
+                        m_rowOLD,
+                        1,
+                        1 / 2,
+                        10,
+                        1.0e-4,
+                        isSparse,
+                        x_row,
+                        Pi,
+                        phi_row,
+                        dispLineWarn,
+                    )
                     fnEvals[iter] += num_evals
 
                 M.factor_matrices[n][jj, :] = m_row
@@ -861,8 +1072,11 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
         # Print outer iteration status.
         if printitn > 0 and np.mod(iter, printitn) == 0:
             fnVals[iter] = -tt_loglikelihood(tensor, M)
-            print("{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".
-                  format(iter, nInnerIters[iter], kktViolations[iter], fnVals[iter], num_zero))
+            print(
+                "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".format(
+                    iter, nInnerIters[iter], kktViolations[iter], fnVals[iter], num_zero
+                )
+            )
 
         times[iter] = time.time() - start
 
@@ -882,32 +1096,46 @@ def tt_cp_apr_pqnr(tensor, rank, init, stoptol, stoptime, maxiters, maxinneriter
 
     if printitn > 0:
         normTensor = tensor.norm()
-        normresidual = np.sqrt(normTensor ** 2 + M.norm() ** 2 - 2 * tensor.innerprod(M))
+        normresidual = np.sqrt(
+            normTensor**2 + M.norm() ** 2 - 2 * tensor.innerprod(M)
+        )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
-        print('===========================================\n')
-        print(' Final log-likelihood = {} \n'.format(obj))
-        print(' Final least squares fit = {} \n'.format(fit))
-        print(' Final KKT violation = {}\n'.format(kktViolations[iter]))
-        print(' Total inner iterations = {}\n'.format(sum(nInnerIters)))
-        print(' Total execution time = {} secs\n'.format(t_stop))
+        print("===========================================\n")
+        print(" Final log-likelihood = {} \n".format(obj))
+        print(" Final least squares fit = {} \n".format(fit))
+        print(" Final KKT violation = {}\n".format(kktViolations[iter]))
+        print(" Total inner iterations = {}\n".format(sum(nInnerIters)))
+        print(" Total execution time = {} secs\n".format(t_stop))
 
     output = {}
-    output['params'] = (
-        stoptol, stoptime, maxiters, maxinneriters, epsDivZero, printitn,
-        printinneritn, epsActive, lbfgsMem, precompinds)
-    output['kktViolations'] = kktViolations[:iter + 1]
-    output['obj'] = obj
-    output['fnEvals'] = fnEvals[:iter + 1]
-    output['fnVals'] = fnVals[:iter + 1]
-    output['nInnerIters'] = nInnerIters[:iter + 1]
-    output["nZeros"] = nzeros[:iter + 1]
-    output['times'] = times[:iter + 1]
-    output['totalTime'] = t_stop
+    output["params"] = (
+        stoptol,
+        stoptime,
+        maxiters,
+        maxinneriters,
+        epsDivZero,
+        printitn,
+        printinneritn,
+        epsActive,
+        lbfgsMem,
+        precompinds,
+    )
+    output["kktViolations"] = kktViolations[: iter + 1]
+    output["obj"] = obj
+    output["fnEvals"] = fnEvals[: iter + 1]
+    output["fnVals"] = fnVals[: iter + 1]
+    output["nInnerIters"] = nInnerIters[: iter + 1]
+    output["nZeros"] = nzeros[: iter + 1]
+    output["times"] = times[: iter + 1]
+    output["totalTime"] = t_stop
 
     return M, output
 
+
 # PDNR helper functions
-def tt_calcpi_prowsubprob(Data, Model, rank, factorIndex, ndims, isSparse=False, sparse_indices=None):
+def tt_calcpi_prowsubprob(
+    Data, Model, rank, factorIndex, ndims, isSparse=False, sparse_indices=None
+):
     """
     Compute Pi for a row subproblem.
 
@@ -940,9 +1168,14 @@ def tt_calcpi_prowsubprob(Data, Model, rank, factorIndex, ndims, isSparse=False,
         for i in np.setdiff1d(np.arange(ndims), factorIndex).astype(int):
             Pi *= Model[i][Data.subs[sparse_indices, i], :]
     else:
-        Pi = ttb.khatrirao(Model.factor_matrices[:factorIndex] + Model.factor_matrices[factorIndex + 1:ndims+1], reverse=True)
+        Pi = ttb.khatrirao(
+            Model.factor_matrices[:factorIndex]
+            + Model.factor_matrices[factorIndex + 1 : ndims + 1],
+            reverse=True,
+        )
 
     return Pi
+
 
 def calc_partials(isSparse, Pi, epsilon, data_row, model_row):
     """
@@ -976,6 +1209,7 @@ def calc_partials(isSparse, Pi, epsilon, data_row, model_row):
     ups_row = data_row.transpose() / np.maximum(u, epsilon)
     return phi_row, ups_row
 
+
 def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
     """
     Compute the search direction for PDNR using a two-metric projection with damped Hessian
@@ -1004,23 +1238,25 @@ def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
         predicted reduction in quadratic model
     """
     search_dir = np.zeros((rank, 1))
-    projGradStep = (model_row - gradModel.transpose())*(model_row - (gradModel.transpose()>0).astype(float))
-    wk = np.linalg.norm(model_row-projGradStep)
+    projGradStep = (model_row - gradModel.transpose()) * (
+        model_row - (gradModel.transpose() > 0).astype(float)
+    )
+    wk = np.linalg.norm(model_row - projGradStep)
 
     # Determine active and free variables
     num_free = 0
-    free_indices_tmp = np.zeros((rank, )).astype(int)
+    free_indices_tmp = np.zeros((rank,)).astype(int)
     for r in range(rank):
         if (model_row[r] <= np.minimum(epsActSet, wk)) and (gradModel[r] > 0):
             # Variable is not free (belongs to set A or G)
-            if (model_row[r] != 0):
+            if model_row[r] != 0:
                 # Variable moves according to the gradient (set G).
                 search_dir[r] = -gradModel[r]
 
         else:
             # Variable is free (set F).
             num_free += 1
-            free_indices_tmp[num_free-1] = r
+            free_indices_tmp[num_free - 1] = r
 
     free_indices = free_indices_tmp[0:num_free]
 
@@ -1032,7 +1268,9 @@ def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
     # TODO verify this is appropriate representation of matlab's method, s.b. because hessian is square, and addition
     # should ensure full rank, try.catch handles singular matrix
     try:
-        search_dir[free_indices] = np.linalg.solve(Hessian_free + (mu * np.eye(num_free)), grad_free)[:, None]
+        search_dir[free_indices] = np.linalg.solve(
+            Hessian_free + (mu * np.eye(num_free)), grad_free
+        )[:, None]
     except np.linalg.LinAlgError:
         warnings.warn("CP_APR: Damped Hessian is nearly singular\n")
         # TODO: note this may be a typo in matlab see line 1107
@@ -1040,16 +1278,36 @@ def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
 
     # Calculate expected reduction in the quadratic model of the objective.
     # TODO: double check if left or right multiplication has an speed effect, memory layout
-    q = search_dir[free_indices].transpose().dot(Hessian_free + (mu*np.eye(num_free))).dot(search_dir[free_indices])
-    pred_red = (search_dir[free_indices].transpose().dot(gradModel[free_indices])) + (0.5*q)
+    q = (
+        search_dir[free_indices]
+        .transpose()
+        .dot(Hessian_free + (mu * np.eye(num_free)))
+        .dot(search_dir[free_indices])
+    )
+    pred_red = (search_dir[free_indices].transpose().dot(gradModel[free_indices])) + (
+        0.5 * q
+    )
     if pred_red > 0:
         warnings.warn("CP_APR: Expected decrease in objective is positive\n")
         search_dir = -gradModel
 
     return search_dir, pred_red
 
-def tt_linesearch_prowsubprob(direction, grad, model_old, step_len, step_red, max_steps, suff_decr, isSparse,
-                              data_row, Pi, phi_row, display_warning):
+
+def tt_linesearch_prowsubprob(
+    direction,
+    grad,
+    model_old,
+    step_len,
+    step_red,
+    max_steps,
+    suff_decr,
+    isSparse,
+    data_row,
+    Pi,
+    phi_row,
+    display_warning,
+):
     """
     Perform a line search on a row subproblem
 
@@ -1105,8 +1363,8 @@ def tt_linesearch_prowsubprob(direction, grad, model_old, step_len, step_red, ma
 
     while count <= max_steps:
         # Compute a new step and project it onto the positive orthant.
-        model_new = model_old + stepSize*direction
-        model_new *= (model_new > 0)
+        model_new = model_old + stepSize * direction
+        model_new *= model_new > 0
 
         # Check that it is a descent direction.
         gDotd = np.sum(grad * (model_new - model_old))
@@ -1127,7 +1385,7 @@ def tt_linesearch_prowsubprob(direction, grad, model_old, step_len, step_red, ma
                 f_1 = f_new
 
             # Check for sufficient decrease.
-            if f_new <= (f_old + suff_decr*gDotd):
+            if f_new <= (f_old + suff_decr * gDotd):
                 break
             else:
                 stepSize *= step_red
@@ -1149,7 +1407,7 @@ def tt_linesearch_prowsubprob(direction, grad, model_old, step_len, step_red, ma
         model_new = model_old * phi_row  # multiplicative update
 
         # Project to the constraints and reevaluate the subproblem objective
-        model_new *= (model_new > 0)
+        model_new *= model_new > 0
         f_new = -ttb.tt_loglikelihood_row(isSparse, data_row, model_new, Pi)
         num_evals += 1
 
@@ -1157,7 +1415,9 @@ def tt_linesearch_prowsubprob(direction, grad, model_old, step_len, step_red, ma
         f_1 = f_old
 
         if display_warning:
-            warnings.warn("CP_APR: Line search failed, using multiplicative update step")
+            warnings.warn(
+                "CP_APR: Line search failed, using multiplicative update step"
+            )
 
     return model_new, f_old, f_1, f_new, num_evals
 
@@ -1186,9 +1446,10 @@ def getHessian(upsilon, Pi, free_indices):
         for j in range(num_free):
             c = free_indices[i]
             d = free_indices[j]
-            val = np.sum(upsilon.transpose()*Pi[:, c]*Pi[:, d])
+            val = np.sum(upsilon.transpose() * Pi[:, c] * Pi[:, d])
             H[(i, j), (j, i)] = val
     return H
+
 
 def tt_loglikelihood_row(isSparse, data_row, model_row, Pi):
     """
@@ -1240,8 +1501,19 @@ def tt_loglikelihood_row(isSparse, data_row, model_row, Pi):
     loglikelihood = term1 + term2
     return loglikelihood
 
+
 # PQNR helper functions
-def getSearchDirPqnr(model_row, gradModel, epsActSet, delta_model, delta_grad, rho, lbfgs_pos, iters, disp_warn):
+def getSearchDirPqnr(
+    model_row,
+    gradModel,
+    epsActSet,
+    delta_model,
+    delta_grad,
+    rho,
+    lbfgs_pos,
+    iters,
+    disp_warn,
+):
     """
     Compute the search direction by projecting with L-BFGS.
 
@@ -1287,7 +1559,9 @@ def getSearchDirPqnr(model_row, gradModel, epsActSet, delta_model, delta_grad, r
     # fixedVars = find((m_row == 0) & (grad' > 0));
     # For the general case this works but is less clear and assumes m_row > 0:
     # fixedVars = find((grad' > 0) & (m_row <= min(epsActSet,grad')));
-    projGradStep = (model_row - gradModel.transpose()) * (model_row - (gradModel.transpose() > 0).astype(float))
+    projGradStep = (model_row - gradModel.transpose()) * (
+        model_row - (gradModel.transpose() > 0).astype(float)
+    )
     wk = np.linalg.norm(model_row - projGradStep)
     fixedVars = np.logical_and(gradModel > 0, (model_row <= np.minimum(epsActSet, wk)))
 
@@ -1300,27 +1574,34 @@ def getSearchDirPqnr(model_row, gradModel, epsActSet, delta_model, delta_grad, r
             warnings.warn("WARNING: L-BFGS update is orthogonal, using gradient")
         return direction
 
-    alpha = np.ones((lbfgsSize, ))
+    alpha = np.ones((lbfgsSize,))
     k = lbfgs_pos
 
     # Perform an L-BFGS two-loop recursion to compute the search direction.
     for i in range(np.minimum(iters, lbfgsSize)):
-        alpha[k] = rho[k]*(delta_model[:, k].transpose().dot(direction))
-        direction -= alpha[k]*(delta_grad[:, k])
+        alpha[k] = rho[k] * (delta_model[:, k].transpose().dot(direction))
+        direction -= alpha[k] * (delta_grad[:, k])
         # TODO check mod
-        k = lbfgsSize - np.mod(1-k, lbfgsSize) - 1 # -1 accounts for numpy indexing starting at 0 not 1
+        k = (
+            lbfgsSize - np.mod(1 - k, lbfgsSize) - 1
+        )  # -1 accounts for numpy indexing starting at 0 not 1
 
-    coef = 1 / rho[lbfgs_pos] / delta_grad[:, lbfgs_pos].transpose().dot(delta_grad[:, lbfgs_pos])
+    coef = (
+        1
+        / rho[lbfgs_pos]
+        / delta_grad[:, lbfgs_pos].transpose().dot(delta_grad[:, lbfgs_pos])
+    )
     direction *= coef
 
     for i in range(np.minimum(iters, lbfgsSize)):
-        k = np.mod(k, lbfgsSize) #+ 1
-        b = rho[k]*(delta_grad[:, k].transpose().dot(direction))
-        direction += (alpha[k]-b)*(delta_model[:, k])
+        k = np.mod(k, lbfgsSize)  # + 1
+        b = rho[k] * (delta_grad[:, k].transpose().dot(direction))
+        direction += (alpha[k] - b) * (delta_model[:, k])
 
     direction[fixedVars] = 0
 
     return direction
+
 
 def calc_grad(isSparse, Pi, eps_div_zero, data_row, model_row):
     """
@@ -1346,11 +1627,12 @@ def calc_grad(isSparse, Pi, eps_div_zero, data_row, model_row):
     v = model_row.dot(Pi.transpose())
     w = data_row / np.maximum(v, eps_div_zero)
     phi_row = w.dot(Pi)
-    #print("V: {}, W :{}".format(v,w))
-    #u = v**2
-    #ups_row = data_row.transpose() / np.maximum(u, epsilon)
+    # print("V: {}, W :{}".format(v,w))
+    # u = v**2
+    # ups_row = data_row.transpose() / np.maximum(u, epsilon)
     grad_row = (np.ones(phi_row.shape) - phi_row).transpose()
     return grad_row, phi_row
+
 
 # Mu helper functions
 def calculatePi(Data, Model, rank, factorIndex, ndims):
@@ -1375,9 +1657,14 @@ def calculatePi(Data, Model, rank, factorIndex, ndims):
         for i in np.setdiff1d(np.arange(ndims), factorIndex).astype(int):
             Pi *= Model[i][Data.subs[:, i], :]
     else:
-        Pi = ttb.khatrirao(Model.factor_matrices[:factorIndex]+Model.factor_matrices[factorIndex+1:], reverse=True)
+        Pi = ttb.khatrirao(
+            Model.factor_matrices[:factorIndex]
+            + Model.factor_matrices[factorIndex + 1 :],
+            reverse=True,
+        )
 
     return Pi
+
 
 def calculatePhi(Data, Model, rank, factorIndex, Pi, epsilon):
     """
@@ -1398,19 +1685,24 @@ def calculatePhi(Data, Model, rank, factorIndex, Pi, epsilon):
     if isinstance(Data, ttb.sptensor):
         Phi = -np.ones((Data.shape[factorIndex], rank))
         xsubs = Data.subs[:, factorIndex]
-        v = np.sum(Model.factor_matrices[factorIndex][xsubs, :]*Pi, axis=1)
+        v = np.sum(Model.factor_matrices[factorIndex][xsubs, :] * Pi, axis=1)
         wvals = Data.vals / np.maximum(v, epsilon)[:, None]
         for r in range(rank):
-            Yr = accumarray(xsubs, np.squeeze(wvals*Pi[:, r][:, None]), size=Data.shape[factorIndex])
+            Yr = accumarray(
+                xsubs,
+                np.squeeze(wvals * Pi[:, r][:, None]),
+                size=Data.shape[factorIndex],
+            )
             Phi[:, r] = Yr
     else:
         Xn = ttb.tt_to_dense_matrix(Data, factorIndex)
         V = Model.factor_matrices[factorIndex].dot(Pi.transpose())
-        W = Xn/np.maximum(V, epsilon)
+        W = Xn / np.maximum(V, epsilon)
         Y = W.dot(Pi)
         Phi = Y
 
     return Phi
+
 
 def tt_loglikelihood(Data, Model):
     """
@@ -1441,7 +1733,9 @@ def tt_loglikelihood(Data, Model):
         A = Model.factor_matrices[0][xsubs[:, 0], :]
         for n in range(1, N):
             A *= Model.factor_matrices[n][xsubs[:, n], :]
-        return np.sum(Data.vals*np.log(np.sum(A, axis=1))[:, None]) - np.sum(Model.factor_matrices[0])
+        return np.sum(Data.vals * np.log(np.sum(A, axis=1))[:, None]) - np.sum(
+            Model.factor_matrices[0]
+        )
     else:
         dX = ttb.tt_to_dense_matrix(Data, 1)
         dM = ttb.tt_to_dense_matrix(Model, 1)
@@ -1455,6 +1749,7 @@ def tt_loglikelihood(Data, Model):
 
         f -= np.sum(Model.factor_matrices[0])
         return f
+
 
 def vectorizeForMu(matrix):
     """
