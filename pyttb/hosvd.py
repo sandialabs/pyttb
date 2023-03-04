@@ -1,0 +1,102 @@
+import numpy as np
+import scipy
+
+import pyttb as ttb
+
+
+def hosvd(tensor, tol, verbosity=1, dimorder=None, sequential=True, ranks=None):
+    """Compute sequentially-truncated higher-order SVD (Tucker).
+
+    Computes a Tucker decomposition with relative error
+    specified by tol, i.e., it computes a ttensor T such that
+    ||X-T||/||X|| <= tol.
+
+    Parameters
+    ----------
+    tensor: Tensor to factor
+    tol: Relative error to stop at
+    verbosity: Print level
+    dimorder: Order to loop through dimensions
+    sequential: Use sequentially-truncated version
+    ranks: Specify ranks to consider rather than computing
+    """
+    # In tucker als this is N
+    d = tensor.ndims
+
+    if ranks is not None:
+        if len(ranks) != d:
+            raise ValueError(
+                f"Ranks must be a list of length tensor ndims. Ndims: {d} but got "
+                f"ranks: {ranks}."
+            )
+    else:
+        ranks = [0] * d
+
+    # Set up dimorder if not specified (this is copy past from tucker_als
+    if not dimorder:
+        dimorder = list(range(d))
+    else:
+        if not isinstance(dimorder, list):
+            raise ValueError("Dimorder must be a list")
+        elif tuple(range(d)) != tuple(sorted(dimorder)):
+            raise ValueError(
+                "Dimorder must be a list or permutation of range(tensor.ndims)"
+            )
+
+    # TODO should unify printing throughout. Probably easier to use python logging levels
+    if verbosity > 0:
+        print("Computing HOSVD...\n")
+
+    normxsqr = (tensor**2).collapse()
+    eigsumthresh = ((tol**2) * normxsqr) / d
+
+    if verbosity > 2:
+        print(
+            f"||X||^2 = {normxsqr: g}\n"
+            f"tol = {tol: g}\n"
+            f"eigenvalue sum threshold = tol^2 ||X||^2 / d = {eigsumthresh: g}\n"
+        )
+
+    # Main Loop
+    factor_matrices = [None] * d
+    # Copy input tensor, shrinks every step for sequential
+    Y = ttb.tensor.from_tensor_type(tensor)
+
+    for k in dimorder:
+        # Compute Gram matrix
+        Yk = ttb.tenmat.from_tensor_type(Y, np.array([k])).double()
+        Z = np.dot(Yk, Yk.transpose())
+
+        # Compute eigenvalue decomposition
+        D, V = scipy.linalg.eigh(Z)
+        pi = np.argsort(-D, kind="quicksort")
+        eigvec = D[pi]
+
+        # If rank not provided compute it.
+        if ranks[k] == 0:
+            eigsum = np.cumsum(eigvec[::-1])
+            ranks[k] = np.where(eigsum > eigsumthresh)[0][-1]
+
+            if verbosity > 5:
+                print(f"Reverse cummulative sum of evals of Gram matrix:\n")
+                for i in range(len(eigsum)):
+                    print(f"{i: d}: {eigsum[i]: 6.4f}")
+                    if i == ranks[k]:
+                        print("<-- Cutoff")
+                    print("\n")
+
+        # Extract factor matrix b picking leading eigenvectors of V
+        factor_matrices[k] = V[:, pi[0 : ranks[k]]]
+
+        # Shrink!
+        if sequential:
+            Y = Y.ttm(factor_matrices[k].transpose(), k)
+    # Extract final core
+    if sequential:
+        G = Y
+    else:
+        G = Y.ttm(Y, factor_matrices, transpose=True)
+
+    result = ttb.ttensor.from_data(G, factor_matrices)
+    # TODO final printout
+    return result
