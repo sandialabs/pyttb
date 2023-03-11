@@ -198,7 +198,7 @@ def tt_dimscheck(
 
     # Fix "minus" case
     if np.max(dims) < 0:
-        # Check that all memebers in range
+        # Check that all members in range
         if not np.all(np.isin(-dims, np.arange(0, N + 1))):
             assert False, "Invalid magnitude for negative dims selection"
         dims = np.setdiff1d(np.arange(1, N + 1), -dims) - 1

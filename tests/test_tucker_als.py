@@ -19,6 +19,7 @@ def test_tucker_als_tensor_default_init(capsys, sample_tensor):
     (Solution, Uinit, output) = ttb.tucker_als(T, 2)
     capsys.readouterr()
     assert pytest.approx(output["fit"], 1) == 0
+    assert np.all(np.isclose(Solution.double(), T.double()))
 
     (Solution, Uinit, output) = ttb.tucker_als(T, 2, init=Uinit)
     capsys.readouterr()

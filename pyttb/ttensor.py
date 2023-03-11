@@ -434,7 +434,9 @@ class ttensor(object):
             dims = np.arange(self.ndims)
         elif isinstance(dims, list):
             dims = np.array(dims)
-        elif np.isscalar(dims) or isinstance(dims, list):
+        elif np.isscalar(dims):
+            if dims < 0:
+                raise ValueError("Negative dims is currently unsupported, see #62")
             dims = np.array([dims])
 
         if not isinstance(matrix, list):
