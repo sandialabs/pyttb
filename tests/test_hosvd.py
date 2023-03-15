@@ -14,6 +14,16 @@ def sample_tensor():
 
 
 @pytest.mark.indevelopment
+def test_tucker_als_tensor_simple_convergence(capsys, sample_tensor):
+    (data, T) = sample_tensor
+    tol = 1e-4
+    result = ttb.hosvd(T, tol)
+    assert (result.full()-T).norm()/T.norm() < tol, (
+        f"Failed to converge"
+    )
+
+
+@pytest.mark.indevelopment
 def test_tucker_als_tensor_default_init(capsys, sample_tensor):
     (data, T) = sample_tensor
     _ = ttb.hosvd(T, 1)

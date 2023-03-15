@@ -75,18 +75,20 @@ def hosvd(tensor, tol, verbosity=1, dimorder=None, sequential=True, ranks=None):
         # If rank not provided compute it.
         if ranks[k] == 0:
             eigsum = np.cumsum(eigvec[::-1])
+            eigsum = eigsum[::-1]
             ranks[k] = np.where(eigsum > eigsumthresh)[0][-1]
 
             if verbosity > 5:
-                print(f"Reverse cummulative sum of evals of Gram matrix:\n")
+                print(f"Reverse cummulative sum of evals of Gram matrix:")
                 for i in range(len(eigsum)):
-                    print(f"{i: d}: {eigsum[i]: 6.4f}")
+                    print_msg = f"{i: d}: {eigsum[i]: 6.4f}"
                     if i == ranks[k]:
-                        print("<-- Cutoff")
-                    print("\n")
+                        print_msg += " <-- Cutoff"
+                    print(print_msg)
 
         # Extract factor matrix b picking leading eigenvectors of V
-        factor_matrices[k] = V[:, pi[0 : ranks[k]]]
+        # NOTE: Plus 1 in pi slice for inclusive range to match MATLAB
+        factor_matrices[k] = V[:, pi[0 : ranks[k] + 1]]
 
         # Shrink!
         if sequential:
