@@ -1060,7 +1060,7 @@ class tensor:
             return Y
 
         if not isinstance(matrix, np.ndarray):
-            assert False, "matrix must be of type numpy.ndarray"
+            assert False, f"matrix must be of type numpy.ndarray but got:\n{matrix}"
 
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
             assert False, "dims must contain values in [0,self.dims)"

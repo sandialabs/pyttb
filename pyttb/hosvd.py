@@ -1,10 +1,21 @@
+"""Higher Order SVD Implementation"""
+import warnings
+from typing import List, Optional
+
 import numpy as np
 import scipy
 
 import pyttb as ttb
 
 
-def hosvd(tensor, tol, verbosity=1, dimorder=None, sequential=True, ranks=None):
+def hosvd(
+    tensor,
+    tol: float,
+    verbosity: float = 1,
+    dimorder: Optional[List[int]] = None,
+    sequential: bool = True,
+    ranks: Optional[List[int]] = None,
+):
     """Compute sequentially-truncated higher-order SVD (Tucker).
 
     Computes a Tucker decomposition with relative error
@@ -19,6 +30,16 @@ def hosvd(tensor, tol, verbosity=1, dimorder=None, sequential=True, ranks=None):
     dimorder: Order to loop through dimensions
     sequential: Use sequentially-truncated version
     ranks: Specify ranks to consider rather than computing
+
+    Example
+    -------
+    >>> data = np.array([[29, 39.], [63., 85.]])
+    >>> tol = 1e-4
+    >>> disable_printing = -1
+    >>> tensorInstance = ttb.tensor().from_data(data)
+    >>> result = hosvd(tensorInstance, tol, verbosity=disable_printing)
+    >>> ((result.full() - tensorInstance).norm() / tensorInstance.norm()) < tol
+    True
     """
     # In tucker als this is N
     d = tensor.ndims
@@ -54,11 +75,11 @@ def hosvd(tensor, tol, verbosity=1, dimorder=None, sequential=True, ranks=None):
         print(
             f"||X||^2 = {normxsqr: g}\n"
             f"tol = {tol: g}\n"
-            f"eigenvalue sum threshold = tol^2 ||X||^2 / d = {eigsumthresh: g}\n"
+            f"eigenvalue sum threshold = tol^2 ||X||^2 / d = {eigsumthresh: g}"
         )
 
     # Main Loop
-    factor_matrices = [None] * d
+    factor_matrices = [np.empty(1)] * d
     # Copy input tensor, shrinks every step for sequential
     Y = ttb.tensor.from_tensor_type(tensor)
 
@@ -97,8 +118,21 @@ def hosvd(tensor, tol, verbosity=1, dimorder=None, sequential=True, ranks=None):
     if sequential:
         G = Y
     else:
-        G = Y.ttm(Y, factor_matrices, transpose=True)
+        G = Y.ttm(factor_matrices, transpose=True)
 
     result = ttb.ttensor.from_data(G, factor_matrices)
-    # TODO final printout
+
+    if verbosity > 0:
+        diffnormsqr = ((tensor - result.full()) ** 2).collapse()
+        relnorm = np.sqrt(diffnormsqr / normxsqr)
+        print(f" Size of core: {G.shape}")
+        if relnorm <= tol:
+            print(f"||X-T||/||X|| = {relnorm: g} <=" f"{tol: f} (tol)")
+        else:
+            print(
+                "Tolerance not satisfied!! "
+                f"||X-T||/||X|| = {relnorm: g} >="
+                f"{tol: f} (tol)"
+            )
+            warnings.warn("Specified tolerance was not achieved")
     return result
