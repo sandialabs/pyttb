@@ -9,6 +9,7 @@ import warnings
 from pyttb.cp_als import cp_als
 from pyttb.cp_apr import *
 from pyttb.export_data import export_data
+from pyttb.hosvd import hosvd
 from pyttb.import_data import import_data
 from pyttb.khatrirao import khatrirao
 from pyttb.ktensor import ktensor
