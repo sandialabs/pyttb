@@ -310,9 +310,15 @@ def test_ttensor_ttm(random_ttensor):
 
     # Negative Tests
     big_wrong_size = 123
-    matrices[0] = np.random.random((big_wrong_size, big_wrong_size))
+    bad_matrices = matrices.copy()
+    bad_matrices[0] = np.random.random((big_wrong_size, big_wrong_size))
     with pytest.raises(ValueError):
-        _ = ttensorInstance.ttm(matrices, np.arange(len(matrices)))
+        _ = ttensorInstance.ttm(bad_matrices, np.arange(len(bad_matrices)))
+
+    with pytest.raises(ValueError):
+        # Negative dims currently broken, ensure we catch early and
+        # remove once resolved
+        ttensorInstance.ttm(matrices, -1)
 
 
 @pytest.mark.indevelopment
