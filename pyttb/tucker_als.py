@@ -124,14 +124,11 @@ def tucker_als(
 
         # Iterate over all N modes of the tensor
         for n in dimorder:
-            if (
-                n == 0
-            ):  # TODO proposal to change ttm to include_dims and exclude_dims to resolve -0 ambiguity
-                dims = np.arange(1, tensor.ndims)
-                Utilde = tensor.ttm(U, dims, True)
-            else:
-                Utilde = tensor.ttm(U, -n, True)
-
+            # TODO proposal to change ttm to include_dims and exclude_dims to resolve -0 ambiguity
+            dims = np.arange(0, tensor.ndims)
+            dims = dims[dims != n]
+            Utilde = tensor.ttm(U, dims, True)
+            print(f"Utilde[{n}] = {Utilde}")
             # Maximize norm(Utilde x_n W') wrt W and
             # maintain orthonormality of W
             U[n] = Utilde.nvecs(n, rank[n])
@@ -140,13 +137,11 @@ def tucker_als(
         core = Utilde.ttm(U, n, True)
 
         # Compute fit
-        # TODO this abs is missing from MATLAB, but I get negative numbers for trivial examples
         normresidual = np.sqrt(abs(normX**2 - core.norm() ** 2))
         fit = 1 - (normresidual / normX)  # fraction explained by model
         fitchange = abs(fitold - fit)
 
         if iter % printitn == 0:
-            print(f" NormX: {normX} Core norm: {core.norm()}")
             print(f" Iter {iter}: fit = {fit:e} fitdelta = {fitchange:7.1e}\n")
 
         # Check for convergence
