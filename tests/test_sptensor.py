@@ -231,6 +231,9 @@ def test_sptensor_subdims(sample_sptensor):
         sptensorInstance.subdims([[1], [1, 3]])
     assert "Number of subdimensions must equal number of dimensions" in str(excinfo)
 
+    with pytest.raises(ValueError):
+        sptensorInstance.subdims(("bad", "region", "types"))
+
 
 @pytest.mark.indevelopment
 def test_sptensor_ndims(sample_sptensor):
@@ -1632,6 +1635,13 @@ def test_sptensor_nvecs(sample_sptensor):
         "Greater than or equal to sptensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
         in str(record[0].message)
     )
+
+    # Negative test, check for only singleton dims
+    with pytest.raises(ValueError):
+        single_val_sptensor = ttb.sptensor.from_data(
+            np.array([[0, 0]]), np.array([1]), shape=(1, 1)
+        )
+        single_val_sptensor.nvecs(0, 0)
 
 
 @pytest.mark.indevelopment
