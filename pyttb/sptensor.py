@@ -5,7 +5,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Optional, Tuple, Union, overload
+from collections.abc import Sequence
+from typing import Any, Callable, List, Optional, Tuple, Union, cast, overload
 
 import numpy as np
 import scipy.sparse.linalg
@@ -157,6 +158,10 @@ class sptensor:
         Parameters
         ----------
         source: Source tensor to create sptensor from
+
+        Returns
+        -------
+        Generated Sparse Tensor
         """
         # Copy Constructor
         if isinstance(source, sptensor):
@@ -207,7 +212,7 @@ class sptensor:
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        Generated Sparse Tensor
         """
         # Random Tensor
         assert callable(function_handle), "function_handle must be callable"
@@ -241,21 +246,28 @@ class sptensor:
         return cls().from_data(subs, vals, shape)
 
     @classmethod
-    def from_aggregator(cls, subs, vals, shape=None, function_handle="sum") -> sptensor:
+    def from_aggregator(
+        cls,
+        subs: np.ndarray,
+        vals: np.ndarray,
+        shape: Optional[Tuple[int, ...]] = None,
+        function_handle: Union[str, Callable[[Any], Union[float, np.ndarray]]] = "sum",
+    ) -> sptensor:
         """
         Construct an sptensor from fully defined SUB, VAL and shape matrices,
         after an aggregation is applied
 
         Parameters
         ----------
-        subs: :class:`numpy.ndarray`
-        vals: :class:`numpy.ndarray`
-        shape: tuple
-        function_handle: callable
+        subs: location of non-zero entries
+        vals: values for non-zero entries
+        shape: shape of sparse tensor
+        function_handle: Aggregation function, or name of supported
+            aggregation function from numpy_groupies
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        Generated Sparse Tensor
 
         Examples
         --------
@@ -339,18 +351,33 @@ class sptensor:
 
         return s.astype(int)
 
-    def collapse(self, dims=None, fun="sum"):
+    def collapse(
+        self,
+        dims: Optional[np.ndarray] = None,
+        fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
+    ) -> Union[float, np.ndarray, sptensor]:
         """
         Collapse sparse tensor along specified dimensions.
 
         Parameters
         ----------
-        dims:
-        fun: callable
+        dims: Dimensions to collapse
+        fun: Method used to collapse dimensions
 
         Returns
         -------
+        Collapsed value
 
+        Example
+        -------
+        >>> subs = np.array([[1, 2], [1, 3]])
+        >>> vals = np.array([[1], [1]])
+        >>> shape = np.array([4, 4])
+        >>> X = ttb.sptensor.from_data(subs, vals, shape)
+        >>> X.collapse()
+        2
+        >>> X.collapse(np.arange(X.ndims), sum)
+        2
         """
         if dims is None:
             dims = np.arange(0, self.ndims)
@@ -360,8 +387,6 @@ class sptensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            if fun == "sum":
-                return sum(self.vals.transpose()[0])
             return fun(self.vals.transpose()[0])
 
         # Calculate the size of the result
@@ -385,19 +410,25 @@ class sptensor:
             )
         return ttb.sptensor.from_data(np.array([]), np.array([]), tuple(newsize))
 
-    def contract(self, i, j):
+    def contract(self, i: int, j: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
         """
         Contract tensor along two dimensions (array trace).
 
         Parameters
         ----------
-        i: int
-        j: int
+        i: First dimension
+        j: Second dimension
 
         Returns
         -------
+        Contracted sptensor, converted to tensor if sufficiently dense
 
-
+        Example
+        -------
+        >>> X = ttb.tensor.from_data(np.ones((2,2)))
+        >>> Y = sptensor.from_tensor_type(X)
+        >>> Y.contract(0, 1)
+        2.0
         """
         if self.shape[i] != self.shape[j]:
             assert False, "Must contract along equally sized dimensions"
@@ -444,20 +475,28 @@ class sptensor:
             a[tuple(self.subs.transpose())] = self.vals.transpose()[0]
         return a
 
-    def elemfun(self, function):
+    def elemfun(self, function_handle: Callable[[np.ndarray], np.ndarray]) -> sptensor:
         """
         Manipulate the non-zero elements of a sparse tensor
 
         Parameters
         ----------
-        function: callable
+        function_handle: Function that updates all values.
 
         Returns
         -------
-        :class:`Tensortoolbox.sptensor`
+        Updated sptensor
+
+        Example
+        -------
+        >>> X = ttb.tensor.from_data(np.ones((2,2)))
+        >>> Y = sptensor.from_tensor_type(X)
+        >>> Z = Y.elemfun(lambda values: values*2)
+        >>> Z.isequal(Y*2)
+        True
         """
 
-        vals = function(self.vals)
+        vals = function_handle(self.vals)
         idx = np.where(vals > 0)[0]
         if idx.size == 0:
             return ttb.sptensor.from_data(np.array([]), np.array([]), self.shape)
@@ -780,18 +819,18 @@ class sptensor:
         vals[idx] = self.vals[idx]
         return vals
 
-    def mttkrp(self, U, n):
+    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for sparse tensor.
 
         Parameters
         ----------
-        U: array of matrices or ktensor
-        n: multiplies by all modes except n
+        U: Matrices to create the Khatri-Rao product
+        n: Mode to matricize sptensor in
 
         Returns
         -------
-        :class:`numpy.ndarray`
+        Matrix product
 
         Examples
         --------
@@ -869,27 +908,28 @@ class sptensor:
         """
         return np.linalg.norm(self.vals)
 
-    def nvecs(self, n, r, flipsign=True):
+    def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
         Compute the leading mode-n vectors for a sparse tensor.
 
         Parameters
         ----------
-        n: mode for tensor matricization
-        r: number of eigenvalues
-        flipsign: Make each column's largest element positive if true
-
-        Returns
-        -------
-
+        n: Mode to unfold
+        r: Number of eigenvectors to compute
+        flipsign: Make each eigenvector's largest element positive
         """
         old = np.setdiff1d(np.arange(self.ndims), n).astype(int)
-        tnt = (
-            self.reshape((np.prod(np.array(self.shape)[old]), 1), old)
+        # tnt calculation is a workaround for missing sptenmat
+        mutatable_sptensor = (
+            sptensor.from_tensor_type(self)
+            .reshape((np.prod(np.array(self.shape)[old]), 1), old)
             .squeeze()
-            .spmatrix()
-            .transpose()
         )
+        if isinstance(mutatable_sptensor, (int, float, np.generic)):
+            raise ValueError(
+                "Cannot call nvecs on sptensor with only singleton dimensions"
+            )
+        tnt = mutatable_sptensor.spmatrix().transpose()
         y = tnt.transpose().dot(tnt)
         if r < y.shape[0] - 1:
             _, v = scipy.sparse.linalg.eigs(y, r)
@@ -1068,7 +1108,7 @@ class sptensor:
             return ttb.sptensor.from_data(np.array([]), np.array([]), siz)
         return ttb.sptensor.from_data(self.subs[:, idx], self.vals, siz)
 
-    def subdims(self, region):
+    def subdims(self, region: Sequence[Union[int, np.ndarray, slice]]) -> np.ndarray:
         """
         SUBDIMS Compute the locations of subscripts within a subdimension.
 
@@ -1116,34 +1156,39 @@ class sptensor:
         loc = np.arange(0, len(self.subs))
 
         for i in range(0, self.ndims):
-            if not isinstance(region[i], slice):
-                # Find subscripts that match in dimension i
-                tf = np.isin(self.subs[loc, i], region[i])
-
-                # Pare down the list of indices
-                loc = loc[tf]
-            else:
+            # TODO: Consider cleaner typing coercion
+            # Find subscripts that match in dimension i
+            if isinstance(region[i], (int, np.generic)):
+                tf = np.isin(self.subs[loc, i], cast(int, region[i]))
+            elif isinstance(region[i], (np.ndarray, list)):
+                tf = np.isin(self.subs[loc, i], cast(np.ndarray, region[i]))
+            elif isinstance(region[i], slice):
                 sliceRegion = range(0, self.shape[i])[region[i]]
-
                 tf = np.isin(self.subs[loc, i], sliceRegion)
+            else:
+                raise ValueError(
+                    f"Unexpected type in region sequence. "
+                    f"At index: {i} got {region[i]} with type {type(region[i])}"
+                )
 
-                # Pare down the list of indices
-                loc = loc[tf]
+            # Pare down the list of indices
+            loc = loc[tf]
+
         return loc
 
     # pylint: disable=too-many-branches, too-many-locals
-    def ttv(self, vector, dims=None):
+    def ttv(
+        self,
+        vector: Union[np.ndarray, List[np.ndarray]],
+        dims: Optional[Union[int, np.ndarray]] = None,
+    ) -> Union[sptensor, ttb.tensor]:
         """
         Sparse tensor times vector
 
         Parameters
         ----------
-        vector
-        dims
-
-        Returns
-        -------
-
+        vector: Vector(s) to multiply against
+        dims: Dimensions to multiply with vector(s)
         """
 
         if dims is None:
@@ -1154,7 +1199,7 @@ class sptensor:
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv([vector], dims)
+            return self.ttv(np.array([vector]), dims)
 
         # Get sorted dims and index for multiplicands
         dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))
@@ -2446,7 +2491,12 @@ class sptensor:
 
     __str__ = __repr__
 
-    def ttm(self, matrices, dims=None, transpose=False):
+    def ttm(
+        self,
+        matrices: Union[np.ndarray, List[np.ndarray]],
+        dims: Optional[Union[float, np.ndarray]] = None,
+        transpose: bool = False,
+    ):
         """
         Sparse tensor times matrix.
 
@@ -2464,7 +2514,7 @@ class sptensor:
             dims = np.arange(self.ndims)
         elif isinstance(dims, list):
             dims = np.array(dims)
-        elif np.isscalar(dims) or isinstance(dims, list):
+        elif isinstance(dims, (float, int, np.generic)):
             dims = np.array([dims])
 
         # Handle list of matrices
@@ -2488,20 +2538,20 @@ class sptensor:
         # Ensure this is the terminal single dimension case
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
             assert False, "dims must contain values in [0,self.dims)"
-        dims = dims[0]
+        final_dim: int = dims[0]
 
         # Compute the product
 
         # Check that sizes match
-        if self.shape[dims] != matrices.shape[1]:
+        if self.shape[final_dim] != matrices.shape[1]:
             assert False, "Matrix shape doesn't match tensor shape"
 
         # Compute the new size
         siz = np.array(self.shape)
-        siz[dims] = matrices.shape[0]
+        siz[final_dim] = matrices.shape[0]
 
         # Compute self[mode]'
-        Xnt = tt_to_sparse_matrix(self, dims, True)
+        Xnt = tt_to_sparse_matrix(self, final_dim, True)
 
         # Reshape puts the reshaped things after the unchanged modes, transpose then
         # puts it in front
@@ -2511,7 +2561,7 @@ class sptensor:
         Z = Xnt.dot(matrices.transpose())
 
         # Rearrange back into sparse tensor of correct shape
-        Ynt = tt_from_sparse_matrix(Z, siz, dims, idx)
+        Ynt = tt_from_sparse_matrix(Z, siz, final_dim, idx)
 
         if not isinstance(Z, np.ndarray) and Z.nnz <= 0.5 * np.prod(siz):
             return Ynt
