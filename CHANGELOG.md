@@ -1,3 +1,11 @@
+# v1.5.0 (2023-03-19)
+- New: 
+  - Added `hosvd` Tuecker decomposition (Issue #56, PR #67)
+  - Added `tucker_als` Tuecker decomposition (PR #66)
+  - Autoformatting using `black` and `isort` (Issue #59, PR #60)
+- Updated/Ongoing:
+  - Included more testing for improved coverage (Issue #78, PR #79)
+
 # v1.4.0 (2023-02-21)
 - New: 
   - Added `ttensor` class and associated tests (Issue #10, PR #51)
