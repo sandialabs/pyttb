@@ -23,13 +23,16 @@ def test_linting():
 
     enforced_files = [
         os.path.join(os.path.dirname(ttb.__file__), f"{ttb.tensor.__name__}.py"),
+        os.path.join(os.path.dirname(ttb.__file__), f"{ttb.sptensor.__name__}.py"),
+        ttb.pyttb_utils.__file__,
     ]
     # TODO pylint fails to import pyttb in tests
     # add mypy check
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
-    for a_file in enforced_files:
-        subprocess.run(f"pylint {a_file} --rcfile {toml_file}", check=True)
+    subprocess.run(
+        f"pylint {' '.join(enforced_files)} --rcfile {toml_file} -j0", check=True
+    )
 
 
 @pytest.mark.packaging

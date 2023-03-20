@@ -7,7 +7,7 @@ from __future__ import annotations
 import warnings
 from itertools import permutations
 from math import factorial
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse.linalg
@@ -179,9 +179,7 @@ class tensor:
     def collapse(
         self,
         dims: Optional[np.ndarray] = None,
-        fun: Union[
-            Literal["sum"], Callable[[np.ndarray], Union[float, np.ndarray]]
-        ] = "sum",
+        fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
     ) -> Union[float, np.ndarray, tensor]:
         """
         Collapse tensor along specified dimensions.
@@ -200,7 +198,7 @@ class tensor:
         >>> X = ttb.tensor.from_data(np.ones((2,2)))
         >>> X.collapse()
         4.0
-        >>> X.collapse(np.arange(X.ndims), lambda values: sum(values))
+        >>> X.collapse(np.arange(X.ndims), sum)
         4.0
         """
         if self.data.size == 0:
@@ -217,8 +215,6 @@ class tensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            if fun == "sum":
-                return sum(self.data.flatten("F"))
             return fun(self.data.flatten("F"))
 
         ## Calculate the shape of the result
@@ -230,10 +226,7 @@ class tensor:
         ## Apply the collapse function
         B = np.zeros((A.shape[0], 1))
         for i in range(0, A.shape[0]):
-            if fun == "sum":
-                B[i] = np.sum(A[i, :])
-            else:
-                B[i] = fun(A[i, :])
+            B[i] = fun(A[i, :])
 
         ## Form and return the final result
         return ttb.tensor.from_data(B, newshape)
@@ -413,7 +406,7 @@ class tensor:
             return other.innerprod(self)
         assert False, "Inner product between tensor and that class is not supported"
 
-    def isequal(self, other: Union[tensor, ttb.sptensor]) -> Union[bool, np.bool_]:
+    def isequal(self, other: Union[tensor, ttb.sptensor]) -> bool:
         """
         Exact equality for tensors
 
@@ -429,9 +422,9 @@ class tensor:
         False
         """
         if isinstance(other, ttb.tensor):
-            return np.all(self.data == other.data)
+            return bool(np.all(self.data == other.data))
         if isinstance(other, ttb.sptensor):
-            return np.all(self.data == other.full().data)
+            return bool(np.all(self.data == other.full().data))
         return False
 
     # TODO: We should probably always return details and let caller drop them

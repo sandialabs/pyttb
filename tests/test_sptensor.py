@@ -9,6 +9,7 @@ import pytest
 import scipy.sparse as sparse
 
 import pyttb as ttb
+from pyttb.sptensor import tt_from_sparse_matrix, tt_to_sparse_matrix
 
 
 @pytest.fixture()
@@ -229,6 +230,9 @@ def test_sptensor_subdims(sample_sptensor):
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.subdims([[1], [1, 3]])
     assert "Number of subdimensions must equal number of dimensions" in str(excinfo)
+
+    with pytest.raises(ValueError):
+        sptensorInstance.subdims(("bad", "region", "types"))
 
 
 @pytest.mark.indevelopment
@@ -1131,7 +1135,7 @@ def test_sptensor_innerprod(sample_sptensor):
     # Wrong type for innerprod
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.innerprod(5)
-    assert "Inner product between sptensor and that class not supported" in str(excinfo)
+    assert f"Inner product between sptensor and {type(5)} not supported" in str(excinfo)
 
 
 @pytest.mark.indevelopment
@@ -1632,6 +1636,13 @@ def test_sptensor_nvecs(sample_sptensor):
         in str(record[0].message)
     )
 
+    # Negative test, check for only singleton dims
+    with pytest.raises(ValueError):
+        single_val_sptensor = ttb.sptensor.from_data(
+            np.array([[0, 0]]), np.array([1]), shape=(1, 1)
+        )
+        single_val_sptensor.nvecs(0, 0)
+
 
 @pytest.mark.indevelopment
 def test_sptensor_ttm(sample_sptensor):
@@ -1708,3 +1719,39 @@ def test_sptensor_ttm(sample_sptensor):
         4,
         1,
     )
+
+
+@pytest.mark.indevelopment
+def test_sptensor_to_sparse_matrix():
+    subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
+    vals = np.array([[0.5], [1.5], [2.5], [3.5]])
+    shape = (4, 4, 4)
+    mode0 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
+    mode1 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
+    mode2 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 5, 10, 15], [1, 3, 2, 3])))
+    Ynt = [mode0, mode1, mode2]
+    sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
+
+    for mode in range(sptensorInstance.ndims):
+        Xnt = tt_to_sparse_matrix(sptensorInstance, mode, True)
+        assert (Xnt != Ynt[mode]).nnz == 0
+        assert Xnt.shape == Ynt[mode].shape
+
+
+@pytest.mark.indevelopment
+def test_sptensor_from_sparse_matrix():
+    subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
+    vals = np.array([[0.5], [1.5], [2.5], [3.5]])
+    shape = (4, 4, 4)
+    sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
+    for mode in range(sptensorInstance.ndims):
+        sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
+        Xnt = tt_to_sparse_matrix(sptensorCopy, mode, True)
+        Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 0)
+        assert sptensorCopy.isequal(Ynt)
+
+    for mode in range(sptensorInstance.ndims):
+        sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
+        Xnt = tt_to_sparse_matrix(sptensorCopy, mode, False)
+        Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 1)
+        assert sptensorCopy.isequal(Ynt)
