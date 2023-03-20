@@ -115,7 +115,9 @@ def test_hosvd_3way(capsys, sample_tensor_3way):
             [-8.359253825873615e-01, -3.668270547267537e-01],
         ]
     )
-    assert np.allclose(M.core.data, core)
-    assert np.allclose(M.u[0], fm0)
-    assert np.allclose(M.u[1], fm1)
-    assert np.allclose(M.u[2], fm2)
+    expected = ttb.ttensor.from_data(ttb.tensor.from_data(core), [fm0, fm1, fm2])
+    assert np.allclose(M.double(), expected.double())
+    assert np.allclose(np.abs(M.core.data), np.abs(core))
+    assert np.allclose(np.abs(M.u[0]), np.abs(fm0))
+    assert np.allclose(np.abs(M.u[1]), np.abs(fm1))
+    assert np.allclose(np.abs(M.u[2]), np.abs(fm2))
