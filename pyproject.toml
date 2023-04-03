@@ -34,7 +34,10 @@ dev = [
     "mypy",
     "pytest",
     "pytest-cov",
-    "pre-commit"
+    "pre-commit",
+]
+doc = [
+    "sphinx_rtd_theme",
 ]
 
 [tool.setuptools]
