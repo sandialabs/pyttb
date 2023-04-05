@@ -27,9 +27,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install numpy scipy numpy_groupies pytest-cov coverage coveralls \
-          sphinx_rtd_theme isort black pylint mypy
-        pip install .
+        python -m pip install coverage coveralls sphinx_rtd_theme
+        pip install ".[dev]"
     - name: Check auto-formatters
       run: |
         isort --check .
