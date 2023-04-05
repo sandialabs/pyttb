@@ -34,7 +34,6 @@ dev = [
     "mypy",
     "pytest",
     "pytest-cov",
-    "pre-commit",
 ]
 doc = [
     "sphinx_rtd_theme",
