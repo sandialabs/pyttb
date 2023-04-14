@@ -4,6 +4,7 @@ dynamic = ["version"]
 description = "Python Tensor Toolbox"
 authors = [
   {name="Daniel M. Dunlavy", email="dmdunla@sandia.gov"},
+  {name="Nick Johnson"},
 ]
 license = { text="BSD 2-Clause License" }
 readme = "README.md"
