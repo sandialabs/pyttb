@@ -163,7 +163,7 @@ def tt_dimscheck(
             raise ValueError(
                 f"Exclude dims provided: {exclude_dims} "
                 f"but, {exclude_dims[invalid_indices]} were out of valid range"
-                f"[0,{N+1}]"
+                f"[0,{N}]"
             )
         dim_array = np.setdiff1d(np.arange(0, N), exclude_dims)
 

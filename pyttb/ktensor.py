@@ -1866,7 +1866,7 @@ class ktensor(object):
          [2. 4.]]
         """
 
-        if dims is None:
+        if dims is None and exclude_dims is None:
             dims = np.array([])
         elif isinstance(dims, (float, int)):
             dims = np.array([dims])

@@ -2545,8 +2545,8 @@ class sptensor:
         if transpose:
             matrices = matrices.transpose()
 
-        # FIXME: Check this
-        if not isinstance(dims, np.ndarray):
+        # FIXME: This made typing happy but shouldn't be possible
+        if not isinstance(dims, np.ndarray):  # pragma: no cover
             raise ValueError("Dims should be an array here")
 
         # Ensure this is the terminal single dimension case

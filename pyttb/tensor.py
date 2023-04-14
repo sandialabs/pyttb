@@ -1035,7 +1035,6 @@ class tensor:
         exclude_dims: Use all dimensions but these
         transpose: Transpose matrices during multiplication
         """
-
         if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
         elif isinstance(dims, list):
@@ -1065,12 +1064,15 @@ class tensor:
             assert False, "dims must contain values in [0,self.dims)"
 
         # old version (ver=0)
-        shape = np.array(self.shape)
+        shape = np.array(self.shape, dtype=int)
         n = dims[0]
         order = np.array([n] + list(range(0, n)) + list(range(n + 1, self.ndims)))
         newdata = self.permute(order).data
         ids = np.array(list(range(0, n)) + list(range(n + 1, self.ndims)))
-        newdata = np.reshape(newdata, (shape[n], np.prod(shape[ids])), order="F")
+        second_dim = 1
+        if len(ids) > 0:
+            second_dim = np.prod(shape[ids])
+        newdata = np.reshape(newdata, (shape[n], second_dim), order="F")
         if transpose:
             newdata = matrix.T @ newdata
             p = matrix.shape[1]
@@ -1126,8 +1128,6 @@ class tensor:
         # Avoid transpose by reshaping self and computing result = self * other
         amatrix = ttb.tenmat.from_tensor_type(self, cdims=selfdims)
         bmatrix = ttb.tenmat.from_tensor_type(other, rdims=otherdims)
-        print(amatrix)
-        print(bmatrix)
         cmatrix = amatrix * bmatrix
 
         # Check whether or not the result is a scalar

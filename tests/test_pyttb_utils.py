@@ -106,6 +106,16 @@ def test_tt_dimscheck():
         ttb.tt_dimscheck(6, 4, exclude_dims=np.array([0]))
     assert "Invalid number of multiplicands" in str(excinfo)
 
+    # Both dims and exclude dims
+    with pytest.raises(ValueError) as excinfo:
+        ttb.tt_dimscheck(6, dims=[], exclude_dims=[])
+    assert "not both" in str(excinfo)
+
+    # We no longer support negative dims. Make sure that is explicit
+    with pytest.raises(ValueError) as excinfo:
+        ttb.tt_dimscheck(6, dims=np.array([-1]))
+    assert "Negative dims" in str(excinfo), f"{str(excinfo)}"
+
 
 @pytest.mark.indevelopment
 def test_tt_tenfun():

@@ -232,6 +232,11 @@ def test_ttensor_ttv(sample_ttensor):
         ttensorInstance.full().ttv(trivial_vectors[0], 0).double(),
     )
 
+    assert np.allclose(
+        ttensorInstance.ttv(trivial_vectors[0:2], exclude_dims=0).double(),
+        ttensorInstance.full().ttv(trivial_vectors[0:2], exclude_dims=0).double(),
+    )
+
     # Negative tests
     wrong_shape_vector = trivial_vectors.copy()
     wrong_shape_vector[0] = np.array([mul_factor, mul_factor])
@@ -292,6 +297,11 @@ def test_ttensor_ttm(random_ttensor):
         matrices, list(range(len(matrices)))
     )  # Dims as list
     assert final_value.isequal(reverse_value)
+
+    # Exclude Dims
+    assert ttensorInstance.ttm(matrices[1:], exclude_dims=0).isequal(
+        ttensorInstance.ttm(matrices[1:], dims=np.array([1, 2]))
+    )
 
     single_tensor_result = ttensorInstance.ttm(matrices[0], 0)
     single_tensor_full_result = ttensorInstance.full().ttm(matrices[0], 0)

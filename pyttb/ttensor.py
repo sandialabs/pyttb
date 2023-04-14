@@ -323,7 +323,7 @@ class ttensor(object):
         vector: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
         dims: :class:`Numpy.ndarray`, int
         """
-        if dims is None:
+        if dims is None and exclude_dims is None:
             dims = np.array([])
         # TODO make helper function to check scalar since re-used many places
         elif isinstance(dims, (float, int)):
@@ -334,7 +334,7 @@ class ttensor(object):
 
         # Check that vector is a list of vectors, if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv(np.array([vector]), dims)
+            return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands
         dims, vidx = ttb_utils.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
@@ -348,7 +348,7 @@ class ttensor(object):
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
 
         # Create W to multiply with core, only populated remaining dims
-        W = [None] * len(dims)
+        W = [None] * self.ndims
         for i in range(dims.size):
             dim_idx = dims[i]
             W[dim_idx] = self.u[dim_idx].transpose().dot(vector[vidx[i]])
