@@ -2,7 +2,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-__version__ = "1.5.1"
+__version__ = "1.5.1dev"
 
 import warnings
 
