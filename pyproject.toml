@@ -26,6 +26,22 @@ homepage = "https://github.com/sandialabs/pyttb"
 coverage = "https://coveralls.io/github/sandialabs/pyttb"
 documentation = "https://pyttb.readthedocs.io"
 
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "pylint",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+]
+doc = [
+    "sphinx_rtd_theme",
+]
+
+[tool.setuptools]
+packages=["pyttb"]
+
 [build-system]
 requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"

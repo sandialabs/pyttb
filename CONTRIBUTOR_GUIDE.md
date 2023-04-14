@@ -7,15 +7,15 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
 ## Working on PYTTB locally
 1. clone your fork and enter the directory
     ```
-    git clone git@github.com:<your username>/pyttb.git
-    cd pyttb
+    $ git clone git@github.com:<your username>/pyttb.git
+    $ cd pyttb
     ```
     1. setup your desired python environment as appropriate
 
 1. install dependencies
     ```
-    We use a mix of pyproject.toml, and setup.py currently. We are
-    still iterating on simplifying the setup procedure.
+    $ pip install -e ".[dev]"
+    $ make install_dev # shorthand for above
     ```
 
 1. Checkout a branch and make your changes
@@ -25,9 +25,10 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
 1. Formatters and linting
    1. Run autoformatters from root of project (they will change your code)
        ```commandline
-       isort .
-       black .
+       $ isort .
+       $ black .
        ```
+      1. [We](./.pre-commit-config.yaml) optionally support [pre-commit hooks](https://pre-commit.com/) for this
    1. Pylint and mypy coverage is work in progress (these only raise errors)
       ```commandline
       mypy pyttb/
