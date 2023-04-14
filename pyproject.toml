@@ -1,6 +1,6 @@
 [project]
 name = "pyttb"
-version = "1.5.0"
+dynamic = ["version"]
 description = "Python Tensor Toolbox"
 authors = [
   {name="Daniel M. Dunlavy", email="dmdunla@sandia.gov"},
@@ -40,7 +40,10 @@ doc = [
 ]
 
 [tool.setuptools]
-packages=["pyttb"]
+packages = ["pyttb"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyttb.__version__"}
 
 [build-system]
 requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
