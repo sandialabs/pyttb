@@ -13,8 +13,10 @@ def test_formatting():
 
     source_dir = os.path.dirname(ttb.__file__)
     root_dir = os.path.dirname(source_dir)
-    subprocess.run(f"isort {root_dir} --check --settings-path {root_dir}", check=True)
-    subprocess.run(f"black --check {root_dir}", check=True)
+    subprocess.run(
+        f"isort {root_dir} --check --settings-path {root_dir}", check=True, shell=True
+    )
+    subprocess.run(f"black --check {root_dir}", check=True, shell=True)
 
 
 @pytest.mark.packaging
@@ -31,7 +33,9 @@ def test_linting():
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
     subprocess.run(
-        f"pylint {' '.join(enforced_files)} --rcfile {toml_file} -j0", check=True
+        f"pylint {' '.join(enforced_files)} --rcfile {toml_file} -j0",
+        check=True,
+        shell=True,
     )
 
 
@@ -40,4 +44,4 @@ def test_typing():
     """Run type checker on package"""
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
-    subprocess.run(f"mypy -p pyttb  --config-file {toml_file}", check=True)
+    subprocess.run(f"mypy -p pyttb  --config-file {toml_file}", check=True, shell=True)
