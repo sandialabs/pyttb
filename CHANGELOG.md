@@ -1,3 +1,13 @@
+# v1.5.1 (2023-04-14)
+- New:
+  - Dev Support: 
+    - Linting: support for `pyttb_utils` and `sptensor` (PR https://github.com/sandialabs/pyttb/pull/77)
+    - Pre-commit: support @ntjohnson1 in (PR https://github.com/sandialabs/pyttb/pull/83)
+- Fixed/Completed:
+  - `hosvd`: Negative signs can be permuted for equivalent decomposition (PR https://github.com/sandialabs/pyttb/pull/82)
+  - Versioning: using dynamic version in pyproject.toml (PR https://github.com/sandialabs/pyttb/pull/86)
+  - Package Testing: fixed problem with subprocesses (PR https://github.com/sandialabs/pyttb/pull/87)
+
 # v1.5.0 (2023-03-19)
 - New: 
   - Added `hosvd` Tuecker decomposition (Issue #56, PR #67)
