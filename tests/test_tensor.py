@@ -1102,7 +1102,7 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert (T3.data == data3).all()
 
     # 3-way, two matrices, negative dimension
-    T3 = tensorInstance3.ttm([M2, M2], -2)
+    T3 = tensorInstance3.ttm([M2, M2], exclude_dims=1)
     assert isinstance(T3, ttb.tensor)
     assert T3.shape == (2, 3, 2)
     data3 = np.array(
@@ -1258,20 +1258,20 @@ def test_tensor_ttsv(sample_tensor_4way):
     vector3 = np.array([4, 3, 2, 1])
     assert tensorInstance3.ttsv(vector3, version=1) == 1000
     assert (
-        tensorInstance3.ttsv(vector3, dims=-1, version=1) == 100 * np.ones((4,))
+        tensorInstance3.ttsv(vector3, skip_dim=0, version=1) == 100 * np.ones((4,))
     ).all()
     assert (
-        tensorInstance3.ttsv(vector3, dims=-2, version=1) == 10 * np.ones((4, 4))
+        tensorInstance3.ttsv(vector3, skip_dim=1, version=1) == 10 * np.ones((4, 4))
     ).all()
 
     # Invalid dims
-    with pytest.raises(AssertionError) as excinfo:
-        tensorInstance3.ttsv(vector3, dims=1)
+    with pytest.raises(ValueError) as excinfo:
+        tensorInstance3.ttsv(vector3, skip_dim=-1)
     assert "Invalid modes in ttsv" in str(excinfo)
 
     # 4-way tensor
     (params4, tensorInstance4) = sample_tensor_4way
-    T4ttsv = tensorInstance4.ttsv(np.array([1, 2, 3]), -3, version=1)
+    T4ttsv = tensorInstance4.ttsv(np.array([1, 2, 3]), 2, version=1)
     data4_3 = np.array(
         [
             [[222, 276, 330], [240, 294, 348], [258, 312, 366]],
@@ -1284,7 +1284,7 @@ def test_tensor_ttsv(sample_tensor_4way):
     # 5-way dense tensor
     shape = (3, 3, 3, 3, 3)
     T5 = ttb.tensor.from_data(np.arange(1, np.prod(shape) + 1), shape)
-    T5ttsv = T5.ttsv(np.array([1, 2, 3]), -3, version=1)
+    T5ttsv = T5.ttsv(np.array([1, 2, 3]), 2, version=1)
     data5_3 = np.array(
         [
             [[5220, 5544, 5868], [5328, 5652, 5976], [5436, 5760, 6084]],
@@ -1298,16 +1298,16 @@ def test_tensor_ttsv(sample_tensor_4way):
 
     # 3-way
     assert tensorInstance3.ttsv(vector3) == 1000
-    assert (tensorInstance3.ttsv(vector3, dims=-1) == 100 * np.ones((4,))).all()
-    assert (tensorInstance3.ttsv(vector3, dims=-2) == 10 * np.ones((4, 4))).all()
+    assert (tensorInstance3.ttsv(vector3, 0) == 100 * np.ones((4,))).all()
+    assert (tensorInstance3.ttsv(vector3, 1) == 10 * np.ones((4, 4))).all()
 
     # 4-way tensor
-    T4ttsv2 = tensorInstance4.ttsv(np.array([1, 2, 3]), -3)
+    T4ttsv2 = tensorInstance4.ttsv(np.array([1, 2, 3]), 2)
     assert (T4ttsv2.data == data4_3).all()
 
     # Incorrect version requested
     with pytest.raises(AssertionError) as excinfo:
-        tensorInstance4.ttsv(np.array([1, 2, 3]), -3, version=3)
+        tensorInstance4.ttsv(np.array([1, 2, 3]), 2, version=3)
     assert "Invalid value for version; should be None, 1, or 2" in str(excinfo)
 
 

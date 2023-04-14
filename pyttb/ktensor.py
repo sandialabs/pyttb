@@ -1792,7 +1792,7 @@ class ktensor(object):
         #         offset += f.shape[0]
         return x
 
-    def ttv(self, vector, dims=None):
+    def ttv(self, vector, dims=None, exclude_dims=None):
         """
         `Tensor` times vector for `ktensors`.
 
@@ -1833,7 +1833,7 @@ class ktensor(object):
         >>> weights = 2 * np.ones(rank)
         >>> weights_and_data = np.concatenate((weights, data), axis=0)
         >>> K = ttb.ktensor.from_vector(weights_and_data[:], shape, True)
-        >>> K0 = K.ttv(np.array([1, 1, 1]), dims=1) # compute along a single dimension
+        >>> K0 = K.ttv(np.array([1, 1, 1]),dims=1) # compute along a single dimension
         >>> print(K0)
         ktensor of shape 2 x 4
         weights=[36. 54.]
@@ -1857,7 +1857,7 @@ class ktensor(object):
 
         Compute the product of a `ktensor` and multiple vectors out of order (results in a `ktensor`):
 
-        >>> K2 = K.ttv([vec4, vec3], np.array([2, 1]))
+        >>> K2 = K.ttv([vec4, vec3],np.array([2, 1]))
         >>> print(K2)
         ktensor of shape 2
         weights=[1800. 3564.]
@@ -1871,12 +1871,15 @@ class ktensor(object):
         elif isinstance(dims, (float, int)):
             dims = np.array([dims])
 
+        if isinstance(exclude_dims, (float, int)):
+            exclude_dims = np.array([exclude_dims])
+
         # Check that vector is a list of vectors, if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv([vector], dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))
+        dims, vidx = ttb.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):

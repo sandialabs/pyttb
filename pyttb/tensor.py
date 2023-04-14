@@ -210,7 +210,7 @@ class tensor:
         if dims.size == 0:
             return ttb.tensor.from_tensor_type(self)
 
-        dims, _ = tt_dimscheck(dims, self.ndims)
+        dims, _ = tt_dimscheck(self.ndims, dims=dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
 
         # Check for the case where we accumulate over *all* dimensions
@@ -1022,6 +1022,7 @@ class tensor:
         self,
         matrix: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[float, np.ndarray]] = None,
+        exclude_dims: Optional[Union[int, np.ndarray]] = None,
         transpose: bool = False,
     ) -> tensor:
         """
@@ -1031,28 +1032,34 @@ class tensor:
         ----------
         matrix: Matrix or matrices to multiple by
         dims: Dimensions to multiply against
+        exclude_dims: Use all dimensions but these
         transpose: Transpose matrices during multiplication
         """
 
-        if dims is None:
+        if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
         elif isinstance(dims, list):
             dims = np.array(dims)
         elif isinstance(dims, (float, int, np.generic)):
             dims = np.array([dims])
 
+        if isinstance(exclude_dims, (float, int)):
+            exclude_dims = np.array([exclude_dims])
+
         if isinstance(matrix, list):
             # Check that the dimensions are valid
-            dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(matrix))
+            dims, vidx = ttb.tt_dimscheck(self.ndims, len(matrix), dims, exclude_dims)
 
             # Calculate individual products
-            Y = self.ttm(matrix[vidx[0]], dims[0], transpose)
+            Y = self.ttm(matrix[vidx[0]], dims[0], transpose=transpose)
             for k in range(1, dims.size):
-                Y = Y.ttm(matrix[vidx[k]], dims[k], transpose)
+                Y = Y.ttm(matrix[vidx[k]], dims[k], transpose=transpose)
             return Y
 
         if not isinstance(matrix, np.ndarray):
             assert False, f"matrix must be of type numpy.ndarray but got:\n{matrix}"
+
+        dims, _ = ttb.tt_dimscheck(self.ndims, dims=dims, exclude_dims=exclude_dims)
 
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
             assert False, "dims must contain values in [0,self.dims)"
@@ -1132,6 +1139,7 @@ class tensor:
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[int, np.ndarray]] = None,
+        exclude_dims: Optional[Union[int, np.ndarray]] = None,
     ) -> tensor:
         """
         Tensor times vector
@@ -1140,20 +1148,24 @@ class tensor:
         ----------
         vector: Vector(s) to multiply against
         dims: Dimensions to multiply with vector(s)
+        exclude_dims: Use all dimensions but these
         """
 
-        if dims is None:
+        if dims is None and exclude_dims is None:
             dims = np.array([])
         elif isinstance(dims, (float, int)):
             dims = np.array([dims])
 
+        if isinstance(exclude_dims, (float, int)):
+            exclude_dims = np.array([exclude_dims])
+
         # Check that vector is a list of vectors, if not place single vector as element
         # in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv(np.array([vector]), dims)
+            return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))
+        dims, vidx = ttb.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):
@@ -1185,7 +1197,7 @@ class tensor:
     def ttsv(
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[int, np.ndarray]] = None,
+        skip_dim: Optional[int] = None,
         version: Optional[int] = None,
     ) -> Union[np.ndarray, tensor]:
         """
@@ -1194,30 +1206,30 @@ class tensor:
         Parameters
         ----------
         vector: Vector(s) to multiply against
-        dims: Dimensions to multiply by vector(s)
+        skip_dim: Multiply tensor by vector in all dims except [0, skip_dim]
         """
         # Only two simple cases are supported
-        if dims is None:
-            dims = 0
-        elif dims > 0:
-            assert False, "Invalid modes in ttsv"
+        if skip_dim is None:
+            exclude_dims = None
+            skip_dim = -1  # For easier math later
+        elif skip_dim < 0:
+            raise ValueError("Invalid modes in ttsv")
+        else:
+            exclude_dims = np.arange(0, skip_dim + 1)
 
         if version == 1:  # Calculate the old way
             P = self.ndims
             X = np.array([vector for i in range(P)])
-            # pylint: disable=invalid-unary-operand-type
-            if dims == 0:
-                return self.ttv(X)
-            if dims in (-1, -2):  # Return scalar or matrix
-                return (self.ttv(X, -np.arange(1, -dims + 1))).double()
-            return self.ttv(X, -np.arange(1, -dims + 1))
+            if skip_dim in (0, 1):  # Return scalar or matrix
+                return self.ttv(X, exclude_dims=exclude_dims).double()
+            return self.ttv(X, exclude_dims=exclude_dims)
 
         if version == 2 or version is None:  # Calculate the new way
             d = self.ndims
             sz = self.shape[0]  # Sizes of all modes must be the same
 
             # pylint: disable=invalid-unary-operand-type
-            dnew = -dims  # Number of modes in result
+            dnew = skip_dim + 1  # Number of modes in result
             drem = d - dnew  # Number of modes multiplied out
 
             y = self.data

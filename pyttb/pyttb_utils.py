@@ -114,17 +114,30 @@ def tt_union_rows(MatrixA, MatrixB):
 
 
 @overload
-def tt_dimscheck(dims: np.ndarray, N: int, M: None = None) -> Tuple[np.ndarray, None]:
+def tt_dimscheck(
+    N: int,
+    M: None = None,
+    dims: Optional[np.ndarray] = None,
+    exclude_dims: Optional[np.ndarray] = None,
+) -> Tuple[np.ndarray, None]:
     ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
-def tt_dimscheck(dims: np.ndarray, N: int, M: int) -> Tuple[np.ndarray, np.ndarray]:
+def tt_dimscheck(
+    N: int,
+    M: int,
+    dims: Optional[np.ndarray] = None,
+    exclude_dims: Optional[np.ndarray] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
     ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_dimscheck(
-    dims: np.ndarray, N: int, M: Optional[int] = None
+    N: int,
+    M: Optional[int] = None,
+    dims: Optional[np.ndarray] = None,
+    exclude_dims: Optional[np.ndarray] = None,
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """
     Used to preprocess dimensions for tensor dimensions
@@ -136,24 +149,43 @@ def tt_dimscheck(
     -------
 
     """
-    # Fix empty case
-    if dims.size == 0:
-        dims = np.arange(0, N)
+    if dims is not None and exclude_dims is not None:
+        raise ValueError("Either specify dims to include or exclude, but not both")
 
-    # Fix "minus" case
-    if np.max(dims) < 0:
+    dim_array: np.ndarray = np.empty((1,))
+
+    # Explicit exclude to resolve ambiguous -0
+    if exclude_dims is not None:
         # Check that all members in range
-        if not np.all(np.isin(-dims, np.arange(0, N + 1))):
-            assert False, "Invalid magnitude for negative dims selection"
-        dims = np.setdiff1d(np.arange(1, N + 1), -dims) - 1
+        valid_indices = np.isin(exclude_dims, np.arange(0, N))
+        if not np.all(valid_indices):
+            invalid_indices = np.logical_not(valid_indices)
+            raise ValueError(
+                f"Exclude dims provided: {exclude_dims} "
+                f"but, {exclude_dims[invalid_indices]} were out of valid range"
+                f"[0,{N+1}]"
+            )
+        dim_array = np.setdiff1d(np.arange(0, N), exclude_dims)
+
+    # Fix empty case
+    if (dims is None or dims.size == 0) and exclude_dims is None:
+        dim_array = np.arange(0, N)
+    elif isinstance(dims, np.ndarray):
+        dim_array = dims
+
+    # Catch minus case to avoid silent errors
+    if np.any(dim_array < 0):
+        raise ValueError(
+            "Negative dims aren't allowed in pyttb, see exclude_dims argument instead"
+        )
 
     # Save dimensions of dims
-    P = len(dims)
+    P = len(dim_array)
 
     # Reorder dims from smallest to largest (this matters in particular for the vector
     # multiplicand case, where the order affects the result)
-    sidx = np.argsort(dims)
-    sdims = dims[sidx]
+    sidx = np.argsort(dim_array)
+    sdims = dim_array[sidx]
     vidx = None
 
     if M is not None:

@@ -314,7 +314,7 @@ class ttensor(object):
             return self.__mul__(other)
         raise ValueError("This object cannot be multiplied by ttensor")
 
-    def ttv(self, vector, dims=None):
+    def ttv(self, vector, dims=None, exclude_dims=None):
         """
         TTensor times vector
 
@@ -329,12 +329,15 @@ class ttensor(object):
         elif isinstance(dims, (float, int)):
             dims = np.array([dims])
 
+        if isinstance(exclude_dims, (float, int)):
+            exclude_dims = np.array([exclude_dims])
+
         # Check that vector is a list of vectors, if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv(np.array([vector]), dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb_utils.tt_dimscheck(dims, self.ndims, len(vector))
+        dims, vidx = ttb_utils.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):
@@ -420,7 +423,7 @@ class ttensor(object):
         new_u = [self.u[idx] for idx in order]
         return ttensor.from_data(new_core, new_u)
 
-    def ttm(self, matrix, dims=None, transpose=False):
+    def ttm(self, matrix, dims=None, exclude_dims=None, transpose=False):
         """
         Tensor times matrix for ttensor
 
@@ -430,7 +433,7 @@ class ttensor(object):
         dims: :class:`Numpy.ndarray`, int
         transpose: bool
         """
-        if dims is None:
+        if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
         elif isinstance(dims, list):
             dims = np.array(dims)
@@ -439,11 +442,14 @@ class ttensor(object):
                 raise ValueError("Negative dims is currently unsupported, see #62")
             dims = np.array([dims])
 
+        if isinstance(exclude_dims, (float, int)):
+            exclude_dims = np.array([exclude_dims])
+
         if not isinstance(matrix, list):
-            return self.ttm([matrix], dims, transpose)
+            return self.ttm([matrix], dims, exclude_dims, transpose)
 
         # Check that the dimensions are valid
-        dims, vidx = ttb_utils.tt_dimscheck(dims, self.ndims, len(matrix))
+        dims, vidx = ttb_utils.tt_dimscheck(self.ndims, len(matrix), dims, exclude_dims)
 
         # Determine correct size index
         size_idx = int(not transpose)
