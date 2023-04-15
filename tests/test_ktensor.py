@@ -1005,6 +1005,11 @@ def test_ktensor_ttv(sample_ktensor_3way):
     vec4 = np.array([1, 1, 1, 1])
     assert K.ttv([vec2, vec3, vec4]) == 30348
 
+    # Exclude dims should mirror dims
+    assert K.ttv([vec2, vec3], dims=np.array([0, 1])).isequal(
+        K.ttv([vec2, vec3], exclude_dims=2)
+    )
+
     # Wrong shape
     with pytest.raises(AssertionError) as excinfo:
         K.ttv([vec2, vec3, np.array([1, 2])])

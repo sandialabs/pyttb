@@ -1667,6 +1667,9 @@ def test_sptensor_ttm(sample_sptensor):
     assert sptensorInstance.ttm(list_of_matrices, dims=[0, 1, 2]).isequal(
         sptensorInstance
     )
+    assert sptensorInstance.ttm(list_of_matrices, exclude_dims=2).isequal(
+        sptensorInstance.ttm(list_of_matrices[0:-1], dims=[0, 1])
+    )
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.ttm(sparse.coo_matrix(np.ones((5, 5))), dims=0)

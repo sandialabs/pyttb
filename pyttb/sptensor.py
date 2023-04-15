@@ -382,7 +382,7 @@ class sptensor:
         if dims is None:
             dims = np.arange(0, self.ndims)
 
-        dims, _ = tt_dimscheck(dims, self.ndims)
+        dims, _ = tt_dimscheck(self.ndims, dims=dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
 
         # Check for the case where we accumulate over *all* dimensions
@@ -882,7 +882,7 @@ class sptensor:
                 else:
                     Z.append(np.array([]))
             # Perform ttv multiplication
-            V[:, r] = self.ttv(Z, -(n + 1)).double()
+            V[:, r] = self.ttv(Z, exclude_dims=n).double()
 
         return V
 
@@ -1044,7 +1044,7 @@ class sptensor:
         """
         if isinstance(dims, (float, int)):
             dims = np.array([dims])
-        dims, _ = ttb.tt_dimscheck(dims, self.ndims)
+        dims, _ = ttb.tt_dimscheck(self.ndims, dims=dims)
 
         if isinstance(factor, ttb.tensor):
             shapeArray = np.array(self.shape)
@@ -1181,6 +1181,7 @@ class sptensor:
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[int, np.ndarray]] = None,
+        exclude_dims: Optional[Union[int, np.ndarray]] = None,
     ) -> Union[sptensor, ttb.tensor]:
         """
         Sparse tensor times vector
@@ -1189,20 +1190,24 @@ class sptensor:
         ----------
         vector: Vector(s) to multiply against
         dims: Dimensions to multiply with vector(s)
+        exclude_dims: Use all dimensions but these
         """
 
-        if dims is None:
+        if dims is None and exclude_dims is None:
             dims = np.array([])
         elif isinstance(dims, (float, int)):
             dims = np.array([dims])
 
+        if isinstance(exclude_dims, (float, int)):
+            exclude_dims = np.array([exclude_dims])
+
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
-            return self.ttv(np.array([vector]), dims)
+            return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(dims, self.ndims, len(vector))
+        dims, vidx = ttb.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims).astype(int)
 
         # Check that each multiplicand is the right size.
@@ -2495,6 +2500,7 @@ class sptensor:
         self,
         matrices: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[float, np.ndarray]] = None,
+        exclude_dims: Optional[Union[float, np.ndarray]] = None,
         transpose: bool = False,
     ):
         """
@@ -2503,24 +2509,28 @@ class sptensor:
         Parameters
         ----------
         matrices: A matrix or list of matrices
-        dims: :class:`Numpy.ndarray`, int
+        dims: Dimensions to multiply against
+        exclude_dims: Use all dimensions but these
         transpose: Transpose matrices to be multiplied
 
         Returns
         -------
 
         """
-        if dims is None:
+        if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
         elif isinstance(dims, list):
             dims = np.array(dims)
         elif isinstance(dims, (float, int, np.generic)):
             dims = np.array([dims])
 
+        if isinstance(exclude_dims, (float, int)):
+            exclude_dims = np.array([exclude_dims])
+
         # Handle list of matrices
         if isinstance(matrices, list):
             # Check dimensions are valid
-            [dims, vidx] = tt_dimscheck(dims, self.ndims, len(matrices))
+            [dims, vidx] = tt_dimscheck(self.ndims, len(matrices), dims, exclude_dims)
             # Calculate individual products
             Y = self.ttm(matrices[vidx[0]], dims[0], transpose=transpose)
             for i in range(1, dims.size):
@@ -2534,6 +2544,10 @@ class sptensor:
         # Flip matrices if transposed
         if transpose:
             matrices = matrices.transpose()
+
+        # FIXME: This made typing happy but shouldn't be possible
+        if not isinstance(dims, np.ndarray):  # pragma: no cover
+            raise ValueError("Dims should be an array here")
 
         # Ensure this is the terminal single dimension case
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):

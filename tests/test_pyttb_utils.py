@@ -67,44 +67,54 @@ def test_tt_union_rows():
 @pytest.mark.indevelopment
 def test_tt_dimscheck():
     #  Empty
-    rdims, ridx = ttb.tt_dimscheck(np.array([]), 6)
+    rdims, ridx = ttb.tt_dimscheck(6, dims=np.array([]))
     assert (rdims == np.array([0, 1, 2, 3, 4, 5])).all()
     assert ridx is None
 
-    # Minus
-    rdims, ridx = ttb.tt_dimscheck(np.array([-1]), 6)
-    assert (rdims == np.array([1, 2, 3, 4, 5])).all()
+    # Exclude Dims
+    rdims, ridx = ttb.tt_dimscheck(6, exclude_dims=np.array([1]))
+    assert (rdims == np.array([0, 2, 3, 4, 5])).all()
     assert ridx is None
 
     # Invalid minus
-    with pytest.raises(AssertionError) as excinfo:
-        ttb.tt_dimscheck(np.array([-7]), 6, 6)
-    assert "Invalid magnitude for negative dims selection" in str(excinfo)
+    with pytest.raises(ValueError) as excinfo:
+        ttb.tt_dimscheck(6, 6, exclude_dims=np.array([7]))
+    assert "Exclude dims" in str(excinfo)
 
     # Positive
-    rdims, ridx = ttb.tt_dimscheck(np.array([5]), 6)
+    rdims, ridx = ttb.tt_dimscheck(6, dims=np.array([5]))
     assert (rdims == np.array([5])).all()
     assert ridx is None
 
     # M==P
-    rdims, ridx = ttb.tt_dimscheck(np.array([-1]), 6, 5)
+    rdims, ridx = ttb.tt_dimscheck(6, 5, exclude_dims=np.array([0]))
     assert (rdims == np.array([1, 2, 3, 4, 5])).all()
     assert (ridx == np.arange(0, 5)).all()
 
     # M==N
-    rdims, ridx = ttb.tt_dimscheck(np.array([-1]), 6, 6)
+    rdims, ridx = ttb.tt_dimscheck(6, 6, exclude_dims=np.array([0]))
     assert (rdims == np.array([1, 2, 3, 4, 5])).all()
     assert (ridx == rdims).all()
 
     # M>N
     with pytest.raises(AssertionError) as excinfo:
-        ttb.tt_dimscheck(np.array([-1]), 6, 7)
+        ttb.tt_dimscheck(6, 7, exclude_dims=np.array([0]))
     assert "Cannot have more multiplicands than dimensions" in str(excinfo)
 
     # M!=P and M!=N
     with pytest.raises(AssertionError) as excinfo:
-        ttb.tt_dimscheck(np.array([-1]), 6, 4)
+        ttb.tt_dimscheck(6, 4, exclude_dims=np.array([0]))
     assert "Invalid number of multiplicands" in str(excinfo)
+
+    # Both dims and exclude dims
+    with pytest.raises(ValueError) as excinfo:
+        ttb.tt_dimscheck(6, dims=[], exclude_dims=[])
+    assert "not both" in str(excinfo)
+
+    # We no longer support negative dims. Make sure that is explicit
+    with pytest.raises(ValueError) as excinfo:
+        ttb.tt_dimscheck(6, dims=np.array([-1]))
+    assert "Negative dims" in str(excinfo), f"{str(excinfo)}"
 
 
 @pytest.mark.indevelopment

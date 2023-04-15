@@ -124,17 +124,13 @@ def tucker_als(
 
         # Iterate over all N modes of the tensor
         for n in dimorder:
-            # TODO proposal to change ttm to include_dims and exclude_dims to resolve -0 ambiguity
-            dims = np.arange(0, tensor.ndims)
-            dims = dims[dims != n]
-            Utilde = tensor.ttm(U, dims, True)
-            print(f"Utilde[{n}] = {Utilde}")
+            Utilde = tensor.ttm(U, exclude_dims=n, transpose=True)
             # Maximize norm(Utilde x_n W') wrt W and
             # maintain orthonormality of W
             U[n] = Utilde.nvecs(n, rank[n])
 
         # Assemble the current approximation
-        core = Utilde.ttm(U, n, True)
+        core = Utilde.ttm(U, n, transpose=True)
 
         # Compute fit
         normresidual = np.sqrt(abs(normX**2 - core.norm() ** 2))
