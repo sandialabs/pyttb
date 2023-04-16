@@ -1,3 +1,18 @@
+# v1.6.0 (2023-04-16)
+- API Change (PR https://github.com/sandialabs/pyttb/pull/91)
+  - *Not backwards compatable*
+  - `pyttb_utils.tt_dimscheck`
+    - Addresses ambiguity of -0 by using `exclude_dims` (`numpy.ndarray`) parameter
+  - `ktensor.ttv`, `sptensor.ttv`, `tensor.ttv`, `ttensor.ttv`
+    - Use `exlude_dims` parameter instead of `-dims`
+    - Explicit nameing of dimensions to exclude
+  - `tensor.ttsv`
+    - Use `skip_dim` (`int`) parameter instead of `-dims`
+    - Exclude all dimensions up to and including `skip_dim`
+- Fixes/Completed:
+  - Code cleaning: minor changes associated with replacing `-dims` with `exclude_dims`/`skip_dim`
+  - Authorship: PyPI only allows one author, changing to current POC
+  
 # v1.5.1 (2023-04-14)
 - New:
   - Dev Support: 
