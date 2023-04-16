@@ -1,6 +1,6 @@
 # v1.6.0 (2023-04-16)
 - API Change (PR https://github.com/sandialabs/pyttb/pull/91)
-  - *Not backwards compatable*
+  - *Not backwards compatible*
   - `pyttb_utils.tt_dimscheck`
     - Addresses ambiguity of -0 by using `exclude_dims` (`numpy.ndarray`) parameter
   - `ktensor.ttv`, `sptensor.ttv`, `tensor.ttv`, `ttensor.ttv`
