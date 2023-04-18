@@ -1646,3 +1646,37 @@ def test_tenzeros():
     zeros_tensor = ttb.tenzeros(arbitrary_shape)
     data_tensor = ttb.tensor.from_data(np.zeros(arbitrary_shape))
     assert np.equal(zeros_tensor, data_tensor), "Tenzeros should match all zeros tensor"
+
+
+def test_tendiag():
+    N = 4
+    elements = np.arange(0, N)
+    exact_shape = [N] * N
+
+    # Inferred shape
+    X = ttb.tendiag(elements)
+    for i in range(N):
+        diag_index = (i,) * N
+        assert X[diag_index] == i
+
+    # Exact shape
+    X = ttb.tendiag(elements, tuple(exact_shape))
+    for i in range(N):
+        diag_index = (i,) * N
+        assert X[diag_index] == i
+
+    # Larger shape
+    larger_shape = exact_shape.copy()
+    larger_shape[0] += 1
+    X = ttb.tendiag(elements, tuple(larger_shape))
+    for i in range(N):
+        diag_index = (i,) * N
+        assert X[diag_index] == i
+
+    # Smaller Shape
+    smaller_shape = exact_shape.copy()
+    smaller_shape[0] -= 1
+    X = ttb.tendiag(elements, tuple(smaller_shape))
+    for i in range(N):
+        diag_index = (i,) * N
+        assert X[diag_index] == i

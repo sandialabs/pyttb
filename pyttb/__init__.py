@@ -21,7 +21,7 @@ from pyttb.sumtensor import sumtensor
 from pyttb.symktensor import symktensor
 from pyttb.symtensor import symtensor
 from pyttb.tenmat import tenmat
-from pyttb.tensor import tenones, tensor, tenzeros
+from pyttb.tensor import tendiag, tenones, tensor, tenzeros
 from pyttb.ttensor import ttensor
 from pyttb.tucker_als import tucker_als
 
