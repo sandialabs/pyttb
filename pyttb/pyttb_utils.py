@@ -700,7 +700,7 @@ def tt_subscheck(subs, nargout=True):
         len(subs.shape) == 2
         and (np.isfinite(subs)).all()
         and issubclass(subs.dtype.type, np.integer)
-        and (subs > 0).all()
+        and (subs >= 0).all()
     ):
         ok = True
     else:

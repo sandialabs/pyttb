@@ -1758,3 +1758,39 @@ def test_sptensor_from_sparse_matrix():
         Xnt = tt_to_sparse_matrix(sptensorCopy, mode, False)
         Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 1)
         assert sptensorCopy.isequal(Ynt)
+
+
+def test_sptendiag():
+    N = 4
+    elements = np.arange(0, N)
+    exact_shape = [N] * N
+
+    # Inferred shape
+    X = ttb.sptendiag(elements)
+    for i in range(N):
+        diag_index = (i,) * N
+        assert (
+            X[diag_index] == i
+        ), f"Idx: {diag_index} expected: {i} got: {X[diag_index]}"
+
+    # Exact shape
+    X = ttb.sptendiag(elements, tuple(exact_shape))
+    for i in range(N):
+        diag_index = (i,) * N
+        assert X[diag_index] == i
+
+    # Larger shape
+    larger_shape = exact_shape.copy()
+    larger_shape[0] += 1
+    X = ttb.sptendiag(elements, tuple(larger_shape))
+    for i in range(N):
+        diag_index = (i,) * N
+        assert X[diag_index] == i
+
+    # Smaller Shape
+    smaller_shape = exact_shape.copy()
+    smaller_shape[0] -= 1
+    X = ttb.sptendiag(elements, tuple(smaller_shape))
+    for i in range(N):
+        diag_index = (i,) * N
+        assert X[diag_index] == i

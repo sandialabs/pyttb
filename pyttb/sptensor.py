@@ -297,7 +297,7 @@ class sptensor:
 
         # Check for subscripts out of range
         for j, dim in enumerate(shape):
-            if subs.size > 0 and np.max(subs[:, j]) > dim:
+            if subs.size > 0 and np.max(subs[:, j]) >= dim:
                 assert False, "Subscript exceeds sptensor shape"
 
         if subs.size == 0:
@@ -2582,3 +2582,39 @@ class sptensor:
         # TODO evaluate performance loss by casting into sptensor then tensor.
         #  I assume minimal since we are already using spare matrix representation
         return ttb.tensor.from_tensor_type(Ynt)
+
+
+def sptendiag(
+    elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None
+) -> sptensor:
+    """
+    Creates a sparse tensor with elements along super diagonal
+    If provided shape is too small the tensor will be enlarged to accomodate
+
+    Parameters
+    ----------
+    elements: Elements to set along the diagonal
+    shape: Shape of resulting tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> shape = (2,)
+    >>> values = np.ones(shape)
+    >>> X = ttb.sptendiag(values)
+    >>> Y = ttb.sptendiag(values, (2, 2))
+    >>> X.isequal(Y)
+    True
+    """
+    # Flatten provided elements
+    elements = np.ravel(elements)
+    N = len(elements)
+    if shape is None:
+        constructed_shape = (N,) * N
+    else:
+        constructed_shape = tuple(max(N, dim) for dim in shape)
+    subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1)).transpose()
+    return sptensor.from_aggregator(subs, elements.reshape((N, 1)), constructed_shape)
