@@ -1854,6 +1854,25 @@ def tenones(shape: Tuple[int, ...]):
     return tensor.from_function(np.ones, shape)
 
 
+def tenzeros(shape: Tuple[int, ...]):
+    """
+    Creates a tensor of all zeros
+
+    Parameters
+    ----------
+    shape: Shape of resulting tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> X = ttb.tenzeros((2,2))
+    """
+    return tensor.from_function(np.zeros, shape)
+
+
 if __name__ == "__main__":
     import doctest  # pragma: no cover
 

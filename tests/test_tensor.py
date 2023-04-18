@@ -1639,3 +1639,10 @@ def test_tenones():
     ones_tensor = ttb.tenones(arbitrary_shape)
     data_tensor = ttb.tensor.from_data(np.ones(arbitrary_shape))
     assert np.equal(ones_tensor, data_tensor), "Tenones should match all ones tensor"
+
+
+def test_tenzeros():
+    arbitrary_shape = (3, 3, 3)
+    zeros_tensor = ttb.tenzeros(arbitrary_shape)
+    data_tensor = ttb.tensor.from_data(np.zeros(arbitrary_shape))
+    assert np.equal(zeros_tensor, data_tensor), "Tenzeros should match all zeros tensor"
