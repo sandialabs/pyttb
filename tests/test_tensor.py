@@ -1632,3 +1632,10 @@ def test_tensor_nvecs(sample_tensor_2way):
         "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
         in str(record[0].message)
     )
+
+
+def test_tenones():
+    arbitrary_shape = (3, 3, 3)
+    ones_tensor = ttb.tenones(arbitrary_shape)
+    data_tensor = ttb.tensor.from_data(np.ones(arbitrary_shape))
+    assert np.equal(ones_tensor, data_tensor), "Tenones should match all ones tensor"

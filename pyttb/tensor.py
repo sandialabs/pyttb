@@ -1835,6 +1835,25 @@ class tensor:
     __str__ = __repr__
 
 
+def tenones(shape: Tuple[int, ...]):
+    """
+    Creates a tensor of all ones
+
+    Parameters
+    ----------
+    shape: Shape of resulting tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> X = ttb.tenones((2,2))
+    """
+    return tensor.from_function(np.ones, shape)
+
+
 if __name__ == "__main__":
     import doctest  # pragma: no cover
 
