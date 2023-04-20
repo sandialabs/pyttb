@@ -1835,6 +1835,80 @@ class tensor:
     __str__ = __repr__
 
 
+def tenones(shape: Tuple[int, ...]) -> tensor:
+    """
+    Creates a tensor of all ones
+
+    Parameters
+    ----------
+    shape: Shape of resulting tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> X = ttb.tenones((2,2))
+    """
+    return tensor.from_function(np.ones, shape)
+
+
+def tenzeros(shape: Tuple[int, ...]) -> tensor:
+    """
+    Creates a tensor of all zeros
+
+    Parameters
+    ----------
+    shape: Shape of resulting tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> X = ttb.tenzeros((2,2))
+    """
+    return tensor.from_function(np.zeros, shape)
+
+
+def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> tensor:
+    """
+    Creates a tensor with elements along super diagonal
+    If provided shape is too small the tensor will be enlarged to accomodate
+
+    Parameters
+    ----------
+    elements: Elements to set along the diagonal
+    shape: Shape of resulting tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> shape = (2,)
+    >>> values = np.ones(shape)
+    >>> X = ttb.tendiag(values)
+    >>> Y = ttb.tendiag(values, (2, 2))
+    >>> X.isequal(Y)
+    True
+    """
+    # Flatten provided elements
+    elements = np.ravel(elements)
+    N = len(elements)
+    if shape is None:
+        constructed_shape = (N,) * N
+    else:
+        constructed_shape = tuple(max(N, dim) for dim in shape)
+    X = tenzeros(constructed_shape)
+    subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1))
+    X[subs] = elements
+    return X
+
+
 if __name__ == "__main__":
     import doctest  # pragma: no cover
 

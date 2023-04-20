@@ -15,13 +15,13 @@ from pyttb.khatrirao import khatrirao
 from pyttb.ktensor import ktensor
 from pyttb.pyttb_utils import *
 from pyttb.sptenmat import sptenmat
-from pyttb.sptensor import sptensor
+from pyttb.sptensor import sptendiag, sptensor
 from pyttb.sptensor3 import sptensor3
 from pyttb.sumtensor import sumtensor
 from pyttb.symktensor import symktensor
 from pyttb.symtensor import symtensor
 from pyttb.tenmat import tenmat
-from pyttb.tensor import tensor
+from pyttb.tensor import tendiag, tenones, tensor, tenzeros
 from pyttb.ttensor import ttensor
 from pyttb.tucker_als import tucker_als
 
