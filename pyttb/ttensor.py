@@ -2,8 +2,8 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import logging
 import textwrap
-import warnings
 
 import numpy as np
 import scipy
@@ -574,7 +574,7 @@ class ttensor(object):
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
         else:
-            warnings.warn(
+            logging.debug(
                 "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
             )
             w, v = scipy.linalg.eigh(Y)

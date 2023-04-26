@@ -367,12 +367,7 @@ def test_ttensor_nvecs(random_ttensor):
     n = 1
     r = 2
     full_eigvals = ttensorInstance.full().nvecs(n, r)
-    with pytest.warns(Warning) as record:
-        ttensor_eigvals = ttensorInstance.nvecs(n, r)
-    assert (
-        "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
-    )
+    ttensor_eigvals = ttensorInstance.nvecs(n, r)
     assert np.allclose(ttensor_eigvals, full_eigvals)
 
     # Negative Tests
