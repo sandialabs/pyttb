@@ -1345,8 +1345,9 @@ class tensor:
         if not np.array_equal(newsiz, self.shape):
             # We need to enlarge x.data.
             newData = np.zeros(shape=tuple(newsiz))
-            idx = [slice(None, currentShape) for currentShape in self.shape]
             if self.data.size > 0:
+                idx = [slice(None, currentShape) for currentShape in self.shape]
+                idx.extend([0] * (len(newsiz) - self.ndims))
                 newData[tuple(idx)] = self.data
             self.data = newData
 
@@ -1383,9 +1384,10 @@ class tensor:
         if not np.array_equal(newsiz, self.shape):
             # We need to enlarge x.data.
             newData = np.zeros(shape=tuple(newsiz))
-            idx = tuple(slice(None, currentShape) for currentShape in self.shape)
             if self.data.size > 0:
-                newData[idx] = self.data
+                idx = [slice(None, currentShape) for currentShape in self.shape]
+                idx.extend([0] * (len(newsiz) - self.ndims))
+                newData[tuple(idx)] = self.data
             self.data = newData
 
             self.shape = tuple(newsiz)

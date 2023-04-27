@@ -248,6 +248,9 @@ def test_tensor__setitem__(sample_tensor_2way):
     empty_tensor = ttb.tensor()
     empty_tensor[0, 0] = 1
 
+    # Subtensor add dimension
+    empty_tensor[0, 0, 0] = 2
+
     # Subscripts with constant
     tensorInstance[np.array([[1, 1]])] = 13.0
     dataGrowth[1, 1] = 13.0
