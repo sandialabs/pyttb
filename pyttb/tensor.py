@@ -1342,7 +1342,7 @@ class tensor:
             newsiz = np.concatenate(
                 (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
             ).astype(int)
-        if (newsiz != self.shape).any():
+        if not np.array_equal(newsiz, self.shape):
             # We need to enlarge x.data.
             newData = np.zeros(shape=tuple(newsiz))
             idx = [slice(None, currentShape) for currentShape in self.shape]
@@ -1380,10 +1380,10 @@ class tensor:
                 (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
             ).astype(int)
 
-        if (newsiz != self.shape).any():
+        if not np.array_equal(newsiz, self.shape):
             # We need to enlarge x.data.
             newData = np.zeros(shape=tuple(newsiz))
-            idx = [slice(None, currentShape) for currentShape in self.shape]
+            idx = tuple(slice(None, currentShape) for currentShape in self.shape)
             if self.data.size > 0:
                 newData[idx] = self.data
             self.data = newData
