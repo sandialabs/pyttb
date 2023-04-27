@@ -15,7 +15,7 @@ from pyttb.khatrirao import khatrirao
 from pyttb.ktensor import ktensor
 from pyttb.pyttb_utils import *
 from pyttb.sptenmat import sptenmat
-from pyttb.sptensor import sptendiag, sptensor
+from pyttb.sptensor import sptendiag, sptenrand, sptensor
 from pyttb.sptensor3 import sptensor3
 from pyttb.sumtensor import sumtensor
 from pyttb.symktensor import symktensor

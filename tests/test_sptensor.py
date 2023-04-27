@@ -1794,3 +1794,38 @@ def test_sptendiag():
     for i in range(N):
         diag_index = (i,) * N
         assert X[diag_index] == i
+
+
+def test_sptenrand():
+    arbitrary_shape = (3, 3, 3)
+    rand_tensor = ttb.sptenrand(arbitrary_shape, nonzeros=1)
+    in_unit_interval = np.all(0 <= rand_tensor.vals <= 1)
+    assert (
+        in_unit_interval
+        and rand_tensor.shape == arbitrary_shape
+        and rand_tensor.nnz == 1
+    )
+
+    rand_tensor = ttb.sptenrand(arbitrary_shape, density=1 / np.prod(arbitrary_shape))
+    in_unit_interval = np.all(0 <= rand_tensor.vals <= 1)
+    assert (
+        in_unit_interval
+        and rand_tensor.shape == arbitrary_shape
+        and rand_tensor.nnz == 1
+    )
+
+    # Negative tests
+    # Bad density
+    with pytest.raises(ValueError):
+        ttb.sptenrand(arbitrary_shape, density=-1)
+        ttb.sptenrand(arbitrary_shape, density=2)
+
+    # Missing args
+    # Bad density
+    with pytest.raises(ValueError):
+        ttb.sptenrand(arbitrary_shape)
+
+    # Redundant/contradicting args
+    # Bad density
+    with pytest.raises(ValueError):
+        ttb.sptenrand(arbitrary_shape, density=0.5, nonzeros=2)
