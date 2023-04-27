@@ -1,3 +1,12 @@
+# v1.6.1 (2023-04-27)
+- New: 
+  - Tensor generator helpers: 
+    - `tenones`, `tenzeros`, `tendiag`, `sptendiag` (PR https://github.com/sandialabs/pyttb/pull/93)
+    - `tenrand`, `sptenrand` (PR https://github.com/sandialabs/pyttb/pull/100)
+  - Moved to using `logging` instead of `warnings` (PR https://github.com/sandialabs/pyttb/pull/99)
+- Documentation:
+  - Completed: `ktensor` (PR https://github.com/sandialabs/pyttb/pull/101)
+  - Fixed linking for new classes (PR https://github.com/sandialabs/pyttb/pull/98)
 # v1.6.0 (2023-04-16)
 - API Change (PR https://github.com/sandialabs/pyttb/pull/91)
   - *Not backwards compatible*
