@@ -4,6 +4,7 @@
 """Sparse Tensor Implementation"""
 from __future__ import annotations
 
+import logging
 import warnings
 from collections.abc import Sequence
 from typing import Any, Callable, List, Optional, Tuple, Union, cast, overload
@@ -934,7 +935,7 @@ class sptensor:
         if r < y.shape[0] - 1:
             _, v = scipy.sparse.linalg.eigs(y, r)
         else:
-            warnings.warn(
+            logging.debug(
                 "Greater than or equal to sptensor.shape[n] - 1 eigenvectors requires"
                 " cast to dense to solve"
             )

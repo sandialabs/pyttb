@@ -1626,12 +1626,7 @@ def test_tensor_nvecs(sample_tensor_2way):
     assert np.allclose((tensorInstance.nvecs(1, 1)), nv1)
 
     # Test for r >= N-1, requires cast to dense
-    with pytest.warns(Warning) as record:
-        assert np.allclose((tensorInstance.nvecs(1, 2)), nv2)
-    assert (
-        "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
-    )
+    assert np.allclose((tensorInstance.nvecs(1, 2)), nv2)
 
 
 def test_tenones():

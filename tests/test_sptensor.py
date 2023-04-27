@@ -1625,16 +1625,11 @@ def test_sptensor_nvecs(sample_sptensor):
     )
 
     # Test for r >= N-1, requires cast to dense
-    with pytest.warns(Warning) as record:
-        ans = np.zeros((4, 3))
-        ans[3, 0] = 1
-        ans[2, 1] = 1
-        ans[1, 2] = 1
-        assert np.allclose((sptensorInstance.nvecs(1, 3)), ans)
-    assert (
-        "Greater than or equal to sptensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
-    )
+    ans = np.zeros((4, 3))
+    ans[3, 0] = 1
+    ans[2, 1] = 1
+    ans[1, 2] = 1
+    assert np.allclose((sptensorInstance.nvecs(1, 3)), ans)
 
     # Negative test, check for only singleton dims
     with pytest.raises(ValueError):

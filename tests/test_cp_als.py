@@ -38,12 +38,7 @@ def test_cp_als_tensor_default_init(capsys, sample_tensor):
 @pytest.mark.indevelopment
 def test_cp_als_tensor_nvecs_init(capsys, sample_tensor):
     (data, T) = sample_tensor
-    with pytest.warns(Warning) as record:
-        (M, Minit, output) = ttb.cp_als(T, 1, init="nvecs")
-    assert (
-        "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
-    )
+    (M, Minit, output) = ttb.cp_als(T, 1, init="nvecs")
     capsys.readouterr()
     assert pytest.approx(output["fit"], 1) == 0
 
@@ -87,12 +82,7 @@ def test_cp_als_sptensor_default_init(capsys, sample_sptensor):
 @pytest.mark.indevelopment
 def test_cp_als_sptensor_nvecs_init(capsys, sample_sptensor):
     (data, T) = sample_sptensor
-    with pytest.warns(Warning) as record:
-        (M, Minit, output) = ttb.cp_als(T, 1, init="nvecs")
-    assert (
-        "Greater than or equal to sptensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
-    )
+    (M, Minit, output) = ttb.cp_als(T, 1, init="nvecs")
     capsys.readouterr()
     assert pytest.approx(output["fit"], 1) == 0
 

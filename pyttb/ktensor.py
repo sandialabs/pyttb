@@ -5,6 +5,7 @@
 """Classes and functions for working with Kruskal tensors."""
 from __future__ import annotations
 
+import logging
 import warnings
 
 import numpy as np
@@ -1295,7 +1296,7 @@ class ktensor(object):
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
         else:
-            warnings.warn(
+            logging.debug(
                 "Greater than or equal to ktensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
             )
             w, v = scipy.linalg.eigh(y)

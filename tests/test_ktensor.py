@@ -710,47 +710,32 @@ def test_ktensor_normalize(sample_ktensor_2way, sample_ktensor_3way):
 def test_ktensor_nvecs(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
 
-    with pytest.warns(Warning) as record:
-        assert np.allclose(
-            K.nvecs(0, 1), np.array([[0.5731077440321353], [0.8194800264377384]])
-        )
-    assert (
-        "Greater than or equal to ktensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
+    assert np.allclose(
+        K.nvecs(0, 1), np.array([[0.5731077440321353], [0.8194800264377384]])
     )
-    with pytest.warns(Warning) as record:
-        assert np.allclose(
-            K.nvecs(0, 2),
-            np.array(
-                [
-                    [0.5731077440321353, 0.8194800264377384],
-                    [0.8194800264377384, -0.5731077440321353],
-                ]
-            ),
-        )
-    assert (
-        "Greater than or equal to ktensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
+    assert np.allclose(
+        K.nvecs(0, 2),
+        np.array(
+            [
+                [0.5731077440321353, 0.8194800264377384],
+                [0.8194800264377384, -0.5731077440321353],
+            ]
+        ),
     )
 
     assert np.allclose(
         K.nvecs(1, 1),
         np.array([[0.5048631426517823], [0.5745404391632514], [0.6442177356747206]]),
     )
-    with pytest.warns(Warning) as record:
-        assert np.allclose(
-            K.nvecs(1, 2),
-            np.array(
-                [
-                    [0.5048631426517821, 0.7605567306550753],
-                    [0.5745404391632517, 0.0568912743440822],
-                    [0.6442177356747206, -0.6467741818894517],
-                ]
-            ),
-        )
-    assert (
-        "Greater than or equal to ktensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
+    assert np.allclose(
+        K.nvecs(1, 2),
+        np.array(
+            [
+                [0.5048631426517821, 0.7605567306550753],
+                [0.5745404391632517, 0.0568912743440822],
+                [0.6442177356747206, -0.6467741818894517],
+            ]
+        ),
     )
 
     assert np.allclose(
@@ -777,12 +762,7 @@ def test_ktensor_nvecs(sample_ktensor_3way):
     )
 
     # Test for r >= N-1, requires cast to dense
-    with pytest.warns(Warning) as record:
-        K.nvecs(1, 3)
-    assert (
-        "Greater than or equal to ktensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
-        in str(record[0].message)
-    )
+    K.nvecs(1, 3)
 
 
 @pytest.mark.indevelopment

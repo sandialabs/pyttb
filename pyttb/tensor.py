@@ -4,7 +4,7 @@
 """Dense Tensor Implementation"""
 from __future__ import annotations
 
-import warnings
+import logging
 from itertools import permutations
 from math import factorial
 from typing import Any, Callable, List, Optional, Tuple, Union
@@ -790,7 +790,7 @@ class tensor:
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
         else:
-            warnings.warn(
+            logging.debug(
                 "Greater than or equal to tensor.shape[n] - 1 eigenvectors"
                 " requires cast to dense to solve"
             )
