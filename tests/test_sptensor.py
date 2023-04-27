@@ -441,6 +441,12 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     assert (sptensorInstance.vals == data["vals"][subSelection]).all()
     assert sptensorInstance.shape == data["shape"]
 
+    # Case I(b)i: Set with non-zero, no subs exist
+    empty_tensor = ttb.sptensor()
+    empty_tensor[0, 0] = 1
+    # Validate entry worked correctly
+    empty_tensor.__repr__()
+
     # Case I(b)i: Set with zero, sub doesn't exist
     sptensorInstance[1, 1, 3] = old_value
     reorder = [0, 2, 3, 1]
@@ -554,6 +560,11 @@ def test_sptensor_setitem_Case2(sample_sptensor):
             [[999.0], [999.0]]
         )
     assert "Duplicate assignments discarded" in str(record[0].message)
+
+    # Case II: Single entry, no subs exist
+    empty_tensor = ttb.sptensor()
+    empty_tensor[np.array([[0, 1], [2, 2]])] = 4
+    assert np.all(empty_tensor[np.array([[0, 1], [2, 2]])] == 4)
 
     # Case II: Single entry, for single sub that exists
     sptensorInstance[np.array([1, 1, 1]).astype(int)] = 999.0

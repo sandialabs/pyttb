@@ -1393,7 +1393,6 @@ class sptensor:
 
         return a
 
-    # pylint:disable=too-many-statements, too-many-branches, too-many-locals
     def __setitem__(self, key, value):
         """
         Subscripted assignment for sparse tensor.
@@ -1550,8 +1549,12 @@ class sptensor:
             self.vals = self.vals[keepsubs]
         # Process Group C: Adding new, nonzero values
         if np.sum(idxc) > 0:
-            self.subs = np.vstack((self.subs, newsubs[idxc, :]))
-            self.vals = np.vstack((self.vals, newvals[idxc]))
+            if self.subs.size > 0:
+                self.subs = np.vstack((self.subs, newsubs[idxc, :]))
+                self.vals = np.vstack((self.vals, newvals[idxc]))
+            else:
+                self.subs = newsubs[idxc, :]
+                self.vals = newvals[idxc]
 
         # Resize the tensor
         newshape = []
@@ -1560,6 +1563,7 @@ class sptensor:
             newshape.append(max(dim, smax))
         self.shape = tuple(newshape)
 
+    # pylint:disable=too-many-statements
     def _set_subtensor(self, key, value):
         # Case I(a): RHS is another sparse tensor
         if isinstance(value, ttb.sptensor):
@@ -1730,7 +1734,7 @@ class sptensor:
                     )
                 else:
                     self.subs = addsubs.astype(int)
-                    self.vals = value * np.ones(addsubs.shape[0])
+                    self.vals = value * np.ones((addsubs.shape[0], 1))
             return
 
         assert False, "Invalid assignment value"
