@@ -1048,7 +1048,7 @@ class sptensor:
 
         if isinstance(factor, ttb.tensor):
             shapeArray = np.array(self.shape)
-            if np.any(factor.shape != shapeArray[dims]):
+            if not np.array_equal(factor.shape, shapeArray[dims]):
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
@@ -1057,7 +1057,7 @@ class sptensor:
             )
         if isinstance(factor, ttb.sptensor):
             shapeArray = np.array(self.shape)
-            if np.any(factor.shape != shapeArray[dims]):
+            if not np.array_equal(factor.shape, shapeArray[dims]):
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs, self.vals * factor.extract(self.subs[:, dims]), self.shape
