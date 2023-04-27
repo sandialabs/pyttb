@@ -196,7 +196,7 @@ class sptensor:
     @classmethod
     def from_function(
         cls,
-        function_handle: Callable[[Tuple[float, float]], np.ndarray],
+        function_handle: Callable[[Tuple[int, ...]], np.ndarray],
         shape: Tuple[int, ...],
         nonzeros: float,
     ) -> sptensor:
@@ -1049,7 +1049,7 @@ class sptensor:
 
         if isinstance(factor, ttb.tensor):
             shapeArray = np.array(self.shape)
-            if np.any(factor.shape != shapeArray[dims]):
+            if not np.array_equal(factor.shape, shapeArray[dims]):
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
@@ -1058,7 +1058,7 @@ class sptensor:
             )
         if isinstance(factor, ttb.sptensor):
             shapeArray = np.array(self.shape)
-            if np.any(factor.shape != shapeArray[dims]):
+            if not np.array_equal(factor.shape, shapeArray[dims]):
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs, self.vals * factor.extract(self.subs[:, dims]), self.shape
@@ -2583,6 +2583,55 @@ class sptensor:
         # TODO evaluate performance loss by casting into sptensor then tensor.
         #  I assume minimal since we are already using spare matrix representation
         return ttb.tensor.from_tensor_type(Ynt)
+
+
+def sptenrand(
+    shape: Tuple[int, ...],
+    density: Optional[float] = None,
+    nonzeros: Optional[float] = None,
+) -> sptensor:
+    """
+    Create sptensor with entries drawn from a uniform distribution on the unit interval
+
+    Parameters
+    ----------
+    shape: Shape of resulting tensor
+    density: Density of resulting sparse tensor
+    nonzeros: Number of nonzero entries in resulting sparse tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> X = ttb.sptenrand((2,2), nonzeros=1)
+    >>> Y = ttb.sptenrand((2,2), density=0.25)
+    """
+    if density is None and nonzeros is None:
+        raise ValueError("Must set either density or nonzeros")
+
+    if density is not None and nonzeros is not None:
+        raise ValueError("Must set either density or nonzeros but not both")
+
+    if density is not None and not 0 < density <= 1:
+        raise ValueError(f"Density must be a fraction (0, 1] but received {density}")
+
+    if isinstance(density, float):
+        valid_nonzeros = float(np.prod(shape) * density)
+    elif isinstance(nonzeros, (int, float)):
+        valid_nonzeros = nonzeros
+    else:  # pragma: no cover
+        raise ValueError(
+            f"Incorrect types for density:{density} and nonzeros:{nonzeros}"
+        )
+
+    # Typing doesn't play nice with partial
+    # mypy issue: 1484
+    def unit_uniform(pass_through_shape: Tuple[int, ...]) -> np.ndarray:
+        return np.random.uniform(low=0, high=1, size=pass_through_shape)
+
+    return ttb.sptensor.from_function(unit_uniform, shape, valid_nonzeros)
 
 
 def sptendiag(

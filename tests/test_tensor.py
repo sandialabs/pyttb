@@ -1643,6 +1643,15 @@ def test_tenzeros():
     assert np.equal(zeros_tensor, data_tensor), "Tenzeros should match all zeros tensor"
 
 
+def test_tenrand():
+    arbitrary_shape = (3, 3, 3)
+    rand_tensor = ttb.tenrand(arbitrary_shape)
+    in_unit_interval = np.all((rand_tensor >= 0).data) and np.all(
+        (rand_tensor <= 1).data
+    )
+    assert in_unit_interval and rand_tensor.shape == arbitrary_shape
+
+
 def test_tendiag():
     N = 4
     elements = np.arange(0, N)
