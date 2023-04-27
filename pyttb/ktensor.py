@@ -47,7 +47,7 @@ class ktensor(object):
         self.factor_matrices = []    # changed from cell array to list; changed name from 'u' to 'factor_matrices'
 
     @classmethod
-    def from_data(cls, weights, *factor_matrices):
+    def from_data(cls, weights, *factor_matrices, copy=True):
         """
         Construct a :class:`pyttb.ktensor` from weights and factor matrices.
 
@@ -58,6 +58,7 @@ class ktensor(object):
         ----------
         weights: :class:`numpy.ndarray`
         factor_matrices: :class:`list` of :class:`numpy.ndarray` or variable number of :class:`numpy.ndarray`
+        copy: Whether to copy `weights` and 'factor_matrices` into new data
 
         Returns
         -------
@@ -100,9 +101,11 @@ class ktensor(object):
 
         # Input can be a list or sequences of factor_matrices
         if isinstance(factor_matrices[0], list):
-            _factor_matrices = [f.copy() for f in factor_matrices[0]]
+            _factor_matrices = [f for f in factor_matrices[0]]
         else:
-            _factor_matrices = [f.copy() for f in factor_matrices[0:]]
+            _factor_matrices = [f for f in factor_matrices[0:]]
+        if copy:
+            _factor_matrices = [f.copy() for f in _factor_matrices]
         for fm in _factor_matrices:
             assert isinstance(fm, np.ndarray), \
                 "Input parameter 'factor_matrices' must be a list of numpy.array's."
@@ -115,7 +118,9 @@ class ktensor(object):
 
         # Create ktensor and populate data members
         k = cls()
-        k.weights = weights.copy()
+        k.weights = weights;
+        if copy:
+            k.weights = weights.copy()
         if k.weights.dtype != np.float:
             print("converting weights from {} to np.float".format(k.weights.dtype))
             k.weights = k.weights.astype(np.float)
