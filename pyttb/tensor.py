@@ -1873,6 +1873,31 @@ def tenzeros(shape: Tuple[int, ...]) -> tensor:
     return tensor.from_function(np.zeros, shape)
 
 
+def tenrand(shape: Tuple[int, ...]) -> tensor:
+    """
+    Creates a tensor with entries drawn from a uniform distribution on the unit interval
+
+    Parameters
+    ----------
+    shape: Shape of resulting tensor
+
+    Returns
+    -------
+    Constructed tensor
+
+    Example
+    -------
+    >>> X = ttb.tenrand((2,2))
+    """
+
+    # Typing doesn't play nice with partial
+    # mypy issue: 1484
+    def unit_uniform(pass_through_shape: Tuple[int, ...]) -> np.ndarray:
+        return np.random.uniform(low=0, high=1, size=pass_through_shape)
+
+    return tensor.from_function(unit_uniform, shape)
+
+
 def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> tensor:
     """
     Creates a tensor with elements along super diagonal
