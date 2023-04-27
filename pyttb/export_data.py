@@ -17,6 +17,9 @@ def export_data(data, filename, fmt_data=None, fmt_weights=None):
     if isinstance(data, ttb.tensor):
         print('tensor', file=fp)
         export_size(fp, data.shape)
+        # numpy always writes the array with 'C' ordering, regardless
+        # of the ordering of the array.  So we must transpose it first
+        # to preserve the convention of 'F' ordering of the file.
         export_array(fp, data.data.transpose(), fmt_data)
 
     elif isinstance(data, ttb.sptensor):
