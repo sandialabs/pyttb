@@ -495,25 +495,27 @@ class ktensor(object):
 
     def arrange(self, weight_factor=None, permutation=None):
         """
-        Arrange the rank-1 components of a :class:`pyttb.ktensor`. The
-        columns are permuted in place, so you must make a copy before calling
-        this method if you want to store the original :class:`pyttb.ktensor`.
-        One of the parameters, either `weight_factor` or `permutation`
-        must be passed, and passing both parameters leads to an error.
+        Arrange the rank-1 components of a :class:`pyttb.ktensor` in place.
+        If `permutation` is passed, the columns of `self.factor_matrices` are
+        arranged using the provided permutation, so you must make a copy
+        before calling this method if you want to store the original
+        :class:`pyttb.ktensor`. If `weight_factor` is passed, then the values
+        in `self.weights` are absorbed into
+        `self.factor_matrices[weight_factor]`. If no parameters are passed,
+        then the columns of `self.factor_matrices` are normalized and then
+        permuted such that the resulting `self.weights` are sorted by
+        magnitude, greatest to least. Passing both parameters leads to an
+        error.
 
         Parameters
         ----------
         weight_factor: int, optional
-            The index of the factor that the weights will be absorbed into
-        permutation: :class:`tuple`, :class:`list`, :class:`numpy.ndarray`, optional
+            The index of the factor matrix that the weights will be absorbed into.
+        permutation: :class:`tuple`, :class:`list`, or :class:`numpy.ndarray`, optional
             The new order of the components of the :class:`pyttb.ktensor`
             into which to permute. The permutation must be of length equal to
-            the number of components of the :class:`pyttb.ktensor`, N, and
-            must be a permutation of 1 to N.
-
-        Returns
-        -------
-        :class:`pyttb.ktensor`
+            the number of components of the :class:`pyttb.ktensor`, `self.ncomponents`
+            and must be a permutation of [0,...,`self.ncomponents`-1].
 
         Examples
         --------
@@ -546,13 +548,40 @@ class ktensor(object):
         factor_matrices[1] =
         [[6. 5.]
          [8. 7.]]
-        """
 
+        Normalize and permute columns such that `weights` are sorted in
+        decreasing order:
+
+        >>> K.arrange()
+        >>> print(K) # doctest: +ELLIPSIS
+        ktensor of shape 2 x 2
+        weights=[89.4427... 27.2029...]
+        factor_matrices[0] =
+        [[0.4472... 0.3162...]
+         [0.8944... 0.9486...]]
+        factor_matrices[1] =
+        [[0.6... 0.5812...]
+         [0.8... 0.8137...]]
+
+        Absorb the weights into the second factor:
+
+        >>> K.arrange(weight_factor=1)
+        >>> print(K) # doctest: +ELLIPSIS
+        ktensor of shape 2 x 2
+        weights=[1. 1.]
+        factor_matrices[0] =
+        [[0.4472... 0.3162...]
+         [0.8944... 0.9486...]]
+        factor_matrices[1] =
+        [[53.6656... 15.8113...]
+         [71.5541... 22.1359...]]
+        """
         if permutation is not None and weight_factor is not None:
             assert (
                 False
             ), "Weighting and permuting the ktensor at the same time is not allowed."
 
+        # arrange columns of factor matrices using the permutation provided
         if permutation is not None and isinstance(
             permutation, (tuple, list, np.ndarray)
         ):
@@ -566,8 +595,8 @@ class ktensor(object):
                     False
                 ), "Number of elements in permutation does not match number of components in ktensor."
 
-        # TODO there is a relationship here between normalize and arrange that repeats tasks. Can this be made to be more efficient?
-        # ensure that factor matrices are normalized
+        # TODO there is a relationship here between normalize and arrange that repeats tasks.
+        # Can this be made to be more efficient? ensure that factor matrices are normalized
         self.normalize()
 
         # sort
@@ -576,16 +605,13 @@ class ktensor(object):
         for i in range(self.ndims):
             self.factor_matrices[i] = self.factor_matrices[i][:, p]
 
-        # TODO is this necessary? Matlab only absorbs into the last factor, not factor N as is documented
-        # absorb weight into one factor if requested
+        # absorb the weights into one factor, optional
         if weight_factor is not None:
-            pass
-        # if exist('foo','var')
-        #     r = length(X.lambda);
-        #     X.u{end} = full(X.u{end} * spdiags(X.lambda,0,r,r));
-        #     X.lambda = ones(size(X.lambda));
-        # end
-        return self
+            r = len(self.weights)
+            self.factor_matrices[weight_factor] *= self.weights
+            self.weights = np.ones_like(self.weights)
+
+        return
 
     def copy(self):
         """
@@ -1260,7 +1286,7 @@ class ktensor(object):
     def normalize(self, weight_factor=None, sort=False, normtype=2, mode=None):
         """
         Normalize the columns of the factor matrices of a
-        :class:`pyttb.ktensor`.
+        :class:`pyttb.ktensor` in place.
 
         Parameters
         ----------
@@ -1273,7 +1299,7 @@ class ktensor(object):
         normtype: {non-negative int, -1, -2, np.inf, -np.inf}, optional
             Order of the norm (see :func:`numpy.linalg.norm` for possible
             values).
-        mode: {int, None}, optional
+        mode: int, optional
             Index of factor matrix to normalize. A value of `None` means
             normalize all factor matrices.
 
@@ -1284,7 +1310,7 @@ class ktensor(object):
         Examples
         --------
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> print(K.normalize())  # doctest: +ELLIPSIS
+        >>> print(K.normalize()) # doctest: +ELLIPSIS
         ktensor of shape 2 x 3 x 4
         weights=[4.898... 4.898...]
         factor_matrices[0] =
@@ -1310,7 +1336,7 @@ class ktensor(object):
                             1.0 / tmp * self.factor_matrices[mode][:, r]
                         )
                     self.weights[r] = self.weights[r] * tmp
-                return
+                return self
             else:
                 assert (
                     False
@@ -1349,7 +1375,7 @@ class ktensor(object):
             if self.ncomponents > 1:
                 # indices of srting in descending order
                 p = np.argsort(self.weights)[::-1]
-                self = self.arrange(permutation=p)
+                self.arrange(permutation=p)
 
         return self
 
