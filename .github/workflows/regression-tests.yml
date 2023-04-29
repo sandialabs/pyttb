@@ -44,6 +44,4 @@ jobs:
         coverage run --source pyttb -m pytest tests/
         coverage report
     - name: Upload coverage to Coveralls
-      run: coveralls --service=github
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: coverallsapp/github-action@v2
