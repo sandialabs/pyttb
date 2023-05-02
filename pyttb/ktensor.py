@@ -100,7 +100,7 @@ class ktensor(object):
             "Input parameter 'weights' must be a numpy.array type vector."
 
         # Input can be a list or sequences of factor_matrices
-        if isinstance(factor_matrices[0], list):
+        if isinstance(factor_matrices[0], list) or isinstance(factor_matrices[0], tuple):
             _factor_matrices = [f for f in factor_matrices[0]]
         else:
             _factor_matrices = [f for f in factor_matrices[0:]]
