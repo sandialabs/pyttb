@@ -25,7 +25,7 @@ for computing low-rank tensor models.
 Check out the [Documentation](https://pyttb.readthedocs.io) to get started.
 
 # Contributing
-Check out our [contributing guide](CONTRIBUTOR_GUIDE.md).
+Check out our [contributing guide](CONTRIBUTING.md).
 
 ---
 [![Regression tests](https://github.com/sandialabs/pyttb/actions/workflows/regression-tests.yml/badge.svg)](https://github.com/sandialabs/pyttb/actions/workflows/regression-tests.yml) [![Coverage Status](https://coveralls.io/repos/github/sandialabs/pyttb/badge.svg?branch=main)](https://coveralls.io/github/sandialabs/pyttb?branch=main)
