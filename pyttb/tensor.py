@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from itertools import permutations
 from math import factorial
 from typing import Any, Callable, List, Optional, Tuple, Union
@@ -1275,12 +1276,16 @@ class tensor:
         """
         # Figure out if we are doing a subtensor, a list of subscripts or a list of
         # linear indices
+        # print(f"Key: {key} {type(key)}")
         access_type = "error"
-        if self.ndims <= 1:
-            if isinstance(key, np.ndarray):
-                access_type = "subscripts"
-            else:
+        # TODO pull out this big decision tree into a function
+        if isinstance(key, (float, int, np.generic, slice)):
+            access_type = "linear indices"
+        elif self.ndims <= 1:
+            if isinstance(key, tuple):
                 access_type = "subtensor"
+            elif isinstance(key, np.ndarray):
+                access_type = "subscripts"
         else:
             if isinstance(key, np.ndarray):
                 if len(key.shape) > 1 and key.shape[1] >= self.ndims:
@@ -1289,10 +1294,18 @@ class tensor:
                     access_type = "linear indices"
             elif isinstance(key, tuple):
                 validSubtensor = [
-                    isinstance(keyElement, (int, slice)) for keyElement in key
+                    isinstance(keyElement, (int, slice, Iterable)) for keyElement in key
                 ]
+                # TODO probably need to confirm the Iterable is in fact numeric
                 if np.all(validSubtensor):
                     access_type = "subtensor"
+            elif isinstance(key, Iterable):
+                key = np.array(key)
+                # Clean up copy paste
+                if len(key.shape) > 1 and key.shape[1] >= self.ndims:
+                    access_type = "subscripts"
+                elif len(key.shape) == 1 or key.shape[1] == 1:
+                    access_type = "linear indices"
 
         # Case 1: Rectangular Subtensor
         if access_type == "subtensor":
@@ -1310,10 +1323,14 @@ class tensor:
 
     def _set_linear(self, key, value):
         idx = key
-        if (idx > np.prod(self.shape)).any():
+        if not isinstance(idx, slice) and (idx > np.prod(self.shape)).any():
             assert (
                 False
             ), "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+        if isinstance(key, (int, float, np.generic)):
+            idx = np.array([key])
+        elif isinstance(key, slice):
+            idx = np.array(range(np.prod(self.shape))[key])
         idx = tt_ind2sub(self.shape, idx)
         if idx.shape[0] == 1:
             self.data[tuple(idx[0, :])] = value
@@ -1333,6 +1350,8 @@ class tensor:
                     sliceCheck.append(1)
                 else:
                     sliceCheck.append(element.stop)
+            elif isinstance(element, Iterable):
+                sliceCheck.append(max(element))
             else:
                 sliceCheck.append(element)
         bsiz = np.array(sliceCheck)
@@ -1443,6 +1462,17 @@ class tensor:
         -------
         :class:`pyttb.tensor` or :class:`numpy.ndarray`
         """
+        # Case 0: Single Index Linear
+        if isinstance(item, (int, float, np.generic, slice)):
+            if isinstance(item, (int, float, np.generic)):
+                idx = np.array(item)
+            elif isinstance(item, slice):
+                idx = np.array(range(np.prod(self.shape))[item])
+            a = np.squeeze(
+                self.data[tuple(ttb.tt_ind2sub(self.shape, idx).transpose())]
+            )
+            # Todo if row make column?
+            return ttb.tt_subsubsref(a, idx)
         # Case 1: Rectangular Subtensor
         if (
             isinstance(item, tuple)
@@ -1492,9 +1522,9 @@ class tensor:
             return ttb.tt_subsubsref(a, subs)
 
         # Case 2b: Linear Indexing
-        if len(item) >= 2 and not isinstance(item[-1], str):
+        if isinstance(item, tuple) and len(item) >= 2 and not isinstance(item[-1], str):
             assert False, "Linear indexing requires single input array"
-        idx = item[0]
+        idx = np.array(item)
         a = np.squeeze(self.data[tuple(ttb.tt_ind2sub(self.shape, idx).transpose())])
         # Todo if row make column?
         return ttb.tt_subsubsref(a, idx)

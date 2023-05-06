@@ -280,6 +280,14 @@ def test_tensor__setitem__(sample_tensor_2way):
     dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 13.0
     assert (tensorInstance.data == dataGrowth).all()
 
+    tensorInstance[0] = 14.0
+    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
+    assert (tensorInstance.data == dataGrowth).all()
+
+    tensorInstance[0:1] = 14.0
+    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
+    assert (tensorInstance.data == dataGrowth).all()
+
     # Linear Index with constant
     tensorInstance[np.array([0, 3, 4])] = 13.0
     dataGrowth[np.unravel_index([0, 3, 4], dataGrowth.shape, "F")] = 13
@@ -340,6 +348,8 @@ def test_tensor__getitem__(sample_tensor_2way):
 
     # Case 2b: Linear Indexing
     assert tensorInstance[np.array([0])] == params["data"][0, 0]
+    assert tensorInstance[0] == params["data"][0, 0]
+    assert np.array_equal(tensorInstance[0:1], params["data"][0, 0])
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance[np.array([0]), np.array([0]), np.array([0])]
     assert "Linear indexing requires single input array" in str(excinfo)
