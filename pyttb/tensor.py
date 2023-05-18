@@ -25,7 +25,7 @@ class tensor(object):
         self.shape = ()
 
     @classmethod
-    def from_data(cls, data, shape=None):
+    def from_data(cls, data, shape=None, copy=True):
         """
         Creates a tensor from explicit description. Note that 1D tensors (i.e., when len(shape)==1) 
         contains a data array that follow the Numpy convention of being a row vector, which is 
@@ -35,6 +35,8 @@ class tensor(object):
         ----------
         data: :class:`numpy.ndarray`
         shape: tuple
+        copy: bool
+          Whether to copy `data` into new data
 
         Returns
         -------
@@ -67,7 +69,10 @@ class tensor(object):
 
         # Create the tensor
         tensorInstance = cls()
-        tensorInstance.data = data.copy()
+        if copy:
+            tensorInstance.data = data.copy()
+        else:
+            tensorInstance.data = data
         tensorInstance.shape = shape
         return tensorInstance
 

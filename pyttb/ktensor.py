@@ -58,7 +58,8 @@ class ktensor(object):
         ----------
         weights: :class:`numpy.ndarray`
         factor_matrices: :class:`list` of :class:`numpy.ndarray` or variable number of :class:`numpy.ndarray`
-        copy: Whether to copy `weights` and 'factor_matrices` into new data
+        copy: bool
+          Whether to copy `weights` and 'factor_matrices` into new data
 
         Returns
         -------
