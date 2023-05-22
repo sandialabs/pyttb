@@ -7,7 +7,7 @@ from .pyttb_utils import *
 import numpy as np
 import os
 
-def import_data(filename):
+def import_data(filename, index_base=1):
 
     # Check if file exists
     if not os.path.isfile(filename):
@@ -33,7 +33,7 @@ def import_data(filename):
     
         shape = import_shape(fp)
         nz = import_nnz(fp)
-        subs, vals = import_sparse_array(fp, len(shape), nz)
+        subs, vals = import_sparse_array(fp, len(shape), nz, index_base)
         return ttb.sptensor().from_data(subs, vals, shape)
  
     elif data_type == 'matrix':         
@@ -80,14 +80,14 @@ def import_rank(fp):
     # Import the rank of something from a file
     return int(fp.readline().strip().split(' ')[0])
 
-def import_sparse_array(fp, n, nz):
+def import_sparse_array(fp, n, nz, index_base=1):
     # Import sparse data subs and vals from coordinate format data
     subs = np.zeros((nz, n), dtype='int64')
     vals = np.zeros((nz, 1))
     for k in range(nz):
         line = fp.readline().strip().split(' ')
         # 1-based indexing in file, 0-based indexing in package
-        subs[k,:] = [np.int64(i)-1 for i in line[:-1]]
+        subs[k,:] = [np.int64(i)-index_base for i in line[:-1]]
         vals[k,0] = line[-1]
     return subs, vals
 
