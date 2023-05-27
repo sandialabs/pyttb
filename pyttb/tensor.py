@@ -1514,10 +1514,21 @@ class tensor:
             return a
 
         # *** CASE 2a: Subscript indexing ***
-        if len(item) > 1 and isinstance(item[-1], str) and item[-1] == "extract":
+        if isinstance(item, np.ndarray) and len(item) > 1:
             # Extract array of subscripts
+            subs = np.array(item)
+            a = np.squeeze(self.data[tuple(subs)])
+            # TODO if is row make column?
+            return ttb.tt_subsubsref(a, subs)
+        if (
+            len(item) > 1
+            and isinstance(item[0], np.ndarray)
+            and isinstance(item[-1], str)
+            and item[-1] == "extract"
+        ):
+            # TODO dry this up
             subs = np.array(item[0])
-            a = np.squeeze(self.data[tuple(subs.transpose())])
+            a = np.squeeze(self.data[tuple(subs)])
             # TODO if is row make column?
             return ttb.tt_subsubsref(a, subs)
 

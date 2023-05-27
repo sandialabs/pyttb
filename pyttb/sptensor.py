@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import warnings
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import Any, Callable, List, Optional, Tuple, Union, cast, overload
 
 import numpy as np
@@ -620,7 +620,7 @@ class sptensor:
             if self.shape != other.shape:
                 assert False, "Sptensor and tensor must be same shape for innerproduct"
             [subsSelf, valsSelf] = self.find()
-            valsOther = other[subsSelf, "extract"]
+            valsOther = other[subsSelf.transpose(), "extract"]
             return valsOther.transpose().dot(valsSelf)
 
         if isinstance(other, (ttb.ktensor, ttb.ttensor)):  # pragma: no cover
@@ -685,7 +685,7 @@ class sptensor:
 
         if isinstance(B, ttb.tensor):
             BB = sptensor.from_data(
-                self.subs, B[self.subs, "extract"][:, None], self.shape
+                self.subs, B[self.subs.transpose(), "extract"][:, None], self.shape
             )
             C = self.logical_and(BB)
             return C
@@ -1053,7 +1053,7 @@ class sptensor:
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
-                self.vals * factor[self.subs[:, dims], "extract"][:, None],
+                self.vals * factor[self.subs[:, dims].transpose(), "extract"][:, None],
                 self.shape,
             )
         if isinstance(factor, ttb.sptensor):
@@ -1660,7 +1660,7 @@ class sptensor:
                     )
                 else:
                     newsz.append(key[n].stop)
-            elif isinstance(key[n], np.ndarray):
+            elif isinstance(key[n], (np.ndarray, Iterable)):
                 newsz.append(max(key[n]) + 1)
             else:
                 newsz.append(key[n] + 1)
@@ -1671,7 +1671,8 @@ class sptensor:
             self.subs = np.append(
                 self.subs,
                 np.zeros(
-                    shape=(self.subs.shape[0], len(self.shape) - self.subs.shape[1])
+                    shape=(self.subs.shape[0], len(self.shape) - self.subs.shape[1]),
+                    dtype=int,
                 ),
                 axis=1,
             )
@@ -1689,7 +1690,7 @@ class sptensor:
         if isinstance(value, (int, float)):
             # Determine number of dimensions (may be larger than current number)
             N = len(key)
-            keyCopy = np.array(key)
+            keyCopy = [None] * N
             # Figure out how many indices are in each dimension
             nssubs = np.zeros((N, 1))
             for n in range(0, N):
@@ -1697,7 +1698,11 @@ class sptensor:
                     # Generate slice explicitly to determine its length
                     keyCopy[n] = np.arange(0, self.shape[n])[key[n]]
                     indicesInN = len(keyCopy[n])
+                elif isinstance(key[n], Iterable):
+                    keyCopy[n] = key[n]
+                    indicesInN = len(key[n])
                 else:
+                    keyCopy[n] = key[n]
                     indicesInN = 1
                 nssubs[n] = indicesInN
 
@@ -1806,7 +1811,7 @@ class sptensor:
             ]
 
             # Find where their nonzeros intersect
-            othervals = other[self.subs, "extract"]
+            othervals = other[self.subs.transpose(), "extract"]
             znzsubs = self.subs[(othervals[:, None] == self.vals).transpose()[0], :]
 
             return sptensor.from_data(
@@ -1887,7 +1892,7 @@ class sptensor:
                 subs1 = np.empty((0, self.subs.shape[1]))
             # find entries where x is nonzero but not equal to y
             subs2 = self.subs[
-                self.vals.transpose()[0] != other[self.subs, "extract"], :
+                self.vals.transpose()[0] != other[self.subs.transpose(), "extract"], :
             ]
             if subs2.size == 0:
                 subs2 = np.empty((0, self.subs.shape[1]))
@@ -2002,7 +2007,7 @@ class sptensor:
             )
         if isinstance(other, ttb.tensor):
             csubs = self.subs
-            cvals = self.vals * other[csubs, "extract"][:, None]
+            cvals = self.vals * other[csubs.transpose(), "extract"][:, None]
             return ttb.sptensor.from_data(csubs, cvals, self.shape)
         if isinstance(other, ttb.ktensor):
             csubs = self.subs
@@ -2124,7 +2129,7 @@ class sptensor:
 
             # self nonzero
             subs2 = self.subs[
-                self.vals.transpose()[0] <= other[self.subs, "extract"], :
+                self.vals.transpose()[0] <= other[self.subs.transpose(), "extract"], :
             ]
 
             # assemble
@@ -2212,7 +2217,9 @@ class sptensor:
             subs1 = subs1[ttb.tt_setdiff_rows(subs1, self.subs), :]
 
             # self nonzero
-            subs2 = self.subs[self.vals.transpose()[0] < other[self.subs, "extract"], :]
+            subs2 = self.subs[
+                self.vals.transpose()[0] < other[self.subs.transpose(), "extract"], :
+            ]
 
             # assemble
             subs = np.vstack((subs1, subs2))
@@ -2267,7 +2274,10 @@ class sptensor:
 
             # self nonzero
             subs2 = self.subs[
-                (self.vals >= other[self.subs, "extract"][:, None]).transpose()[0], :
+                (
+                    self.vals >= other[self.subs.transpose(), "extract"][:, None]
+                ).transpose()[0],
+                :,
             ]
 
             # assemble
@@ -2325,7 +2335,10 @@ class sptensor:
 
             # self and other nonzero
             subs2 = self.subs[
-                (self.vals > other[self.subs, "extract"][:, None]).transpose()[0], :
+                (
+                    self.vals > other[self.subs.transpose(), "extract"][:, None]
+                ).transpose()[0],
+                :,
             ]
 
             # assemble
@@ -2428,7 +2441,7 @@ class sptensor:
 
         if isinstance(other, ttb.tensor):
             csubs = self.subs
-            cvals = self.vals / other[csubs, "extract"][:, None]
+            cvals = self.vals / other[csubs.transpose(), "extract"][:, None]
             return ttb.sptensor.from_data(csubs, cvals, self.shape)
         if isinstance(other, ttb.ktensor):
             # TODO consider removing epsilon and generating nans consistent with above
