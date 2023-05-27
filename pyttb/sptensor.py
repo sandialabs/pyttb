@@ -1368,9 +1368,9 @@ class sptensor:
         if (
             isinstance(item, np.ndarray)
             and len(item.shape) == 2
-            and item.shape[1] == self.ndims
+            and item.shape[0] == self.ndims
         ):
-            srchsubs = np.array(item)
+            srchsubs = np.array(item.transpose())
 
         # *** CASE 2b: Linear indexing ***
         else:
@@ -1463,21 +1463,21 @@ class sptensor:
         tt_subscheck(newsubs, nargout=False)
 
         # Error check on subscripts
-        if newsubs.shape[1] < self.ndims:
+        if newsubs.shape[0] < self.ndims:
             assert False, "Invalid subscripts"
 
         # Check for expanding the order
-        if newsubs.shape[1] > self.ndims:
+        if newsubs.shape[0] > self.ndims:
             newshape = list(self.shape)
             # TODO no need for loop, just add correct size
-            for _ in range(self.ndims, newsubs.shape[1]):
+            for _ in range(self.ndims, newsubs.shape[0]):
                 newshape.append(1)
             if self.subs.size > 0:
                 self.subs = np.concatenate(
                     (
                         self.subs,
                         np.ones(
-                            (self.shape[0], newsubs.shape[1] - self.ndims),
+                            (self.shape[0], newsubs.shape[0] - self.ndims),
                             dtype=int,
                         ),
                     ),
@@ -1497,7 +1497,7 @@ class sptensor:
 
         # Determine number of nonzeros being inserted.
         # (This is determined by number of subscripts)
-        newnnz = newsubs.shape[0]
+        newnnz = newsubs.shape[1]
 
         # Error check on size of newvals
         if newvals.size == 1:
@@ -1510,7 +1510,7 @@ class sptensor:
             assert False, "Number of subscripts and number of values do not match!"
 
         # Remove duplicates and print warning if any duplicates were removed
-        newsubs, idx = np.unique(newsubs, axis=0, return_index=True)
+        newsubs, idx = np.unique(newsubs.transpose(), axis=0, return_index=True)
         if newsubs.shape[0] != newnnz:
             warnings.warn("Duplicate assignments discarded")
 
