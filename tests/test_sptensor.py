@@ -533,6 +533,18 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     assert (sptensorInstance.vals == np.vstack((data["vals"], np.array([[7]])))).all()
     assert sptensorInstance.shape == data["shape"]
 
+    # Case I(b)ii: Set with scalar, iterable index, empty sptensor
+    someTensor = ttb.sptensor()
+    someTensor[[0, 1], 0] = 1
+    assert someTensor[0, 0] == 1
+    assert someTensor[1, 0] == 1
+    assert np.all(someTensor[[0, 1], 0].vals == 1)
+    # Case I(b)ii: Set with scalar, iterable index, non-empty sptensor
+    someTensor[[0, 1], 1] = 2
+    assert someTensor[0, 1] == 2
+    assert someTensor[1, 1] == 2
+    assert np.all(someTensor[[0, 1], 1].vals == 2)
+
     # Case I: Assign with non-scalar or sptensor
     sptensorInstanceLarger = ttb.sptensor.from_tensor_type(sptensorInstance)
     with pytest.raises(AssertionError) as excinfo:

@@ -1647,6 +1647,8 @@ class sptensor:
                     newsz.append(self.shape[n])
                 else:
                     newsz.append(max([self.shape[n], key[n].stop]))
+            elif isinstance(key[n], Iterable):
+                newsz.append(max([self.shape[n], max(key[n]) + 1]))
             else:
                 newsz.append(max([self.shape[n], key[n] + 1]))
 
