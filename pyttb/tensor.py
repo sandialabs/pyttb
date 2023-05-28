@@ -1276,7 +1276,6 @@ class tensor:
         """
         # Figure out if we are doing a subtensor, a list of subscripts or a list of
         # linear indices
-        # print(f"Key: {key} {type(key)}")
         access_type = "error"
         # TODO pull out this big decision tree into a function
         if isinstance(key, (float, int, np.generic, slice)):
@@ -1296,15 +1295,11 @@ class tensor:
                 validSubtensor = [
                     isinstance(keyElement, (int, slice, Iterable)) for keyElement in key
                 ]
-                # TODO probably need to confirm the Iterable is in fact numeric
                 if np.all(validSubtensor):
                     access_type = "subtensor"
             elif isinstance(key, Iterable):
                 key = np.array(key)
-                # Clean up copy paste
-                if len(key.shape) > 1 and key.shape[1] >= self.ndims:
-                    access_type = "subscripts"
-                elif len(key.shape) == 1 or key.shape[1] == 1:
+                if len(key.shape) == 1 or key.shape[1] == 1:
                     access_type = "linear indices"
 
         # Case 1: Rectangular Subtensor
@@ -1351,6 +1346,12 @@ class tensor:
                 else:
                     sliceCheck.append(element.stop)
             elif isinstance(element, Iterable):
+                if any(
+                    not isinstance(entry, (float, int, np.generic)) for entry in element
+                ):
+                    raise ValueError(
+                        f"Entries for setitem must be numeric but recieved, {element}"
+                    )
                 sliceCheck.append(max(element))
             else:
                 sliceCheck.append(element)
