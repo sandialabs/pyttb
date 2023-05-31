@@ -144,7 +144,9 @@ def cp_als(
     elif isinstance(init, str) and init.lower() == "random":
         factor_matrices = []
         for n in range(N):
-            factor_matrices.append(np.random.uniform(0, 1, (input_tensor.shape[n], rank)))
+            factor_matrices.append(
+                np.random.uniform(0, 1, (input_tensor.shape[n], rank))
+            )
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
     elif isinstance(init, str) and init.lower() == "nvecs":
         factor_matrices = []
