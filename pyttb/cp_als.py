@@ -36,7 +36,7 @@ def cp_als(
     init: str or :class:`pyttb.ktensor`
         Initial guess (default: "random")
 
-             * "random": initialize using a :class:`pyttb.ktensor` with values chosen from a Normal distribution with mean 1 and standard deviation 0
+             * "random": initialize using a :class:`pyttb.ktensor` with values chosen from a Normal distribution with mean 0 and standard deviation 1
              * "nvecs": initialize factor matrices of a :class:`pyttb.ktensor` using the eigenvectors of the outer product of the matricized input tensor
              * :class:`pyttb.ktensor`: initialize using a specific :class:`pyttb.ktensor` as input - must be the same shape as the input tensor and have the same rank as the input rank
 
