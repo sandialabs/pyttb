@@ -9,7 +9,7 @@ from pyttb.pyttb_utils import *
 
 
 def cp_als(
-    tensor,
+    input_tensor,
     rank,
     stoptol=1e-4,
     maxiters=1000,
@@ -114,8 +114,8 @@ def cp_als(
     """
 
     # Extract number of dimensions and norm of tensor
-    N = tensor.ndims
-    normX = tensor.norm()
+    N = input_tensor.ndims
+    normX = input_tensor.norm()
 
     # Set up dimorder if not specified
     if not dimorder:
@@ -139,17 +139,19 @@ def cp_als(
             init.ncomponents == rank
         ), "Initial guess does not have {} components".format(rank)
         for n in dimorder:
-            if init.factor_matrices[n].shape != (tensor.shape[n], rank):
+            if init.factor_matrices[n].shape != (input_tensor.shape[n], rank):
                 assert False, "Mode {} of the initial guess is the wrong size".format(n)
     elif isinstance(init, str) and init.lower() == "random":
         factor_matrices = []
         for n in range(N):
-            factor_matrices.append(np.random.uniform(0, 1, (tensor.shape[n], rank)))
+            factor_matrices.append(
+                np.random.uniform(0, 1, (input_tensor.shape[n], rank))
+            )
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
     elif isinstance(init, str) and init.lower() == "nvecs":
         factor_matrices = []
         for n in range(N):
-            factor_matrices.append(tensor.nvecs(n, rank))
+            factor_matrices.append(input_tensor.nvecs(n, rank))
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
     else:
         assert False, "The selected initialization method is not supported"
@@ -159,7 +161,7 @@ def cp_als(
     fit = 0
 
     # Store the last MTTKRP result to accelerate fitness computation
-    U_mttkrp = np.zeros((tensor.shape[dimorder[-1]], rank))
+    U_mttkrp = np.zeros((input_tensor.shape[dimorder[-1]], rank))
 
     if printitn > 0:
         print("CP_ALS:")
@@ -176,7 +178,7 @@ def cp_als(
         # Iterate over all N modes of the tensor
         for n in dimorder:
             # Calculate Unew = X_(n) * khatrirao(all U except n, 'r').
-            Unew = tensor.mttkrp(U, n)
+            Unew = input_tensor.mttkrp(U, n)
 
             # Save the last MTTKRP result for fitness check.
             if n == dimorder[-1]:
@@ -245,11 +247,11 @@ def cp_als(
 
     if printitn > 0:
         if normX == 0:
-            normresidual = M.norm() ** 2 - 2 * tensor.innerprod(M)
+            normresidual = M.norm() ** 2 - 2 * input_tensor.innerprod(M)
             fit = normresidual
         else:
             normresidual = np.sqrt(
-                np.abs(normX**2 + M.norm() ** 2 - 2 * tensor.innerprod(M))
+                np.abs(normX**2 + M.norm() ** 2 - 2 * input_tensor.innerprod(M))
             )
             fit = 1 - (normresidual / normX)  # fraction explained by model
         print(f" Final f = {fit:e}")
