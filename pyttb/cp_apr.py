@@ -14,7 +14,7 @@ from .pyttb_utils import *
 
 
 def cp_apr(
-    tensor,
+    input_tensor,
     rank,
     algorithm="mu",
     stoptol=1e-4,
@@ -38,7 +38,7 @@ def cp_apr(
 
     Parameters
     ----------
-    tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
+    input_tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
     rank: int
         Rank of the decomposition
     algorithm: str
@@ -85,12 +85,12 @@ def cp_apr(
 
     """
     # Extract the number of modes in tensor X
-    N = tensor.ndims
+    N = input_tensor.ndims
 
     assert rank > 0, "Number of components requested must be positive"
 
     # Check that the data is non-negative.
-    tmp = tensor < 0.0
+    tmp = input_tensor < 0.0
     assert (
         tmp.nnz == 0
     ), "Data tensor must be nonnegative for Poisson-based factorization"
@@ -103,7 +103,7 @@ def cp_apr(
             init.ncomponents == rank
         ), "Initial guess does not have the right number of componenets"
         for n in range(N):
-            if init.shape[n] != tensor.shape[n]:
+            if init.shape[n] != input_tensor.shape[n]:
                 assert False, "Mode {} of the initial guess is the wrong size".format(n)
             if np.min(init.factor_matrices[n]) < 0.0:
                 assert False, "Initial guess has negative element in mode {}".format(n)
@@ -113,13 +113,15 @@ def cp_apr(
     elif init.lower() == "random":
         factor_matrices = []
         for n in range(N):
-            factor_matrices.append(np.random.uniform(0, 1, (tensor.shape[n], rank)))
+            factor_matrices.append(
+                np.random.uniform(0, 1, (input_tensor.shape[n], rank))
+            )
         init = ttb.ktensor.from_factor_matrices(factor_matrices)
 
     # Call solver based on the couce of algorithm parameter, passing all the other input parameters
     if algorithm.lower() == "mu":
         M, output = tt_cp_apr_mu(
-            tensor,
+            input_tensor,
             rank,
             init,
             stoptol,
@@ -135,7 +137,7 @@ def cp_apr(
         output["algorithm"] = "mu"
     elif algorithm.lower() == "pdnr":
         M, output = tt_cp_apr_pdnr(
-            tensor,
+            input_tensor,
             rank,
             init,
             stoptol,
@@ -153,7 +155,7 @@ def cp_apr(
         output["algorithm"] = "pdnr"
     elif algorithm.lower() == "pqnr":
         M, output = tt_cp_apr_pqnr(
-            tensor,
+            input_tensor,
             rank,
             init,
             stoptol,
@@ -175,7 +177,7 @@ def cp_apr(
 
 
 def tt_cp_apr_mu(
-    tensor,
+    input_tensor,
     rank,
     init,
     stoptol,
@@ -193,7 +195,7 @@ def tt_cp_apr_mu(
 
     Parameters
     ----------
-    tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
+    input_tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
     rank: int
         Rank of the decomposition
     init: :class:`pyttb.ktensor`
@@ -227,7 +229,7 @@ def tt_cp_apr_mu(
     URL: http://arxiv.org/abs/1112.2414. Submitted for publication.
 
     """
-    N = tensor.ndims
+    N = input_tensor.ndims
 
     # TODO I vote no duplicate error checking, copy error checking from cp_apr for initial guess here if disagree
 
@@ -276,7 +278,7 @@ def tt_cp_apr_mu(
 
             # Calculate product of all matrices but the n-th
             # Sparse case only calculates entries corresponding to nonzeros in X
-            Pi = calculatePi(tensor, M, rank, n, N)
+            Pi = calculatePi(input_tensor, M, rank, n, N)
 
             # Do the multiplicative updates
             for i in range(maxinneriters):
@@ -284,7 +286,7 @@ def tt_cp_apr_mu(
                 nInnerIters[iter] += 1
 
                 # Calculate matrix for multiplicative update
-                Phi[n] = calculatePhi(tensor, M, rank, n, Pi, epsDivZero)
+                Phi[n] = calculatePhi(input_tensor, M, rank, n, Pi, epsDivZero)
 
                 # Check for convergence
                 kktModeViolations[n] = np.max(
@@ -335,12 +337,12 @@ def tt_cp_apr_mu(
     # Clean up final result
     M.normalize(sort=True, normtype=1)
 
-    obj = tt_loglikelihood(tensor, M)
+    obj = tt_loglikelihood(input_tensor, M)
 
     if printitn > 0:
-        normTensor = tensor.norm()
+        normTensor = input_tensor.norm()
         normresidual = np.sqrt(
-            normTensor**2 + M.norm() ** 2 - 2 * tensor.innerprod(M)
+            normTensor**2 + M.norm() ** 2 - 2 * input_tensor.innerprod(M)
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
         print("===========================================\n")
@@ -374,7 +376,7 @@ def tt_cp_apr_mu(
 
 
 def tt_cp_apr_pdnr(
-    tensor,
+    input_tensor,
     rank,
     init,
     stoptol,
@@ -399,7 +401,7 @@ def tt_cp_apr_pdnr(
     Parameters
     ----------
     # TODO it looks like this method of define union helps the typ hinting better than or
-    tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
+    input_tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
     rank: int
         Rank of the decomposition
     init: str or :class:`pyttb.ktensor`
@@ -440,7 +442,7 @@ def tt_cp_apr_pdnr(
 
     """
     # Extract the number of modes in tensor X
-    N = tensor.ndims
+    N = input_tensor.ndims
 
     # If the initial guess has any rows of all zero elements, then modify so the row subproblem is not taking log(0).
     # Values will be restored to zero later if the unfolded X for the row has no zeros.
@@ -456,7 +458,7 @@ def tt_cp_apr_pdnr(
     M.normalize(normtype=1)
 
     # Sparse tensor flag affects how Pi and Phi are computed.
-    if isinstance(tensor, ttb.sptensor):
+    if isinstance(input_tensor, ttb.sptensor):
         isSparse = True
     else:
         isSparse = False
@@ -487,7 +489,7 @@ def tt_cp_apr_pdnr(
             num_rows = M[n].shape[0]
             row_indices = []
             for jj in range(num_rows):
-                row_indices.append(np.where(tensor.subs[:, n] == jj)[0])
+                row_indices.append(np.where(input_tensor.subs[:, n] == jj)[0])
             sparseIx.append(row_indices)
 
         if printitn > 0:
@@ -511,8 +513,8 @@ def tt_cp_apr_pdnr(
             # calculate khatri-rao product of all matrices but the n-th
             if isSparse == False:
                 # Data is not a sparse tensor.
-                Pi = ttb.tt_calcpi_prowsubprob(tensor, M, rank, n, N, isSparse)
-                X_mat = ttb.tt_to_dense_matrix(tensor, n)
+                Pi = ttb.tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
+                X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -526,7 +528,7 @@ def tt_cp_apr_pdnr(
                 if isSparse:
                     # Data is a sparse tensor
                     if not precompinds:
-                        sparse_indices = np.where(tensor.subs[:, n] == jj)[0]
+                        sparse_indices = np.where(input_tensor.subs[:, n] == jj)[0]
                     else:
                         sparse_indices = sparseIx[n][jj]
 
@@ -535,11 +537,11 @@ def tt_cp_apr_pdnr(
                         M.factor_matrices[n][jj, :] = 0
                         continue
 
-                    x_row = tensor.vals[sparse_indices]
+                    x_row = input_tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
                     Pi = ttb.tt_calcpi_prowsubprob(
-                        tensor, M, rank, n, N, isSparse, sparse_indices
+                        input_tensor, M, rank, n, N, isSparse, sparse_indices
                     )
 
                 else:
@@ -663,7 +665,7 @@ def tt_cp_apr_pdnr(
 
             # Print outer iteration status.
             if printitn > 0 and np.mod(iter, printitn) == 0:
-                fnVals[iter] = -tt_loglikelihood(tensor, M)
+                fnVals[iter] = -tt_loglikelihood(input_tensor, M)
                 print(
                     "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".format(
                         iter,
@@ -690,12 +692,12 @@ def tt_cp_apr_pdnr(
     # Clean up final result
     M.normalize(sort=True, normtype=1)
 
-    obj = tt_loglikelihood(tensor, M)
+    obj = tt_loglikelihood(input_tensor, M)
 
     if printitn > 0:
-        normTensor = tensor.norm()
+        normTensor = input_tensor.norm()
         normresidual = np.sqrt(
-            normTensor**2 + M.norm() ** 2 - 2 * tensor.innerprod(M)
+            normTensor**2 + M.norm() ** 2 - 2 * input_tensor.innerprod(M)
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
         print("===========================================\n")
@@ -732,7 +734,7 @@ def tt_cp_apr_pdnr(
 
 
 def tt_cp_apr_pqnr(
-    tensor,
+    input_tensor,
     rank,
     init,
     stoptol,
@@ -769,7 +771,7 @@ def tt_cp_apr_pqnr(
 
     Parameters
     ----------
-    tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
+    input_tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
     rank: int
         Rank of the decomposition
     init: str or :class:`pyttb.ktensor`
@@ -808,7 +810,7 @@ def tt_cp_apr_pqnr(
     """
     # TODO first ~100 lines are identical to PDNR, consider abstracting just the algorithm portion
     # Extract the number of modes in data tensor
-    N = tensor.ndims
+    N = input_tensor.ndims
 
     # If the initial guess has any rows of all zero elements, then modify so the row subproblem is not taking log(0).
     # Values will be restored to zero later if the unfolded X for the row has no zeros.
@@ -824,7 +826,7 @@ def tt_cp_apr_pqnr(
     M.normalize(normtype=1)
 
     # Sparse tensor flag affects how Pi and Phi are computed.
-    if isinstance(tensor, ttb.sptensor):
+    if isinstance(input_tensor, ttb.sptensor):
         isSparse = True
     else:
         isSparse = False
@@ -855,7 +857,7 @@ def tt_cp_apr_pqnr(
             num_rows = M[n].shape[0]
             row_indices = []
             for jj in range(num_rows):
-                row_indices.append(np.where(tensor.subs[:, n] == jj)[0])
+                row_indices.append(np.where(input_tensor.subs[:, n] == jj)[0])
             sparseIx.append(row_indices)
 
         if printitn > 0:
@@ -875,8 +877,8 @@ def tt_cp_apr_pqnr(
             # calculate khatri-rao product of all matrices but the n-th
             if isSparse == False:
                 # Data is not a sparse tensor.
-                Pi = ttb.tt_calcpi_prowsubprob(tensor, M, rank, n, N, isSparse)
-                X_mat = ttb.tt_to_dense_matrix(tensor, n)
+                Pi = ttb.tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
+                X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -887,7 +889,7 @@ def tt_cp_apr_pqnr(
                 if isSparse:
                     # Data is a sparse tensor
                     if not precompinds:
-                        sparse_indices = np.where(tensor.subs[:, n] == jj)[0]
+                        sparse_indices = np.where(input_tensor.subs[:, n] == jj)[0]
                     else:
                         sparse_indices = sparseIx[n][jj]
 
@@ -896,11 +898,11 @@ def tt_cp_apr_pqnr(
                         M.factor_matrices[n][jj, :] = 0
                         continue
 
-                    x_row = tensor.vals[sparse_indices]
+                    x_row = input_tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
                     Pi = ttb.tt_calcpi_prowsubprob(
-                        tensor, M, rank, n, N, isSparse, sparse_indices
+                        input_tensor, M, rank, n, N, isSparse, sparse_indices
                     )
 
                 else:
@@ -1071,7 +1073,7 @@ def tt_cp_apr_pqnr(
 
         # Print outer iteration status.
         if printitn > 0 and np.mod(iter, printitn) == 0:
-            fnVals[iter] = -tt_loglikelihood(tensor, M)
+            fnVals[iter] = -tt_loglikelihood(input_tensor, M)
             print(
                 "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".format(
                     iter, nInnerIters[iter], kktViolations[iter], fnVals[iter], num_zero
@@ -1092,12 +1094,12 @@ def tt_cp_apr_pqnr(
     # Clean up final result
     M.normalize(sort=True, normtype=1)
 
-    obj = tt_loglikelihood(tensor, M)
+    obj = tt_loglikelihood(input_tensor, M)
 
     if printitn > 0:
-        normTensor = tensor.norm()
+        normTensor = input_tensor.norm()
         normresidual = np.sqrt(
-            normTensor**2 + M.norm() ** 2 - 2 * tensor.innerprod(M)
+            normTensor**2 + M.norm() ** 2 - 2 * input_tensor.innerprod(M)
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
         print("===========================================\n")

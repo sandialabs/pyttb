@@ -6,14 +6,20 @@ from pyttb.ttensor import ttensor
 
 
 def tucker_als(
-    tensor, rank, stoptol=1e-4, maxiters=1000, dimorder=None, init="random", printitn=1
+    input_tensor,
+    rank,
+    stoptol=1e-4,
+    maxiters=1000,
+    dimorder=None,
+    init="random",
+    printitn=1,
 ):
     """
     Compute Tucker decomposition with alternating least squares
 
     Parameters
     ----------
-    tensor: :class:`pyttb.tensor`
+    input_tensor: :class:`pyttb.tensor`
     rank: int, list[int]
         Rank of the decomposition(s)
     stoptol: float
@@ -48,8 +54,8 @@ def tucker_als(
             * `fit`: value of the fitness function (fraction of tensor data explained by the model)
 
     """
-    N = tensor.ndims
-    normX = tensor.norm()
+    N = input_tensor.ndims
+    normX = input_tensor.norm()
 
     # TODO: These argument checks look common with CP-ALS factor out
     if not isinstance(stoptol, Real):
@@ -86,7 +92,7 @@ def tucker_als(
                 f"Init needs to be of length tensor.ndim (which was {N}) but only got length {len(init)}."
             )
         for n in dimorder[1::]:
-            correct_shape = (tensor.shape[n], rank[n])
+            correct_shape = (input_tensor.shape[n], rank[n])
             if Uinit[n].shape != correct_shape:
                 raise ValueError(
                     f"Init factor {n} had incorrect shape. Expected {correct_shape} but got {Uinit[n].shape}"
@@ -97,7 +103,7 @@ def tucker_als(
         # first index in dimorder because that will be solved for in the first
         # inner iteration.
         for n in range(1, N):
-            Uinit[n] = np.random.uniform(0, 1, (tensor.shape[n], rank[n]))
+            Uinit[n] = np.random.uniform(0, 1, (input_tensor.shape[n], rank[n]))
     elif isinstance(init, str) and init.lower() in ("nvecs", "eigs"):
         # Compute an orthonormal basis for the dominant
         # Rn-dimensional left singular subspace of
@@ -105,7 +111,7 @@ def tucker_als(
         Uinit = [None] * N
         for n in dimorder[1::]:
             print(f" Computing {rank[n]} leading e-vector for factor {n}.\n")
-            Uinit[n] = tensor.nvecs(n, rank[n])
+            Uinit[n] = input_tensor.nvecs(n, rank[n])
     else:
         raise ValueError(
             f"The selected initialization method is not supported. Provided: {init}"
@@ -124,7 +130,7 @@ def tucker_als(
 
         # Iterate over all N modes of the tensor
         for n in dimorder:
-            Utilde = tensor.ttm(U, exclude_dims=n, transpose=True)
+            Utilde = input_tensor.ttm(U, exclude_dims=n, transpose=True)
             # Maximize norm(Utilde x_n W') wrt W and
             # maintain orthonormality of W
             U[n] = Utilde.nvecs(n, rank[n])
