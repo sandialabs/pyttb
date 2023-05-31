@@ -23,7 +23,7 @@ def cp_als(
 
     Parameters
     ----------
-    tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor` or :class:`pyttb.ktensor`
+    input_tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor` or :class:`pyttb.ktensor`
     rank: int
         Rank of the decomposition
     stoptol: float

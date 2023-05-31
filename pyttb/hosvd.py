@@ -9,7 +9,7 @@ import pyttb as ttb
 
 
 def hosvd(
-    tensor,
+    input_tensor,
     tol: float,
     verbosity: float = 1,
     dimorder: Optional[List[int]] = None,
@@ -24,7 +24,7 @@ def hosvd(
 
     Parameters
     ----------
-    tensor: Tensor to factor
+    input_tensor: Tensor to factor
     tol: Relative error to stop at
     verbosity: Print level
     dimorder: Order to loop through dimensions
@@ -42,7 +42,7 @@ def hosvd(
     True
     """
     # In tucker als this is N
-    d = tensor.ndims
+    d = input_tensor.ndims
 
     if ranks is not None:
         if len(ranks) != d:
@@ -68,7 +68,7 @@ def hosvd(
     if verbosity > 0:
         print("Computing HOSVD...\n")
 
-    normxsqr = (tensor**2).collapse()
+    normxsqr = (input_tensor**2).collapse()
     eigsumthresh = ((tol**2) * normxsqr) / d
 
     if verbosity > 2:
@@ -81,7 +81,7 @@ def hosvd(
     # Main Loop
     factor_matrices = [np.empty(1)] * d
     # Copy input tensor, shrinks every step for sequential
-    Y = ttb.tensor.from_tensor_type(tensor)
+    Y = ttb.tensor.from_tensor_type(input_tensor)
 
     for k in dimorder:
         # Compute Gram matrix
@@ -123,7 +123,7 @@ def hosvd(
     result = ttb.ttensor.from_data(G, factor_matrices)
 
     if verbosity > 0:
-        diffnormsqr = ((tensor - result.full()) ** 2).collapse()
+        diffnormsqr = ((input_tensor - result.full()) ** 2).collapse()
         relnorm = np.sqrt(diffnormsqr / normxsqr)
         print(f" Size of core: {G.shape}")
         if relnorm <= tol:
