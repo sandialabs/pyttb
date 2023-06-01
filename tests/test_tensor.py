@@ -244,6 +244,13 @@ def test_tensor__setitem__(sample_tensor_2way):
     tensorInstance[:, :] = tensorInstance
     assert (tensorInstance.data == dataGrowth).all()
 
+    # Subtensor add element to empty tensor
+    empty_tensor = ttb.tensor()
+    empty_tensor[0, 0] = 1
+
+    # Subtensor add dimension
+    empty_tensor[0, 0, 0] = 2
+
     # Subscripts with constant
     tensorInstance[np.array([[1, 1]])] = 13.0
     dataGrowth[1, 1] = 13.0
@@ -258,6 +265,15 @@ def test_tensor__setitem__(sample_tensor_2way):
     tensorInstance[np.array([[1, 1], [1, 2]])] = 13.0
     dataGrowth[([1, 1], [1, 2])] = 13.0
     assert (tensorInstance.data == dataGrowth).all()
+
+    # Subscripts add element to empty tensor
+    empty_tensor = ttb.tensor()
+    first_arbitrary_index = np.array([[0, 1], [2, 2]])
+    second_arbitrary_index = np.array([[1, 2], [3, 3]])
+    value = 4
+    empty_tensor[first_arbitrary_index] = value
+    # Subscripts grow existing tensor
+    empty_tensor[second_arbitrary_index] = value
 
     # Linear Index with constant
     tensorInstance[np.array([0])] = 13.0

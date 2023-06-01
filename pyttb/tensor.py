@@ -1247,9 +1247,7 @@ class tensor:
             return y
         assert False, "Invalid value for version; should be None, 1, or 2"
 
-    def __setitem__(
-        self, key, value
-    ):  # pylint: disable=too-many-branches, too-many-statements
+    def __setitem__(self, key, value):
         """
         SUBSASGN Subscripted assignment for a tensor.
 
@@ -1298,103 +1296,109 @@ class tensor:
 
         # Case 1: Rectangular Subtensor
         if access_type == "subtensor":
-            # Extract array of subscripts
-            subs = key
-
-            # Will the size change? If so we first need to resize x
-            n = self.ndims
-            sliceCheck = []
-            for element in subs:
-                if isinstance(element, slice):
-                    if element.stop is None:
-                        sliceCheck.append(1)
-                    else:
-                        sliceCheck.append(element.stop)
-                else:
-                    sliceCheck.append(element)
-            bsiz = np.array(sliceCheck)
-            if n == 0:
-                newsiz = (bsiz[n:] + 1).astype(int)
-            else:
-                newsiz = np.concatenate(
-                    (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
-                ).astype(int)
-            if (newsiz != self.shape).any():
-                # We need to enlarge x.data.
-                newData = np.zeros(shape=tuple(newsiz))
-                idx = [slice(None, currentShape) for currentShape in self.shape]
-                if self.data.size > 0:
-                    newData[tuple(idx)] = self.data
-                self.data = newData
-
-                self.shape = tuple(newsiz)
-            if isinstance(value, ttb.tensor):
-                self.data[key] = value.data
-            else:
-                self.data[key] = value
-
-            return
+            return self._set_subtensor(key, value)
 
         # Case 2a: Subscript indexing
         if access_type == "subscripts":
-            # Extract array of subscripts
-            subs = key
-
-            # Will the size change? If so we first need to resize x
-            n = self.ndims
-            if (
-                len(subs.shape) == 1
-                and len(self.shape) == 1
-                and self.shape[0] < subs.shape[0]
-            ):
-                bsiz = subs
-            elif len(subs.shape) == 1:
-                bsiz = np.array([np.max(subs, axis=0)])
-                key = key.tolist()
-            else:
-                bsiz = np.array(np.max(subs, axis=0))
-            if n == 0:
-                newsiz = (bsiz[n:] + 1).astype(int)
-            else:
-                newsiz = np.concatenate(
-                    (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
-                ).astype(int)
-
-            if (newsiz != self.shape).any():
-                # We need to enlarge x.data.
-                newData = np.zeros(shape=tuple(newsiz))
-                idx = [slice(None, currentShape) for currentShape in self.shape]
-                if self.data.size > 0:
-                    newData[idx] = self.data
-                self.data = newData
-
-                self.shape = tuple(newsiz)
-
-            # Finally we can copy in new data
-            if isinstance(key, list):
-                self.data[key] = value
-            elif key.shape[0] == 1:  # and len(key.shape) == 1:
-                self.data[tuple(key[0, :])] = value
-            else:
-                self.data[tuple(key)] = value
-            return
+            return self._set_subscripts(key, value)
 
         # Case 2b: Linear Indexing
         if access_type == "linear indices":
-            idx = key
-            if (idx > np.prod(self.shape)).any():
-                assert (
-                    False
-                ), "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
-            idx = tt_ind2sub(self.shape, idx)
-            if idx.shape[0] == 1:
-                self.data[tuple(idx[0, :])] = value
-            else:
-                actualIdx = tuple(idx.transpose())
-                self.data[actualIdx] = value
-            return
+            return self._set_linear(key, value)
 
         assert False, "Invalid use of tensor setitem"
+
+    def _set_linear(self, key, value):
+        idx = key
+        if (idx > np.prod(self.shape)).any():
+            assert (
+                False
+            ), "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+        idx = tt_ind2sub(self.shape, idx)
+        if idx.shape[0] == 1:
+            self.data[tuple(idx[0, :])] = value
+        else:
+            actualIdx = tuple(idx.transpose())
+            self.data[actualIdx] = value
+
+    def _set_subtensor(self, key, value):
+        # Extract array of subscripts
+        subs = key
+        # Will the size change? If so we first need to resize x
+        n = self.ndims
+        sliceCheck = []
+        for element in subs:
+            if isinstance(element, slice):
+                if element.stop is None:
+                    sliceCheck.append(1)
+                else:
+                    sliceCheck.append(element.stop)
+            else:
+                sliceCheck.append(element)
+        bsiz = np.array(sliceCheck)
+        if n == 0:
+            newsiz = (bsiz[n:] + 1).astype(int)
+        else:
+            newsiz = np.concatenate(
+                (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
+            ).astype(int)
+        if not np.array_equal(newsiz, self.shape):
+            # We need to enlarge x.data.
+            newData = np.zeros(shape=tuple(newsiz))
+            if self.data.size > 0:
+                idx = [slice(None, currentShape) for currentShape in self.shape]
+                idx.extend([0] * (len(newsiz) - self.ndims))
+                newData[tuple(idx)] = self.data
+            self.data = newData
+
+            self.shape = tuple(newsiz)
+        if isinstance(value, ttb.tensor):
+            self.data[key] = value.data
+        else:
+            self.data[key] = value
+
+    def _set_subscripts(self, key, value):
+        # Extract array of subscripts
+        subs = key
+
+        # Will the size change? If so we first need to resize x
+        n = self.ndims
+        if (
+            len(subs.shape) == 1
+            and len(self.shape) == 1
+            and self.shape[0] < subs.shape[0]
+        ):
+            bsiz = subs
+        elif len(subs.shape) == 1:
+            bsiz = np.array([np.max(subs, axis=0)])
+            key = key.tolist()
+        else:
+            bsiz = np.array(np.max(subs, axis=0))
+        if n == 0:
+            newsiz = (bsiz[n:] + 1).astype(int)
+        else:
+            newsiz = np.concatenate(
+                (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
+            ).astype(int)
+
+        if not np.array_equal(newsiz, self.shape):
+            # We need to enlarge x.data.
+            newData = np.zeros(shape=tuple(newsiz))
+            if self.data.size > 0:
+                idx = [slice(None, currentShape) for currentShape in self.shape]
+                idx.extend([0] * (len(newsiz) - self.ndims))
+                newData[tuple(idx)] = self.data
+            self.data = newData
+
+            self.shape = tuple(newsiz)
+
+        # Finally we can copy in new data
+        if isinstance(key, list):
+            self.data[key] = value
+        elif key.shape[0] == 1:  # and len(key.shape) == 1:
+            self.data[tuple(key[0, :])] = value
+        else:
+            self.data[tuple(key)] = value
 
     def __getitem__(self, item):
         """

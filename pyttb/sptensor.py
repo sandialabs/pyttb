@@ -1393,7 +1393,6 @@ class sptensor:
 
         return a
 
-    # pylint:disable=too-many-statements, too-many-branches, too-many-locals
     def __setitem__(self, key, value):
         """
         Subscripted assignment for sparse tensor.
@@ -1443,293 +1442,302 @@ class sptensor:
             (isinstance(value, np.ndarray) and value.size == 0)
             or (isinstance(value, list) and value == [])
         ):
-            return
+            return None
 
         # Determine if we are doing a substenor or list of subscripts
         objectType = tt_assignment_type(self, key, value)
 
         # Case 1: Replace a sub-tensor
-        if objectType == "subtensor":  # pylint:disable=too-many-nested-blocks
-            # Case I(a): RHS is another sparse tensor
-            if isinstance(value, ttb.sptensor):
-                # First, Resize the tensor and check the size match with the tensor
-                # that's being inserted.
-                m = 0
-                newsz = []
-                for n, key_n in enumerate(key):
-                    if isinstance(key_n, slice):
-                        if self.ndims <= n:
-                            if key_n.stop is None:
-                                newsz.append(value.shape[m])
-                            else:
-                                newsz.append(key_n.stop)
-                        else:
-                            if key_n.stop is None:
-                                newsz.append(max([self.shape[n], value.shape[m]]))
-                            else:
-                                newsz.append(max([self.shape[n], key_n.stop]))
-                        m = m + 1
-                    elif isinstance(key_n, (float, int)):
-                        if self.ndims <= n:
-                            newsz.append(key_n + 1)
-                        else:
-                            newsz.append(max([self.shape[n], key_n + 1]))
-                    else:
-                        if len(key_n) != value.shape[m]:
-                            assert False, "RHS does not match range size"
-                        if self.ndims <= n:
-                            newsz.append(max(key_n) + 1)
-                        else:
-                            newsz.append(max([self.shape[n], max(key_n) + 1]))
-                self.shape = tuple(newsz)
+        if objectType == "subtensor":
+            return self._set_subtensor(key, value)
+        # Case 2: Subscripts
+        if objectType == "subscripts":
+            return self._set_subscripts(key, value)
+        raise ValueError("Unknown assignment type")  # pragma: no cover
 
-                # Expand subs array if there are new modes, i.e., if the order
-                # has increased.
-                if self.subs.size > 0 and (len(self.shape) > self.subs.shape[1]):
-                    self.subs = np.append(
+    def _set_subscripts(self, key, value):
+        # Case II: Replacing values at specific indices
+        newsubs = key
+        if len(newsubs.shape) == 1:
+            newsubs = np.expand_dims(newsubs, axis=0)
+        tt_subscheck(newsubs, nargout=False)
+
+        # Error check on subscripts
+        if newsubs.shape[1] < self.ndims:
+            assert False, "Invalid subscripts"
+
+        # Check for expanding the order
+        if newsubs.shape[1] > self.ndims:
+            newshape = list(self.shape)
+            # TODO no need for loop, just add correct size
+            for _ in range(self.ndims, newsubs.shape[1]):
+                newshape.append(1)
+            if self.subs.size > 0:
+                self.subs = np.concatenate(
+                    (
                         self.subs,
-                        np.zeros(
-                            shape=(
-                                self.subs.shape[0],
-                                len(self.shape) - self.subs.shape[1],
-                            )
+                        np.ones(
+                            (self.shape[0], newsubs.shape[1] - self.ndims),
+                            dtype=int,
                         ),
-                        axis=1,
-                    )
-                # Delete what currently occupies the specified range
-                rmloc = self.subdims(key)
-                kploc = np.setdiff1d(range(0, self.nnz), rmloc)
-                # TODO: evaluate solution for assigning value to empty sptensor
-                if len(self.subs.shape) > 1:
-                    newsubs = self.subs[kploc.astype(int), :]
-                else:
-                    newsubs = self.subs[kploc.astype(int)]
-                newvals = self.vals[kploc.astype(int)]
-
-                # Renumber the subscripts
-                addsubs = ttb.tt_irenumber(value, self.shape, key)
-                if newsubs.size > 0 and addsubs.size > 0:
-                    self.subs = np.vstack((newsubs, addsubs))
-                    self.vals = np.vstack((newvals, value.vals))
-                elif newsubs.size > 0:
-                    self.subs = newsubs
-                    self.vals = newvals
-                elif addsubs.size > 0:
-                    self.subs = addsubs
-                    self.vals = value.vals
-                else:
-                    self.subs = np.array([], ndmin=2, dtype=int)
-                    self.vals = np.array([], ndmin=2)
-
-                return
-            # Case I(b): Value is zero or scalar
-
-            # First, resize the tensor, determine new size of existing modes
-            newsz = []
-            for n in range(0, self.ndims):
-                if isinstance(key[n], slice):
-                    if key[n].stop is None:
-                        newsz.append(self.shape[n])
-                    else:
-                        newsz.append(max([self.shape[n], key[n].stop]))
-                else:
-                    newsz.append(max([self.shape[n], key[n] + 1]))
-
-            # Determine size of new modes, if any
-            for n in range(self.ndims, len(key)):
-                if isinstance(key[n], slice):
-                    if key[n].stop is None:
-                        assert False, (
-                            "Must have well defined slice when expanding sptensor "
-                            "shape with setitem"
-                        )
-                    else:
-                        newsz.append(key[n].stop)
-                elif isinstance(key[n], np.ndarray):
-                    newsz.append(max(key[n]) + 1)
-                else:
-                    newsz.append(key[n] + 1)
-            self.shape = tuple(newsz)
-
-            # Expand subs array if there are new modes, i.e. if the order has increased
-            if self.subs.size > 0 and len(self.shape) > self.subs.shape[1]:
-                self.subs = np.append(
-                    self.subs,
-                    np.zeros(
-                        shape=(self.subs.shape[0], len(self.shape) - self.subs.shape[1])
                     ),
                     axis=1,
                 )
-
-            # Case I(b)i: Zero right-hand side
-            if isinstance(value, (int, float)) and value == 0:
-                # Delete what currently occupies the specified range
-                rmloc = self.subdims(key)
-                kploc = np.setdiff1d(range(0, self.nnz), rmloc).astype(int)
-                self.subs = self.subs[kploc, :]
-                self.vals = self.vals[kploc]
-                return
-
-            # Case I(b)ii: Scalar Right Hand Side
-            if isinstance(value, (int, float)):
-                # Determine number of dimensions (may be larger than current number)
-                N = len(key)
-                keyCopy = np.array(key)
-                # Figure out how many indices are in each dimension
-                nssubs = np.zeros((N, 1))
-                for n in range(0, N):
-                    if isinstance(key[n], slice):
-                        # Generate slice explicitly to determine its length
-                        keyCopy[n] = np.arange(0, self.shape[n])[key[n]]
-                        indicesInN = len(keyCopy[n])
-                    else:
-                        indicesInN = 1
-                    nssubs[n] = indicesInN
-
-                # Preallocate (discover any memory issues here!)
-                addsubs = np.zeros((np.prod(nssubs).astype(int), N))
-
-                # Generate appropriately sized ones vectors
-                o = []
-                for n in range(N):
-                    o.append(np.ones((int(nssubs[n]), 1)))
-
-                # Generate each column of the subscripts in turn
-                for n in range(N):
-                    i = o.copy()
-                    if not np.isscalar(keyCopy[n]):
-                        i[n] = np.array(keyCopy[n])[:, None]
-                    else:
-                        i[n] = np.array(keyCopy[n], ndmin=2)
-                    addsubs[:, n] = ttb.khatrirao(i).transpose()[:]
-
-                if self.subs.size > 0:
-                    # Replace existing values
-                    loc = ttb.tt_intersect_rows(self.subs, addsubs)
-                    self.vals[loc] = value
-                    # pare down list of subscripts to add
-                    addsubs = addsubs[ttb.tt_setdiff_rows(addsubs, self.subs)]
-
-                # If there are things to insert then insert them
-                if addsubs.size > 0:
-                    if self.subs.size > 0:
-                        self.subs = np.vstack((self.subs, addsubs.astype(int)))
-                        self.vals = np.vstack(
-                            (self.vals, value * np.ones((addsubs.shape[0], 1)))
-                        )
-                    else:
-                        self.subs = addsubs.astype(int)
-                        self.vals = value * np.ones(addsubs.shape[0])
-                return
-
-            assert False, "Invalid assignment value"
-
-        # Case 2: Subscripts
-        elif objectType == "subscripts":
-            # Case II: Replacing values at specific indices
-
-            newsubs = key
-            if len(newsubs.shape) == 1:
-                newsubs = np.expand_dims(newsubs, axis=0)
-            tt_subscheck(newsubs, nargout=False)
-
-            # Error check on subscripts
-            if newsubs.shape[1] < self.ndims:
-                assert False, "Invalid subscripts"
-
-            # Check for expanding the order
-            if newsubs.shape[1] > self.ndims:
-                newshape = list(self.shape)
-                for i in range(self.ndims, newsubs.shape[1]):
-                    newshape.append(1)
-                if self.subs.size > 0:
-                    self.subs = np.concatenate(
-                        (
-                            self.subs,
-                            np.ones(
-                                (self.shape[0], newsubs.shape[1] - self.ndims),
-                                dtype=int,
-                            ),
-                        ),
-                        axis=1,
-                    )
-                self.shape = tuple(newshape)
-
-            # Copy rhs to newvals
-            newvals = value
-
-            if isinstance(newvals, (float, int)):
-                newvals = np.expand_dims([newvals], axis=1)
-
-            # Error check the rhs is a column vector. We don't bother to handle any
-            # other type with sparse tensors
-            tt_valscheck(newvals, nargout=False)
-
-            # Determine number of nonzeros being inserted.
-            # (This is determined by number of subscripts)
-            newnnz = newsubs.shape[0]
-
-            # Error check on size of newvals
-            if newvals.size == 1:
-                # Special case where newvals is a single element to be assigned
-                # to multiple LHS. Fix to correct size
-                newvals = newvals * np.ones((newnnz, 1))
-
-            elif newvals.shape[0] != newnnz:
-                # Sizes don't match
-                assert False, "Number of subscripts and number of values do not match!"
-
-            # Remove duplicates and print warning if any duplicates were removed
-            newsubs, idx = np.unique(newsubs, axis=0, return_index=True)
-            if newsubs.shape[0] != newnnz:
-                warnings.warn("Duplicate assignments discarded")
-
-            newvals = newvals[idx]
-
-            # Find which subscripts already exist and their locations
-            tf = ttb.tt_ismember_rows(newsubs, self.subs)
-            loc = np.where(tf >= 0)[0].astype(int)
-
-            # Split into three groups for processing:
-            #
-            # Group A: Elements that already exist and need to be changed
-            # Group B: Elements that already exist and need to be removed
-            # Group C: Elements that do not exist and need to be added
-            #
-            # Note that we are ignoring any new zero elements, because
-            # those obviously do not need to be added. Also, it's
-            # important to process Group A before Group B because the
-            # processing of Group B may change the locations of the
-            # remaining elements.
-
-            # TF+1 for logical consideration because 0 is valid index
-            # and -1 is our null flag
-            idxa = np.logical_and(tf + 1, newvals)[0]
-            idxb = np.logical_and(tf + 1, np.logical_not(newvals))[0]
-            idxc = np.logical_and(np.logical_not(tf + 1), newvals)[0]
-
-            # Process Group A: Changing values
-            if np.sum(idxa) > 0:
-                self.vals[tf[idxa]] = newvals[idxa]
-            # Proces Group B: Removing Values
-            if np.sum(idxb) > 0:
-                removesubs = loc[idxb]
-                keepsubs = np.setdiff1d(range(0, self.nnz), removesubs)
-                self.subs = self.subs[keepsubs, :]
-                self.vals = self.vals[keepsubs]
-            # Process Group C: Adding new, nonzero values
-            if np.sum(idxc) > 0:
-                self.subs = np.vstack((self.subs, newsubs[idxc, :]))
-                self.vals = np.vstack((self.vals, newvals[idxc]))
-
-            # Resize the tensor
-            newshape = []
-            for n, dim in enumerate(self.shape):
-                smax = max(newsubs[:, n] + 1)
-                newshape.append(max(dim, smax))
             self.shape = tuple(newshape)
 
+        # Copy rhs to newvals
+        newvals = value
+
+        if isinstance(newvals, (float, int)):
+            newvals = np.expand_dims([newvals], axis=1)
+
+        # Error check the rhs is a column vector. We don't bother to handle any
+        # other type with sparse tensors
+        tt_valscheck(newvals, nargout=False)
+
+        # Determine number of nonzeros being inserted.
+        # (This is determined by number of subscripts)
+        newnnz = newsubs.shape[0]
+
+        # Error check on size of newvals
+        if newvals.size == 1:
+            # Special case where newvals is a single element to be assigned
+            # to multiple LHS. Fix to correct size
+            newvals = newvals * np.ones((newnnz, 1))
+
+        elif newvals.shape[0] != newnnz:
+            # Sizes don't match
+            assert False, "Number of subscripts and number of values do not match!"
+
+        # Remove duplicates and print warning if any duplicates were removed
+        newsubs, idx = np.unique(newsubs, axis=0, return_index=True)
+        if newsubs.shape[0] != newnnz:
+            warnings.warn("Duplicate assignments discarded")
+
+        newvals = newvals[idx]
+
+        # Find which subscripts already exist and their locations
+        tf = ttb.tt_ismember_rows(newsubs, self.subs)
+        loc = np.where(tf >= 0)[0].astype(int)
+
+        # Split into three groups for processing:
+        #
+        # Group A: Elements that already exist and need to be changed
+        # Group B: Elements that already exist and need to be removed
+        # Group C: Elements that do not exist and need to be added
+        #
+        # Note that we are ignoring any new zero elements, because
+        # those obviously do not need to be added. Also, it's
+        # important to process Group A before Group B because the
+        # processing of Group B may change the locations of the
+        # remaining elements.
+
+        # TF+1 for logical consideration because 0 is valid index
+        # and -1 is our null flag
+        idxa = np.logical_and(tf + 1, newvals)[0]
+        idxb = np.logical_and(tf + 1, np.logical_not(newvals))[0]
+        idxc = np.logical_and(np.logical_not(tf + 1), newvals)[0]
+
+        # Process Group A: Changing values
+        if np.sum(idxa) > 0:
+            self.vals[tf[idxa]] = newvals[idxa]
+        # Proces Group B: Removing Values
+        if np.sum(idxb) > 0:
+            removesubs = loc[idxb]
+            keepsubs = np.setdiff1d(range(0, self.nnz), removesubs)
+            self.subs = self.subs[keepsubs, :]
+            self.vals = self.vals[keepsubs]
+        # Process Group C: Adding new, nonzero values
+        if np.sum(idxc) > 0:
+            if self.subs.size > 0:
+                self.subs = np.vstack((self.subs, newsubs[idxc, :]))
+                self.vals = np.vstack((self.vals, newvals[idxc]))
+            else:
+                self.subs = newsubs[idxc, :]
+                self.vals = newvals[idxc]
+
+        # Resize the tensor
+        newshape = []
+        for n, dim in enumerate(self.shape):
+            smax = max(newsubs[:, n] + 1)
+            newshape.append(max(dim, smax))
+        self.shape = tuple(newshape)
+
+    # pylint:disable=too-many-statements
+    def _set_subtensor(self, key, value):
+        # Case I(a): RHS is another sparse tensor
+        if isinstance(value, ttb.sptensor):
+            # First, Resize the tensor and check the size match with the tensor
+            # that's being inserted.
+            m = 0
+            newsz = []
+            for n, key_n in enumerate(key):
+                if isinstance(key_n, slice):
+                    if self.ndims <= n:
+                        if key_n.stop is None:
+                            newsz.append(value.shape[m])
+                        else:
+                            newsz.append(key_n.stop)
+                    else:
+                        if key_n.stop is None:
+                            newsz.append(max([self.shape[n], value.shape[m]]))
+                        else:
+                            newsz.append(max([self.shape[n], key_n.stop]))
+                    m = m + 1
+                elif isinstance(key_n, (float, int)):
+                    if self.ndims <= n:
+                        newsz.append(key_n + 1)
+                    else:
+                        newsz.append(max([self.shape[n], key_n + 1]))
+                else:
+                    if len(key_n) != value.shape[m]:
+                        assert False, "RHS does not match range size"
+                    if self.ndims <= n:
+                        newsz.append(max(key_n) + 1)
+                    else:
+                        newsz.append(max([self.shape[n], max(key_n) + 1]))
+            self.shape = tuple(newsz)
+
+            # Expand subs array if there are new modes, i.e., if the order
+            # has increased.
+            if self.subs.size > 0 and (len(self.shape) > self.subs.shape[1]):
+                self.subs = np.append(
+                    self.subs,
+                    np.zeros(
+                        shape=(
+                            self.subs.shape[0],
+                            len(self.shape) - self.subs.shape[1],
+                        )
+                    ),
+                    axis=1,
+                )
+            # Delete what currently occupies the specified range
+            rmloc = self.subdims(key)
+            kploc = np.setdiff1d(range(0, self.nnz), rmloc)
+            # TODO: evaluate solution for assigning value to empty sptensor
+            if len(self.subs.shape) > 1:
+                newsubs = self.subs[kploc.astype(int), :]
+            else:
+                newsubs = self.subs[kploc.astype(int)]
+            newvals = self.vals[kploc.astype(int)]
+
+            # Renumber the subscripts
+            addsubs = ttb.tt_irenumber(value, self.shape, key)
+            if newsubs.size > 0 and addsubs.size > 0:
+                self.subs = np.vstack((newsubs, addsubs))
+                self.vals = np.vstack((newvals, value.vals))
+            elif newsubs.size > 0:
+                self.subs = newsubs
+                self.vals = newvals
+            elif addsubs.size > 0:
+                self.subs = addsubs
+                self.vals = value.vals
+            else:
+                self.subs = np.array([], ndmin=2, dtype=int)
+                self.vals = np.array([], ndmin=2)
+
             return
+        # Case I(b): Value is zero or scalar
+
+        # First, resize the tensor, determine new size of existing modes
+        newsz = []
+        for n in range(0, self.ndims):
+            if isinstance(key[n], slice):
+                if key[n].stop is None:
+                    newsz.append(self.shape[n])
+                else:
+                    newsz.append(max([self.shape[n], key[n].stop]))
+            else:
+                newsz.append(max([self.shape[n], key[n] + 1]))
+
+        # Determine size of new modes, if any
+        for n in range(self.ndims, len(key)):
+            if isinstance(key[n], slice):
+                if key[n].stop is None:
+                    assert False, (
+                        "Must have well defined slice when expanding sptensor "
+                        "shape with setitem"
+                    )
+                else:
+                    newsz.append(key[n].stop)
+            elif isinstance(key[n], np.ndarray):
+                newsz.append(max(key[n]) + 1)
+            else:
+                newsz.append(key[n] + 1)
+        self.shape = tuple(newsz)
+
+        # Expand subs array if there are new modes, i.e. if the order has increased
+        if self.subs.size > 0 and len(self.shape) > self.subs.shape[1]:
+            self.subs = np.append(
+                self.subs,
+                np.zeros(
+                    shape=(self.subs.shape[0], len(self.shape) - self.subs.shape[1])
+                ),
+                axis=1,
+            )
+
+        # Case I(b)i: Zero right-hand side
+        if isinstance(value, (int, float)) and value == 0:
+            # Delete what currently occupies the specified range
+            rmloc = self.subdims(key)
+            kploc = np.setdiff1d(range(0, self.nnz), rmloc).astype(int)
+            self.subs = self.subs[kploc, :]
+            self.vals = self.vals[kploc]
+            return
+
+        # Case I(b)ii: Scalar Right Hand Side
+        if isinstance(value, (int, float)):
+            # Determine number of dimensions (may be larger than current number)
+            N = len(key)
+            keyCopy = np.array(key)
+            # Figure out how many indices are in each dimension
+            nssubs = np.zeros((N, 1))
+            for n in range(0, N):
+                if isinstance(key[n], slice):
+                    # Generate slice explicitly to determine its length
+                    keyCopy[n] = np.arange(0, self.shape[n])[key[n]]
+                    indicesInN = len(keyCopy[n])
+                else:
+                    indicesInN = 1
+                nssubs[n] = indicesInN
+
+            # Preallocate (discover any memory issues here!)
+            addsubs = np.zeros((np.prod(nssubs).astype(int), N))
+
+            # Generate appropriately sized ones vectors
+            o = []
+            for n in range(N):
+                o.append(np.ones((int(nssubs[n]), 1)))
+
+            # Generate each column of the subscripts in turn
+            for n in range(N):
+                i = o.copy()
+                if not np.isscalar(keyCopy[n]):
+                    i[n] = np.array(keyCopy[n])[:, None]
+                else:
+                    i[n] = np.array(keyCopy[n], ndmin=2)
+                addsubs[:, n] = ttb.khatrirao(i).transpose()[:]
+
+            if self.subs.size > 0:
+                # Replace existing values
+                loc = ttb.tt_intersect_rows(self.subs, addsubs)
+                self.vals[loc] = value
+                # pare down list of subscripts to add
+                addsubs = addsubs[ttb.tt_setdiff_rows(addsubs, self.subs)]
+
+            # If there are things to insert then insert them
+            if addsubs.size > 0:
+                if self.subs.size > 0:
+                    self.subs = np.vstack((self.subs, addsubs.astype(int)))
+                    self.vals = np.vstack(
+                        (self.vals, value * np.ones((addsubs.shape[0], 1)))
+                    )
+                else:
+                    self.subs = addsubs.astype(int)
+                    self.vals = value * np.ones((addsubs.shape[0], 1))
+            return
+
+        assert False, "Invalid assignment value"
 
     def __eq__(self, other):
         """
