@@ -1,0 +1,81 @@
+[project]
+name = "pyttb"
+dynamic = ["version"]
+description = "Python Tensor Toolbox"
+authors = [
+  {name="Daniel M. Dunlavy", email="dmdunla@sandia.gov"},
+]
+license = { text="BSD 2-Clause License" }
+readme = "README.md"
+requires-python = ">=3.8"
+
+dependencies = [
+    "numpy",
+    "numpy_groupies",
+    "scipy",
+]
+
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+homepage = "https://github.com/sandialabs/pyttb"
+coverage = "https://coveralls.io/github/sandialabs/pyttb"
+documentation = "https://pyttb.readthedocs.io"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "pylint",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+]
+doc = [
+    "sphinx_rtd_theme",
+]
+
+[tool.setuptools]
+packages = ["pyttb"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyttb.__version__"}
+
+[build-system]
+requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+
+[tool.pylint]
+# Play nice with black
+max-line-length = 88
+disable="fixme,too-many-lines"
+
+[tool.pylint.basic]
+# To match MATLAB Tensortoolbox styles for clarity
+argument-naming-style = "any"
+class-naming-style = "any"
+variable-naming-style = "any"
+
+[tool.pylint.design]
+# MATLAB Tensortoolbox interface
+max-public-methods = 40
+
+[tool.mypy]
+warn_unused_configs = true
+plugins = "numpy.typing.mypy_plugin"
+
+[[tool.mypy.overrides]]
+module = [
+    "scipy",
+    "scipy.sparse",
+    "scipy.sparse.linalg",
+    "numpy_groupies"
+]
+ignore_missing_imports = true

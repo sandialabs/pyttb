@@ -6,30 +6,26 @@ U.S. Government retains certain rights in this software.
 
 # pyttb: Python Tensor Toolbox
 
-## Contributors
-* Danny Dunlavy, Nick Johnson, Derek Tucker
+Welcome to `pyttb`, a set of Python classes and methods functions for 
+manipulating dense, sparse, and structured tensors, along with algorithms 
+for computing low-rank tensor models.
 
-## Quick start
+**Tensor Classes:**
+* `tensor`: dense tensors
+* `sptensor`: sparse tensors
+* `ktensor`: Kruskal tensors
+* `tenmat`: matricized tensors
+* `ttensor`: Tucker tensors
 
-### Install
-* User: ```python setup.py install```
-* Developer: ```python setup.py develop```
+**Tensor Algorithms:**
+* `cp_als`, `cp_apr`: Canonical Polyadic (CP) decompositions
+* `tucker_als`: Tucker decompostions
 
-### Testing
-```
-python -m pytest
-```
+# Getting Started
+Check out the [Documentation](https://pyttb.readthedocs.io) to get started.
 
-### Coverage Testing
-```
-pytest --cov=pyttb  tests/ --cov-report=html
-# output can be accessed via htmlcov/index.html
-```
+# Contributing
+Check out our [contributing guide](CONTRIBUTING.md).
 
-### Documentation
-```
-# requires `sphinx`
-sphinx-build ./docs/source ./docs/build/html
-# output can be accessed via docs/build/html/index.html
-```
-
+---
+[![Regression tests](https://github.com/sandialabs/pyttb/actions/workflows/regression-tests.yml/badge.svg)](https://github.com/sandialabs/pyttb/actions/workflows/regression-tests.yml) [![Coverage Status](https://coveralls.io/repos/github/sandialabs/pyttb/badge.svg?branch=main)](https://coveralls.io/github/sandialabs/pyttb?branch=main)
