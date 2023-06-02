@@ -251,6 +251,13 @@ def test_tensor__setitem__(sample_tensor_2way):
     # Subtensor add dimension
     empty_tensor[0, 0, 0] = 2
 
+    # Subtensor with lists
+    some_tensor = ttb.tenones((3, 3))
+    some_tensor[[0, 1], [0, 1]] = 11
+    assert some_tensor[0, 0] == 11
+    assert some_tensor[1, 1] == 11
+    assert np.all(some_tensor[[0, 1], [0, 1]].data == 11)
+
     # Subscripts with constant
     tensorInstance[np.array([[1, 1]])] = 13.0
     dataGrowth[1, 1] = 13.0
@@ -280,10 +287,25 @@ def test_tensor__setitem__(sample_tensor_2way):
     dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 13.0
     assert (tensorInstance.data == dataGrowth).all()
 
+    tensorInstance[0] = 14.0
+    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
+    assert (tensorInstance.data == dataGrowth).all()
+
+    tensorInstance[0:1] = 14.0
+    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
+    assert (tensorInstance.data == dataGrowth).all()
+
     # Linear Index with constant
     tensorInstance[np.array([0, 3, 4])] = 13.0
     dataGrowth[np.unravel_index([0, 3, 4], dataGrowth.shape, "F")] = 13
     assert (tensorInstance.data == dataGrowth).all()
+
+    # Linear index with multiple indicies
+    some_tensor = ttb.tenones((3, 3))
+    some_tensor[[0, 1]] = 2
+    assert some_tensor[0] == 2
+    assert some_tensor[1] == 2
+    assert np.array_equal(some_tensor[[0, 1]], [2, 2])
 
     # Test Empty Tensor Set Item, subtensor
     emptyTensor = ttb.tensor.from_data(np.array([]))
@@ -305,8 +327,16 @@ def test_tensor__setitem__(sample_tensor_2way):
     )
 
     # Attempting to set some other way
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         tensorInstance[0, "a", 5] = 13.0
+    assert "must be numeric" in str(excinfo)
+
+    with pytest.raises(AssertionError) as excinfo:
+
+        class BadKey:
+            pass
+
+        tensorInstance[BadKey] = 13.0
     assert "Invalid use of tensor setitem" in str(excinfo)
 
 
@@ -335,11 +365,18 @@ def test_tensor__getitem__(sample_tensor_2way):
     assert tensorInstance[np.array([0, 0]), "extract"] == params["data"][0, 0]
     assert (
         tensorInstance[np.array([[0, 0], [1, 1]]), "extract"]
-        == params["data"][([0, 1], [0, 1])]
+        == params["data"][([0, 0], [1, 1])]
+    ).all()
+    # Case 2a: Extract doesn't seem to be needed
+    assert tensorInstance[np.array([0, 0])] == params["data"][0, 0]
+    assert (
+        tensorInstance[np.array([[0, 0], [1, 1]])] == params["data"][([0, 0], [1, 1])]
     ).all()
 
     # Case 2b: Linear Indexing
     assert tensorInstance[np.array([0])] == params["data"][0, 0]
+    assert tensorInstance[0] == params["data"][0, 0]
+    assert np.array_equal(tensorInstance[0:1], params["data"][0, 0])
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance[np.array([0]), np.array([0]), np.array([0])]
     assert "Linear indexing requires single input array" in str(excinfo)
