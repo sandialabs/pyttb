@@ -253,7 +253,7 @@ def tt_cp_apr_mu(
     kktModeViolations = np.zeros((N,))
 
     if printitn > 0:
-        print("\nCP_APR:\n")
+        print("CP_APR:")
 
     # Start the wall clock timer.
     start = time.time()
@@ -304,7 +304,7 @@ def tt_cp_apr_mu(
                 # Print status
                 if printinneritn != 0 and divmod(i, printinneritn)[1] == 0:
                     print(
-                        "\t\tMode = {}, Inner Iter = {}, KKT violation = {}\n".format(
+                        "\t\tMode = {}, Inner Iter = {}, KKT violation = {}".format(
                             n, i, kktModeViolations[n]
                         )
                     )
@@ -325,11 +325,11 @@ def tt_cp_apr_mu(
         # Check for convergence
         if isConverged:
             if printitn > 0:
-                print("Exiting because all subproblems reached KKT tol.\n")
+                print("Exiting because all subproblems reached KKT tol.")
             break
         if nTimes[iter] > stoptime:
             if printitn > 0:
-                print("Exiting because time limit exceeded.\n")
+                print("Exiting because time limit exceeded.")
             break
 
     t_stop = time.time() - start
@@ -345,12 +345,12 @@ def tt_cp_apr_mu(
             normTensor**2 + M.norm() ** 2 - 2 * input_tensor.innerprod(M)
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
-        print("===========================================\n")
-        print(" Final log-likelihood = {} \n".format(obj))
-        print(" Final least squares fit = {} \n".format(fit))
-        print(" Final KKT violation = {}\n".format(kktViolations[iter]))
-        print(" Total inner iterations = {}\n".format(sum(nInnerIters)))
-        print(" Total execution time = {} secs\n".format(t_stop))
+        print("===========================================")
+        print(" Final log-likelihood = {}".format(obj))
+        print(" Final least squares fit = {}".format(fit))
+        print(" Final KKT violation = {}".format(kktViolations[iter]))
+        print(" Total inner iterations = {}".format(sum(nInnerIters)))
+        print(" Total execution time = {} secs".format(t_stop))
 
     output = {}
     output["params"] = (
@@ -472,7 +472,7 @@ def tt_cp_apr_pdnr(
     times = np.zeros((maxiters, 1))
 
     if printitn > 0:
-        print("\nCP_PDNR (alternating Poisson regression using damped Newton)\n")
+        print("CP_PDNR (alternating Poisson regression using damped Newton)")
 
     dispLineWarn = printinneritn > 0
 
@@ -493,7 +493,7 @@ def tt_cp_apr_pdnr(
             sparseIx.append(row_indices)
 
         if printitn > 0:
-            print("done\n")
+            print("done")
 
     e_vec = np.ones((1, rank))
 
@@ -578,13 +578,16 @@ def tt_cp_apr_pdnr(
                         kktModeViolations[n] = kkt_violation
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
-                        print("\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i))
+                        print(
+                            "\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i),
+                            end="",
+                        )
 
                         if i == 0:
-                            print(", RowKKT = {}\n".format(kkt_violation))
+                            print(", RowKKT = {}".format(kkt_violation))
                         else:
                             print(
-                                ", RowKKT = {}, RowObj = {}\n".format(
+                                ", RowKKT = {}, RowObj = {}".format(
                                     kkt_violation, -f_new
                                 )
                             )
@@ -667,7 +670,7 @@ def tt_cp_apr_pdnr(
             if printitn > 0 and np.mod(iter, printitn) == 0:
                 fnVals[iter] = -tt_loglikelihood(input_tensor, M)
                 print(
-                    "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".format(
+                    "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}".format(
                         iter,
                         nInnerIters[iter],
                         kktViolations[iter],
@@ -684,7 +687,7 @@ def tt_cp_apr_pdnr(
         if isConverged and inexact and rowsubprobStopTol <= stoptol:
             break
         if times[iter] > stoptime:
-            print("EXiting because time limit exceeded\n")
+            print("EXiting because time limit exceeded")
             break
 
     t_stop = time.time() - start
@@ -700,12 +703,12 @@ def tt_cp_apr_pdnr(
             normTensor**2 + M.norm() ** 2 - 2 * input_tensor.innerprod(M)
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
-        print("===========================================\n")
-        print(" Final log-likelihood = {} \n".format(obj))
-        print(" Final least squares fit = {} \n".format(fit))
-        print(" Final KKT violation = {}\n".format(kktViolations[iter]))
-        print(" Total inner iterations = {}\n".format(sum(nInnerIters)))
-        print(" Total execution time = {} secs\n".format(t_stop))
+        print("===========================================")
+        print(" Final log-likelihood = {}".format(obj))
+        print(" Final least squares fit = {}".format(fit))
+        print(" Final KKT violation = {}".format(kktViolations[iter]))
+        print(" Total inner iterations = {}".format(sum(nInnerIters)))
+        print(" Total execution time = {} secs".format(t_stop))
 
     output = {}
     output["params"] = (
@@ -840,7 +843,7 @@ def tt_cp_apr_pqnr(
     times = np.zeros((maxiters, 1))
 
     if printitn > 0:
-        print("\nCP_PQNR (alternating Poisson regression using quasi-Newton)\n")
+        print("CP_PQNR (alternating Poisson regression using quasi-Newton)")
 
     dispLineWarn = printinneritn > 0
 
@@ -861,7 +864,7 @@ def tt_cp_apr_pqnr(
             sparseIx.append(row_indices)
 
         if printitn > 0:
-            print("done\n")
+            print("done")
 
     # Main loop: iterate until convergence or a max threshold is reached
     for iter in range(maxiters):
@@ -958,20 +961,22 @@ def tt_cp_apr_pqnr(
 
                     # We now use \| KKT \|_{inf}:
                     kkt_violation = np.max(np.abs(np.minimum(m_row, gradM)))
-                    # print("Intermediate Printing m_row: {}\n and gradM{}".format(m_row, gradM))
 
                     # Report largest row subproblem initial violation
                     if i == 0 and kkt_violation > kktModeViolations[n]:
                         kktModeViolations[n] = kkt_violation
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
-                        print("\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i))
+                        print(
+                            "\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i),
+                            end="",
+                        )
 
                         if i == 0:
-                            print(", RowKKT = {}\n".format(kkt_violation))
+                            print(", RowKKT = {}".format(kkt_violation))
                         else:
                             print(
-                                ", RowKKT = {}, RowObj = {}\n".format(
+                                ", RowKKT = {}, RowObj = {}".format(
                                     kkt_violation, -f_new
                                 )
                             )
@@ -1075,7 +1080,7 @@ def tt_cp_apr_pqnr(
         if printitn > 0 and np.mod(iter, printitn) == 0:
             fnVals[iter] = -tt_loglikelihood(input_tensor, M)
             print(
-                "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}\n".format(
+                "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}".format(
                     iter, nInnerIters[iter], kktViolations[iter], fnVals[iter], num_zero
                 )
             )
@@ -1086,7 +1091,7 @@ def tt_cp_apr_pqnr(
         if isConverged:
             break
         if times[iter] > stoptime:
-            print("Exiting because time limit exceeded\n")
+            print("Exiting because time limit exceeded")
             break
 
     t_stop = time.time() - start
@@ -1102,12 +1107,12 @@ def tt_cp_apr_pqnr(
             normTensor**2 + M.norm() ** 2 - 2 * input_tensor.innerprod(M)
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
-        print("===========================================\n")
-        print(" Final log-likelihood = {} \n".format(obj))
-        print(" Final least squares fit = {} \n".format(fit))
-        print(" Final KKT violation = {}\n".format(kktViolations[iter]))
-        print(" Total inner iterations = {}\n".format(sum(nInnerIters)))
-        print(" Total execution time = {} secs\n".format(t_stop))
+        print("===========================================")
+        print(" Final log-likelihood = {}".format(obj))
+        print(" Final least squares fit = {}".format(fit))
+        print(" Final KKT violation = {}".format(kktViolations[iter]))
+        print(" Total inner iterations = {}".format(sum(nInnerIters)))
+        print(" Total execution time = {} secs".format(t_stop))
 
     output = {}
     output["params"] = (

@@ -671,14 +671,11 @@ class sptensor:
             if not self.shape == B.shape:
                 assert False, "Must be tensors of the same shape"
 
-            def is_length_2(x):
-                return len(x) == 2
-
             C = sptensor.from_aggregator(
                 np.vstack((self.subs, B.subs)),
                 np.vstack((self.vals, B.vals)),
                 self.shape,
-                is_length_2,
+                lambda x: len(x) == 2,
             )
 
             return C
@@ -735,15 +732,11 @@ class sptensor:
             assert False, "Logical Or requires tensors of the same size"
 
         if isinstance(B, ttb.sptensor):
-
-            def is_length_ge_1(x):
-                return len(x) >= 1
-
             return sptensor.from_aggregator(
                 np.vstack((self.subs, B.subs)),
                 np.ones((self.subs.shape[0] + B.subs.shape[0], 1)),
                 self.shape,
-                is_length_ge_1,
+                lambda x: len(x) >= 1,
             )
 
         assert False, "Sptensor Logical Or argument must be scalar or sptensor"
@@ -780,12 +773,9 @@ class sptensor:
             if self.shape != other.shape:
                 assert False, "Logical XOR requires tensors of the same size"
 
-            def length1(x):
-                return len(x) == 1
-
             subs = np.vstack((self.subs, other.subs))
             return ttb.sptensor.from_aggregator(
-                subs, np.ones((len(subs), 1)), self.shape, length1
+                subs, np.ones((len(subs), 1)), self.shape, lambda x: len(x) == 1
             )
 
         assert False, "The argument must be an sptensor, tensor or scalar"
