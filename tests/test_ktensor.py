@@ -385,12 +385,13 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
     )
     K2 = K.copy()
     # one column to flip
-    K2.factor_matrices[0][:,0] = -1
+    K2.factor_matrices[0][:, 0] = -1
     # 3 columns to flip
-    K2.factor_matrices[0][:,0] = -1
-    K2.factor_matrices[1][:,1] = -1
-    K2.factor_matrices[2][:,2] = -1
+    K2.factor_matrices[0][:, 0] = -1
+    K2.factor_matrices[1][:, 1] = -1
+    K2.factor_matrices[2][:, 2] = -1
     K = K.fixsigns(K2)
+
 
 @pytest.mark.indevelopment
 def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
@@ -833,7 +834,7 @@ def test_ktensor_score():
 
     # zero lambda values lead to equal components
     A0 = ttb.ktensor.from_data(
-    np.array([2, 0]), np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))
+        np.array([2, 0]), np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))
     )
     B0 = ttb.ktensor.from_data(
         np.array([2, 0]), np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))
@@ -862,7 +863,7 @@ def test_ktensor_score():
         score, Aperm, flag, best_perm = A.score(B)
     assert "Size mismatch" in str(excinfo)
 
-    # invalid: number of compnents of first ktensor must be greater than or 
+    # invalid: number of compnents of first ktensor must be greater than or
     # equal to number of components of second ktensor
     with pytest.raises(AssertionError) as excinfo:
         B = ttb.ktensor.from_data(
@@ -870,6 +871,7 @@ def test_ktensor_score():
         )
         score, Aperm, flag, best_perm = B.score(A)
     assert "Tensor A must have at least as many components as tensor B" in str(excinfo)
+
 
 pytest.mark.indevelopment
 

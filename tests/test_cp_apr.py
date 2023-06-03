@@ -148,7 +148,7 @@ def test_cpapr_mu(capsys):
     ktensorInstance = ttb.ktensor.from_data(weights, factor_matrices)
     tensorInstance = ktensorInstance.full()
     np.random.seed(123)
-    M, _, _ = ttb.cp_apr(tensorInstance, 2)
+    M, _, _ = ttb.cp_apr(tensorInstance, 2, printinneritn=1)
     # Consume the cp_apr diagnostic printing
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data).all()
@@ -175,7 +175,7 @@ def test_cpapr_pdnr(capsys):
     ktensorInstance = ttb.ktensor.from_data(weights, factor_matrices)
     tensorInstance = ktensorInstance.full()
     np.random.seed(123)
-    M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pdnr")
+    M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pdnr", printinneritn=1)
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
 
@@ -210,7 +210,7 @@ def test_cpapr_pqnr(capsys):
     tensorInstance = ktensorInstance.full()
     np.random.seed(123)
     with pytest.raises(AssertionError) as excinfo:
-        M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr")
+        M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr", printinneritn=1)
     assert "ERROR: L-BFGS first iterate is bad" in str(excinfo)
     capsys.readouterr()
 

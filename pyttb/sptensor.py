@@ -737,7 +737,7 @@ class sptensor:
                 np.vstack((self.subs, B.subs)),
                 np.ones((self.subs.shape[0] + B.subs.shape[0], 1)),
                 self.shape,
-                lambda x: len(x) >=1,
+                lambda x: len(x) >= 1,
             )
 
         assert False, "Sptensor Logical Or argument must be scalar or sptensor"
