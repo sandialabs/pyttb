@@ -117,7 +117,6 @@ def test_import_data_array(sample_array):
 
 @pytest.mark.indevelopment
 def test_import_invalid():
-
     # invalid filename
     data_filename = os.path.join(
         os.path.dirname(__file__), "data", "invalid_filename.tns"
@@ -227,7 +226,6 @@ def test_export_data_array(sample_array):
 
 @pytest.mark.indevelopment
 def test_export_invalid():
-
     # list data is invalid
     data = [1, 2, 3]
     data_filename = os.path.join(os.path.dirname(__file__), "data", "invalid.out")
