@@ -1,7 +1,7 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
-
+"""Khatri-Rao Product Implementation"""
 import numpy as np
 
 
@@ -32,16 +32,17 @@ def khatrirao(*matrices: np.ndarray, reverse: bool = False) -> np.ndarray:
     # Determine if list of matrices of multiple matrix arguments
     if len(matrices) == 1 and isinstance(matrices[0], list):
         raise ValueError(
-            "Khatrirao interface has changed. Instead of `khatrirao([matrix_a, matrix_b])` "
-            "please update to use argument unpacking `khatrirao(*[matrix_a, matrix_b])`. "
-            "This reduces ambiguity in usage moving forward. "
+            "Khatrirao interface has changed. Instead of "
+            " `khatrirao([matrix_a, matrix_b])` please update to use argument "
+            "unpacking `khatrirao(*[matrix_a, matrix_b])`. This reduces ambiguity "
+            "in usage moving forward. "
         )
 
     if not isinstance(reverse, bool):
         raise ValueError(f"Expected a bool for reverse but received {reverse}")
 
     # Error checking on input and set matrix order
-    if reverse == True:
+    if reverse is True:
         matrices = tuple(reversed(matrices))
     if not all(len(matrix.shape) == 2 for matrix in matrices):
         assert False, "Each argument must be a matrix"
