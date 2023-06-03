@@ -175,7 +175,9 @@ def test_cpapr_pdnr(capsys):
     ktensorInstance = ttb.ktensor.from_data(weights, factor_matrices)
     tensorInstance = ktensorInstance.full()
     np.random.seed(123)
-    M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pdnr", printinneritn=1, inexact=False)
+    M, _, _ = ttb.cp_apr(
+        tensorInstance, 2, algorithm="pdnr", printinneritn=1, inexact=False
+    )
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
 

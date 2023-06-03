@@ -578,7 +578,10 @@ def tt_cp_apr_pdnr(
                         kktModeViolations[n] = kkt_violation
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
-                        print("\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i), end="")
+                        print(
+                            "\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i),
+                            end="",
+                        )
 
                         if i == 0:
                             print(", RowKKT = {}".format(kkt_violation))
@@ -964,7 +967,10 @@ def tt_cp_apr_pqnr(
                         kktModeViolations[n] = kkt_violation
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
-                        print("\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i), end="")
+                        print(
+                            "\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i),
+                            end="",
+                        )
 
                         if i == 0:
                             print(", RowKKT = {}".format(kkt_violation))
