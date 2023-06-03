@@ -1,11 +1,11 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
-
+"""Khatri-Rao Product Implementation"""
 import numpy as np
 
 
-def khatrirao(*listOfMatrices, reverse=False):
+def khatrirao(*matrices: np.ndarray, reverse: bool = False) -> np.ndarray:
     """
     KHATRIRAO Khatri-Rao product of matrices.
 
@@ -16,12 +16,8 @@ def khatrirao(*listOfMatrices, reverse=False):
 
     Parameters
     ----------
-    Matrices: [:class:`numpy.ndarray`] or :class:`numpy.ndarray`,:class:`numpy.ndarray`...
+    matrices: Collection of matrices to take the product of
     reverse: bool Set to true to calculate product in reverse
-
-    Returns
-    -------
-    product: float
 
     Examples
     --------
@@ -29,56 +25,36 @@ def khatrirao(*listOfMatrices, reverse=False):
     >>> B = np.random.normal(size=(5,2))
     >>> _ = khatrirao(A,B) #<-- Khatri-Rao of A and B
     >>> _ = khatrirao(B,A,reverse=True) #<-- same thing as above
-    >>> _ = khatrirao([A,A,B]) #<-- passing a list
-    >>> _ = khatrirao([B,A,A],reverse = True) #<-- same as above
+    >>> _ = khatrirao(A,A,B) #<-- passing multiple items
+    >>> _ = khatrirao(B,A,A,reverse = True) #<-- same as above
+    >>> _ = khatrirao(*[A,A,B]) #<-- passing a list via unpacking items
     """
     # Determine if list of matrices of multiple matrix arguments
-    if isinstance(listOfMatrices[0], list):
-        if len(listOfMatrices) == 1:
-            listOfMatrices = listOfMatrices[0]
-        else:
-            assert (
-                False
-            ), "Khatri Rao Acts on multiple Array arguments or a list of Arrays"
+    if len(matrices) == 1 and isinstance(matrices[0], list):
+        raise ValueError(
+            "Khatrirao interface has changed. Instead of "
+            " `khatrirao([matrix_a, matrix_b])` please update to use argument "
+            "unpacking `khatrirao(*[matrix_a, matrix_b])`. This reduces ambiguity "
+            "in usage moving forward. "
+        )
+
+    if not isinstance(reverse, bool):
+        raise ValueError(f"Expected a bool for reverse but received {reverse}")
 
     # Error checking on input and set matrix order
-    if reverse == True:
-        listOfMatrices = list(reversed(listOfMatrices))
-    ndimsA = [len(matrix.shape) == 2 for matrix in listOfMatrices]
-    if not np.all(ndimsA):
+    if reverse is True:
+        matrices = tuple(reversed(matrices))
+    if not all(len(matrix.shape) == 2 for matrix in matrices):
         assert False, "Each argument must be a matrix"
 
-    ncolFirst = listOfMatrices[0].shape[1]
-    ncols = [matrix.shape[1] == ncolFirst for matrix in listOfMatrices]
-    if not np.all(ncols):
+    ncolFirst = matrices[0].shape[1]
+    if not all(matrix.shape[1] == ncolFirst for matrix in matrices):
         assert False, "All matrices must have the same number of columns."
 
     # Computation
-    # print(f'A =\n {listOfMatrices}')
-    P = listOfMatrices[0]
-    # print(f'size_P = \n{P.shape}')
-    # print(f'P = \n{P}')
-    if ncolFirst == 1:
-        for i in listOfMatrices[1:]:
-            # print(f'size_Ai = \n{i.shape}')
-            # print(f'size_reshape_Ai = \n{np.reshape(i, newshape=(-1, ncolFirst)).shape}')
-            # print(f'size_P = \n{P.shape}')
-            # print(f'size_reshape_P = \n{np.reshape(P, newshape=(ncolFirst, -1)).shape}')
-            P = np.reshape(i, newshape=(-1, ncolFirst)) * np.reshape(
-                P, newshape=(ncolFirst, -1), order="F"
-            )
-            # print(f'size_P = \n{P.shape}')
-            # print(f'P = \n{P}')
-    else:
-        for i in listOfMatrices[1:]:
-            # print(f'size_Ai = \n{i.shape}')
-            # print(f'size_reshape_Ai = \n{np.reshape(i, newshape=(-1, 1, ncolFirst)).shape}')
-            # print(f'size_P = \n{P.shape}')
-            # print(f'size_reshape_P = \n{np.reshape(P, newshape=(1, -1, ncolFirst)).shape}')
-            P = np.reshape(i, newshape=(-1, 1, ncolFirst)) * np.reshape(
-                P, newshape=(1, -1, ncolFirst), order="F"
-            )
-            # print(f'size_P = \n{P.shape}')
-            # print(f'P = \n{P}')
-
+    P = matrices[0]
+    for i in matrices[1:]:
+        P = np.reshape(i, newshape=(-1, 1, ncolFirst)) * np.reshape(
+            P, newshape=(1, -1, ncolFirst), order="F"
+        )
     return np.reshape(P, newshape=(-1, ncolFirst), order="F")

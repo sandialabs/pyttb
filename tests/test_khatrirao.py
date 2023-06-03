@@ -24,8 +24,8 @@ def test_khatrirao():
             [64, 125, 216],
         ]
     )
-    assert (ttb.khatrirao([A, A, A]) == answer).all()
-    assert (ttb.khatrirao([A, A, A], reverse=True) == answer).all()
+    assert (ttb.khatrirao(*[A, A, A]) == answer).all()
+    assert (ttb.khatrirao(*[A, A, A], reverse=True) == answer).all()
     assert (ttb.khatrirao(A, A, A) == answer).all()
 
     # Test case where inputs are column vectors
@@ -40,14 +40,8 @@ def test_khatrirao():
             a_2[3, 0] * np.ones((16, 1)),
         )
     )
-    assert (ttb.khatrirao([a_2, a_1, a_1]) == result).all()
+    assert (ttb.khatrirao(*[a_2, a_1, a_1]) == result).all()
     assert (ttb.khatrirao(a_2, a_1, a_1) == result).all()
-
-    with pytest.raises(AssertionError) as excinfo:
-        ttb.khatrirao([a_2, a_1, a_1], a_2)
-    assert "Khatri Rao Acts on multiple Array arguments or a list of Arrays" in str(
-        excinfo
-    )
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.khatrirao(a_2, a_1, np.ones((2, 2, 2)))
@@ -56,3 +50,10 @@ def test_khatrirao():
     with pytest.raises(AssertionError) as excinfo:
         ttb.khatrirao(a_2, a_1, a_3)
     assert "All matrices must have the same number of columns." in str(excinfo)
+
+    # Check old interface error
+    with pytest.raises(ValueError):
+        ttb.khatrirao([a_1, a_1, a_1])
+
+    with pytest.raises(ValueError):
+        ttb.khatrirao(a_1, a_1, reverse="cat")

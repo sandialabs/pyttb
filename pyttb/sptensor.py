@@ -348,7 +348,7 @@ class sptensor:
         for n in range(0, self.ndims):
             i = o.copy()
             i[n] = np.expand_dims(np.arange(0, self.shape[n]), axis=1)
-            s[:, n] = np.squeeze(ttb.khatrirao(i))
+            s[:, n] = np.squeeze(ttb.khatrirao(*i))
 
         return s.astype(int)
 
@@ -1723,7 +1723,7 @@ class sptensor:
                     i[n] = np.array(keyCopy[n])[:, None]
                 else:
                     i[n] = np.array(keyCopy[n], ndmin=2)
-                addsubs[:, n] = ttb.khatrirao(i).transpose()[:]
+                addsubs[:, n] = ttb.khatrirao(*i).transpose()[:]
 
             if self.subs.size > 0:
                 # Replace existing values

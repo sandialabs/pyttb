@@ -27,6 +27,7 @@ def test_linting():
         os.path.join(os.path.dirname(ttb.__file__), f"{ttb.tensor.__name__}.py"),
         os.path.join(os.path.dirname(ttb.__file__), f"{ttb.sptensor.__name__}.py"),
         ttb.pyttb_utils.__file__,
+        os.path.join(os.path.dirname(ttb.__file__), f"{ttb.khatrirao.__name__}.py"),
     ]
     # TODO pylint fails to import pyttb in tests
     # add mypy check
