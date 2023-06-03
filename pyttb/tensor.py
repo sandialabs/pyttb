@@ -702,16 +702,18 @@ class tensor:
         szn = self.shape[n]
 
         if n == 0:
-            Ur = ttb.khatrirao(U[1 : self.ndims], reverse=True)
+            Ur = ttb.khatrirao(*U[1 : self.ndims], reverse=True)
             Y = np.reshape(self.data, (szn, szr), order="F")
             return Y @ Ur
         if n == self.ndims - 1:  # pylint: disable=no-else-return
-            Ul = ttb.khatrirao(U[0 : self.ndims - 1], reverse=True)
+            Ul = ttb.khatrirao(*U[0 : self.ndims - 1], reverse=True)
             Y = np.reshape(self.data, (szl, szn), order="F")
             return Y.T @ Ul
         else:
-            Ul = ttb.khatrirao(U[n + 1 :], reverse=True)
-            Ur = np.reshape(ttb.khatrirao(U[0:n], reverse=True), (szl, 1, R), order="F")
+            Ul = ttb.khatrirao(*U[n + 1 :], reverse=True)
+            Ur = np.reshape(
+                ttb.khatrirao(*U[0:n], reverse=True), (szl, 1, R), order="F"
+            )
             Y = np.reshape(self.data, (-1, szr), order="F")
             Y = Y @ Ul
             Y = np.reshape(Y, (szl, szn, R), order="F")
