@@ -1170,8 +1170,10 @@ def tt_calcpi_prowsubprob(
             Pi *= Model[i][Data.subs[sparse_indices, i], :]
     else:
         Pi = ttb.khatrirao(
-            Model.factor_matrices[:factorIndex]
-            + Model.factor_matrices[factorIndex + 1 : ndims + 1],
+            *(
+                Model.factor_matrices[:factorIndex]
+                + Model.factor_matrices[factorIndex + 1 : ndims + 1]
+            ),
             reverse=True,
         )
 
@@ -1659,8 +1661,10 @@ def calculatePi(Data, Model, rank, factorIndex, ndims):
             Pi *= Model[i][Data.subs[:, i], :]
     else:
         Pi = ttb.khatrirao(
-            Model.factor_matrices[:factorIndex]
-            + Model.factor_matrices[factorIndex + 1 :],
+            *(
+                Model.factor_matrices[:factorIndex]
+                + Model.factor_matrices[factorIndex + 1 :]
+            ),
             reverse=True,
         )
 

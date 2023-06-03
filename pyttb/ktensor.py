@@ -990,7 +990,7 @@ class ktensor(object):
          [63. 85.]]
         <BLANKLINE>
         """
-        data = self.weights @ ttb.khatrirao(self.factor_matrices, reverse=True).T
+        data = self.weights @ ttb.khatrirao(*self.factor_matrices, reverse=True).T
         return ttb.tensor.from_data(data, self.shape)
 
     def innerprod(self, other):
