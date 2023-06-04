@@ -2,11 +2,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import numpy as np
-
 import pyttb as ttb
-
-from .pyttb_utils import *
 
 
 class sptenmat(object):
@@ -15,5 +11,5 @@ class sptenmat(object):
 
     """
 
-    def __init__(self, *args):  # pragma:no cover
+    def __init__(self):
         assert False, "SPTENMAT class not yet implemented"

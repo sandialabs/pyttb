@@ -1,7 +1,7 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
-"""Sparse Tensor Implementation"""
+
 from __future__ import annotations
 
 import logging
@@ -89,7 +89,7 @@ def tt_from_sparse_matrix(
     return sptensorInstance
 
 
-class sptensor:
+class sptensor(object):
     """
     SPTENSOR Class for sparse tensors.
     """
