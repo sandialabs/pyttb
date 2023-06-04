@@ -15,5 +15,5 @@ class symktensor(object):
 
     """
 
-    def __init__(self, *args):  # pragma:no cover
+    def __init__(self):
         assert False, "SYMKTENSOR class not yet implemented"
