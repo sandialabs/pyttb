@@ -10,5 +10,5 @@ import pyttb as ttb
 @pytest.mark.indevelopment
 def test_sumtensor_initialization_empty():
     with pytest.raises(AssertionError) as excinfo:
-            empty_tensor = ttb.sumtensor()
+        empty_tensor = ttb.sumtensor()
     assert "SUMTENSOR class not yet implemented" in str(excinfo)
