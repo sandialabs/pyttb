@@ -5,7 +5,7 @@
 import pyttb as ttb
 
 
-class sptensor3(object):
+class sptensor3:
     """
     SPTENSOR3 a sparse tensor variant.
 

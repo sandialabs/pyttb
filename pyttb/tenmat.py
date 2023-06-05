@@ -9,7 +9,7 @@ import pyttb as ttb
 from .pyttb_utils import *
 
 
-class tenmat(object):
+class tenmat:
     """
     TENMAT Store tensor as a matrix.
 
