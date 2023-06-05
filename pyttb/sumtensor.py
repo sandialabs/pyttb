@@ -5,7 +5,7 @@
 import pyttb as ttb
 
 
-class sumtensor(object):
+class sumtensor:
     """
     SUMTENSOR Class for implicit sum of other tensors.
 

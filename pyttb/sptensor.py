@@ -90,7 +90,7 @@ def tt_from_sparse_matrix(
     return sptensorInstance
 
 
-class sptensor(object):
+class sptensor:
     """
     SPTENSOR Class for sparse tensors.
     """

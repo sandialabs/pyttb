@@ -19,7 +19,7 @@ import pyttb as ttb
 from pyttb.pyttb_utils import tt_dimscheck, tt_ind2sub
 
 
-class tensor(object):
+class tensor:
     """
     TENSOR Class for dense tensors.
     """
