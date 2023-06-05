@@ -2,7 +2,6 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-"""Classes and functions for working with Kruskal tensors."""
 from __future__ import annotations
 
 import logging
@@ -990,7 +989,7 @@ class ktensor(object):
          [63. 85.]]
         <BLANKLINE>
         """
-        data = self.weights @ ttb.khatrirao(self.factor_matrices, reverse=True).T
+        data = self.weights @ ttb.khatrirao(*self.factor_matrices, reverse=True).T
         return ttb.tensor.from_data(data, self.shape)
 
     def innerprod(self, other):

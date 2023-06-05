@@ -116,6 +116,32 @@ def test_import_data_array(sample_array):
 
 
 @pytest.mark.indevelopment
+def test_import_invalid():
+    # invalid filename
+    data_filename = os.path.join(
+        os.path.dirname(__file__), "data", "invalid_filename.tns"
+    )
+
+    with pytest.raises(AssertionError) as excinfo:
+        X = ttb.import_data(data_filename)
+    assert f"File path {data_filename} does not exist." in str(excinfo)
+
+    # invalid type
+    data_filename = os.path.join(os.path.dirname(__file__), "data", "invalid_type.tns")
+
+    with pytest.raises(AssertionError) as excinfo:
+        X = ttb.import_data(data_filename)
+    assert f"Invalid data type found: list" in str(excinfo)
+
+    # invalid type
+    data_filename = os.path.join(os.path.dirname(__file__), "data", "invalid_dims.tns")
+
+    with pytest.raises(AssertionError) as excinfo:
+        X = ttb.import_data(data_filename)
+    assert "Imported dimensions are not of expected size" in str(excinfo)
+
+
+@pytest.mark.indevelopment
 def test_export_data_tensor(sample_tensor):
     # truth data
     T = sample_tensor
@@ -196,3 +222,14 @@ def test_export_data_array(sample_array):
     X = ttb.import_data(data_filename)
     assert (M == X).all()
     os.unlink(data_filename)
+
+
+@pytest.mark.indevelopment
+def test_export_invalid():
+    # list data is invalid
+    data = [1, 2, 3]
+    data_filename = os.path.join(os.path.dirname(__file__), "data", "invalid.out")
+
+    with pytest.raises(AssertionError) as excinfo:
+        ttb.export_data(data, data_filename)
+    assert f"Invalid data type for export: {type(data)}" in str(excinfo)

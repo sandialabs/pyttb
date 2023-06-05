@@ -1,4 +1,7 @@
-"""Testing of general package properties such as linting and formatting"""
+# Copyright 2022 National Technology & Engineering Solutions of Sandia,
+# LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
+# U.S. Government retains certain rights in this software.
+
 import os
 import subprocess
 
@@ -27,6 +30,7 @@ def test_linting():
         os.path.join(os.path.dirname(ttb.__file__), f"{ttb.tensor.__name__}.py"),
         os.path.join(os.path.dirname(ttb.__file__), f"{ttb.sptensor.__name__}.py"),
         ttb.pyttb_utils.__file__,
+        os.path.join(os.path.dirname(ttb.__file__), f"{ttb.khatrirao.__name__}.py"),
     ]
     # TODO pylint fails to import pyttb in tests
     # add mypy check

@@ -15,6 +15,9 @@ def export_data(data, filename, fmt_data=None, fmt_weights=None):
     """
     Export tensor-related data to a file.
     """
+    if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
+        assert False, f"Invalid data type for export: {type(data)}"
+
     # open file
     fp = open(filename, "w")
 
@@ -53,9 +56,6 @@ def export_data(data, filename, fmt_data=None, fmt_weights=None):
         print("matrix", file=fp)
         export_size(fp, data.shape)
         export_array(fp, data, fmt_data)
-
-    else:
-        assert False, "Invalid data type for export"
 
 
 def export_size(fp, shape):

@@ -24,23 +24,27 @@ def import_data(filename):
     data_type = import_type(fp)
 
     if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
+        fp.close()
         assert False, f"Invalid data type found: {data_type}"
 
     if data_type == "tensor":
         shape = import_shape(fp)
         data = import_array(fp, np.prod(shape))
+        fp.close()
         return ttb.tensor().from_data(data, shape)
 
     elif data_type == "sptensor":
         shape = import_shape(fp)
         nz = import_nnz(fp)
         subs, vals = import_sparse_array(fp, len(shape), nz)
+        fp.close()
         return ttb.sptensor().from_data(subs, vals, shape)
 
     elif data_type == "matrix":
         shape = import_shape(fp)
         mat = import_array(fp, np.prod(shape))
         mat = np.reshape(mat, np.array(shape))
+        fp.close()
         return mat
 
     elif data_type == "ktensor":
@@ -54,10 +58,8 @@ def import_data(filename):
             fac = import_array(fp, np.prod(fac_shape))
             fac = np.reshape(fac, np.array(fac_shape))
             factor_matrices.append(fac)
+        fp.close()
         return ttb.ktensor().from_data(weights, factor_matrices)
-
-    # Close file
-    fp.close()
 
 
 def import_type(fp):

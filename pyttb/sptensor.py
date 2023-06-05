@@ -1,7 +1,7 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
-"""Sparse Tensor Implementation"""
+
 from __future__ import annotations
 
 import logging
@@ -89,7 +89,7 @@ def tt_from_sparse_matrix(
     return sptensorInstance
 
 
-class sptensor:
+class sptensor(object):
     """
     SPTENSOR Class for sparse tensors.
     """
@@ -348,7 +348,7 @@ class sptensor:
         for n in range(0, self.ndims):
             i = o.copy()
             i[n] = np.expand_dims(np.arange(0, self.shape[n]), axis=1)
-            s[:, n] = np.squeeze(ttb.khatrirao(i))
+            s[:, n] = np.squeeze(ttb.khatrirao(*i))
 
         return s.astype(int)
 
@@ -671,14 +671,11 @@ class sptensor:
             if not self.shape == B.shape:
                 assert False, "Must be tensors of the same shape"
 
-            def is_length_2(x):
-                return len(x) == 2
-
             C = sptensor.from_aggregator(
                 np.vstack((self.subs, B.subs)),
                 np.vstack((self.vals, B.vals)),
                 self.shape,
-                is_length_2,
+                lambda x: len(x) == 2,
             )
 
             return C
@@ -735,15 +732,11 @@ class sptensor:
             assert False, "Logical Or requires tensors of the same size"
 
         if isinstance(B, ttb.sptensor):
-
-            def is_length_ge_1(x):
-                return len(x) >= 1
-
             return sptensor.from_aggregator(
                 np.vstack((self.subs, B.subs)),
                 np.ones((self.subs.shape[0] + B.subs.shape[0], 1)),
                 self.shape,
-                is_length_ge_1,
+                lambda x: len(x) >= 1,
             )
 
         assert False, "Sptensor Logical Or argument must be scalar or sptensor"
@@ -780,12 +773,9 @@ class sptensor:
             if self.shape != other.shape:
                 assert False, "Logical XOR requires tensors of the same size"
 
-            def length1(x):
-                return len(x) == 1
-
             subs = np.vstack((self.subs, other.subs))
             return ttb.sptensor.from_aggregator(
-                subs, np.ones((len(subs), 1)), self.shape, length1
+                subs, np.ones((len(subs), 1)), self.shape, lambda x: len(x) == 1
             )
 
         assert False, "The argument must be an sptensor, tensor or scalar"
@@ -1723,7 +1713,7 @@ class sptensor:
                     i[n] = np.array(keyCopy[n])[:, None]
                 else:
                     i[n] = np.array(keyCopy[n], ndmin=2)
-                addsubs[:, n] = ttb.khatrirao(i).transpose()[:]
+                addsubs[:, n] = ttb.khatrirao(*i).transpose()[:]
 
             if self.subs.size > 0:
                 # Replace existing values

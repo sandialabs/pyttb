@@ -7,9 +7,8 @@ import pytest
 import pyttb as ttb
 
 
-def test_package_smoke():
-    """A few sanity checks to make sure things don't explode"""
-    assert len(ttb.__version__) > 0
-    # Make sure warnings filter doesn't crash
-    ttb.ignore_warnings(False)
-    ttb.ignore_warnings(True)
+@pytest.mark.indevelopment
+def test_sptensor3_initialization_empty():
+    with pytest.raises(AssertionError) as excinfo:
+        empty_tensor = ttb.sptensor3()
+    assert "SPTENSOR3 class not yet implemented" in str(excinfo)
