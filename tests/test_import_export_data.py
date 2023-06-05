@@ -118,13 +118,16 @@ def test_import_data_array(sample_array):
 @pytest.mark.indevelopment
 def test_import_invalid():
     # invalid filename
-    data_filename = os.path.join(
-        os.path.dirname(__file__), "data", "invalid_filename.tns"
+    data_filename = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "data", "invalid_filename.tns")
     )
 
     with pytest.raises(AssertionError) as excinfo:
         X = ttb.import_data(data_filename)
-    assert f"File path {data_filename} does not exist." in str(excinfo)
+    assert (
+        f"File path {os.path.normpath(data_filename)} does not exist."
+        in excinfo.value.args[0]
+    )
 
     # invalid type
     data_filename = os.path.join(os.path.dirname(__file__), "data", "invalid_type.tns")
