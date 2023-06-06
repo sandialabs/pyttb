@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install coverage coveralls sphinx_rtd_theme
+        python -m pip install --upgrade coverage coveralls sphinx_rtd_theme
         pip install ".[dev]"
     - name: Check auto-formatters
       run: |
@@ -44,4 +44,7 @@ jobs:
         coverage run --source pyttb -m pytest tests/ --packaging
         coverage report
     - name: Upload coverage to Coveralls
-      uses: coverallsapp/github-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        coveralls --service=github
