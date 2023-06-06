@@ -5,7 +5,7 @@
 import pyttb as ttb
 
 
-class symtensor(object):
+class symtensor:
     """
     SYMTENSOR Class for storing only unique entries of symmetric tensor.
 

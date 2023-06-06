@@ -9,7 +9,7 @@ import pyttb as ttb
 from .pyttb_utils import *
 
 
-class symktensor(object):
+class symktensor:
     """
     SYMKTENSOR Class for symmetric Kruskal tensors (decomposed).
 
