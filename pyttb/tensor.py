@@ -1,3 +1,4 @@
+"""Dense Tensor Implementation"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -18,7 +19,7 @@ import pyttb as ttb
 from pyttb.pyttb_utils import tt_dimscheck, tt_ind2sub
 
 
-class tensor(object):
+class tensor:
     """
     TENSOR Class for dense tensors.
     """

@@ -15,7 +15,7 @@ from pyttb import sptenmat, sptensor, tenmat, tensor
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet"
 
 
-class ttensor(object):
+class ttensor:
     """
     TTENSOR Class for Tucker tensors (decomposed).
 
