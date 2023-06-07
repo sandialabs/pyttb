@@ -807,18 +807,6 @@ def whos(*args):
 
     Returns
     -------
-    None
-        Prints a summary of each variable to the console but does not return a value.
-
-    Example
-    -------
-    >>> X = ttb.tensor().from_data(np.random.rand(5), shape=(5,))
-    >>> Y = ttb.tensor().from_data(np.random.rand(4,3,1), (4,3,1))
-    >>> whos('X', 'Y')
-    Name      Size           Bytes     Class               Num. Attributes
-    ---------------------------------------------------------------------
-    X         5              56        tensor              36
-    Y         4x3x1          56        tensor              36
 
     """
     print(
