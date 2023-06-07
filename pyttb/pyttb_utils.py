@@ -3,6 +3,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import sys
 from inspect import signature
 from typing import Optional, Tuple, overload
 
@@ -793,3 +794,41 @@ def islogical(a):
     bool
     """
     return isinstance(a, bool)
+
+
+def whos(*args):
+    """
+    A function that provides a summary of one or more variables, similar to MATLAB's `whos` command.
+
+    Parameters
+    ----------
+    *args: string
+        The names of the variables to summarize. Each variable must exist in the global scope.
+
+    Returns
+    -------
+    None
+        Prints a summary of each variable to the console but does not return a value.
+
+    Example
+    -------
+    >>> X = ttb.tensor().from_data(np.random.rand(5), shape=(5,))
+    >>> Y = ttb.tensor().from_data(np.random.rand(4,3,1), (4,3,1))
+    >>> whos('X', 'Y')
+    Name      Size           Bytes     Class               Num. Attributes
+    ---------------------------------------------------------------------
+    X         5              56        tensor              36
+    Y         4x3x1          56        tensor              36
+
+    """
+    print(
+        f"{'Name': <10}{'Size': <10}{'Bytes': <10}{'Class': <10}{'Num. Attributes': <5}"
+    )
+    print("-" * 55)
+    for name in args:
+        var = globals()[name]
+        size = "x".join(map(str, var.shape)) if hasattr(var, "shape") else "N/A"
+        attributes = [attr for attr in dir(var) if not attr.startswith("__")]
+        print(
+            f"{name: <10}{size: <10}{str(sys.getsizeof(var)): <10}{str(type(var).__name__): <10}{len(attributes): <5}"
+        )
