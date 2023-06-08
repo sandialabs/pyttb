@@ -1,3 +1,20 @@
+# v1.6.2 (2023-06-08)
+- New: 
+  - Tensor generator helpers: 
+    - `tenones`, `tenzeros`, `tendiag`, `sptendiag` (PR https://github.com/sandialabs/pyttb/pull/93)
+    - `tenrand`, `sptenrand` (PR https://github.com/sandialabs/pyttb/pull/100)
+  - Moved to using `logging` instead of `warnings` (PR https://github.com/sandialabs/pyttb/pull/99)
+- Documentation:
+  - Updated coverage testing (PRs https://github.com/sandialabs/pyttb/pull/128, https://github.com/sandialabs/pyttb/pull/131, https://github.com/sandialabs/pyttb/pull/132, https://github.com/sandialabs/pyttb/pull/133)
+  - Updated dev docs for contributors (PRs https://github.com/sandialabs/pyttb/pull/106, https://github.com/sandialabs/pyttb/pull/123)
+  - Clarifications in `sptensor` (PR https://github.com/sandialabs/pyttb/pull/137)
+  - Minor fixes for clarification (PR https://github.com/sandialabs/pyttb/pull/117)
+- Fixes/Completed:
+  - Fixing indexing/slicing in `tensor` (PRs https://github.com/sandialabs/pyttb/pull/109, https://github.com/sandialabs/pyttb/pull/116)
+  - Fixing `ktensor` methods: `arrange`, `normalize` (PR https://github.com/sandialabs/pyttb/pull/103)
+  - Streamling `khatrirao` code (PR https://github.com/sandialabs/pyttb/pull/127)
+  - Avoiding class names for variables (PRs https://github.com/sandialabs/pyttb/pull/118)
+
 # v1.6.1 (2023-04-27)
 - New: 
   - Tensor generator helpers: 
