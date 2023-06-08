@@ -122,6 +122,9 @@ class sptensor:
     ) -> sptensor:
         """
         Construct an sptensor from fully defined SUB, VAL and SIZE matrices.
+        This does no validation to optimize for speed when components are known.
+        For default initializer with error checking see
+        :func:`~pyttb.sptensor.sptensor.from_aggregator`.
 
         Parameters
         ----------
