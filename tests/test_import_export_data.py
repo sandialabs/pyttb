@@ -92,6 +92,20 @@ def test_import_data_sptensor(sample_sptensor):
 
 
 @pytest.mark.indevelopment
+def test_import_data_sptensor_0_based(sample_sptensor):
+    # truth data
+    S = sample_sptensor
+
+    # imported data
+    data_filename = os.path.join(
+        os.path.dirname(__file__), "data", "sptensor_0_based.tns"
+    )
+    X = ttb.import_data(data_filename, index_base=0)
+
+    assert S.isequal(X)
+
+
+@pytest.mark.indevelopment
 def test_import_data_ktensor(sample_ktensor):
     # truth data
     K = sample_ktensor
