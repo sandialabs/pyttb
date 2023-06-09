@@ -16,6 +16,8 @@ U.S. Government retains certain rights in this software.
 [PRs](https://github.com/sandialabs/pyttb/commits?author=dmdunla) 
 - [Nick Johnson](@ntjohnson1) - original author, `sptensor`, `ktensor`, `tensor`, `ttensor`, `cp_als`, `cp_apr`, 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=ntjohnson1)
+- [Jordan Medina](@DeepBlockDeepak) - documentation, tutorials,
+[PRs](https://github.com/sandialabs/pyttb/commits?author=@DeepBlockDeepak)
 
 **Other Contributors:**
 - [Brian Kelley](@brian_kelley) - `numpy` compatability, 

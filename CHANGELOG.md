@@ -1,3 +1,15 @@
+# v1.6.2 (2023-06-08)
+- Documentation:
+  - Updated coverage testing (https://github.com/sandialabs/pyttb/pull/128, https://github.com/sandialabs/pyttb/pull/131, https://github.com/sandialabs/pyttb/pull/132, https://github.com/sandialabs/pyttb/pull/133)
+  - Updated dev docs for contributors (https://github.com/sandialabs/pyttb/pull/106, https://github.com/sandialabs/pyttb/pull/123)
+  - Clarifications in `sptensor` (https://github.com/sandialabs/pyttb/pull/137)
+  - Minor fixes for clarification (https://github.com/sandialabs/pyttb/pull/117)
+- Fixes/Completed:
+  - Fixing indexing/slicing in `tensor` (https://github.com/sandialabs/pyttb/pull/109, https://github.com/sandialabs/pyttb/pull/116)
+  - Fixing `ktensor` methods: `arrange`, `normalize` (https://github.com/sandialabs/pyttb/pull/103)
+  - Streamling `khatrirao` code (https://github.com/sandialabs/pyttb/pull/127)
+  - Avoiding class names for variables (https://github.com/sandialabs/pyttb/pull/118)
+
 # v1.6.1 (2023-04-27)
 - New: 
   - Tensor generator helpers: 
