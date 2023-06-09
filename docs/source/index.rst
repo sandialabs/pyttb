@@ -44,6 +44,16 @@ Python API
 
    reference.rst
 
+How to Cite
+==============
+Please see `references`_ for how to cite a variety of algorithms implemented in this project.
+
+.. _references: bibtex.html
+
+.. toctree::
+   :maxdepth: 2
+
+   bibtex.rst
 
 Contact
 ================
