@@ -13,7 +13,7 @@ import pyttb as ttb
 @pytest.fixture()
 def sample_tensor():
     # truth data
-    T = ttb.tensor.from_data(np.ones((3, 3, 3)), (3, 3, 3))
+    T = ttb.tensor.from_data(np.array(range(1, 28)), (3, 3, 3))
     return T
 
 
@@ -87,6 +87,20 @@ def test_import_data_sptensor(sample_sptensor):
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__), "data", "sptensor.tns")
     X = ttb.import_data(data_filename)
+
+    assert S.isequal(X)
+
+
+@pytest.mark.indevelopment
+def test_import_data_sptensor_0_based(sample_sptensor):
+    # truth data
+    S = sample_sptensor
+
+    # imported data
+    data_filename = os.path.join(
+        os.path.dirname(__file__), "data", "sptensor_0_based.tns"
+    )
+    X = ttb.import_data(data_filename, index_base=0)
 
     assert S.isequal(X)
 
