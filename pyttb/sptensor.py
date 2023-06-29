@@ -1338,9 +1338,11 @@ class sptensor:
             # Return a single double value for a zero-order sub-tensor
             if newsiz.size == 0:
                 if vals.size == 0:
-                    a = np.array([[0]])
+                    a = np.array(0, dtype=vals.dtype)
                 else:
                     a = vals
+                if a.size == 1:
+                    a = a.item()
                 return a
 
             # Assemble the resulting sparse tensor
