@@ -290,6 +290,11 @@ def test_sptensor__getitem__(sample_sptensor):
     assert sptensorInstance[:, :, :].isequal(
         sptensorInstance[[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]
     )
+    # Confirm empty tensor indexing
+    X = ttb.sptensor()
+    X.shape = (40, 30, 20)
+    assert X[0, 0, 0] == 0
+    assert X[0, 0, :].isequal(X[0, 0, :])
 
     # TODO need to understand what this intends to do
     ## Case 2 subscript indexing

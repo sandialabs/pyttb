@@ -1252,7 +1252,7 @@ class sptensor:
 
         return c
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-statements
     def __getitem__(self, item):
         """
         Subscripted reference for a sparse tensor.
@@ -1291,8 +1291,10 @@ class sptensor:
         >>> vals = np.array([3,5,1])
         >>> shape = (4,4,4)
         >>> X = sptensor.from_data(subs,vals,shape)
-        >>> _ = X[0,1,0] #<-- returns zero
-        >>> _ = X[3,3,3] #<-- returns 3
+        >>> print(X[0,1,0])
+        0
+        >>> print(X[3,3,3])
+        3
         >>> _ = X[2:3,:,:] #<-- returns 1 x 4 x 4 sptensor
         """
         # This does not work like MATLAB TTB; you must call sptensor.extract to get
@@ -1308,8 +1310,15 @@ class sptensor:
             # Pare down the list of subscripts (and values) to only
             # those within the subdimensions specified by region.
             loc = self.subdims(region)
-            subs = self.subs[loc, :]
-            vals = self.vals[loc]
+            # Handle slicing an sptensor with no entries
+            if self.subs.size == 0:
+                subs = self.subs.copy()
+            else:
+                subs = self.subs[loc, :]
+            if self.vals.size == 0:
+                vals = self.vals.copy()
+            else:
+                vals = self.vals[loc]
 
             # Find the size of the subtensor and renumber the
             # subscripts
