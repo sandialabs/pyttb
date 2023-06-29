@@ -374,22 +374,22 @@ def tt_intersect_rows(MatrixA, MatrixB):
     return location[np.where(location >= 0)]
 
 
-def tt_irenumber(t, shape, number_range):  # pylint: disable=unused-argument
+# TODO we cannot add typing to t because of circular dependencies
+# we need to separate utils that act of tensors and utils used by tensors
+def tt_irenumber(t, shape: Tuple[int, ...], number_range) -> np.ndarray:
     """
     RENUMBER indices for sptensor subsasgn
 
     Parameters
     ----------
-    t: :class:`pyttb.sptensor`
-    shape: tuple(int)
-    range: tuple, len(range) = modes in tensor. Is key from __setitem__
+    t: Sptensor we are trying to assign from
+    shape: Shape of destination tensor
+    number_range: Key from __setitem__ for destination tensor
 
     Returns
     -------
-    newsubs: :class:`numpy.ndarray`
+    Subscripts for sptensor assignment
     """
-    # TODO shape is unused. Should it be used? I don't particularly understand what
-    #  this is meant to be doing
     nz = t.nnz
     if nz == 0:
         newsubs = np.array([])
@@ -398,7 +398,9 @@ def tt_irenumber(t, shape, number_range):  # pylint: disable=unused-argument
     newsubs = t.subs.astype(int)
     for i, r in enumerate(number_range):
         if isinstance(r, slice):
-            newsubs[:, i] = (newsubs[:, i])[r]
+            start = r.start or 0
+            stop = r.stop or shape[i]
+            newsubs[:, i] = np.arange(start, stop + 1)[newsubs[:, i]]
         elif isinstance(r, int):
             # This appears to be inserting new keys as rows to our subs here
             newsubs = np.insert(newsubs, obj=i, values=r, axis=1)

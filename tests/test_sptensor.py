@@ -338,6 +338,11 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     assert (emptyTensor.vals == data["vals"]).all()
     assert emptyTensor.shape == data["shape"]
 
+    # Case I(a): Set empty tensor with shape with sptensor
+    emptyTensor = ttb.sptensor()
+    emptyTensor[0:4, 0:4, 0:4] = sptensorInstance
+    assert emptyTensor[0:4, 0:4, 0:4].isequal(sptensorInstance)
+
     # Case I(a): Set sptensor with empty tensor
     emptyTensor = ttb.sptensor()
     emptyTensor.shape = (4, 4, 4)

@@ -217,7 +217,6 @@ def test_tt_ismember_rows():
 
 @pytest.mark.indevelopment
 def test_tt_irenumber():
-    # TODO: Note this is more of a regression test by exploring the behaviour in MATLAB still not totally clear on WHY it behaves this way
     # Constant shouldn't effect performance
     const = 1
 
