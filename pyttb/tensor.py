@@ -1561,7 +1561,7 @@ class tensor:
 
         if (isinstance(item, np.ndarray) and len(item.shape) == 1) or (
             isinstance(item, list)
-            and all(isinstance(element, (int)) for element in item)
+            and all(isinstance(element, (int, np.integer)) for element in item)
         ):
             idx = np.array(item)
             a = np.squeeze(

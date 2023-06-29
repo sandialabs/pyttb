@@ -556,7 +556,9 @@ class sptensor:
         loc = ttb.tt_ismember_rows(searchsubs, self.subs)
         # Fill in the non-zero elements in the answer
         nzsubs = np.where(loc >= 0)
-        a[nzsubs] = self.vals[loc[nzsubs]]
+        non_zeros = self.vals[loc[nzsubs]]
+        if non_zeros.size > 0:
+            a[nzsubs] = non_zeros
         return a
 
     def find(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -1379,11 +1381,17 @@ class sptensor:
 
         # *** CASE 2b: Linear indexing ***
         else:
-            # Error checking
-            if isinstance(item, list):
+            # TODO: Copy pasted from tensor DRY up
+            if isinstance(item, (int, float, np.generic, slice)):
+                if isinstance(item, (int, float, np.generic)):
+                    idx = np.array([item])
+                elif isinstance(item, slice):
+                    idx = np.array(range(np.prod(self.shape))[item])
+            elif isinstance(item, np.ndarray) or (
+                isinstance(item, list)
+                and all(isinstance(element, (int, np.integer)) for element in item)
+            ):
                 idx = np.array(item)
-            elif isinstance(item, np.ndarray):
-                idx = item
             else:
                 assert False, "Invalid indexing"
 
@@ -1395,6 +1403,8 @@ class sptensor:
 
         a = self.extract(srchsubs)
         a = tt_subsubsref(a, item)
+        if a.size == 1:
+            a = a.item()
 
         return a
 

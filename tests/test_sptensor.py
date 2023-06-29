@@ -317,6 +317,12 @@ def test_sptensor__getitem__(sample_sptensor):
         sptensorInstance["string"]
     assert "Invalid indexing" in str(excinfo)
 
+    # Check simpler single value linear indexing option
+    assert sptensorInstance[0] == sptensorInstance[0, 0, 0]
+    emptySptensor = ttb.sptensor()
+    emptySptensor.shape = (4, 3)
+    assert np.array_equal(emptySptensor[:], np.zeros((np.prod(emptySptensor.shape), 1)))
+
 
 @pytest.mark.indevelopment
 def test_sptensor_setitem_Case1(sample_sptensor):
