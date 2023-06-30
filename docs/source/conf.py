@@ -52,7 +52,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
-    "nbsphinx",
+    "myst_nb",
 ]
 
 napoleon_use_param = False

@@ -42,7 +42,7 @@ Tutorials
 .. toctree::
    :maxdepth: 1
 
-   tutorials
+   tutorials.rst
 
 
 Python API
