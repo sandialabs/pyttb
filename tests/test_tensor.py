@@ -364,14 +364,19 @@ def test_tensor__getitem__(sample_tensor_2way):
     # Case 2a:
     assert tensorInstance[np.array([0, 0]), "extract"] == params["data"][0, 0]
     assert (
-        tensorInstance[np.array([[0, 0], [1, 1]]), "extract"]
-        == params["data"][([0, 0], [1, 1])]
+        tensorInstance[np.array([[0, 2], [1, 1], [1, 2]]), "extract"]
+        == params["data"][([0, 1, 1], [2, 1, 2])]
     ).all()
     # Case 2a: Extract doesn't seem to be needed
-    assert tensorInstance[np.array([0, 0])] == params["data"][0, 0]
+    assert tensorInstance[np.array([[0, 0]])] == params["data"][0, 0]
     assert (
-        tensorInstance[np.array([[0, 0], [1, 1]])] == params["data"][([0, 0], [1, 1])]
+        tensorInstance[np.array([[0, 2], [1, 1], [1, 2]])]
+        == params["data"][([0, 1, 1], [2, 1, 2])]
     ).all()
+    with pytest.raises(AssertionError) as excinfo:
+        # Must use numpy arrays for subscripts
+        tensorInstance[[[0, 2], [1, 1], [1, 2]]]
+    assert "Invalid use of tensor getitem" in str(excinfo)
 
     # Case 2b: Linear Indexing
     assert tensorInstance[np.array([0])] == params["data"][0, 0]
@@ -380,6 +385,9 @@ def test_tensor__getitem__(sample_tensor_2way):
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance[np.array([0]), np.array([0]), np.array([0])]
     assert "Linear indexing requires single input array" in str(excinfo)
+    assert np.array_equal(
+        tensorInstance[[0, 1, 2]], tensorInstance[np.array([0, 1, 2])]
+    )
 
 
 @pytest.mark.indevelopment
