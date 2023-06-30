@@ -2,6 +2,7 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 from inspect import signature
 from typing import Optional, Tuple, overload
@@ -374,9 +375,7 @@ def tt_intersect_rows(MatrixA, MatrixB):
     return location[np.where(location >= 0)]
 
 
-# TODO we cannot add typing to t because of circular dependencies
-# we need to separate utils that act of tensors and utils used by tensors
-def tt_irenumber(t, shape: Tuple[int, ...], number_range) -> np.ndarray:
+def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.ndarray:
     """
     RENUMBER indices for sptensor subsasgn
 

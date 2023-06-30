@@ -1307,7 +1307,11 @@ class sptensor:
         # *** CASE 1: Rectangular Subtensor ***
         if isinstance(item, tuple) and len(item) == self.ndims:
             # Extract the subdimensions to be extracted from self
-            region = item
+            region = []
+            for dim, value in enumerate(item):
+                if isinstance(value, (int, np.integer)) and value < 0:
+                    value = self.shape[dim] + value
+                region.append(value)
 
             # Pare down the list of subscripts (and values) to only
             # those within the subdimensions specified by region.
@@ -1384,6 +1388,8 @@ class sptensor:
             # TODO: Copy pasted from tensor DRY up
             if isinstance(item, (int, float, np.generic, slice)):
                 if isinstance(item, (int, float, np.generic)):
+                    if item < 0:
+                        item = np.prod(self.shape) + item
                     idx = np.array([item])
                 elif isinstance(item, slice):
                     idx = np.array(range(np.prod(self.shape))[item])
@@ -1464,7 +1470,12 @@ class sptensor:
 
         # Case 1: Replace a sub-tensor
         if objectType == "subtensor":
-            return self._set_subtensor(key, value)
+            updated_key = []
+            for dim, entry in enumerate(key):
+                if isinstance(entry, (int, np.integer)) and entry < 0:
+                    entry = self.shape[dim] + entry
+                updated_key.append(entry)
+            return self._set_subtensor(updated_key, value)
         # Case 2: Subscripts
         if objectType == "subscripts":
             return self._set_subscripts(key, value)

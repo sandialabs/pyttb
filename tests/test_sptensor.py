@@ -296,6 +296,12 @@ def test_sptensor__getitem__(sample_sptensor):
     assert X[0, 0, 0] == 0
     assert X[0, 0, :].isequal(X[0, 0, :])
 
+    Y = ttb.sptenrand((10, 10, 10), nonzeros=10)
+    X[110:120, 110:120, 110:120] = Y
+    assert X[110:, 110:, 115:].isequal(X[-10:, -10:, -5:])
+    X[119, 119, 119] = 123
+    assert X[119, 119, 119] == X[-1, -1, -1]
+
     # TODO need to understand what this intends to do
     ## Case 2 subscript indexing
     assert sptensorInstance[np.array([[1], [2], [1]])] == np.array([[0]])
@@ -322,6 +328,8 @@ def test_sptensor__getitem__(sample_sptensor):
     emptySptensor = ttb.sptensor()
     emptySptensor.shape = (4, 3)
     assert np.array_equal(emptySptensor[:], np.zeros((np.prod(emptySptensor.shape), 1)))
+    emptySptensor[4, 3] = 123
+    assert emptySptensor[-1] == 123
 
 
 @pytest.mark.indevelopment
@@ -472,6 +480,12 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     # Reset tensor data
     data["subs"] = data["subs"][reorder]
     data["vals"] = data["vals"][reorder]
+
+    # Case I(b)i: Set value with negative indices
+    emptyTensor = ttb.sptensor()
+    emptyTensor.shape = (2, 2, 2)
+    emptyTensor[-1, -1, -1] = 55
+    assert emptyTensor[1, 1, 1] == 55
 
     # Case I(b)i: Set slice with zero, sub already exists
     old_value = data["vals"][3, 0]
