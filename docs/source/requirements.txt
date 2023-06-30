@@ -7,3 +7,4 @@ sphinx >= 3.5
 sphinx-argparse
 sphinx-gallery
 sphinx_rtd_theme
+myst-nb
