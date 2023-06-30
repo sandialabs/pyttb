@@ -1270,12 +1270,17 @@ class tensor:
         case.
 
         Examples
-        X = tensor(rand(3,4,2))
-        X(1:2,1:2,1) = ones(2,2) <-- replaces subtensor
-        X([1 1 1;1 1 2]) = [5;7] <-- replaces two elements
-        X([1;13]) = [5;7] <-- does the same thing
-        X(1,1,2:3) = 1 <-- grows tensor
-        X(1,1,4) = 1 %<- grows the size of the tensor
+        --------
+        >>> X = tensor.from_data(np.ones((3,4,2)))
+        >>> # replaces subtensor
+        >>> X[0:2,0:2,0] = np.ones((2,2))
+        >>> # replaces two elements
+        >>> X[np.array([[1, 1, 1], [1, 1, 2]])] = [5, 7]
+        >>> # replaces two elements with linear indices
+        >>> X[np.array([1, 13])] = [5, 7]
+        >>> # grows tensor to accept new element
+        >>> X[1,1,2:3] = 1
+        >>> X[1,1,4] = 1
         """
         # Figure out if we are doing a subtensor, a list of subscripts or a list of
         # linear indices
@@ -1421,7 +1426,7 @@ class tensor:
         elif key.shape[0] == 1:  # and len(key.shape) == 1:
             self.data[tuple(key[0, :])] = value
         else:
-            self.data[tuple(key)] = value
+            self.data[tuple(key.transpose())] = value
 
     def __getitem__(self, item):
         """
@@ -1434,7 +1439,7 @@ class tensor:
         scalar.
 
         Case 1b: Y = X(R1,R2,...,RN), where one or more Rn is a range and
-        the rest are indices, returns a sparse tensor.
+        the rest are indices, returns a tensor.
 
         Case 2a: V = X(S) or V = X(S,'extract'), where S is a p x n array
         of subscripts, returns a vector of p values.
@@ -1446,18 +1451,30 @@ class tensor:
         is particularly an issue if ndims(X)==1.
 
         Examples
-        X = tensor(rand(3,4,2,1),[3 4 2 1]);
-        X.data <-- returns multidimensional array
-        X.size <-- returns size
-        X(1,1,1,1) <-- produces a scalar
-        X(1,1,1,:) <-- produces a tensor of order 1 and size 1
-        X(:,1,1,:) <-- produces a tensor of size 3 x 1
-        X(1:2,[2 4],1,:) <-- produces a tensor of size 2 x 2 x 1
-        X(1:2,[2 4],1,1) <-- produces a tensor of size 2 x 2
-        X([1,1,1,1;3,4,2,1]) <-- returns a vector of length 2
-        X = tensor(rand(10,1),10);
-        X([1:6]') <-- extracts a subtensor
-        X([1:6]','extract') <-- extracts a vector of 6 elements
+        --------
+        >>> X = tensor.from_data(np.ones((3,4,2,1)))
+        >>> X[0,0,0,0] # produces a scalar
+        1.0
+        >>> # produces a tensor of order 1 and size 1
+        >>> X[1,1,1,:] # doctest: +NORMALIZE_WHITESPACE
+        tensor of shape 1
+        data[:] =
+        [1.]
+        >>> # produces a tensor of size 2 x 2 x 1
+        >>> X[0:2,[2, 3],1,:] # doctest: +NORMALIZE_WHITESPACE
+        tensor of shape 2 x 2 x 1
+        data[0, :, :] =
+        [[1.]
+         [1.]]
+        data[1, :, :] =
+        [[1.]
+         [1.]]
+        >>> # returns a vector of length 2
+        >>> # Equivalent to selecting [0,0,0,0] and [1,1,1,0] separately
+        >>> X[np.array([[0, 0, 0, 0], [1, 1, 1, 0]])]
+        array([1., 1.])
+        >>> X[[0,1,2]] # extracts the first three linearized indices
+        array([1., 1., 1.])
 
         Parameters
         ----------
@@ -1518,31 +1535,42 @@ class tensor:
             return a
 
         # *** CASE 2a: Subscript indexing ***
-        if isinstance(item, np.ndarray) and len(item) > 1:
-            # Extract array of subscripts
-            subs = np.array(item)
-            a = np.squeeze(self.data[tuple(subs)])
-            # TODO if is row make column?
-            return ttb.tt_subsubsref(a, subs)
-        if (
-            len(item) > 1
+        is_subscript = (
+            isinstance(item, np.ndarray)
+            and len(item.shape) == 2
+            and item.shape[-1] == self.ndims
+        )
+        is_extract_subscript = (
+            len(item) == 2
             and isinstance(item[0], np.ndarray)
             and isinstance(item[-1], str)
             and item[-1] == "extract"
-        ):
-            # TODO dry this up
-            subs = np.array(item[0])
-            a = np.squeeze(self.data[tuple(subs)])
+        )
+        if is_subscript or is_extract_subscript:
+            if is_extract_subscript:
+                item = item[0]
+            # Extract array of subscripts
+            subs = np.array(item)
+            a = np.squeeze(self.data[tuple(subs.transpose())])
             # TODO if is row make column?
             return ttb.tt_subsubsref(a, subs)
 
         # Case 2b: Linear Indexing
         if isinstance(item, tuple) and len(item) >= 2 and not isinstance(item[-1], str):
             assert False, "Linear indexing requires single input array"
-        idx = np.array(item)
-        a = np.squeeze(self.data[tuple(ttb.tt_ind2sub(self.shape, idx).transpose())])
-        # Todo if row make column?
-        return ttb.tt_subsubsref(a, idx)
+
+        if (isinstance(item, np.ndarray) and len(item.shape) == 1) or (
+            isinstance(item, list)
+            and all(isinstance(element, (int)) for element in item)
+        ):
+            idx = np.array(item)
+            a = np.squeeze(
+                self.data[tuple(ttb.tt_ind2sub(self.shape, idx).transpose())]
+            )
+            # Todo if row make column?
+            return ttb.tt_subsubsref(a, idx)
+
+        assert False, "Invalid use of tensor getitem"
 
     def __eq__(self, other):
         """
@@ -1978,7 +2006,7 @@ def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> te
     else:
         constructed_shape = tuple(max(N, dim) for dim in shape)
     X = tenzeros(constructed_shape)
-    subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1))
+    subs = np.tile(np.arange(0, N)[:, None], (len(constructed_shape),))
     X[subs] = elements
     return X
 
