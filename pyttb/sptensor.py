@@ -1368,9 +1368,9 @@ class sptensor:
         if (
             isinstance(item, np.ndarray)
             and len(item.shape) == 2
-            and item.shape[0] == self.ndims
+            and item.shape[1] == self.ndims
         ):
-            srchsubs = np.array(item.transpose())
+            srchsubs = np.array(item)
 
         # *** CASE 2b: Linear indexing ***
         else:
@@ -1421,19 +1421,20 @@ class sptensor:
 
         Examples
         --------
-        X = sptensor([30 40 20]) <-- Create an emtpy 30 x 40 x 20 sptensor
-        X(30,40,20) = 7 <-- Assign a single element to be 7
-        X([1,1,1;2,2,2]) = 1 <-- Assign a list of elements to the same value
-        X(11:20,11:20,11:20) = sptenrand([10,10,10],10) <-- subtensor!
-        X(31,41,21) = 7 <-- grows the size of the tensor
-        X(111:120,111:120,111:120) = sptenrand([10,10,10],10) <-- grows
-        X(1,1,1,1) = 4 <-- increases the number of dimensions from 3 to 4
+        >>> X = sptensor((30, 40, 20)) # <-- Create an empty 30 x 40 x 20 sptensor
+        >>> X[29, 39, 19] = 7 # <-- Assign a single element to be 7
+        >>> X[np.array([[1,1,1], [2,2,2]])] = 1 # <-- Assign a list of elements
+        >>> X[11:20,11:20,11:20] = ttb.sptenrand((10,10,10),nonzeros=10)
+        >>> X[31,41,21] = 7 # <-- grows the size of the tensor
+        >>> # Grow tensor
+        >>> X[111:120,111:120,111:120] = ttb.sptenrand((10,10,10),nonzeros=10)
+        >>> X[1,1,1,1] = 4 # <-- increases the number of dimensions from 3 to 4
 
-        X = sptensor([30]) <-- empty one-dimensional tensor
-        X([4:6]) = 1 <-- set subtensor to ones (does not increase dimension)
-        X([10;12;14]) = (4:6)'  <-- set three elements
-        X(31) = 7 <-- grow the first dimension
-        X(1,1) = 0 <-- add a dimension, but no nonzeros
+        >>> X = ttb.sptensor((30,)) # <-- empty one-dimensional tensor
+        >>> X[4:6] = 1 # <-- set subtensor to ones (does not increase dimension)
+        >>> X[np.array([[10], [12], [14]])] = np.array([[5], [6], [7]])
+        >>> X[31] = 7 # <-- grow the ONLY dimension
+        >>> X[1,1] = 0 # <-- add a dimension, but no nonzeros
 
         Note regarding singleton dimensions: It is not possible to do, for
         instance, X(1,1:10,1:10) = sptenrand([1 10 10],5). However, it is okay
@@ -1467,6 +1468,12 @@ class sptensor:
         # Case 2: Subscripts
         if access_type == ttb.IndexVariant.SUBSCRIPTS:
             return self._set_subscripts(key, value)
+        if access_type == ttb.IndexVariant.LINEAR and len(self.shape) == 1:
+            if isinstance(key, slice):
+                key = np.arange(0, self.shape[0])[key, None]
+            else:
+                key = np.array([[key]])
+            return self._set_subscripts(key, value)
         raise ValueError("Unknown assignment type")  # pragma: no cover
 
     def _set_subscripts(self, key, value):
@@ -1475,21 +1482,20 @@ class sptensor:
         tt_subscheck(newsubs, nargout=False)
 
         # Error check on subscripts
-        if newsubs.shape[0] < self.ndims:
+        if newsubs.shape[1] < self.ndims:
             assert False, "Invalid subscripts"
 
         # Check for expanding the order
-        if newsubs.shape[0] > self.ndims:
+        if newsubs.shape[1] > self.ndims:
             newshape = list(self.shape)
-            # TODO no need for loop, just add correct size
-            for _ in range(self.ndims, newsubs.shape[0]):
-                newshape.append(1)
+            grow_size = newsubs.shape[1] - self.ndims
+            newshape.extend([1] * grow_size)
             if self.subs.size > 0:
                 self.subs = np.concatenate(
                     (
                         self.subs,
                         np.ones(
-                            (self.shape[0], newsubs.shape[0] - self.ndims),
+                            (self.subs.shape[0], grow_size),
                             dtype=int,
                         ),
                     ),
@@ -1509,7 +1515,7 @@ class sptensor:
 
         # Determine number of nonzeros being inserted.
         # (This is determined by number of subscripts)
-        newnnz = newsubs.shape[1]
+        newnnz = newsubs.shape[0]
 
         # Error check on size of newvals
         if newvals.size == 1:
@@ -1522,7 +1528,7 @@ class sptensor:
             assert False, "Number of subscripts and number of values do not match!"
 
         # Remove duplicates and print warning if any duplicates were removed
-        newsubs, idx = np.unique(newsubs.transpose(), axis=0, return_index=True)
+        newsubs, idx = np.unique(newsubs, axis=0, return_index=True)
         if newsubs.shape[0] != newnnz:
             warnings.warn("Duplicate assignments discarded")
 

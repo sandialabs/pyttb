@@ -310,11 +310,10 @@ def test_sptensor__getitem__(sample_sptensor):
     X[119, 119, 119] = 123
     assert X[119, 119, 119] == X[-1, -1, -1]
 
-    # TODO need to understand what this intends to do
     ## Case 2 subscript indexing
-    assert sptensorInstance[np.array([[1], [2], [1]])] == np.array([[0]])
+    assert sptensorInstance[np.array([[1, 2, 1]])] == np.array([[0]])
     assert (
-        sptensorInstance[np.array([[1, 1], [2, 3], [1, 1]])] == np.array([[0], [0]])
+        sptensorInstance[np.array([[1, 2, 1], [1, 3, 1]])] == np.array([[0], [0]])
     ).all()
 
     ## Case 2 Linear Indexing
@@ -596,14 +595,12 @@ def test_sptensor_setitem_Case2(sample_sptensor):
 
     # Case II: Too few keys in setitem for number of assignement values
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance[np.array([[1], [1], [1]]).astype(int)] = np.array(
-            [[999.0], [888.0]]
-        )
+        sptensorInstance[np.array([[1, 1, 1]])] = np.array([[999.0], [888.0]])
     assert "Number of subscripts and number of values do not match!" in str(excinfo)
 
     # Case II: Warning For duplicates
     with pytest.warns(Warning) as record:
-        sptensorInstance[np.array([[1, 1], [1, 1], [1, 1]]).astype(int)] = np.array(
+        sptensorInstance[np.array([[1, 1, 1], [1, 1, 1]]).astype(int)] = np.array(
             [[999.0], [999.0]]
         )
     assert "Duplicate assignments discarded" in str(record[0].message)
@@ -614,54 +611,54 @@ def test_sptensor_setitem_Case2(sample_sptensor):
     assert np.all(empty_tensor[np.array([[0, 1], [2, 2]])] == 4)
 
     # Case II: Single entry, for single sub that exists
-    sptensorInstance[np.array([[1], [1], [1]]).astype(int)] = 999.0
-    assert (sptensorInstance[np.array([[1], [1], [1]])] == np.array([[999]])).all()
+    sptensorInstance[np.array([[1, 1, 1]]).astype(int)] = 999.0
+    assert (sptensorInstance[np.array([[1, 1, 1]])] == np.array([[999]])).all()
     assert (sptensorInstance.subs == data["subs"]).all()
 
     # Case II: Single entry, for multiple subs that exist
     (data, sptensorInstance) = sample_sptensor
-    sptensorInstance[np.array([[1, 1], [1, 1], [1, 3]]).astype(int)] = 999.0
+    sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]]).astype(int)] = 999.0
     assert (
-        sptensorInstance[np.array([[1, 1], [1, 1], [1, 3]])] == np.array([[999], [999]])
+        sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]])] == np.array([[999], [999]])
     ).all()
     assert (sptensorInstance.subs == data["subs"]).all()
 
     # Case II: Multiple entries, for multiple subs that exist
     (data, sptensorInstance) = sample_sptensor
-    sptensorInstance[np.array([[1, 1], [1, 1], [1, 3]]).astype(int)] = np.array(
+    sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]]).astype(int)] = np.array(
         [[888], [999]]
     )
     assert (
-        sptensorInstance[np.array([[1, 1], [1, 1], [3, 1]])] == np.array([[999], [888]])
+        sptensorInstance[np.array([[1, 1, 1], [1, 1, 3]])] == np.array([[888], [999]])
     ).all()
     assert (sptensorInstance.subs == data["subs"]).all()
 
     # Case II: Single entry, for single sub that doesn't exist
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1], [1], [2]]).astype(int)] = 999.0
-    assert (copy[np.array([[1], [1], [2]])] == np.array([999])).all()
+    copy[np.array([[1, 1, 2]]).astype(int)] = 999.0
+    assert (copy[np.array([[1, 1, 2]])] == np.array([999])).all()
     assert (copy.subs == np.concatenate((data["subs"], np.array([[1, 1, 2]])))).all()
 
     # Case II: Single entry, for single sub that doesn't exist, expand dimensions
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1], [1], [2], [1]]).astype(int)] = 999.0
-    assert (copy[np.array([[1], [1], [2], [1]])] == np.array([999])).all()
+    copy[np.array([[1, 1, 2, 1]]).astype(int)] = 999.0
+    assert (copy[np.array([[1, 1, 2, 1]])] == np.array([999])).all()
     # assert (copy.subs == np.concatenate((data['subs'], np.array([[1, 1, 2]])))).all()
 
     # Case II: Single entry, for multiple subs one that exists and the other doesn't
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1, 2], [1, 1], [1, 3]]).astype(int)] = 999.0
-    assert (copy[np.array([[2], [1], [3]])] == np.array([999])).all()
+    copy[np.array([[1, 1, 1], [2, 1, 3]]).astype(int)] = 999.0
+    assert (copy[np.array([[2, 1, 3]])] == np.array([999])).all()
     assert (copy.subs == np.concatenate((data["subs"], np.array([[2, 1, 3]])))).all()
 
     # Case II: Multiple entries, for multiple subs that don't exist
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1, 2], [1, 1], [2, 3]]).astype(int)] = np.array([[888], [999]])
-    assert (copy[np.array([[1, 2], [1, 1], [2, 3]])] == np.array([[888], [999]])).all()
+    copy[np.array([[1, 1, 2], [2, 1, 3]]).astype(int)] = np.array([[888], [999]])
+    assert (copy[np.array([[1, 1, 2], [2, 1, 3]])] == np.array([[888], [999]])).all()
     assert (
         copy.subs == np.concatenate((data["subs"], np.array([[1, 1, 2], [2, 1, 3]])))
     ).all()
@@ -669,8 +666,8 @@ def test_sptensor_setitem_Case2(sample_sptensor):
     # Case II: Multiple entries, for multiple subs that exist and need to be removed
     (data, sptensorInstance) = sample_sptensor
     copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1, 1], [1, 1], [1, 3]]).astype(int)] = np.array([[0], [0]])
-    assert (copy[np.array([[1, 2], [1, 1], [1, 3]])] == np.array([[0], [0]])).all()
+    copy[np.array([[1, 1, 1], [1, 1, 3]]).astype(int)] = np.array([[0], [0]])
+    assert (copy[np.array([[1, 1, 1], [1, 1, 3]])] == np.array([[0], [0]])).all()
     assert (copy.subs == np.array([[2, 2, 2], [3, 3, 3]])).all()
 
 

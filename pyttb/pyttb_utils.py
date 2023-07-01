@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from enum import Enum
 from inspect import signature
-from typing import Optional, Tuple, Union, overload
+from typing import Optional, Tuple, Union, get_args, overload
 
 import numpy as np
 
@@ -787,13 +787,14 @@ class IndexVariant(Enum):
     SUBSCRIPTS = 3
 
 
-IndexType = Union[int, float, np.generic, slice, list, np.ndarray]
+LinearIndexType = Union[int, float, np.generic, slice]
+IndexType = Union[LinearIndexType, list, np.ndarray]
 
 
 def get_index_variant(indices: IndexType) -> IndexVariant:
     """Decide on intended indexing variant. No correctness checks."""
     variant = IndexVariant.UNKNOWN
-    if isinstance(indices, (float, int, np.generic, slice)):
+    if isinstance(indices, get_args(LinearIndexType)):
         variant = IndexVariant.LINEAR
     elif isinstance(indices, np.ndarray):
         # TODO this is technically slightly stricter than what

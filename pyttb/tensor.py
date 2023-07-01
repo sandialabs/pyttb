@@ -1440,9 +1440,6 @@ class tensor:
         >>> X[[0,1,2]] # extracts the first three linearized indices
         array([1., 1., 1.])
 
-        Parameters
-        ----------
-
         Returns
         -------
         :class:`pyttb.tensor` or :class:`numpy.ndarray`
