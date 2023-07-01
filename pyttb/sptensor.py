@@ -625,7 +625,7 @@ class sptensor:
             if self.shape != other.shape:
                 assert False, "Sptensor and tensor must be same shape for innerproduct"
             [subsSelf, valsSelf] = self.find()
-            valsOther = other[subsSelf, "extract"]
+            valsOther = other[subsSelf]
             return valsOther.transpose().dot(valsSelf)
 
         if isinstance(other, (ttb.ktensor, ttb.ttensor)):  # pragma: no cover
@@ -686,9 +686,7 @@ class sptensor:
             return C
 
         if isinstance(B, ttb.tensor):
-            BB = sptensor.from_data(
-                self.subs, B[self.subs, "extract"][:, None], self.shape
-            )
+            BB = sptensor.from_data(self.subs, B[self.subs][:, None], self.shape)
             C = self.logical_and(BB)
             return C
 
@@ -1048,7 +1046,7 @@ class sptensor:
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
-                self.vals * factor[self.subs[:, dims], "extract"][:, None],
+                self.vals * factor[self.subs[:, dims]][:, None],
                 self.shape,
             )
         if isinstance(factor, ttb.sptensor):
@@ -1268,10 +1266,10 @@ class sptensor:
         the rest are indices, returns a sparse tensor. The elements are
         renumbered here as appropriate.
 
-        Case 2a: V = X(S) or V = X(S,'extract'), where S is a p x n array
+        Case 2a: V = X(S) where S is a p x n array
         of subscripts, returns a vector of p values.
 
-        Case 2b: V = X(I) or V = X(I,'extract'), where I is a set of p
+        Case 2b: V = X(I) where I is a set of p
         linear indices, returns a vector of p values.
 
         Any ambiguity results in executing the first valid case. This
@@ -1298,9 +1296,6 @@ class sptensor:
         3
         >>> _ = X[2:3,:,:] #<-- returns 1 x 4 x 4 sptensor
         """
-        # This does not work like MATLAB TTB; you must call sptensor.extract to get
-        # this functionality: X([1:6]','extract') %<-- extracts a vector of 6 elements
-
         # TODO IndexError for value outside of indices
         # TODO Key error if item not in container
         # *** CASE 1: Rectangular Subtensor ***
@@ -1371,8 +1366,7 @@ class sptensor:
                 )
             return a
 
-        # TODO understand how/ why this is used, logic doesn't translate immediately
-        # Case 2: EXTRACT
+        # Case 2:
 
         # *** CASE 2a: Subscript indexing ***
         if (
@@ -1835,7 +1829,7 @@ class sptensor:
             ]
 
             # Find where their nonzeros intersect
-            othervals = other[self.subs, "extract"]
+            othervals = other[self.subs]
             znzsubs = self.subs[(othervals[:, None] == self.vals).transpose()[0], :]
 
             return sptensor.from_data(
@@ -1915,9 +1909,7 @@ class sptensor:
             else:
                 subs1 = np.empty((0, self.subs.shape[1]))
             # find entries where x is nonzero but not equal to y
-            subs2 = self.subs[
-                self.vals.transpose()[0] != other[self.subs, "extract"], :
-            ]
+            subs2 = self.subs[self.vals.transpose()[0] != other[self.subs], :]
             if subs2.size == 0:
                 subs2 = np.empty((0, self.subs.shape[1]))
             # put it all together
@@ -2031,7 +2023,7 @@ class sptensor:
             )
         if isinstance(other, ttb.tensor):
             csubs = self.subs
-            cvals = self.vals * other[csubs, "extract"][:, None]
+            cvals = self.vals * other[csubs][:, None]
             return ttb.sptensor.from_data(csubs, cvals, self.shape)
         if isinstance(other, ttb.ktensor):
             csubs = self.subs
@@ -2152,9 +2144,7 @@ class sptensor:
             subs1 = subs1[ttb.tt_setdiff_rows(subs1, self.subs), :]
 
             # self nonzero
-            subs2 = self.subs[
-                self.vals.transpose()[0] <= other[self.subs, "extract"], :
-            ]
+            subs2 = self.subs[self.vals.transpose()[0] <= other[self.subs], :]
 
             # assemble
             subs = np.vstack((subs1, subs2))
@@ -2241,7 +2231,7 @@ class sptensor:
             subs1 = subs1[ttb.tt_setdiff_rows(subs1, self.subs), :]
 
             # self nonzero
-            subs2 = self.subs[self.vals.transpose()[0] < other[self.subs, "extract"], :]
+            subs2 = self.subs[self.vals.transpose()[0] < other[self.subs], :]
 
             # assemble
             subs = np.vstack((subs1, subs2))
@@ -2296,7 +2286,7 @@ class sptensor:
 
             # self nonzero
             subs2 = self.subs[
-                (self.vals >= other[self.subs, "extract"][:, None]).transpose()[0],
+                (self.vals >= other[self.subs][:, None]).transpose()[0],
                 :,
             ]
 
@@ -2355,7 +2345,7 @@ class sptensor:
 
             # self and other nonzero
             subs2 = self.subs[
-                (self.vals > other[self.subs, "extract"][:, None]).transpose()[0],
+                (self.vals > other[self.subs][:, None]).transpose()[0],
                 :,
             ]
 
@@ -2459,7 +2449,7 @@ class sptensor:
 
         if isinstance(other, ttb.tensor):
             csubs = self.subs
-            cvals = self.vals / other[csubs, "extract"][:, None]
+            cvals = self.vals / other[csubs][:, None]
             return ttb.sptensor.from_data(csubs, cvals, self.shape)
         if isinstance(other, ttb.ktensor):
             # TODO consider removing epsilon and generating nans consistent with above

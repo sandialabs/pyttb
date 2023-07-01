@@ -362,12 +362,6 @@ def test_tensor__getitem__(sample_tensor_2way):
     assert (tensorInstance[:, 0].data == tensorInstance.data[:, 0]).all()
 
     # Case 2a:
-    assert tensorInstance[np.array([0, 0]), "extract"] == params["data"][0, 0]
-    assert (
-        tensorInstance[np.array([[0, 2], [1, 1], [1, 2]]), "extract"]
-        == params["data"][([0, 1, 1], [2, 1, 2])]
-    ).all()
-    # Case 2a: Extract doesn't seem to be needed
     assert tensorInstance[np.array([[0, 0]])] == params["data"][0, 0]
     assert (
         tensorInstance[np.array([[0, 2], [1, 1], [1, 2]])]

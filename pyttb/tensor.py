@@ -1405,10 +1405,10 @@ class tensor:
         Case 1b: Y = X(R1,R2,...,RN), where one or more Rn is a range and
         the rest are indices, returns a tensor.
 
-        Case 2a: V = X(S) or V = X(S,'extract'), where S is a p x n array
+        Case 2a: V = X(S) where S is a p x n array
         of subscripts, returns a vector of p values.
 
-        Case 2b: V = X(I) or V = X(I,'extract'), where I is a set of p
+        Case 2b: V = X(I) where I is a set of p
         linear indices, returns a vector of p values.
 
         Any ambiguity results in executing the first valid case. This
@@ -1459,11 +1459,7 @@ class tensor:
             # Todo if row make column?
             return ttb.tt_subsubsref(a, idx)
         # Case 1: Rectangular Subtensor
-        if (
-            isinstance(item, tuple)
-            and len(item) == self.ndims
-            and item[len(item) - 1] != "extract"
-        ):
+        if isinstance(item, tuple) and len(item) == self.ndims:
             # Copy the subscripts
             region = item
 
@@ -1504,15 +1500,7 @@ class tensor:
             and len(item.shape) == 2
             and item.shape[-1] == self.ndims
         )
-        is_extract_subscript = (
-            len(item) == 2
-            and isinstance(item[0], np.ndarray)
-            and isinstance(item[-1], str)
-            and item[-1] == "extract"
-        )
-        if is_subscript or is_extract_subscript:
-            if is_extract_subscript:
-                item = item[0]
+        if is_subscript:
             # Extract array of subscripts
             subs = np.array(item)
             a = np.squeeze(self.data[tuple(subs.transpose())])
@@ -1520,7 +1508,7 @@ class tensor:
             return ttb.tt_subsubsref(a, subs)
 
         # Case 2b: Linear Indexing
-        if isinstance(item, tuple) and len(item) >= 2 and not isinstance(item[-1], str):
+        if isinstance(item, tuple) and len(item) >= 2:
             assert False, "Linear indexing requires single input array"
 
         if (isinstance(item, np.ndarray) and len(item.shape) == 1) or (
