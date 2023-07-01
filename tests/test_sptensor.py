@@ -22,7 +22,6 @@ def sample_sptensor():
     return data, sptensorInstance
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_empty():
     empty = np.array([], ndmin=2, dtype=int)
 
@@ -42,7 +41,6 @@ def test_sptensor_initialization_empty():
         ttb.sptensor([(2, 2)])
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_data(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     assert (sptensorInstance.subs == data["subs"]).all()
@@ -50,7 +48,6 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     assert sptensorInstance.shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_tensor_type(sample_sptensor):
     # Copy constructor
     (data, sptensorInstance) = sample_sptensor
@@ -86,7 +83,6 @@ def test_sptensor_initialization_from_tensor_type(sample_sptensor):
         ttb.sptensor.from_tensor_type(invalid_tensor_type)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_function():
     # Random Tensor Success
     def function_handle(*args):
@@ -126,7 +122,6 @@ def test_sptensor_initialization_from_function():
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_aggregator(sample_sptensor):
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3], [1, 1, 1], [1, 1, 1]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5], [4.5], [5.5]])
@@ -161,7 +156,6 @@ def test_sptensor_initialization_from_aggregator(sample_sptensor):
     assert "Subscript exceeds sptensor shape" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_and_scalar(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -176,7 +170,6 @@ def test_sptensor_and_scalar(sample_sptensor):
     assert b.shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor_and_sptensor(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     b = sptensorInstance.logical_and(sptensorInstance)
@@ -198,7 +191,6 @@ def test_sptensor_and_sptensor(sample_sptensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_and_tensor(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     b = sptensorInstance.logical_and(ttb.tensor.from_tensor_type(sptensorInstance))
@@ -206,7 +198,6 @@ def test_sptensor_and_tensor(sample_sptensor):
     assert (b.vals == np.ones(data["vals"].shape)).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_full(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     densetensor = sptensorInstance.full()
@@ -227,7 +218,6 @@ def test_sptensor_full(sample_sptensor):
     assert (emptySptensor.full().data == np.zeros(data["shape"])).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_subdims(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -244,14 +234,12 @@ def test_sptensor_subdims(sample_sptensor):
         sptensorInstance.subdims(("bad", "region", "types"))
 
 
-@pytest.mark.indevelopment
 def test_sptensor_ndims(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
     assert sptensorInstance.ndims == 3
 
 
-@pytest.mark.indevelopment
 def test_sptensor_extract(sample_sptensor, capsys):
     (data, sptensorInstance) = sample_sptensor
 
@@ -277,7 +265,6 @@ def test_sptensor_extract(sample_sptensor, capsys):
     assert (sptensorInstance.extract(np.array([1, 1, 1])) == [[0.5]]).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor__getitem__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     ## Case 1
@@ -338,7 +325,6 @@ def test_sptensor__getitem__(sample_sptensor):
     assert emptySptensor[-1] == 123
 
 
-@pytest.mark.indevelopment
 def test_sptensor_setitem_Case1(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -584,7 +570,6 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     assert "Invalid assignment value" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_setitem_Case2(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -671,13 +656,11 @@ def test_sptensor_setitem_Case2(sample_sptensor):
     assert (copy.subs == np.array([[2, 2, 2], [3, 3, 3]])).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_norm(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     assert sptensorInstance.norm() == np.linalg.norm(data["vals"])
 
 
-@pytest.mark.indevelopment
 def test_sptensor_allsubs(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
@@ -688,7 +671,6 @@ def test_sptensor_allsubs(sample_sptensor):
     assert (sptensorInstance.allsubs() == np.array(result)).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_logical_not(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
@@ -704,7 +686,6 @@ def test_sptensor_logical_not(sample_sptensor):
     assert notSptensorInstance.shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor_logical_or(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -743,7 +724,6 @@ def test_sptensor_logical_or(sample_sptensor):
     assert "Sptensor Logical Or argument must be scalar or sptensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__eq__(sample_sptensor):
     # TODO fix == against empty sptensor
     (data, sptensorInstance) = sample_sptensor
@@ -785,7 +765,6 @@ def test_sptensor__eq__(sample_sptensor):
     assert "Sptensor == argument must be scalar or sptensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__ne__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -996,7 +975,6 @@ def test_sptensor_ones(sample_sptensor):
     assert (sptensorInstance.ones().vals == (0.0 * data["vals"] + 1)).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_double(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     denseData = np.zeros(sptensorInstance.shape)
@@ -1007,7 +985,6 @@ def test_sptensor_double(sample_sptensor):
     assert sptensorInstance.double().shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor__le__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1050,7 +1027,6 @@ def test_sptensor__le__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__ge__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1086,7 +1062,6 @@ def test_sptensor__ge__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__gt__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1119,7 +1094,6 @@ def test_sptensor__gt__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__lt__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1150,7 +1124,6 @@ def test_sptensor__lt__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_innerprod(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1193,7 +1166,6 @@ def test_sptensor_innerprod(sample_sptensor):
     assert f"Inner product between sptensor and {type(5)} not supported" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_logical_xor(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     nonZeroMatrix = np.zeros(data["shape"])
@@ -1231,7 +1203,6 @@ def test_sptensor_logical_xor(sample_sptensor):
     assert "The argument must be an sptensor, tensor or scalar" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_squeeze(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1267,7 +1238,6 @@ def test_sptensor_squeeze(sample_sptensor):
     ).squeeze().shape == (2, 2)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_scale(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1312,7 +1282,6 @@ def test_sptensor_scale(sample_sptensor):
     assert "Invalid scaling factor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_reshape(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1333,7 +1302,6 @@ def test_sptensor_reshape(sample_sptensor):
     assert "Reshape must maintain tensor size" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_mask(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1348,7 +1316,6 @@ def test_sptensor_mask(sample_sptensor):
     assert "Mask cannot be bigger than the data tensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_permute(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1368,7 +1335,6 @@ def test_sptensor_permute(sample_sptensor):
     assert "Invalid permutation order" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__rtruediv__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1391,7 +1357,6 @@ def test_sptensor__rtruediv__(sample_sptensor):
     assert "Dividing that object by an sptensor is not supported" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__truediv__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1467,7 +1432,6 @@ def test_sptensor__truediv__(sample_sptensor):
     assert "Sptensor division requires tensors of the same shape" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_collapse(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     emptySptensor = ttb.sptensor.from_data(np.array([]), np.array([]), (4, 4, 4))
@@ -1496,7 +1460,6 @@ def test_sptensor_collapse(sample_sptensor):
     assert emptySptensor.collapse(dims=np.array([0])).isequal(emptySptensorSmaller)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_contract(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     emptySptensor = ttb.sptensor.from_data(np.array([]), np.array([]), (5, 4, 4))
@@ -1523,7 +1486,6 @@ def test_sptensor_contract(sample_sptensor):
     assert contractableSptensor.contract(0, 1).shape == (4, 4)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_elemfun(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1537,7 +1499,6 @@ def test_sptensor_elemfun(sample_sptensor):
     assert emptySptensor.elemfun(plus1).vals.size == 0
 
 
-@pytest.mark.indevelopment
 def test_sptensor_spmatrix(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1579,7 +1540,6 @@ def test_sptensor_spmatrix(sample_sptensor):
     assert (b.toarray() == fullData).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_ttv(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1619,7 +1579,6 @@ def test_sptensor_ttv(sample_sptensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_mttkrp(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1668,7 +1627,6 @@ def test_sptensor_mttkrp(sample_sptensor):
     assert "Second argument must be ktensor or array" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_nvecs(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1694,7 +1652,6 @@ def test_sptensor_nvecs(sample_sptensor):
         single_val_sptensor.nvecs(0, 0)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_ttm(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = np.zeros((4, 4, 4))
@@ -1774,7 +1731,6 @@ def test_sptensor_ttm(sample_sptensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_to_sparse_matrix():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5]])
@@ -1791,7 +1747,6 @@ def test_sptensor_to_sparse_matrix():
         assert Xnt.shape == Ynt[mode].shape
 
 
-@pytest.mark.indevelopment
 def test_sptensor_from_sparse_matrix():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5]])
