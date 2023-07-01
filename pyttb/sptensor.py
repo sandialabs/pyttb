@@ -94,7 +94,7 @@ class sptensor:
     SPTENSOR Class for sparse tensors.
     """
 
-    def __init__(self):
+    def __init__(self, shape: Optional[Tuple[int, ...]] = None):
         """
         Create an empty sparse tensor
 
@@ -105,15 +105,11 @@ class sptensor:
         # Empty constructor
         self.subs = np.array([], ndmin=2, dtype=int)
         self.vals = np.array([], ndmin=2)
-        self.shape = ()
-
-        # TODO: do we want to support an empty sptensor with defined shape?
-        # Specifying size
-        # if tt_sizecheck(source):
-        #    self.subs = np.array([])
-        #    self.vals = np.array([])
-        #    self.size = source
-        #    return
+        self.shape: Union[Tuple[()], Tuple[int, ...]] = ()
+        if shape is not None:
+            if not tt_sizecheck(shape):
+                raise ValueError(f"Invalid shape provided: {shape}")
+            self.shape = tuple(shape)
 
     @classmethod
     def from_data(
@@ -516,7 +512,7 @@ class sptensor:
         """
         if k is not None:
             return self.shape[k] - 1
-        return np.prod(self.shape) - 1
+        return int(np.prod(self.shape) - 1)
 
     def extract(self, searchsubs: np.ndarray) -> np.ndarray:
         """

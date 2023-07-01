@@ -30,7 +30,16 @@ def test_sptensor_initialization_empty():
     sptensorInstance = ttb.sptensor()
     assert (sptensorInstance.subs == empty).all()
     assert (sptensorInstance.vals == empty).all()
-    assert (sptensorInstance.shape == empty).all()
+    assert sptensorInstance.shape == ()
+
+    # With shape
+    sptensorInstance = ttb.sptensor((2, 2))
+    assert (sptensorInstance.subs == empty).all()
+    assert (sptensorInstance.vals == empty).all()
+    assert sptensorInstance.shape == (2, 2)
+
+    with pytest.raises(ValueError):
+        ttb.sptensor([(2, 2)])
 
 
 @pytest.mark.indevelopment
@@ -291,8 +300,7 @@ def test_sptensor__getitem__(sample_sptensor):
         sptensorInstance[[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]
     )
     # Confirm empty tensor indexing
-    X = ttb.sptensor()
-    X.shape = (40, 30, 20)
+    X = ttb.sptensor((40, 30, 20))
     assert X[0, 0, 0] == 0
     assert X[0, 0, :].isequal(X[0, 0, :])
 
@@ -325,8 +333,7 @@ def test_sptensor__getitem__(sample_sptensor):
 
     # Check simpler single value linear indexing option
     assert sptensorInstance[0] == sptensorInstance[0, 0, 0]
-    emptySptensor = ttb.sptensor()
-    emptySptensor.shape = (4, 3)
+    emptySptensor = ttb.sptensor((4, 3))
     assert np.array_equal(emptySptensor[:], np.zeros((np.prod(emptySptensor.shape), 1)))
     emptySptensor[4, 3] = 123
     assert emptySptensor[-1] == 123
@@ -363,8 +370,7 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     assert emptyTensor[0:4, 0:4, 0:4].isequal(sptensorInstance)
 
     # Case I(a): Set sptensor with empty tensor
-    emptyTensor = ttb.sptensor()
-    emptyTensor.shape = (4, 4, 4)
+    emptyTensor = ttb.sptensor((4, 4, 4))
     sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
     sptensorCopy[:, :, :] = emptyTensor
     assert (sptensorCopy.subs == emptyTensor.subs).all()
@@ -372,8 +378,7 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     assert sptensorCopy.shape == data["shape"]
 
     # Case I(a): Set sptensor with smaller tensor
-    emptyTensor = ttb.sptensor()
-    emptyTensor.shape = (4, 4, 4)
+    emptyTensor = ttb.sptensor((4, 4, 4))
     sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
     sptensorInstanceCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
     sptensorInstanceCopy[1, 1, 1] = 0
@@ -384,8 +389,7 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     assert sptensorCopy.shape == (5, 5, 5)
 
     # Case I(a): Set sptensor with smaller tensor
-    emptyTensor = ttb.sptensor()
-    emptyTensor.shape = (4, 4, 4)
+    emptyTensor = ttb.sptensor((4, 4, 4))
     sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
     sptensorCopy[4, 4, 4] = 1
     sptensorCopy[:4, :4, :4] = emptyTensor
@@ -482,8 +486,7 @@ def test_sptensor_setitem_Case1(sample_sptensor):
     data["vals"] = data["vals"][reorder]
 
     # Case I(b)i: Set value with negative indices
-    emptyTensor = ttb.sptensor()
-    emptyTensor.shape = (2, 2, 2)
+    emptyTensor = ttb.sptensor((2, 2, 2))
     emptyTensor[-1, -1, -1] = 55
     assert emptyTensor[1, 1, 1] == 55
 
