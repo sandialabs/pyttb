@@ -255,27 +255,6 @@ def test_tt_irenumber():
 
 
 @pytest.mark.indevelopment
-def test_tt_assignment_type():
-    # type(x)==type(rhs)
-    x = 5
-    rhs = 5
-    subs = 5
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subtensor"
-
-    # type(x)!=type(rhs), subs dimensionality >=2
-    rhs = "cat"
-    subs = (1, 1, 1)
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subtensor"
-
-    subs = (np.array([1, 2, 3]),)
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subscripts"
-
-    # type(x)!=type(rhs), subs dimensionality <2
-    subs = np.array([1])
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subscripts"
-
-
-@pytest.mark.indevelopment
 def test_tt_renumberdims():
     # Singleton output
     shape = 5
@@ -534,3 +513,24 @@ def test_islogical_invalid():
     assert not ttb.islogical(np.array([[2, 2, 2]]))
     assert not ttb.islogical(1.1)
     assert not ttb.islogical(0)
+
+
+def test_get_index_variant_linear():
+    assert ttb.get_index_variant(1) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(1.0) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(slice(1, 5)) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(np.int32(2)) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(np.array([1, 2, 3])) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant([1, 2, 3]) == ttb.IndexVariant.LINEAR
+
+
+def test_get_index_variant_subscripts():
+    assert ttb.get_index_variant(np.array([[1, 2, 3]])) == ttb.IndexVariant.SUBSCRIPTS
+
+
+def test_get_index_variant_subtensor():
+    assert ttb.get_index_variant((1, 2, 3)) == ttb.IndexVariant.SUBTENSOR
+
+
+def test_get_index_variant_unknown():
+    assert ttb.get_index_variant("a") == ttb.IndexVariant.UNKNOWN

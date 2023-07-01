@@ -588,7 +588,7 @@ def test_sptensor_setitem_Case2(sample_sptensor):
 
     # Case II: Too few modes in setitem key
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance[np.array([1, 1]).astype(int)] = 999.0
+        sptensorInstance[np.array([[1, 1]]).astype(int)] = 999.0
     assert "Invalid subscripts" in str(excinfo)
 
     # Case II: Too few keys in setitem for number of assignement values

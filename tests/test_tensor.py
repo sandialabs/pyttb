@@ -315,7 +315,7 @@ def test_tensor__setitem__(sample_tensor_2way):
 
     # Test Empty Tensor Set Item, subscripts
     emptyTensor = ttb.tensor.from_data(np.array([]))
-    emptyTensor[np.array([0, 0, 0])] = 0
+    emptyTensor[np.array([[0, 0, 0]])] = 0
     assert (emptyTensor.data == np.array([[[0]]])).all()
     assert emptyTensor.shape == (1, 1, 1)
 

@@ -4,8 +4,9 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
+from enum import Enum
 from inspect import signature
-from typing import Optional, Tuple, overload
+from typing import Optional, Tuple, Union, overload
 
 import numpy as np
 
@@ -410,28 +411,6 @@ def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.nd
     return newsubs
 
 
-def tt_assignment_type(x, subs, rhs):
-    """
-    TT_ASSIGNMENT_TYPE What type of subsagn is this?
-
-    Parameters
-    ----------
-    x:
-    subs:
-    rhs:
-
-    Returns
-    -------
-    objectType
-    """
-    if type(x) is type(rhs):
-        return "subtensor"
-    # If subscripts is a tuple that contains an nparray
-    if isinstance(subs, tuple) and len(subs) >= 2:
-        return "subtensor"
-    return "subscripts"
-
-
 def tt_renumber(subs, shape, number_range):
     """
     RENUMBER indices for sptensor subsref
@@ -794,3 +773,40 @@ def islogical(a):
     bool
     """
     return isinstance(a, bool)
+
+
+# Adding all sorts of index support here, might consider splitting out to more specific file later
+
+
+class IndexVariant(Enum):
+    """Methods for indexing entries of tensors"""
+
+    UNKNOWN = 0
+    LINEAR = 1
+    SUBTENSOR = 2
+    SUBSCRIPTS = 3
+
+
+IndexType = Union[int, float, np.generic, slice, list, np.ndarray]
+
+
+def get_index_variant(indices: IndexType) -> IndexVariant:
+    """Decide on intended indexing variant. No correctness checks."""
+    variant = IndexVariant.UNKNOWN
+    if isinstance(indices, (float, int, np.generic, slice)):
+        variant = IndexVariant.LINEAR
+    elif isinstance(indices, np.ndarray):
+        # TODO this is technically slightly stricter than what
+        #  we currently have but probably clearer
+        if len(indices.shape) == 1:
+            variant = IndexVariant.LINEAR
+        else:
+            variant = IndexVariant.SUBSCRIPTS
+    elif isinstance(indices, tuple):
+        variant = IndexVariant.SUBTENSOR
+    elif isinstance(indices, list):
+        # TODO this is slightly redundant/inefficient
+        key = np.array(indices)
+        if len(key.shape) == 1 or key.shape[1] == 1:
+            variant = IndexVariant.LINEAR
+    return variant

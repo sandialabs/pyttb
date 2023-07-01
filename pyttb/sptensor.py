@@ -17,7 +17,6 @@ from scipy import sparse
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
-    tt_assignment_type,
     tt_dimscheck,
     tt_ind2sub,
     tt_intvec2str,
@@ -1465,11 +1464,10 @@ class sptensor:
         ):
             return None
 
-        # Determine if we are doing a substenor or list of subscripts
-        objectType = tt_assignment_type(self, key, value)
+        access_type = ttb.get_index_variant(key)
 
         # Case 1: Replace a sub-tensor
-        if objectType == "subtensor":
+        if access_type == ttb.IndexVariant.SUBTENSOR:
             updated_key = []
             for dim, entry in enumerate(key):
                 if isinstance(entry, (int, np.integer)) and entry < 0:
@@ -1477,15 +1475,13 @@ class sptensor:
                 updated_key.append(entry)
             return self._set_subtensor(updated_key, value)
         # Case 2: Subscripts
-        if objectType == "subscripts":
+        if access_type == ttb.IndexVariant.SUBSCRIPTS:
             return self._set_subscripts(key, value)
         raise ValueError("Unknown assignment type")  # pragma: no cover
 
     def _set_subscripts(self, key, value):
         # Case II: Replacing values at specific indices
         newsubs = key
-        if len(newsubs.shape) == 1:
-            newsubs = np.expand_dims(newsubs, axis=0)
         tt_subscheck(newsubs, nargout=False)
 
         # Error check on subscripts

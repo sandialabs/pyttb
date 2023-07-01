@@ -1282,44 +1282,20 @@ class tensor:
         >>> X[1,1,2:3] = 1
         >>> X[1,1,4] = 1
         """
-        # Figure out if we are doing a subtensor, a list of subscripts or a list of
-        # linear indices
-        access_type = "error"
-        # TODO pull out this big decision tree into a function
-        if isinstance(key, (float, int, np.generic, slice)):
-            access_type = "linear indices"
-        elif self.ndims <= 1:
-            if isinstance(key, tuple):
-                access_type = "subtensor"
-            elif isinstance(key, np.ndarray):
-                access_type = "subscripts"
-        else:
-            if isinstance(key, np.ndarray):
-                if len(key.shape) > 1 and key.shape[1] >= self.ndims:
-                    access_type = "subscripts"
-                elif len(key.shape) == 1 or key.shape[1] == 1:
-                    access_type = "linear indices"
-            elif isinstance(key, tuple):
-                validSubtensor = [
-                    isinstance(keyElement, (int, slice, Iterable)) for keyElement in key
-                ]
-                if np.all(validSubtensor):
-                    access_type = "subtensor"
-            elif isinstance(key, Iterable):
-                key = np.array(key)
-                if len(key.shape) == 1 or key.shape[1] == 1:
-                    access_type = "linear indices"
+        access_type = ttb.get_index_variant(key)
 
         # Case 1: Rectangular Subtensor
-        if access_type == "subtensor":
+        if access_type == ttb.IndexVariant.SUBTENSOR:
             return self._set_subtensor(key, value)
 
         # Case 2a: Subscript indexing
-        if access_type == "subscripts":
+        if access_type == ttb.IndexVariant.SUBSCRIPTS:
             return self._set_subscripts(key, value)
 
         # Case 2b: Linear Indexing
-        if access_type == "linear indices":
+        if access_type == ttb.IndexVariant.LINEAR:
+            if isinstance(key, list):
+                key = np.array(key)
             return self._set_linear(key, value)
 
         assert False, "Invalid use of tensor setitem"
@@ -1391,17 +1367,7 @@ class tensor:
 
         # Will the size change? If so we first need to resize x
         n = self.ndims
-        if (
-            len(subs.shape) == 1
-            and len(self.shape) == 1
-            and self.shape[0] < subs.shape[0]
-        ):
-            bsiz = subs
-        elif len(subs.shape) == 1:
-            bsiz = np.array([np.max(subs, axis=0)])
-            key = key.tolist()
-        else:
-            bsiz = np.array(np.max(subs, axis=0))
+        bsiz = np.array(np.max(subs, axis=0))
         if n == 0:
             newsiz = (bsiz[n:] + 1).astype(int)
         else:
@@ -1421,9 +1387,7 @@ class tensor:
             self.shape = tuple(newsiz)
 
         # Finally we can copy in new data
-        if isinstance(key, list):
-            self.data[key] = value
-        elif key.shape[0] == 1:  # and len(key.shape) == 1:
+        if key.shape[0] == 1:  # and len(key.shape) == 1:
             self.data[tuple(key[0, :])] = value
         else:
             self.data[tuple(key.transpose())] = value
