@@ -1328,7 +1328,7 @@ class tensor:
                 if element.stop is None:
                     sliceCheck.append(1)
                 else:
-                    sliceCheck.append(element.stop)
+                    sliceCheck.append(element.stop - 1)
             elif isinstance(element, Iterable):
                 if any(
                     not isinstance(entry, (float, int, np.generic)) for entry in element
@@ -1473,7 +1473,7 @@ class tensor:
                 if isinstance(a_region, slice):
                     newsiz.append(self.shape[i])
                     kpdims.append(i)
-                elif not isinstance(a_region, int) and len(a_region) > 1:
+                elif not isinstance(a_region, (int, np.integer)) and len(a_region) > 1:
                     newsiz.append(np.prod(a_region))
                     kpdims.append(i)
                 else:

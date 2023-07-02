@@ -192,168 +192,210 @@ def test_tensor_ndims(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert ttb.tensor.from_data(np.array([])) == 0
 
 
-def test_tensor__setitem__(sample_tensor_2way):
-    (params, tensorInstance) = sample_tensor_2way
+class TestSetItem:
+    # TODO add test coverage for negative indices (after supported)
+    def test_linear_single_value(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        first_element_idx = np.unravel_index([0], dataCopy.shape, "F")
+        arbitray_value = 13.0
 
-    # Subtensor assign with constant
-    dataCopy = params["data"].copy()
-    dataCopy[1, 1] = 0.0
-    tensorInstance[1, 1] = 0.0
-    assert (tensorInstance.data == dataCopy).all()
-    dataGrowth = np.zeros((5, 5))
-    dataGrowth[0:2, 0:3] = dataCopy
-    tensorInstance[4, 4] = 0.0
-    assert (tensorInstance.data == dataGrowth).all()
-    tensorInstance[0:2, 0:2] = 99.0
-    dataGrowth[0:2, 0:2] = 99.0
-    assert (tensorInstance.data == dataGrowth).all()
+        # NP Array Key
+        tensorInstance[np.array([0])] = arbitray_value
+        dataCopy[first_element_idx] = arbitray_value
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor assign with np array
-    tensorInstance[0:2, 0:3] = dataCopy
-    dataGrowth[0:2, 0:3] = dataCopy
-    assert (tensorInstance.data == dataGrowth).all()
+        # Int Key
+        tensorInstance[0] = arbitray_value + 1
+        dataCopy[first_element_idx] = arbitray_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor assign with tensor
-    tensorInstance[:, :] = tensorInstance
-    assert (tensorInstance.data == dataGrowth).all()
+        # Slice Key
+        tensorInstance[0:1] = arbitray_value + 2
+        dataCopy[first_element_idx] = arbitray_value + 2
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor add element to empty tensor
-    empty_tensor = ttb.tensor()
-    empty_tensor[0, 0] = 1
+    def test_linear_multiple_values(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        tensor_idx = [0, 1, 2]
+        multi_element_idx = np.unravel_index(tensor_idx, dataCopy.shape, "F")
+        arbitray_value = 13.0
 
-    # Subtensor add dimension
-    empty_tensor[0, 0, 0] = 2
+        # NP Array Key
+        tensorInstance[np.array(tensor_idx)] = arbitray_value
+        dataCopy[multi_element_idx] = arbitray_value
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor with lists
-    some_tensor = ttb.tenones((3, 3))
-    some_tensor[[0, 1], [0, 1]] = 11
-    assert some_tensor[0, 0] == 11
-    assert some_tensor[1, 1] == 11
-    assert np.all(some_tensor[[0, 1], [0, 1]].data == 11)
+        # List Key
+        tensorInstance[tensor_idx] = arbitray_value + 1
+        dataCopy[multi_element_idx] = arbitray_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subscripts with constant
-    tensorInstance[np.array([[1, 1]])] = 13.0
-    dataGrowth[1, 1] = 13.0
-    assert (tensorInstance.data == dataGrowth).all()
+        # Slice Key
+        tensorInstance[0 : tensor_idx[-1] + 1] = arbitray_value + 2
+        dataCopy[multi_element_idx] = arbitray_value + 2
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subscripts with array
-    tensorVector = ttb.tensor.from_data(np.array([0, 0, 0, 0]))
-    tensorVector[np.array([0, 1, 2])] = np.array([3, 4, 5])
-    assert (tensorVector.data == np.array([3, 4, 5, 0])).all()
+        # Assign with array
+        tensor_vector = ttb.tensor.from_data(np.array([0, 0, 0, 0]))
+        tensor_vector[np.array([0, 1, 2])] = np.array([3, 4, 5])
+        assert np.array_equal(tensor_vector.data, np.array([3, 4, 5, 0]))
 
-    # Subscripts with constant
-    tensorInstance[np.array([[1, 1], [1, 2]])] = 13.0
-    dataGrowth[([1, 1], [1, 2])] = 13.0
-    assert (tensorInstance.data == dataGrowth).all()
+        # Linear Index with constant, index out of bounds
+        with pytest.raises(AssertionError) as excinfo:
+            tensorInstance[np.array([0, 3, 99])] = 13.0
+        assert (
+            "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+            in str(excinfo)
+        )
 
-    # Subscripts add element to empty tensor
-    empty_tensor = ttb.tensor()
-    first_arbitrary_index = np.array([[0, 1], [2, 2]])
-    second_arbitrary_index = np.array([[1, 2], [3, 3]])
-    value = 4
-    empty_tensor[first_arbitrary_index] = value
-    # Subscripts grow existing tensor
-    empty_tensor[second_arbitrary_index] = value
+    def test_invalid_options(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        with pytest.raises(ValueError) as excinfo:
+            tensorInstance[0, "a", 5] = 13.0
+        assert "must be numeric" in str(excinfo)
 
-    # Linear Index with constant
-    tensorInstance[np.array([0])] = 13.0
-    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 13.0
-    assert (tensorInstance.data == dataGrowth).all()
+        with pytest.raises(AssertionError) as excinfo:
 
-    tensorInstance[0] = 14.0
-    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
-    assert (tensorInstance.data == dataGrowth).all()
+            class BadKey:
+                pass
 
-    tensorInstance[0:1] = 14.0
-    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
-    assert (tensorInstance.data == dataGrowth).all()
+            tensorInstance[BadKey] = 13.0
+        assert "Invalid use of tensor setitem" in str(excinfo)
 
-    # Linear Index with constant
-    tensorInstance[np.array([0, 3, 4])] = 13.0
-    dataGrowth[np.unravel_index([0, 3, 4], dataGrowth.shape, "F")] = 13
-    assert (tensorInstance.data == dataGrowth).all()
+    def test_subtensor_assign(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        arbitray_value = 13.0
 
-    # Linear index with multiple indicies
-    some_tensor = ttb.tenones((3, 3))
-    some_tensor[[0, 1]] = 2
-    assert some_tensor[0] == 2
-    assert some_tensor[1] == 2
-    assert np.array_equal(some_tensor[[0, 1]], [2, 2])
+        # Assign with constant
+        dataCopy[1, 1] = arbitray_value + 1
+        tensorInstance[1, 1] = arbitray_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Test Empty Tensor Set Item, subtensor
-    emptyTensor = ttb.tensor.from_data(np.array([]))
-    emptyTensor[0, 0, 0] = 0
-    assert (emptyTensor.data == np.array([[[0]]])).all()
-    assert emptyTensor.shape == (1, 1, 1)
+        # Assign with np array
+        dataCopy[0:2, 0:3] = arbitray_value + 2
+        tensorInstance[0:2, 0:3] = dataCopy[0:2, 0:3]
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Test Empty Tensor Set Item, subscripts
-    emptyTensor = ttb.tensor.from_data(np.array([]))
-    emptyTensor[np.array([[0, 0, 0]])] = 0
-    assert (emptyTensor.data == np.array([[[0]]])).all()
-    assert emptyTensor.shape == (1, 1, 1)
+        # Assign with tensor
+        tensorInstance[:, :] = tensorInstance
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Linear Index with constant, index out of bounds
-    with pytest.raises(AssertionError) as excinfo:
-        tensorInstance[np.array([0, 3, 99])] = 13.0
-    assert "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized" in str(
-        excinfo
-    )
+        # Keys containing lists
+        tensorInstance[[0, 1], [0, 1]] = arbitray_value + 3
+        dataCopy[[0, 1], [0, 1]] = arbitray_value + 3
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Attempting to set some other way
-    with pytest.raises(ValueError) as excinfo:
-        tensorInstance[0, "a", 5] = 13.0
-    assert "must be numeric" in str(excinfo)
+    def test_subtensor_growth(
+        self,
+    ):
+        arbitray_value = 0
 
-    with pytest.raises(AssertionError) as excinfo:
+        # Empty Tensor growth
+        empty_tensor = ttb.tensor()
+        empty_tensor[0, 0, 0] = arbitray_value
+        assert np.array_equal(empty_tensor.data, np.array([[[arbitray_value]]]))
+        assert empty_tensor.shape == (1, 1, 1)
 
-        class BadKey:
-            pass
+        # Add dimension
+        empty_tensor[0, 0, 0, 0] = arbitray_value + 1
+        assert np.array_equal(empty_tensor.data, np.array([[[[arbitray_value + 1]]]]))
+        assert empty_tensor.shape == (1, 1, 1, 1)
 
-        tensorInstance[BadKey] = 13.0
-    assert "Invalid use of tensor setitem" in str(excinfo)
+    def test_subscripts_assign(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        arbitrary_value = 13
+
+        # Subscripts with constant
+        tensorInstance[np.array([[1, 1]])] = arbitrary_value
+        dataCopy[1, 1] = arbitrary_value
+        assert np.array_equal(tensorInstance.data, dataCopy)
+
+        # Multiple Subscripts with constant
+        subs = np.array([[1, 1], [1, 2]])
+        tensorInstance[subs] = arbitrary_value + 1
+        dataCopy[([1, 1], [1, 2])] = arbitrary_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
+        # Make sure they are self consistent with subtensor
+        one_by_one_values = []
+        for one_sub in subs:
+            one_by_one_values.append(tensorInstance[tuple(one_sub)])
+        assert np.array_equal(tensorInstance[subs].data, one_by_one_values)
+
+    def test_subscript_growth(
+        self,
+    ):
+        # Subscripts add element to empty tensor
+        empty_tensor = ttb.tensor()
+        first_arbitrary_index = np.array([[0, 1], [2, 2]])
+        second_arbitrary_index = np.array([[1, 2], [3, 3]])
+        value = 4
+        # Subscripts grow existing tensor
+        empty_tensor[first_arbitrary_index] = value
+        empty_tensor[second_arbitrary_index] = value
+
+        # Test Empty Tensor Set Item, subscripts
+        emptyTensor = ttb.tensor.from_data(np.array([]))
+        emptyTensor[np.array([[0, 0, 0]])] = 0
+        assert np.array_equal(emptyTensor.data, np.array([[[0]]]))
+        assert emptyTensor.shape == (1, 1, 1)
 
 
-def test_tensor__getitem__(sample_tensor_2way):
-    (params, tensorInstance) = sample_tensor_2way
-    # Case 1 single element
-    assert tensorInstance[0, 0] == params["data"][0, 0]
-    # Case 1 Subtensor
-    assert (tensorInstance[:, :] == tensorInstance).data.all()
-    three_way_data = np.random.random((2, 3, 4))
-    two_slices = (slice(None, None, None), 0, slice(None, None, None))
-    assert (
-        ttb.tensor.from_data(three_way_data)[two_slices].double()
-        == three_way_data[two_slices]
-    ).all()
-    # Case 1 Subtensor
-    assert (
-        tensorInstance[np.array([0, 1]), :].data == tensorInstance.data[[0, 1], :]
-    ).all()
-    # Case 1 Subtensor
-    assert (tensorInstance[0, :].data == tensorInstance.data[0, :]).all()
-    assert (tensorInstance[:, 0].data == tensorInstance.data[:, 0]).all()
+class TestGetItem:
+    # TODO add test coverage for negative indices (after supported)
+    def test_linear(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        assert tensorInstance[np.array([0])] == params["data"][0, 0]
+        assert tensorInstance[0] == params["data"][0, 0]
+        assert np.array_equal(tensorInstance[0:1], params["data"][0, 0])
+        with pytest.raises(AssertionError) as excinfo:
+            tensorInstance[np.array([0]), np.array([0]), np.array([0])]
+        assert "Linear indexing requires single input array" in str(excinfo)
+        assert np.array_equal(
+            tensorInstance[[0, 1, 2]], tensorInstance[np.array([0, 1, 2])]
+        )
 
-    # Case 2a:
-    assert tensorInstance[np.array([[0, 0]])] == params["data"][0, 0]
-    assert (
-        tensorInstance[np.array([[0, 2], [1, 1], [1, 2]])]
-        == params["data"][([0, 1, 1], [2, 1, 2])]
-    ).all()
-    with pytest.raises(AssertionError) as excinfo:
-        # Must use numpy arrays for subscripts
-        tensorInstance[[[0, 2], [1, 1], [1, 2]]]
-    assert "Invalid use of tensor getitem" in str(excinfo)
+    def test_subtensor(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        # Single element
+        assert tensorInstance[0, 0] == params["data"][0, 0]
+        # Slice
+        assert tensorInstance[:, :].isequal(tensorInstance)
+        three_way_data = np.random.random((2, 3, 4))
+        two_slices = (slice(None, None, None), 0, slice(None, None, None))
+        assert np.array_equal(
+            ttb.tensor.from_data(three_way_data)[two_slices].double(),
+            three_way_data[two_slices],
+        )
+        # Combining slice with (multi-)integer indicies
+        assert np.array_equal(
+            tensorInstance[np.array([0, 1]), :].data, tensorInstance.data[[0, 1], :]
+        )
+        assert np.array_equal(tensorInstance[0, :].data, tensorInstance.data[0, :])
+        assert np.array_equal(tensorInstance[:, 0].data, tensorInstance.data[:, 0])
 
-    # Case 2b: Linear Indexing
-    assert tensorInstance[np.array([0])] == params["data"][0, 0]
-    assert tensorInstance[0] == params["data"][0, 0]
-    assert np.array_equal(tensorInstance[0:1], params["data"][0, 0])
-    with pytest.raises(AssertionError) as excinfo:
-        tensorInstance[np.array([0]), np.array([0]), np.array([0])]
-    assert "Linear indexing requires single input array" in str(excinfo)
-    assert np.array_equal(
-        tensorInstance[[0, 1, 2]], tensorInstance[np.array([0, 1, 2])]
-    )
+    def test_tensor_subscripts(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        assert tensorInstance[np.array([[0, 0]])] == params["data"][0, 0]
+        subs = np.array([[0, 2], [1, 1], [1, 2]])
+        subscript_values = tensorInstance[subs]
+        # Make sure they match
+        assert np.array_equal(
+            subscript_values,
+            params["data"][([0, 1, 1], [2, 1, 2])],
+        )
+        # Make sure they are self consistent with subtensor
+        one_by_one_values = []
+        for one_sub in subs:
+            one_by_one_values.append(tensorInstance[tuple(one_sub)])
+        assert np.array_equal(subscript_values, one_by_one_values)
+        with pytest.raises(AssertionError) as excinfo:
+            # Must use numpy arrays for subscripts
+            tensorInstance[[[0, 2], [1, 1], [1, 2]]]
+        assert "Invalid use of tensor getitem" in str(excinfo)
 
 
 def test_tensor_logical_and(sample_tensor_2way):
