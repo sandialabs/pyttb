@@ -541,7 +541,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     """
     if idx.size == 0:
         return np.empty(shape=(0, len(shape)), dtype=int)
-
+    idx[idx < 0] += np.prod(shape)  # Handle negative indexing as simply as possible
     return np.array(np.unravel_index(idx, shape, order="F")).transpose()
 
 
@@ -564,6 +564,8 @@ def tt_subsubsref(obj, s):  # pylint: disable=unused-argument
     #    return obj
     # else:
     #   return obj[s[1:]]
+    if isinstance(obj, np.ndarray) and obj.size == 1:
+        return obj.item()
     return obj
 
 
@@ -787,6 +789,7 @@ class IndexVariant(Enum):
     SUBSCRIPTS = 3
 
 
+# We probably want to create a specific file for utility types
 LinearIndexType = Union[int, float, np.generic, slice]
 IndexType = Union[LinearIndexType, list, np.ndarray]
 

@@ -339,18 +339,28 @@ def test_tt_ind2sub_valid():
     idx = np.array([0, 21, 63])
     shape = (4, 4, 4)
     logging.debug(f"\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}")
-    assert (ttb.tt_ind2sub(shape, idx) == subs).all()
+    assert np.array_equal(ttb.tt_ind2sub(shape, idx), subs)
 
     subs = np.array([[1, 0], [0, 1]])
     idx = np.array([1, 2])
     shape = (2, 2)
     logging.debug(f"\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}")
-    assert (ttb.tt_ind2sub(shape, idx) == subs).all()
+    assert np.array_equal(ttb.tt_ind2sub(shape, idx), subs)
 
     empty = np.array([])
-    assert (
-        ttb.tt_ind2sub(shape, empty) == np.empty(shape=(0, len(shape)), dtype=int)
-    ).all()
+    assert np.array_equal(
+        ttb.tt_ind2sub(shape, empty), np.empty(shape=(0, len(shape)), dtype=int)
+    )
+
+    # Single negative index
+    shape = (2, 2)
+    neg_idx = np.array([-1])
+    assert np.array_equal(ttb.tt_ind2sub(shape, neg_idx), np.array([[1, 1]]))
+
+    # Multiple negative indices
+    shape = (2, 2)
+    neg_idx = np.array([-1, -2])
+    assert np.array_equal(ttb.tt_ind2sub(shape, neg_idx), np.array([[1, 1], [0, 1]]))
 
 
 @pytest.mark.indevelopment

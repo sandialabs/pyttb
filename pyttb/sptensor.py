@@ -1398,8 +1398,6 @@ class sptensor:
 
         a = self.extract(srchsubs)
         a = tt_subsubsref(a, item)
-        if a.size == 1:
-            a = a.item()
 
         return a
 

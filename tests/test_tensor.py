@@ -193,26 +193,34 @@ def test_tensor_ndims(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
 
 
 class TestSetItem:
-    # TODO add test coverage for negative indices (after supported)
     def test_linear_single_value(self, sample_tensor_2way):
         (params, tensorInstance) = sample_tensor_2way
         dataCopy = params["data"].copy()
         first_element_idx = np.unravel_index([0], dataCopy.shape, "F")
-        arbitray_value = 13.0
+        last_element_idx = np.unravel_index(
+            [np.prod(dataCopy.shape) - 1], dataCopy.shape, "F"
+        )
+        arbitrary_value = 13.0
 
         # NP Array Key
-        tensorInstance[np.array([0])] = arbitray_value
-        dataCopy[first_element_idx] = arbitray_value
+        tensorInstance[np.array([0])] = arbitrary_value
+        dataCopy[first_element_idx] = arbitrary_value
         assert np.array_equal(tensorInstance.data, dataCopy)
 
         # Int Key
-        tensorInstance[0] = arbitray_value + 1
-        dataCopy[first_element_idx] = arbitray_value + 1
+        tensorInstance[0] = arbitrary_value + 1
+        dataCopy[first_element_idx] = arbitrary_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
+        tensorInstance[-1] = arbitrary_value + 2
+        dataCopy[last_element_idx] = arbitrary_value + 2
         assert np.array_equal(tensorInstance.data, dataCopy)
 
         # Slice Key
-        tensorInstance[0:1] = arbitray_value + 2
-        dataCopy[first_element_idx] = arbitray_value + 2
+        tensorInstance[0:1] = arbitrary_value + 3
+        dataCopy[first_element_idx] = arbitrary_value + 3
+        assert np.array_equal(tensorInstance.data, dataCopy)
+        tensorInstance[-1:] = arbitrary_value + 4
+        dataCopy[last_element_idx] = arbitrary_value + 4
         assert np.array_equal(tensorInstance.data, dataCopy)
 
     def test_linear_multiple_values(self, sample_tensor_2way):
@@ -288,6 +296,18 @@ class TestSetItem:
         dataCopy[[0, 1], [0, 1]] = arbitray_value + 3
         assert np.array_equal(tensorInstance.data, dataCopy)
 
+        # Assign with negative indices
+        empty_tensor = ttb.tensor()
+        empty_tensor[0, 0] = 1
+        empty_tensor[-1, -1] = 2
+        assert empty_tensor[0, 0] == 2
+
+        # Assign with negative slice
+        empty_tensor = ttb.tensor()
+        empty_tensor[1, 1] = 0
+        empty_tensor[:-1, :-1] = 3
+        assert empty_tensor[0, 0] == 3
+
     def test_subtensor_growth(
         self,
     ):
@@ -345,12 +365,13 @@ class TestSetItem:
 
 
 class TestGetItem:
-    # TODO add test coverage for negative indices (after supported)
     def test_linear(self, sample_tensor_2way):
         (params, tensorInstance) = sample_tensor_2way
         assert tensorInstance[np.array([0])] == params["data"][0, 0]
         assert tensorInstance[0] == params["data"][0, 0]
-        assert np.array_equal(tensorInstance[0:1], params["data"][0, 0])
+        assert tensorInstance[0:1] == params["data"][0, 0]
+        negative_first_idx = -np.prod(tensorInstance.shape)
+        assert tensorInstance[negative_first_idx] == params["data"][0, 0]
         with pytest.raises(AssertionError) as excinfo:
             tensorInstance[np.array([0]), np.array([0]), np.array([0])]
         assert "Linear indexing requires single input array" in str(excinfo)
@@ -360,8 +381,10 @@ class TestGetItem:
 
     def test_subtensor(self, sample_tensor_2way):
         (params, tensorInstance) = sample_tensor_2way
-        # Single element
+        # Single element (using positive and negative indices)
         assert tensorInstance[0, 0] == params["data"][0, 0]
+        negative_first_idx = tuple(-1 * dim for dim in tensorInstance.shape)
+        assert tensorInstance[negative_first_idx] == params["data"][0, 0]
         # Slice
         assert tensorInstance[:, :].isequal(tensorInstance)
         three_way_data = np.random.random((2, 3, 4))
