@@ -1330,7 +1330,7 @@ class sptensor:
                 if isinstance(a_region, slice):
                     newsiz.append(self.shape[i])
                     kpdims.append(i)
-                elif not isinstance(a_region, (int, float)):
+                elif not isinstance(a_region, (int, float, np.integer)):
                     newsiz.append(np.prod(a_region))
                     kpdims.append(i)
                 else:

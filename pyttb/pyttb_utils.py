@@ -438,7 +438,7 @@ def tt_renumber(subs, shape, number_range):
         if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
-                    if isinstance(number_range[i], (int, float)):
+                    if isinstance(number_range[i], (int, float, np.integer)):
                         newshape[i] = number_range[i]
                     else:
                         newshape[i] = len(number_range[i])
@@ -469,7 +469,7 @@ def tt_renumberdim(idx, shape, number_range):
     newshape:
     """
     # Determine the size of the new range
-    if isinstance(number_range, int):
+    if isinstance(number_range, (int, np.integer)):
         newshape = 0
     elif isinstance(number_range, slice):
         number_range = range(0, shape)[number_range]
