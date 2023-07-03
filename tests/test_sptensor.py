@@ -1780,6 +1780,26 @@ def test_sptensor_from_sparse_matrix():
         assert sptensorCopy.isequal(Ynt)
 
 
+def test_sptensor_squash():
+    # Without inverse
+    subs = np.array([[1, 1, 1], [3, 3, 3], [5, 5, 5]], dtype=int)
+    vals = np.array([[1], [3], [5]])
+    shape = (6, 6, 6)
+    X = ttb.sptensor.from_data(subs, vals, shape)
+    Y = X.squash()
+    assert Y[0, 0, 0] == 1
+    assert Y[1, 1, 1] == 3
+    assert Y[2, 2, 2] == 5
+
+    # With inverse
+    Y, inverse = X.squash(True)
+    assert Y[0, 0, 0] == 1
+    assert Y[1, 1, 1] == 3
+    assert Y[2, 2, 2] == 5
+    for i in range(X.ndims):
+        assert np.array_equal(X.subs[:, i], inverse[i][Y.subs[:, i]])
+
+
 def test_sptendiag():
     N = 4
     elements = np.arange(0, N)

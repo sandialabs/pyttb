@@ -8,7 +8,18 @@ from __future__ import annotations
 import logging
 import warnings
 from collections.abc import Iterable, Sequence
-from typing import Any, Callable, List, Optional, Tuple, Union, cast, overload
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+    overload,
+)
 
 import numpy as np
 import scipy.sparse.linalg
@@ -2594,6 +2605,50 @@ class sptensor:
         # TODO evaluate performance loss by casting into sptensor then tensor.
         #  I assume minimal since we are already using spare matrix representation
         return ttb.tensor.from_tensor_type(Ynt)
+
+    @overload
+    def squash(self, return_inverse: Literal[False]) -> sptensor:
+        ...  # pragma: no cover see coveragepy/issues/970
+
+    @overload
+    def squash(self, return_inverse: Literal[True]) -> Tuple[sptensor, Dict]:
+        ...  # pragma: no cover see coveragepy/issues/970
+
+    def squash(
+        self, return_inverse: bool = False
+    ) -> Union[sptensor, Tuple[sptensor, Dict]]:
+        """
+        Remove empty slices from a sparse tensor.
+
+        Parameters
+        ----------
+        return_inverse: Return mapping from new tensor to old tensor subscripts.
+
+        Examples
+        --------
+        >>> X = ttb.sptenrand((2, 2, 2), nonzeros=3)
+        >>> Y = X.squash()
+        >>> Y, inverse = X.squash(True)
+        >>> np.array_equal(X.subs[:, 0], inverse[0][Y.subs[:, 0]])
+        True
+
+        Returns
+        -------
+        Copy of current sparse tensor with empty slices removed.
+        """
+        ndims = self.ndims
+        subs = np.zeros(self.subs.shape, dtype=int)
+        shape = []
+        idx_map = {}
+        for n in range(ndims):
+            unique_subs, inverse = np.unique(self.subs[:, n], return_inverse=True)
+            subs[:, n] = inverse
+            shape.append(len(subs))
+            idx_map[n] = unique_subs
+        squashed_tensor = sptensor.from_data(subs, self.vals, tuple(shape))
+        if return_inverse:
+            return squashed_tensor, idx_map
+        return squashed_tensor
 
 
 def sptenrand(
