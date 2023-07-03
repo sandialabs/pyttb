@@ -4,7 +4,7 @@
 
 import numpy as np
 import pytest
-import scipy.sparse as sparse
+from scipy import sparse
 
 import pyttb as ttb
 
@@ -47,6 +47,15 @@ def test_ttensor_initialization_from_data(sample_ttensor):
     assert isinstance(ttensorInstance.core, ttb.tensor)
     assert all([isinstance(a_factor, np.ndarray) for a_factor in ttensorInstance.u])
 
+    # Sparse ttensor smoke test
+    sparse_u = [
+        sparse.coo_matrix(np.ones(factor.shape)) for factor in ttensorInstance.u
+    ]
+    sparse_ttensor = ttb.ttensor.from_data(
+        ttb.sptensor.from_tensor_type(ttensorInstance.core), sparse_u
+    )
+    assert isinstance(sparse_ttensor, ttb.ttensor)
+
     # Negative Tests
     non_array_factor = ttensorInstance.u + [1]
     with pytest.raises(ValueError):
@@ -66,12 +75,9 @@ def test_ttensor_initialization_from_data(sample_ttensor):
     wrong_shape_factor[0] = np.random.random((row + 1, col + 1))
     with pytest.raises(ValueError):
         ttb.ttensor.from_data(ttensorInstance.core, wrong_shape_factor)
-
-    # Enforce error until sptensor core/other cores supported
+    # Invalid core type
     with pytest.raises(ValueError):
-        ttb.ttensor.from_data(
-            ttb.sptensor.from_tensor_type(ttensorInstance.core), ttensorInstance.u
-        )
+        ttb.ttensor.from_data(ttensorInstance, ttensorInstance.u)
 
 
 @pytest.mark.indevelopment
@@ -91,18 +97,24 @@ def test_ttensor_full(sample_ttensor):
     # This sanity check only works for all 1's
     assert tensor.double() == np.prod(ttensorInstance.core.shape)
 
-    # Negative tests
+    # Sparse tests
+    sparse_core = ttb.sptensor.from_tensor_type(ttensorInstance.core)
+    sparse_u = [
+        sparse.coo_matrix(np.ones(factor.shape)) for factor in ttensorInstance.u
+    ]
+    # We could probably make these properties to avoid this edge case but expect to eventually cover these alternate
+    # cores
+    sparse_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+    assert sparse_ttensor.full().isequal(tensor)
+
+    # Empty sparse ttensor components
     sparse_core = ttb.sptensor()
     sparse_core.shape = ttensorInstance.core.shape
     sparse_u = [
         sparse.coo_matrix(np.zeros(factor.shape)) for factor in ttensorInstance.u
     ]
-    # We could probably make these properties to avoid this edge case but expect to eventually cover these alternate
-    # cores
-    ttensorInstance.core = sparse_core
-    ttensorInstance.u = sparse_u
-    with pytest.raises(ValueError):
-        ttensorInstance.full()
+    sparse_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+    assert sparse_ttensor.full().double().item() == 0
 
 
 @pytest.mark.indevelopment
@@ -357,11 +369,25 @@ def test_ttensor_reconstruct(random_ttensor):
 @pytest.mark.indevelopment
 def test_ttensor_nvecs(random_ttensor):
     ttensorInstance = random_ttensor
+
+    sparse_core = ttb.sptensor.from_tensor_type(ttensorInstance.core)
+    sparse_core_ttensor = ttb.ttensor.from_data(sparse_core, ttensorInstance.u)
+
+    sparse_u = [sparse.coo_matrix(factor) for factor in ttensorInstance.u]
+    sparse_factor_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+
+    # Smaller number of eig vals
     n = 0
     r = 2
     ttensor_eigvals = ttensorInstance.nvecs(n, r)
     full_eigvals = ttensorInstance.full().nvecs(n, r)
     assert np.allclose(ttensor_eigvals, full_eigvals)
+
+    sparse_core_ttensor_eigvals = sparse_core_ttensor.nvecs(n, r)
+    assert np.allclose(ttensor_eigvals, sparse_core_ttensor_eigvals)
+
+    sparse_factors_ttensor_eigvals = sparse_factor_ttensor.nvecs(n, r)
+    assert np.allclose(ttensor_eigvals, sparse_factors_ttensor_eigvals)
 
     # Test for eig vals larger than shape-1
     n = 1
@@ -370,22 +396,39 @@ def test_ttensor_nvecs(random_ttensor):
     ttensor_eigvals = ttensorInstance.nvecs(n, r)
     assert np.allclose(ttensor_eigvals, full_eigvals)
 
-    # Negative Tests
-    sparse_core = ttb.sptensor()
-    sparse_core.shape = ttensorInstance.core.shape
-    ttensorInstance.core = sparse_core
+    sparse_core_ttensor_eigvals = sparse_core_ttensor.nvecs(n, r)
+    assert np.allclose(ttensor_eigvals, sparse_core_ttensor_eigvals)
 
-    # Sparse core
-    with pytest.raises(NotImplementedError):
-        ttensorInstance.nvecs(0, 1)
+    sparse_factors_ttensor_eigvals = sparse_factor_ttensor.nvecs(n, r)
+    assert np.allclose(ttensor_eigvals, sparse_factors_ttensor_eigvals)
 
-    # Sparse factors
+
+def test_ttensor_nvecs_all_zeros(random_ttensor):
+    """Perform nvecs calculation on all zeros tensor to exercise sparsity edge cases"""
+    ttensorInstance = random_ttensor
+    n = 0
+    r = 2
+
+    # Construct all zeros ttensors
+    dense_u = [np.zeros(factor.shape) for factor in ttensorInstance.u]
+    dense_core = ttb.tenzeros(ttensorInstance.core.shape)
+    dense_ttensor = ttb.ttensor.from_data(dense_core, dense_u)
+    dense_nvecs = dense_ttensor.nvecs(n, r)
+
     sparse_u = [
         sparse.coo_matrix(np.zeros(factor.shape)) for factor in ttensorInstance.u
     ]
-    ttensorInstance.u = sparse_u
-    with pytest.raises(NotImplementedError):
-        ttensorInstance.nvecs(0, 1)
+    sparse_core = ttb.sptensor()
+    sparse_core.shape = ttensorInstance.core.shape
+    sparse_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+    sparse_nvecs = sparse_ttensor.nvecs(n, r)
+    # Currently just a smoke test need to find a very sparse
+    # but well formed tensor for nvecs
+    assert isinstance(dense_nvecs, np.ndarray)
+    assert isinstance(sparse_nvecs, np.ndarray)
+
+    higher_value_sparse_nvecs = sparse_ttensor.nvecs(1, r)
+    assert isinstance(higher_value_sparse_nvecs, np.ndarray)
 
 
 @pytest.mark.indevelopment

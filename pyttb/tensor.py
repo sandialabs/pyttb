@@ -14,6 +14,7 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse.linalg
 from numpy_groupies import aggregate as accumarray
+from scipy import sparse
 
 import pyttb as ttb
 from pyttb.pyttb_utils import tt_dimscheck, tt_ind2sub
@@ -1059,7 +1060,7 @@ class tensor:
                 Y = Y.ttm(matrix[vidx[k]], dims[k], transpose=transpose)
             return Y
 
-        if not isinstance(matrix, np.ndarray):
+        if not isinstance(matrix, (np.ndarray, sparse.spmatrix)):
             assert False, f"matrix must be of type numpy.ndarray but got:\n{matrix}"
 
         dims, _ = ttb.tt_dimscheck(self.ndims, dims=dims, exclude_dims=exclude_dims)
