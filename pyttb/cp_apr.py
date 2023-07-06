@@ -1502,11 +1502,8 @@ def tt_loglikelihood_row(isSparse, data_row, model_row, Pi):
         term2 = np.sum(data_row.transpose() * np.log(model_row.dot(Pi.transpose())))
     else:
         b_pi = model_row.dot(Pi.transpose())
-        term2 = 0
-        for i in range(len(data_row)):
-            if data_row[i] != 0:
-                # Define zero times log(anything) to be zero
-                term2 += data_row[i] * np.log(b_pi[i])
+        skip_zeros = data_row != 0
+        term2 = np.dot(data_row[skip_zeros], np.log(b_pi[skip_zeros])).item()
     loglikelihood = term1 + term2
     return loglikelihood
 
