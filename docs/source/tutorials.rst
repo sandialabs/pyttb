@@ -5,5 +5,8 @@ Tutorials
    :maxdepth: 2
 
    tutorial/CP_APR
-   tutorial/Sparse_Tensors
-   tutorial/Tensors
+   tutorial/class_ktensor
+   tutorial/class_sptensor
+   tutorial/class_tenmat
+   tutorial/class_tensor
+   tutorial/class_ttensor

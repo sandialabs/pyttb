@@ -55,6 +55,11 @@ extensions = [
     "myst_nb",
 ]
 
+myst_enable_extensions = [
+    "amsmath",
+    "dollarmath",
+]
+
 napoleon_use_param = False
 napoleon_use_rtype = False
 
