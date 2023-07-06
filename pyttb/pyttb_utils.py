@@ -2,9 +2,11 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
+from enum import Enum
 from inspect import signature
-from typing import Optional, Tuple, overload
+from typing import Optional, Tuple, Union, get_args, overload
 
 import numpy as np
 
@@ -374,22 +376,20 @@ def tt_intersect_rows(MatrixA, MatrixB):
     return location[np.where(location >= 0)]
 
 
-def tt_irenumber(t, shape, number_range):  # pylint: disable=unused-argument
+def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.ndarray:
     """
     RENUMBER indices for sptensor subsasgn
 
     Parameters
     ----------
-    t: :class:`pyttb.sptensor`
-    shape: tuple(int)
-    range: tuple, len(range) = modes in tensor. Is key from __setitem__
+    t: Sptensor we are trying to assign from
+    shape: Shape of destination tensor
+    number_range: Key from __setitem__ for destination tensor
 
     Returns
     -------
-    newsubs: :class:`numpy.ndarray`
+    Subscripts for sptensor assignment
     """
-    # TODO shape is unused. Should it be used? I don't particularly understand what
-    #  this is meant to be doing
     nz = t.nnz
     if nz == 0:
         newsubs = np.array([])
@@ -398,7 +398,9 @@ def tt_irenumber(t, shape, number_range):  # pylint: disable=unused-argument
     newsubs = t.subs.astype(int)
     for i, r in enumerate(number_range):
         if isinstance(r, slice):
-            newsubs[:, i] = (newsubs[:, i])[r]
+            start = r.start or 0
+            stop = r.stop or shape[i]
+            newsubs[:, i] = np.arange(start, stop + 1)[newsubs[:, i]]
         elif isinstance(r, int):
             # This appears to be inserting new keys as rows to our subs here
             newsubs = np.insert(newsubs, obj=i, values=r, axis=1)
@@ -407,28 +409,6 @@ def tt_irenumber(t, shape, number_range):  # pylint: disable=unused-argument
                 r = np.array(r)
             newsubs[:, i] = r[newsubs[:, i]]
     return newsubs
-
-
-def tt_assignment_type(x, subs, rhs):
-    """
-    TT_ASSIGNMENT_TYPE What type of subsagn is this?
-
-    Parameters
-    ----------
-    x:
-    subs:
-    rhs:
-
-    Returns
-    -------
-    objectType
-    """
-    if type(x) is type(rhs):
-        return "subtensor"
-    # If subscripts is a tuple that contains an nparray
-    if isinstance(subs, tuple) and len(subs) >= 2:
-        return "subtensor"
-    return "subscripts"
 
 
 def tt_renumber(subs, shape, number_range):
@@ -458,7 +438,7 @@ def tt_renumber(subs, shape, number_range):
         if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
-                    if isinstance(number_range[i], (int, float)):
+                    if isinstance(number_range[i], (int, float, np.integer)):
                         newshape[i] = number_range[i]
                     else:
                         newshape[i] = len(number_range[i])
@@ -489,7 +469,7 @@ def tt_renumberdim(idx, shape, number_range):
     newshape:
     """
     # Determine the size of the new range
-    if isinstance(number_range, int):
+    if isinstance(number_range, (int, np.integer)):
         newshape = 0
     elif isinstance(number_range, slice):
         number_range = range(0, shape)[number_range]
@@ -561,7 +541,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     """
     if idx.size == 0:
         return np.empty(shape=(0, len(shape)), dtype=int)
-
+    idx[idx < 0] += np.prod(shape)  # Handle negative indexing as simply as possible
     return np.array(np.unravel_index(idx, shape, order="F")).transpose()
 
 
@@ -584,6 +564,8 @@ def tt_subsubsref(obj, s):  # pylint: disable=unused-argument
     #    return obj
     # else:
     #   return obj[s[1:]]
+    if isinstance(obj, np.ndarray) and obj.size == 1:
+        return obj.item()
     return obj
 
 
@@ -793,3 +775,42 @@ def islogical(a):
     bool
     """
     return isinstance(a, bool)
+
+
+# Adding all sorts of index support here, might consider splitting out to more specific file later
+
+
+class IndexVariant(Enum):
+    """Methods for indexing entries of tensors"""
+
+    UNKNOWN = 0
+    LINEAR = 1
+    SUBTENSOR = 2
+    SUBSCRIPTS = 3
+
+
+# We probably want to create a specific file for utility types
+LinearIndexType = Union[int, float, np.generic, slice]
+IndexType = Union[LinearIndexType, list, np.ndarray]
+
+
+def get_index_variant(indices: IndexType) -> IndexVariant:
+    """Decide on intended indexing variant. No correctness checks."""
+    variant = IndexVariant.UNKNOWN
+    if isinstance(indices, get_args(LinearIndexType)):
+        variant = IndexVariant.LINEAR
+    elif isinstance(indices, np.ndarray):
+        # TODO this is technically slightly stricter than what
+        #  we currently have but probably clearer
+        if len(indices.shape) == 1:
+            variant = IndexVariant.LINEAR
+        else:
+            variant = IndexVariant.SUBSCRIPTS
+    elif isinstance(indices, tuple):
+        variant = IndexVariant.SUBTENSOR
+    elif isinstance(indices, list):
+        # TODO this is slightly redundant/inefficient
+        key = np.array(indices)
+        if len(key.shape) == 1 or key.shape[1] == 1:
+            variant = IndexVariant.LINEAR
+    return variant

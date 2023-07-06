@@ -1690,7 +1690,7 @@ class ktensor(object):
             best_score = 0
             for r in range(RB):
                 idx = np.argmax(C.reshape(np.prod(C.shape), order="F"))
-                ij = tt_ind2sub((RA, RB), idx)
+                ij = tt_ind2sub((RA, RB), np.array(idx))
                 best_score = best_score + C[ij[0], ij[1]]
                 C[ij[0], :] = -10
                 C[:, ij[1]] = -10

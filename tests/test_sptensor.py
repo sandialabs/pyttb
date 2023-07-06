@@ -22,7 +22,6 @@ def sample_sptensor():
     return data, sptensorInstance
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_empty():
     empty = np.array([], ndmin=2, dtype=int)
 
@@ -30,10 +29,18 @@ def test_sptensor_initialization_empty():
     sptensorInstance = ttb.sptensor()
     assert (sptensorInstance.subs == empty).all()
     assert (sptensorInstance.vals == empty).all()
-    assert (sptensorInstance.shape == empty).all()
+    assert sptensorInstance.shape == ()
+
+    # With shape
+    sptensorInstance = ttb.sptensor((2, 2))
+    assert (sptensorInstance.subs == empty).all()
+    assert (sptensorInstance.vals == empty).all()
+    assert sptensorInstance.shape == (2, 2)
+
+    with pytest.raises(ValueError):
+        ttb.sptensor([(2, 2)])
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_data(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     assert (sptensorInstance.subs == data["subs"]).all()
@@ -41,7 +48,6 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     assert sptensorInstance.shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_tensor_type(sample_sptensor):
     # Copy constructor
     (data, sptensorInstance) = sample_sptensor
@@ -77,7 +83,6 @@ def test_sptensor_initialization_from_tensor_type(sample_sptensor):
         ttb.sptensor.from_tensor_type(invalid_tensor_type)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_function():
     # Random Tensor Success
     def function_handle(*args):
@@ -117,7 +122,6 @@ def test_sptensor_initialization_from_function():
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_initialization_from_aggregator(sample_sptensor):
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3], [1, 1, 1], [1, 1, 1]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5], [4.5], [5.5]])
@@ -152,7 +156,6 @@ def test_sptensor_initialization_from_aggregator(sample_sptensor):
     assert "Subscript exceeds sptensor shape" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_and_scalar(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -167,7 +170,6 @@ def test_sptensor_and_scalar(sample_sptensor):
     assert b.shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor_and_sptensor(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     b = sptensorInstance.logical_and(sptensorInstance)
@@ -189,7 +191,6 @@ def test_sptensor_and_sptensor(sample_sptensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_and_tensor(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     b = sptensorInstance.logical_and(ttb.tensor.from_tensor_type(sptensorInstance))
@@ -197,7 +198,6 @@ def test_sptensor_and_tensor(sample_sptensor):
     assert (b.vals == np.ones(data["vals"].shape)).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_full(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     densetensor = sptensorInstance.full()
@@ -218,7 +218,6 @@ def test_sptensor_full(sample_sptensor):
     assert (emptySptensor.full().data == np.zeros(data["shape"])).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_subdims(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -235,14 +234,12 @@ def test_sptensor_subdims(sample_sptensor):
         sptensorInstance.subdims(("bad", "region", "types"))
 
 
-@pytest.mark.indevelopment
 def test_sptensor_ndims(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
     assert sptensorInstance.ndims == 3
 
 
-@pytest.mark.indevelopment
 def test_sptensor_extract(sample_sptensor, capsys):
     (data, sptensorInstance) = sample_sptensor
 
@@ -268,386 +265,390 @@ def test_sptensor_extract(sample_sptensor, capsys):
     assert (sptensorInstance.extract(np.array([1, 1, 1])) == [[0.5]]).all()
 
 
-@pytest.mark.indevelopment
-def test_sptensor__getitem__(sample_sptensor):
-    (data, sptensorInstance) = sample_sptensor
-    ## Case 1
-    # Empty value slice
-    assert sptensorInstance[0, 0, 0] == 0
-    # Full value slice
-    assert sptensorInstance[1, 1, 1] == 0.5
-    # Empty subtensor
-    emptyResult = sptensorInstance[0:1, 0:1, 0:1]
-    assert isinstance(emptyResult, ttb.sptensor)
-    assert emptyResult.isequal(
-        ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1))
-    )
-    # Full subtensor
-    assert isinstance(sptensorInstance[:, :, :], ttb.sptensor)
-    assert isinstance(
-        sptensorInstance[[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]], ttb.sptensor
-    )
-    assert sptensorInstance[:, :, :].isequal(
-        sptensorInstance[[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]
-    )
+class TestGetItem:
+    def test_linear(self, sample_sptensor):
+        (data, sptensorInstance) = sample_sptensor
+        dense_data = sptensorInstance.full().data
 
-    # TODO need to understand what this intends to do
-    ## Case 2 subscript indexing
-    assert sptensorInstance[np.array([[1], [2], [1]])] == np.array([[0]])
-    assert (
-        sptensorInstance[np.array([[1, 1], [2, 3], [1, 1]])] == np.array([[0], [0]])
-    ).all()
+        # Single index variants
+        assert sptensorInstance[np.array([0])] == dense_data[0, 0, 0]
+        assert sptensorInstance[0] == dense_data[0, 0, 0]
+        assert sptensorInstance[0:1] == dense_data[0, 0, 0]
 
-    ## Case 2 Linear Indexing
-    ind = ttb.tt_sub2ind(data["shape"], np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2]]))
-    assert (sptensorInstance[ind] == np.array([[0.5], [1.5], [2.5]])).all()
-    list_ind = list(ind)
-    assert (sptensorInstance[list_ind] == np.array([[0.5], [1.5], [2.5]])).all()
-    ind2 = ttb.tt_sub2ind(data["shape"], np.array([[1, 1, 1], [1, 1, 3]]))
-    assert (sptensorInstance[ind2] == np.array([[0.5], [1.5]])).all()
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance[ind2[:, None]]
-    assert "Expecting a row index" in str(excinfo)
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance["string"]
-    assert "Invalid indexing" in str(excinfo)
+        # Multi-index slice and negative index
+        empty_sptensor = ttb.sptensor((4, 3))
+        assert np.array_equal(
+            empty_sptensor[:], np.zeros((np.prod(empty_sptensor.shape), 1))
+        )
+        empty_sptensor[4, 3] = 123
+        assert empty_sptensor[-1] == 123
+
+        # Some negative tests
+        non_row_idx = np.ones((3, 1))
+        with pytest.raises(AssertionError) as excinfo:
+            sptensorInstance[non_row_idx]
+        assert "Expecting a row index" in str(excinfo)
+        with pytest.raises(AssertionError) as excinfo:
+            sptensorInstance["string"]
+        assert "Invalid indexing" in str(excinfo)
+
+    def test_subtensor(self, sample_sptensor):
+        (data, sptensorInstance) = sample_sptensor
+        dense_data = sptensorInstance.full().data
+        # Empty value slice
+        idx = (0, 0, 0)
+        assert sptensorInstance[idx] == dense_data[idx]
+        assert dense_data[idx] == 0
+        # Full value slice
+        idx = (1, 1, 1)
+        assert sptensorInstance[idx] == dense_data[idx]
+        assert dense_data[idx] != 0
+
+        # Empty subtensor result
+        emptyResult = sptensorInstance[0:1, 0:1, 0:1]
+        assert isinstance(emptyResult, ttb.sptensor)
+        assert emptyResult.isequal(ttb.sptensor((1, 1, 1)))
+        # Entire sptensor as subtensor
+        idx = []
+        for dim_shape in sptensorInstance.shape:
+            idx.append(list(range(dim_shape)))
+        idx = tuple(idx)
+        assert isinstance(sptensorInstance[:, :, :], ttb.sptensor)
+        assert isinstance(sptensorInstance[idx], ttb.sptensor)
+        assert sptensorInstance[:, :, :].isequal(sptensorInstance[idx])
+
+        # Confirm indexing an entirely empty sptensor
+        X = ttb.sptensor((40, 30, 20))
+        assert X[0, 0, 0] == 0
+        assert X[0, 0, :].isequal(X[0, 0, :])
+
+        # Confirm Negative subtensor indices
+        Y = ttb.sptenrand((10, 10, 10), nonzeros=10)
+        X[110:120, 110:120, 110:120] = Y
+        # Negative values in slice
+        assert X[110:, 110:, 115:].isequal(X[-10:, -10:, -5:])
+        X[119, 119, 119] = 123
+        # Direct negative index
+        assert X[119, 119, 119] == X[-1, -1, -1]
+
+    def test_subscripts(self, sample_sptensor):
+        (data, sptensorInstance) = sample_sptensor
+        dense_data = sptensorInstance.full().data
+        assert sptensorInstance[np.array([[1, 2, 1]])] == dense_data[1, 2, 1]
+        subs = np.array([[1, 2, 1], [1, 3, 1]])
+        subscript_values = sptensorInstance[subs]
+        assert np.array_equal(
+            subscript_values, dense_data[([1, 1], [2, 3], [1, 1])][:, None]
+        )
+        # Make sure they are self consistent with subtensor
+        one_by_one_values = []
+        for one_sub in subs:
+            one_by_one_values.append(sptensorInstance[tuple(one_sub)])
+        one_by_one_values = np.array(one_by_one_values)[:, None]
+        # TODO: Sptensor currently returns column when tensor returns row
+        assert np.array_equal(subscript_values, one_by_one_values)
 
 
-@pytest.mark.indevelopment
-def test_sptensor_setitem_Case1(sample_sptensor):
-    (data, sptensorInstance) = sample_sptensor
+class TestSetItem:
+    def test_subscripts_invalid(self, sample_sptensor):
+        """Check improperly formed edge cases"""
+        (data, sptensorInstance) = sample_sptensor
 
-    # Empty sptensor assigned with nothing
-    emptyTensor = ttb.sptensor()
-    emptyTensor[:, :, :] = []
-    assert emptyTensor.vals.size == 0
-    emptyTensor[:, :, :] = np.array([])
-    assert emptyTensor.vals.size == 0
+        # Too few modes in setitem key
+        with pytest.raises(AssertionError) as excinfo:
+            sptensorInstance[np.array([[1, 1]]).astype(int)] = 999.0
+        assert "Invalid subscripts" in str(excinfo)
 
-    # Case I(a): Set empty tensor with sptensor
-    emptyTensor = ttb.sptensor()
-    emptyTensor[:, :, :] = sptensorInstance
-    assert (emptyTensor.subs == data["subs"]).all()
-    assert (emptyTensor.vals == data["vals"]).all()
-    assert emptyTensor.shape == data["shape"]
+        # Too few keys in setitem for number of assignment values
+        with pytest.raises(AssertionError) as excinfo:
+            sptensorInstance[np.array([[1, 1, 1]])] = np.array([[999.0], [888.0]])
+        assert "Number of subscripts and number of values do not match!" in str(excinfo)
 
-    # Case I(a): Set empty tensor with sptensor, none none end slice
-    emptyTensor = ttb.sptensor()
-    emptyTensor[0:4, 0:4, 0:4] = sptensorInstance
-    assert (emptyTensor.subs == data["subs"]).all()
-    assert (emptyTensor.vals == data["vals"]).all()
-    assert emptyTensor.shape == data["shape"]
+        # Warning for duplicates and dropping duplicates
+        with pytest.warns(Warning) as record:
+            sptensorInstance[np.array([[1, 1, 1], [1, 1, 1]]).astype(int)] = np.array(
+                [[999.0], [999.0]]
+            )
+        assert "Duplicate assignments discarded" in str(record[0].message)
 
-    # Case I(a): Set sptensor with empty tensor
-    emptyTensor = ttb.sptensor()
-    emptyTensor.shape = (4, 4, 4)
-    sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorCopy[:, :, :] = emptyTensor
-    assert (sptensorCopy.subs == emptyTensor.subs).all()
-    assert (sptensorCopy.vals == emptyTensor.vals).all()
-    assert sptensorCopy.shape == data["shape"]
+    def test_subscripts_growth(
+        self,
+    ):
+        """Check situations where insertions grow tensor"""
+        arbitrary_value = 4
 
-    # Case I(a): Set sptensor with smaller tensor
-    emptyTensor = ttb.sptensor()
-    emptyTensor.shape = (4, 4, 4)
-    sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorInstanceCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorInstanceCopy[1, 1, 1] = 0
-    sptensorCopy[4, 4, 4] = 1
-    sptensorCopy[:4, :4, :4] = sptensorInstanceCopy
-    assert (sptensorCopy.subs[1:, :] == sptensorInstanceCopy.subs).all()
-    assert (sptensorCopy.vals[1:] == sptensorInstanceCopy.vals).all()
-    assert sptensorCopy.shape == (5, 5, 5)
+        # Insert to fully empty tensor
+        empty_tensor = ttb.sptensor()
+        subs = np.array([[0, 1], [2, 2]])
+        empty_tensor[subs] = arbitrary_value
+        assert np.all(empty_tensor[subs] == arbitrary_value)
 
-    # Case I(a): Set sptensor with smaller tensor
-    emptyTensor = ttb.sptensor()
-    emptyTensor.shape = (4, 4, 4)
-    sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorCopy[4, 4, 4] = 1
-    sptensorCopy[:4, :4, :4] = emptyTensor
-    assert sptensorCopy.subs[1:, :].size == 0
-    assert sptensorCopy.vals[1:].size == 0
-    assert sptensorCopy.shape == (5, 5, 5)
+        # Single entry, for single sub that doesn't exist
+        sub = np.array([[1, 1]])
+        empty_tensor[sub] = arbitrary_value + 1
+        assert empty_tensor[sub] == arbitrary_value + 1
 
-    # Case I(a): Set sptensor with larger empty tensor
-    emptyTensor = ttb.sptensor.from_data(np.array([]), np.array([]), (4, 4, 4, 4))
-    sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorCopy[:4, :4, :4, :4] = emptyTensor
-    assert (sptensorCopy.subs == emptyTensor.subs).all()
-    assert (sptensorCopy.vals == emptyTensor.vals).all()
-    assert sptensorCopy.shape == emptyTensor.shape
+        # Single entry, for single sub that doesn't exist, expand dimensions
+        sub = np.array([[1, 1, 1]])
+        empty_tensor[sub] = arbitrary_value + 2
+        assert empty_tensor[sub] == arbitrary_value + 2
 
-    # Case I(a): Set sptensor with sptensor
-    subs = np.array([[2, 1, 1], [2, 1, 3]])
-    vals = np.array([[2.5], [3.5]])
-    shape = (4, 4, 4)
-    sptensorRHS = ttb.sptensor.from_data(subs, vals, shape)
+    def test_subscripts_clear(
+        self,
+    ):
+        """Check situations where setting subscript value to zero prunes tensor"""
+        arbitrary_value = 4
 
-    sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    # TODO slicing in this way isn't supported in tensor toolbox
-    # sptensorCopy[2, 1, :] = sptensorRHS
-    # assert (sptensorCopy.subs == np.vstack((sptensorCopy.subs, sptensorRHS.subs))).all()
-    # assert (sptensorCopy.vals == np.vstack((sptensorCopy.vals, sptensorRHS.vals))).all()
-    # assert (sptensorCopy.shape == data['shape'])
+        # Set and unset single subscript
+        empty_tensor = ttb.sptensor()
+        sub = np.array([[0, 0]])
+        empty_tensor[sub] = arbitrary_value
+        assert empty_tensor.nnz > 0
+        empty_tensor[sub] = 0
+        assert empty_tensor.nnz == 0
 
-    # Case I(a): Set empty with same size sptensor
-    emptyTensor = ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1))
-    sptensorCopy = ttb.sptensor.from_tensor_type(emptyTensor)
-    sptensorCopy[0, 0, 0] = 1
-    emptyTensor[0, 0, 0] = sptensorCopy
-    # TODO: This ne should be eq once irenumber is resolved
-    assert sptensorCopy.subs.shape != emptyTensor.subs.shape
-    assert sptensorCopy.vals == emptyTensor.vals
-    assert sptensorCopy.shape == emptyTensor.shape
+        # Set and unset multiple subscripts
+        empty_tensor = ttb.sptensor()
+        subs = np.array([[0, 0], [1, 1]])
+        empty_tensor[subs] = arbitrary_value
+        assert empty_tensor.nnz > 0
+        empty_tensor[subs] = 0
+        assert empty_tensor.nnz == 0
 
-    # Case I(a): Set empty with same size sptensor
-    emptyTensor = ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1))
-    sptensorCopy = ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1, 1))
-    sptensorCopy[0, 0, 0, 0] = 1
-    emptyTensor[0, 0, 0, 0] = sptensorCopy
-    # TODO: This ne should be eq once irenumber is resolved
-    assert sptensorCopy.subs.shape != emptyTensor.subs.shape
-    assert sptensorCopy.vals == emptyTensor.vals
-    # Since we do a single index set item the size is only set large enough for that element
-    assert sptensorCopy.shape == emptyTensor.shape
+    def test_subscripts_assign(self, sample_sptensor):
+        """Test assigning values by subscripts"""
+        (data, sptensorInstance) = sample_sptensor
+        dense_data = sptensorInstance.full().data
+        arbitrary_value = 4
 
-    # Case I(a): Set empty with same size sptensor
-    emptyTensor = ttb.sptensor.from_data(np.array([]), np.array([]), (2, 2, 2))
-    sptensorCopy = ttb.sptensor.from_data(np.array([]), np.array([]), (2, 2, 2, 2))
-    sptensorCopy[0, 0, 0, 0] = 1
-    sptensorCopy[1, 1, 1, 1] = 1
-    emptyTensor[[0, 1], [0, 1], [0, 1], [0, 1]] = sptensorCopy
-    # TODO: This ne should be eq once irenumber is resolved
-    assert (sptensorCopy.subs == emptyTensor.subs).all()
-    assert (sptensorCopy.vals == emptyTensor.vals).all()
-    assert sptensorCopy.shape == emptyTensor.shape
+        # Single key, single value
+        sub = np.array([[1, 1, 1]])
+        sptensorInstance[sub] = arbitrary_value
+        dense_data[tuple(sub.flatten())] = arbitrary_value
+        assert np.array_equal(sptensorInstance.full().data, dense_data)
 
-    sptensorCopy = ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1, 1))
-    with pytest.raises(AssertionError) as excinfo:
+        # Multiple keys, single value
+        subs = np.array([[1, 1, 1], [1, 1, 3]])
+        sptensorInstance[subs] = arbitrary_value + 1
+        dense_data[tuple(subs.transpose())] = arbitrary_value + 1
+        assert np.array_equal(sptensorInstance.full().data, dense_data)
+
+        # Multiple keys, multiple values
+        subs = np.array([[1, 1, 1], [1, 1, 3]])
+        vals = np.array([[arbitrary_value + 2], [arbitrary_value + 3]])
+        sptensorInstance[subs] = vals
+        dense_data[tuple(subs.transpose())] = vals.flatten()
+        assert np.array_equal(sptensorInstance.full().data, dense_data)
+
+    def test_subtensor_invalid(
+        self,
+    ):
+        """Subtensor indexing negative tests"""
+        empty_tensor = ttb.sptensor((2, 2, 2, 2))
+        smaller_tensor = ttb.sptensor((1, 1, 1, 1))
+        with pytest.raises(AssertionError) as excinfo:
+            empty_tensor[[0, 1], [0, 1], [0, 1], [0, 1]] = smaller_tensor
+        assert "RHS does not match range size" in str(excinfo)
+
+        with pytest.raises(AssertionError) as excinfo:
+            empty_tensor[
+                np.array([0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1])
+            ] = smaller_tensor
+        assert "RHS does not match range size" in str(excinfo)
+
+        with pytest.raises(AssertionError) as excinfo:
+            empty_tensor[1, 1, 1, 1, 1:] = 0
+        assert (
+            "Must have well defined slice when expanding sptensor shape with setitem"
+            in str(excinfo)
+        )
+
+        with pytest.raises(AssertionError) as excinfo:
+            empty_tensor[1, 1, 1, 1] = "String"
+        assert "Invalid assignment value" in str(excinfo)
+
+    def test_subtensor_growth(self, sample_sptensor):
+        """Check situations where insertions grow tensor"""
+        (data, sptensorInstance) = sample_sptensor
+
+        # Set empty tensor with sptensor via ambiguous slice
+        emptyTensor = ttb.sptensor()
+        # TODO revist this after setitem cleanup. Probably won't support arbitrary slice on empty tensor
+        emptyTensor[:, :, :] = sptensorInstance
+        assert emptyTensor.isequal(sptensorInstance)
+
+        # Set empty tensor with sptensor via explicit slice
+        emptyTensor = ttb.sptensor()
+        emptyTensor[0:4, 0:4, 0:4] = sptensorInstance
+        assert emptyTensor.isequal(sptensorInstance)
+
+        # Set empty tensor with shape via open slice
+        emptyTensor = ttb.sptensor((4, 4, 4))
+        emptyTensor[:, :, :] = sptensorInstance
+        assert emptyTensor.isequal(sptensorInstance)
+
+        # Grow with constant insertion (ints)
+        emptyTensor = ttb.sptensor((4, 4, 4))
+        emptyTensor[4, 4, 4] = 1
+        assert emptyTensor[4, 4, 4] == 1
+        assert emptyTensor.shape == (5, 5, 5)
+
+        # Grow with constant insertion (slice)
+        emptyTensor = ttb.sptensor((4, 4, 4))
+        emptyTensor[4, 4, 4:5] = 1
+        assert emptyTensor[4, 4, 4] == 1
+        assert emptyTensor.shape == (5, 5, 5)
+
+        # Grow dim with constant insertion (ints)
+        emptyTensor = ttb.sptensor((4, 4, 4))
+        emptyTensor[4, 4, 4] = 1
+        emptyTensor[4, 4, 4, 1] = 2
+        assert emptyTensor[4, 4, 4, 0] == 1
+        assert emptyTensor[4, 4, 4, 1] == 2
+        assert emptyTensor.shape == (5, 5, 5, 2)
+
+        # Grow dim with constant insertion (slice)
+        emptyTensor = ttb.sptensor((4, 4, 4))
+        emptyTensor[4, 4, 4] = 1
+        emptyTensor[4, 4, 4, 1:2] = 2
+        assert emptyTensor[4, 4, 4, 0] == 1
+        assert emptyTensor[4, 4, 4, 1] == 2
+        assert emptyTensor.shape == (5, 5, 5, 2)
+
+        # Grow even if vals not inserted
+        emptyTensor = ttb.sptensor()
+        emptyTensor[0, 0, 0] = 0
+        assert emptyTensor.nnz == 0
+        assert emptyTensor.shape == (1, 1, 1)
+
+        # Grow with larger sptensor
+        emptyTensor = ttb.sptensor((4, 4, 4, 4))
+        sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
+        sptensorCopy[:4, :4, :4, :4] = emptyTensor
+        assert (sptensorCopy.subs == emptyTensor.subs).all()
+        assert (sptensorCopy.vals == emptyTensor.vals).all()
+        assert sptensorCopy.shape == emptyTensor.shape
+
+    def test_subtensor_clear(
+        self,
+    ):
+        """Check situations where setting subtensor value to zero prunes tensor"""
+        # Clear with smaller tensor
+        emptyTensor = ttb.sptensor((4, 4, 4))
+        rand_tensor = ttb.sptenrand((5, 5, 5), 0.1)
+        rand_tensor[:4, :4, :4] = emptyTensor
+        assert rand_tensor[:4, :4, :4].nnz == 0
+        assert rand_tensor.shape == (5, 5, 5)
+
+        # Clear individual entry
+        emptyTensor = ttb.sptensor()
+        emptyTensor[0, 0, 0] = 1
+        emptyTensor[0, 0, 0] = 0
+        assert emptyTensor.nnz == 0
+
+        # Clear slice
+        emptyTensor = ttb.sptensor((2, 2))
+        emptyTensor[:, :] = 2
+        assert emptyTensor.nnz > 0
+        emptyTensor[:, :] = 0
+        assert emptyTensor.nnz == 0
+
+    def test_subtensor_assign(
+        self,
+    ):
+        """Test assigning values by subscripts"""
+        # Empty sptensor assigned with nothing
+        emptyTensor = ttb.sptensor()
+        emptyTensor[:, :, :] = []
+        assert emptyTensor.nnz == 0
+        emptyTensor[:, :, :] = np.array([])
+        assert emptyTensor.nnz == 0
+
+        # Set with scalar, iterable index, empty sptensor
+        someTensor = ttb.sptensor()
+        someTensor[[0, 1], 0] = 1
+        assert someTensor[0, 0] == 1
+        assert someTensor[1, 0] == 1
+        assert np.all(someTensor[[0, 1], 0].vals == 1)
+        # Set with scalar, iterable index, non-empty sptensor
+        someTensor[[0, 1], 1] = 2
+        assert someTensor[0, 1] == 2
+        assert someTensor[1, 1] == 2
+        assert np.all(someTensor[[0, 1], 1].vals == 2)
+
+        # Set slice with tensor
+        someTensor = ttb.sptenrand((5, 5, 5), 0.1)
+        smallerTensor = ttb.sptenrand((4, 4, 4), 0.1)
+        someTensor[:4, :4, :4] = smallerTensor
+        assert someTensor[:4, :4, :4].isequal(smallerTensor)
+
+        # Set slice with scalar
+        emptyTensor = ttb.sptensor((1, 1, 1))
+        emptyTensor[0:1, 0, 0] = 1
+        assert emptyTensor[0, 0, 0] == 1
+
+        # Don't insert zeros
+        emptyTensor = ttb.sptensor((1, 1, 1))
+        emptyTensor[0, 0, 0] = 0
+        assert emptyTensor.nnz == 0
+
+        # Set value with negative indices/slice
+        emptyTensor = ttb.sptensor((2, 2, 2))
+        emptyTensor[-1, -1, -1] = 55
+        assert emptyTensor[1, 1, 1] == 55
+        emptyTensor[-1:, -1:, -1:] = 56
+        assert emptyTensor[1, 1, 1] == 56
+
+    def test_subtensor_assign_oddity(
+        self,
+    ):
+        """
+        This is mostly to maintain our test coverage but I don't understand it
+        TODO: Catch error when subtensor assignment sizes are weird
+        (MATLAB behavior, which we are consistent with)
+        >> empty = sptensor([2 2 2]);
+        >> other = sptensor([2 2 2]);
+        >> other(1,1,1) = 1
+        other is a sparse tensor of size 2 x 2 x 2 with 1 nonzeros
+            (1,1,1)     1
+        >> empty(1, 1, 1) = other
+        empty is a sparse tensor of size 2 x 2 x 2 with 1 nonzeros
+        (1,1,1,1,1,1)     1
+        """
+        emptyTensor = ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1))
+        sptensorCopy = ttb.sptensor.from_tensor_type(emptyTensor)
+        sptensorCopy[0, 0, 0] = 1
+        emptyTensor[0, 0, 0] = sptensorCopy
+        assert sptensorCopy.subs.shape != emptyTensor.subs.shape
+        assert sptensorCopy.vals == emptyTensor.vals
+        assert sptensorCopy.shape == emptyTensor.shape
+
+        # Set empty with same size sptensor
+        emptyTensor = ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1))
+        sptensorCopy = ttb.sptensor.from_data(np.array([]), np.array([]), (1, 1, 1, 1))
+        sptensorCopy[0, 0, 0, 0] = 1
+        emptyTensor[0, 0, 0, 0] = sptensorCopy
+        assert sptensorCopy.subs.shape != emptyTensor.subs.shape
+        assert sptensorCopy.vals == emptyTensor.vals
+        # Since we do a single index set item the size is only set large enough for that element
+        assert sptensorCopy.shape == emptyTensor.shape
+
+        # Set empty with same size sptensor
+        emptyTensor = ttb.sptensor.from_data(np.array([]), np.array([]), (2, 2, 2))
+        sptensorCopy = ttb.sptensor.from_data(np.array([]), np.array([]), (2, 2, 2, 2))
+        sptensorCopy[0, 0, 0, 0] = 1
+        sptensorCopy[1, 1, 1, 1] = 1
         emptyTensor[[0, 1], [0, 1], [0, 1], [0, 1]] = sptensorCopy
-    assert "RHS does not match range size" in str(excinfo)
-
-    with pytest.raises(AssertionError) as excinfo:
-        emptyTensor[
-            np.array([0, 1]), np.array([0, 1]), np.array([0, 1]), np.array([0, 1])
-        ] = sptensorCopy
-    assert "RHS does not match range size" in str(excinfo)
-
-    # Case I(b)i: Set with zero, sub already exists
-    old_value = data["vals"][1, 0]
-    sptensorInstance[1, 1, 3] = 0
-    subSelection = [0, 2, 3]
-    assert (sptensorInstance.subs == data["subs"][subSelection]).all()
-    assert (sptensorInstance.vals == data["vals"][subSelection]).all()
-    assert sptensorInstance.shape == data["shape"]
-
-    # Case I(b)i: Set with non-zero, no subs exist
-    empty_tensor = ttb.sptensor()
-    empty_tensor[0, 0] = 1
-    # Validate entry worked correctly
-    empty_tensor.__repr__()
-
-    # Case I(b)i: Set with zero, sub doesn't exist
-    sptensorInstance[1, 1, 3] = old_value
-    reorder = [0, 2, 3, 1]
-    assert (sptensorInstance.subs == data["subs"][reorder]).all()
-    assert (sptensorInstance.vals == data["vals"][reorder]).all()
-    assert sptensorInstance.shape == data["shape"]
-    # Reset tensor data
-    data["subs"] = data["subs"][reorder]
-    data["vals"] = data["vals"][reorder]
-
-    # Case I(b)i: Set slice with zero, sub already exists
-    old_value = data["vals"][3, 0]
-    sptensorInstance[1:2, 1:2, 3:4] = 0
-    subSelection = [0, 1, 2]
-    assert (sptensorInstance.subs == data["subs"][subSelection]).all()
-    assert (sptensorInstance.vals == data["vals"][subSelection]).all()
-    assert sptensorInstance.shape == data["shape"]
-    # Reset tensor data
-    sptensorInstance[1, 1, 3] = old_value
-
-    # Case I(b)i: Set slice with zero, sub already exists
-    old_value = data["vals"][2, 0]
-    sptensorInstance[3:, 3:, 3:] = 0
-    subSelection = [0, 1, 3]
-    assert (sptensorInstance.subs == data["subs"][subSelection]).all()
-    assert (sptensorInstance.vals == data["vals"][subSelection]).all()
-    assert sptensorInstance.shape == data["shape"]
-    # Reset tensor data
-    sptensorInstance[3, 3, 3] = old_value
-    reorder = [0, 1, 3, 2]
-    # Reset tensor data
-    data["subs"] = data["subs"][reorder]
-    data["vals"] = data["vals"][reorder]
-
-    # Case I(b)i: Expand Shape of sptensor with set item
-    sptensorInstanceLarger = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorInstanceLarger[1, 1, 1, 1] = 0
-    assert sptensorInstanceLarger.shape == (4, 4, 4, 2)
-
-    # Case I(b)i: Expand Shape of sptensor with set item
-    sptensorInstanceLarger = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorInstanceLarger[1, 1, 1, 1:2] = 0
-    assert sptensorInstanceLarger.shape == (4, 4, 4, 2)
-
-    # Case I(b)i: Expand Shape of sptensor with set item
-    sptensorInstanceLarger = ttb.sptensor.from_tensor_type(sptensorInstance)
-    sptensorInstanceLarger[1, 1, 1, np.array([1])] = 0
-    assert sptensorInstanceLarger.shape == (4, 4, 4, 2)
-
-    # Case I(b)i: Expand Shape of sptensor with set item
-    sptensorInstanceLarger = ttb.sptensor.from_tensor_type(sptensorInstance)
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstanceLarger[1, 1, 1, 1:] = 0
-    assert (
-        "Must have well defined slice when expanding sptensor shape with setitem"
-        in str(excinfo)
-    )
-
-    # Case I(b)ii: Set with scalar, sub already exists
-    old_value = data["vals"][2, 0]
-    sptensorInstance[1, 1, 3] = 7
-    modifiedVals = data["vals"].copy()
-    modifiedVals[2] = 7
-    assert (sptensorInstance.subs == data["subs"]).all()
-    assert (sptensorInstance.vals == modifiedVals).all()
-    assert sptensorInstance.shape == data["shape"]
-    sptensorInstance[1, 1, 3] = old_value  # Reset tensor
-
-    # Case I(b)ii: Set with scalar, sub already exists
-    old_value = data["vals"][2, 0]
-    sptensorInstance[1:2, 1:2, 3:4] = 7
-    modifiedVals = data["vals"].copy()
-    modifiedVals[2] = 7
-    assert (sptensorInstance.subs == data["subs"]).all()
-    assert (sptensorInstance.vals == modifiedVals).all()
-    assert sptensorInstance.shape == data["shape"]
-    sptensorInstance[1, 1, 3] = old_value  # Reset tensor
-
-    # Case I(b)ii: Set with scalar, sub doesn't exist yet
-    sptensorInstance[1, 1, 2] = 7
-    assert (
-        sptensorInstance.subs == np.vstack((data["subs"], np.array([[1, 1, 2]])))
-    ).all()
-    assert (sptensorInstance.vals == np.vstack((data["vals"], np.array([[7]])))).all()
-    assert sptensorInstance.shape == data["shape"]
-
-    # Case I(b)ii: Set with scalar, iterable index, empty sptensor
-    someTensor = ttb.sptensor()
-    someTensor[[0, 1], 0] = 1
-    assert someTensor[0, 0] == 1
-    assert someTensor[1, 0] == 1
-    assert np.all(someTensor[[0, 1], 0].vals == 1)
-    # Case I(b)ii: Set with scalar, iterable index, non-empty sptensor
-    someTensor[[0, 1], 1] = 2
-    assert someTensor[0, 1] == 2
-    assert someTensor[1, 1] == 2
-    assert np.all(someTensor[[0, 1], 1].vals == 2)
-
-    # Case I: Assign with non-scalar or sptensor
-    sptensorInstanceLarger = ttb.sptensor.from_tensor_type(sptensorInstance)
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstanceLarger[1, 1, 1] = "String"
-    assert "Invalid assignment value" in str(excinfo)
+        assert (sptensorCopy.subs == emptyTensor.subs).all()
+        assert (sptensorCopy.vals == emptyTensor.vals).all()
+        assert sptensorCopy.shape == emptyTensor.shape
 
 
-@pytest.mark.indevelopment
-def test_sptensor_setitem_Case2(sample_sptensor):
-    (data, sptensorInstance) = sample_sptensor
-
-    # Case II: Too few modes in setitem key
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance[np.array([1, 1]).astype(int)] = 999.0
-    assert "Invalid subscripts" in str(excinfo)
-
-    # Case II: Too few keys in setitem for number of assignement values
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance[np.array([[1], [1], [1]]).astype(int)] = np.array(
-            [[999.0], [888.0]]
-        )
-    assert "Number of subscripts and number of values do not match!" in str(excinfo)
-
-    # Case II: Warning For duplicates
-    with pytest.warns(Warning) as record:
-        sptensorInstance[np.array([[1, 1], [1, 1], [1, 1]]).astype(int)] = np.array(
-            [[999.0], [999.0]]
-        )
-    assert "Duplicate assignments discarded" in str(record[0].message)
-
-    # Case II: Single entry, no subs exist
-    empty_tensor = ttb.sptensor()
-    empty_tensor[np.array([[0, 1], [2, 2]])] = 4
-    assert np.all(empty_tensor[np.array([[0, 1], [2, 2]])] == 4)
-
-    # Case II: Single entry, for single sub that exists
-    sptensorInstance[np.array([[1], [1], [1]]).astype(int)] = 999.0
-    assert (sptensorInstance[np.array([[1], [1], [1]])] == np.array([[999]])).all()
-    assert (sptensorInstance.subs == data["subs"]).all()
-
-    # Case II: Single entry, for multiple subs that exist
-    (data, sptensorInstance) = sample_sptensor
-    sptensorInstance[np.array([[1, 1], [1, 1], [1, 3]]).astype(int)] = 999.0
-    assert (
-        sptensorInstance[np.array([[1, 1], [1, 1], [1, 3]])] == np.array([[999], [999]])
-    ).all()
-    assert (sptensorInstance.subs == data["subs"]).all()
-
-    # Case II: Multiple entries, for multiple subs that exist
-    (data, sptensorInstance) = sample_sptensor
-    sptensorInstance[np.array([[1, 1], [1, 1], [1, 3]]).astype(int)] = np.array(
-        [[888], [999]]
-    )
-    assert (
-        sptensorInstance[np.array([[1, 1], [1, 1], [3, 1]])] == np.array([[999], [888]])
-    ).all()
-    assert (sptensorInstance.subs == data["subs"]).all()
-
-    # Case II: Single entry, for single sub that doesn't exist
-    (data, sptensorInstance) = sample_sptensor
-    copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1], [1], [2]]).astype(int)] = 999.0
-    assert (copy[np.array([[1], [1], [2]])] == np.array([999])).all()
-    assert (copy.subs == np.concatenate((data["subs"], np.array([[1, 1, 2]])))).all()
-
-    # Case II: Single entry, for single sub that doesn't exist, expand dimensions
-    (data, sptensorInstance) = sample_sptensor
-    copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1], [1], [2], [1]]).astype(int)] = 999.0
-    assert (copy[np.array([[1], [1], [2], [1]])] == np.array([999])).all()
-    # assert (copy.subs == np.concatenate((data['subs'], np.array([[1, 1, 2]])))).all()
-
-    # Case II: Single entry, for multiple subs one that exists and the other doesn't
-    (data, sptensorInstance) = sample_sptensor
-    copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1, 2], [1, 1], [1, 3]]).astype(int)] = 999.0
-    assert (copy[np.array([[2], [1], [3]])] == np.array([999])).all()
-    assert (copy.subs == np.concatenate((data["subs"], np.array([[2, 1, 3]])))).all()
-
-    # Case II: Multiple entries, for multiple subs that don't exist
-    (data, sptensorInstance) = sample_sptensor
-    copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1, 2], [1, 1], [2, 3]]).astype(int)] = np.array([[888], [999]])
-    assert (copy[np.array([[1, 2], [1, 1], [2, 3]])] == np.array([[888], [999]])).all()
-    assert (
-        copy.subs == np.concatenate((data["subs"], np.array([[1, 1, 2], [2, 1, 3]])))
-    ).all()
-
-    # Case II: Multiple entries, for multiple subs that exist and need to be removed
-    (data, sptensorInstance) = sample_sptensor
-    copy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    copy[np.array([[1, 1], [1, 1], [1, 3]]).astype(int)] = np.array([[0], [0]])
-    assert (copy[np.array([[1, 2], [1, 1], [1, 3]])] == np.array([[0], [0]])).all()
-    assert (copy.subs == np.array([[2, 2, 2], [3, 3, 3]])).all()
-
-
-@pytest.mark.indevelopment
 def test_sptensor_norm(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     assert sptensorInstance.norm() == np.linalg.norm(data["vals"])
 
 
-@pytest.mark.indevelopment
 def test_sptensor_allsubs(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
@@ -658,7 +659,6 @@ def test_sptensor_allsubs(sample_sptensor):
     assert (sptensorInstance.allsubs() == np.array(result)).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_logical_not(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
@@ -674,7 +674,6 @@ def test_sptensor_logical_not(sample_sptensor):
     assert notSptensorInstance.shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor_logical_or(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -713,7 +712,6 @@ def test_sptensor_logical_or(sample_sptensor):
     assert "Sptensor Logical Or argument must be scalar or sptensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__eq__(sample_sptensor):
     # TODO fix == against empty sptensor
     (data, sptensorInstance) = sample_sptensor
@@ -755,7 +753,6 @@ def test_sptensor__eq__(sample_sptensor):
     assert "Sptensor == argument must be scalar or sptensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__ne__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -966,7 +963,6 @@ def test_sptensor_ones(sample_sptensor):
     assert (sptensorInstance.ones().vals == (0.0 * data["vals"] + 1)).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_double(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     denseData = np.zeros(sptensorInstance.shape)
@@ -977,7 +973,6 @@ def test_sptensor_double(sample_sptensor):
     assert sptensorInstance.double().shape == data["shape"]
 
 
-@pytest.mark.indevelopment
 def test_sptensor__le__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1020,7 +1015,6 @@ def test_sptensor__le__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__ge__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1056,7 +1050,6 @@ def test_sptensor__ge__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__gt__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1089,7 +1082,6 @@ def test_sptensor__gt__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__lt__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1120,7 +1112,6 @@ def test_sptensor__lt__(sample_sptensor):
     assert "Cannot compare sptensor with that type" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_innerprod(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1163,7 +1154,6 @@ def test_sptensor_innerprod(sample_sptensor):
     assert f"Inner product between sptensor and {type(5)} not supported" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_logical_xor(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     nonZeroMatrix = np.zeros(data["shape"])
@@ -1201,7 +1191,6 @@ def test_sptensor_logical_xor(sample_sptensor):
     assert "The argument must be an sptensor, tensor or scalar" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_squeeze(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1237,7 +1226,6 @@ def test_sptensor_squeeze(sample_sptensor):
     ).squeeze().shape == (2, 2)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_scale(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1282,7 +1270,6 @@ def test_sptensor_scale(sample_sptensor):
     assert "Invalid scaling factor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_reshape(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1303,7 +1290,6 @@ def test_sptensor_reshape(sample_sptensor):
     assert "Reshape must maintain tensor size" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_mask(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1318,7 +1304,6 @@ def test_sptensor_mask(sample_sptensor):
     assert "Mask cannot be bigger than the data tensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_permute(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1338,7 +1323,6 @@ def test_sptensor_permute(sample_sptensor):
     assert "Invalid permutation order" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__rtruediv__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1361,7 +1345,6 @@ def test_sptensor__rtruediv__(sample_sptensor):
     assert "Dividing that object by an sptensor is not supported" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__truediv__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1437,7 +1420,6 @@ def test_sptensor__truediv__(sample_sptensor):
     assert "Sptensor division requires tensors of the same shape" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_collapse(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     emptySptensor = ttb.sptensor.from_data(np.array([]), np.array([]), (4, 4, 4))
@@ -1466,7 +1448,6 @@ def test_sptensor_collapse(sample_sptensor):
     assert emptySptensor.collapse(dims=np.array([0])).isequal(emptySptensorSmaller)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_contract(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     emptySptensor = ttb.sptensor.from_data(np.array([]), np.array([]), (5, 4, 4))
@@ -1493,7 +1474,6 @@ def test_sptensor_contract(sample_sptensor):
     assert contractableSptensor.contract(0, 1).shape == (4, 4)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_elemfun(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1507,7 +1487,6 @@ def test_sptensor_elemfun(sample_sptensor):
     assert emptySptensor.elemfun(plus1).vals.size == 0
 
 
-@pytest.mark.indevelopment
 def test_sptensor_spmatrix(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1549,7 +1528,6 @@ def test_sptensor_spmatrix(sample_sptensor):
     assert (b.toarray() == fullData).all()
 
 
-@pytest.mark.indevelopment
 def test_sptensor_ttv(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1589,7 +1567,6 @@ def test_sptensor_ttv(sample_sptensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_mttkrp(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1638,7 +1615,6 @@ def test_sptensor_mttkrp(sample_sptensor):
     assert "Second argument must be ktensor or array" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_nvecs(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1664,7 +1640,6 @@ def test_sptensor_nvecs(sample_sptensor):
         single_val_sptensor.nvecs(0, 0)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_ttm(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = np.zeros((4, 4, 4))
@@ -1744,7 +1719,6 @@ def test_sptensor_ttm(sample_sptensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_sptensor_to_sparse_matrix():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5]])
@@ -1761,7 +1735,6 @@ def test_sptensor_to_sparse_matrix():
         assert Xnt.shape == Ynt[mode].shape
 
 
-@pytest.mark.indevelopment
 def test_sptensor_from_sparse_matrix():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5]])

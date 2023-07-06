@@ -217,7 +217,6 @@ def test_tt_ismember_rows():
 
 @pytest.mark.indevelopment
 def test_tt_irenumber():
-    # TODO: Note this is more of a regression test by exploring the behaviour in MATLAB still not totally clear on WHY it behaves this way
     # Constant shouldn't effect performance
     const = 1
 
@@ -253,27 +252,6 @@ def test_tt_irenumber():
         ttb.tt_irenumber(sptensorInstance, shape, (const, const, [0, 1]))
         == np.array([[const, const, const, const, 0], [const, const, const, const, 1]])
     ).all()
-
-
-@pytest.mark.indevelopment
-def test_tt_assignment_type():
-    # type(x)==type(rhs)
-    x = 5
-    rhs = 5
-    subs = 5
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subtensor"
-
-    # type(x)!=type(rhs), subs dimensionality >=2
-    rhs = "cat"
-    subs = (1, 1, 1)
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subtensor"
-
-    subs = (np.array([1, 2, 3]),)
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subscripts"
-
-    # type(x)!=type(rhs), subs dimensionality <2
-    subs = np.array([1])
-    assert ttb.tt_assignment_type(x, subs, rhs) == "subscripts"
 
 
 @pytest.mark.indevelopment
@@ -361,18 +339,28 @@ def test_tt_ind2sub_valid():
     idx = np.array([0, 21, 63])
     shape = (4, 4, 4)
     logging.debug(f"\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}")
-    assert (ttb.tt_ind2sub(shape, idx) == subs).all()
+    assert np.array_equal(ttb.tt_ind2sub(shape, idx), subs)
 
     subs = np.array([[1, 0], [0, 1]])
     idx = np.array([1, 2])
     shape = (2, 2)
     logging.debug(f"\nttb.tt_ind2sub(shape, idx): {ttb.tt_ind2sub(shape, idx)}")
-    assert (ttb.tt_ind2sub(shape, idx) == subs).all()
+    assert np.array_equal(ttb.tt_ind2sub(shape, idx), subs)
 
     empty = np.array([])
-    assert (
-        ttb.tt_ind2sub(shape, empty) == np.empty(shape=(0, len(shape)), dtype=int)
-    ).all()
+    assert np.array_equal(
+        ttb.tt_ind2sub(shape, empty), np.empty(shape=(0, len(shape)), dtype=int)
+    )
+
+    # Single negative index
+    shape = (2, 2)
+    neg_idx = np.array([-1])
+    assert np.array_equal(ttb.tt_ind2sub(shape, neg_idx), np.array([[1, 1]]))
+
+    # Multiple negative indices
+    shape = (2, 2)
+    neg_idx = np.array([-1, -2])
+    assert np.array_equal(ttb.tt_ind2sub(shape, neg_idx), np.array([[1, 1], [0, 1]]))
 
 
 @pytest.mark.indevelopment
@@ -535,3 +523,24 @@ def test_islogical_invalid():
     assert not ttb.islogical(np.array([[2, 2, 2]]))
     assert not ttb.islogical(1.1)
     assert not ttb.islogical(0)
+
+
+def test_get_index_variant_linear():
+    assert ttb.get_index_variant(1) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(1.0) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(slice(1, 5)) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(np.int32(2)) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant(np.array([1, 2, 3])) == ttb.IndexVariant.LINEAR
+    assert ttb.get_index_variant([1, 2, 3]) == ttb.IndexVariant.LINEAR
+
+
+def test_get_index_variant_subscripts():
+    assert ttb.get_index_variant(np.array([[1, 2, 3]])) == ttb.IndexVariant.SUBSCRIPTS
+
+
+def test_get_index_variant_subtensor():
+    assert ttb.get_index_variant((1, 2, 3)) == ttb.IndexVariant.SUBTENSOR
+
+
+def test_get_index_variant_unknown():
+    assert ttb.get_index_variant("a") == ttb.IndexVariant.UNKNOWN
