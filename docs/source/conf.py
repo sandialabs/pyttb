@@ -52,6 +52,12 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
+    "myst_nb",
+]
+
+myst_enable_extensions = [
+    "amsmath",
+    "dollarmath",
 ]
 
 napoleon_use_param = False
