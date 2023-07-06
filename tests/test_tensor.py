@@ -7,8 +7,6 @@ import pytest
 
 import pyttb as ttb
 
-DEBUG_tests = True
-
 
 @pytest.fixture()
 def sample_tensor_2way():
@@ -37,7 +35,6 @@ def sample_tensor_4way():
     return params, tensorInstance
 
 
-@pytest.mark.indevelopment
 def test_tensor_initialization_empty():
     empty = np.array([])
 
@@ -47,7 +44,6 @@ def test_tensor_initialization_empty():
     assert tensorInstance.shape == ()
 
 
-@pytest.mark.indevelopment
 def test_tensor_initialization_from_data(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     assert (tensorInstance.data == params["data"]).all()
@@ -74,35 +70,31 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
     assert "First argument must be a multidimensional array." in str(excinfo)
 
     # 1D tensors
-    # no shape spaecified
+    # no shape specified
     tensorInstance1 = ttb.tensor.from_data(np.array([1, 2, 3]))
-    if DEBUG_tests:
-        print("\ntensorInstance1:")
-        print(tensorInstance1)
     data = np.array([1, 2, 3])
-    assert tensorInstance1.data.shape == data.shape
-    assert (tensorInstance1.data == data).all()
+    assert (
+        tensorInstance1.data.shape == data.shape
+    ), f"tensorInstance1:\n{tensorInstance1}"
+    assert (tensorInstance1.data == data).all(), f"tensorInstance1:\n{tensorInstance1}"
 
     # shape is 1 x 3
     tensorInstance1 = ttb.tensor.from_data(np.array([1, 2, 3]), (1, 3))
-    if DEBUG_tests:
-        print("\ntensorInstance1:")
-        print(tensorInstance1)
     data = np.array([[1, 2, 3]])
-    assert tensorInstance1.data.shape == data.shape
-    assert (tensorInstance1.data == data).all()
+    assert (
+        tensorInstance1.data.shape == data.shape
+    ), f"tensorInstance1:\n{tensorInstance1}"
+    assert (tensorInstance1.data == data).all(), f"tensorInstance1:\n{tensorInstance1}"
 
     # shape is 3 x 1
     tensorInstance1 = ttb.tensor.from_data(np.array([1, 2, 3]), (3, 1))
-    if DEBUG_tests:
-        print("\ntensorInstance1:")
-        print(tensorInstance1)
     data = np.array([[1], [2], [3]])
-    assert tensorInstance1.data.shape == data.shape
-    assert (tensorInstance1.data == data).all()
+    assert (
+        tensorInstance1.data.shape == data.shape
+    ), f"tensorInstance1:\n{tensorInstance1}"
+    assert (tensorInstance1.data == data).all(), f"tensorInstance1:\n{tensorInstance1}"
 
 
-@pytest.mark.indevelopment
 def test_tensor_initialization_from_tensor_type(sample_tensor_2way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     (_, tensorInstance4) = sample_tensor_4way
@@ -144,7 +136,6 @@ def test_tensor_initialization_from_tensor_type(sample_tensor_2way, sample_tenso
         ttb.tensor.from_tensor_type(1)
 
 
-@pytest.mark.indevelopment
 def test_tensor_initialization_from_function():
     def function_handle(x):
         return np.array([[1, 2, 3], [4, 5, 6]])
@@ -161,49 +152,32 @@ def test_tensor_initialization_from_function():
     assert "TTB:BadInput, Shape must be a tuple" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tensor_find(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     subs, vals = tensorInstance.find()
-    if DEBUG_tests:
-        print("\nsubs:")
-        print(subs)
-        print("\nvals:")
-        print(vals)
     a = ttb.tensor.from_tensor_type(
         ttb.sptensor.from_data(subs, vals, tensorInstance.shape)
     )
-    assert (a.data == tensorInstance.data).all()
-    assert a.shape == tensorInstance.shape
+    assert (a.data == tensorInstance.data).all(), f"subs: {subs}\nvals: {vals}"
+    assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
     (params, tensorInstance) = sample_tensor_3way
     subs, vals = tensorInstance.find()
-    if DEBUG_tests:
-        print("\nsubs:")
-        print(subs)
-        print("\nvals:")
-        print(vals)
     a = ttb.tensor.from_tensor_type(
         ttb.sptensor.from_data(subs, vals, tensorInstance.shape)
     )
-    assert (a.data == tensorInstance.data).all()
-    assert a.shape == tensorInstance.shape
+    assert (a.data == tensorInstance.data).all(), f"subs: {subs}\nvals: {vals}"
+    assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
     (params, tensorInstance) = sample_tensor_4way
     subs, vals = tensorInstance.find()
-    if DEBUG_tests:
-        print("\nsubs:")
-        print(subs)
-        print("\nvals:")
-        print(vals)
     a = ttb.tensor.from_tensor_type(
         ttb.sptensor.from_data(subs, vals, tensorInstance.shape)
     )
-    assert (a.data == tensorInstance.data).all()
-    assert a.shape == tensorInstance.shape
+    assert (a.data == tensorInstance.data).all(), f"subs: {subs}\nvals: {vals}"
+    assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
 
-@pytest.mark.indevelopment
 def test_tensor_ndims(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     assert tensorInstance.ndims == len(params["shape"])
@@ -218,179 +192,235 @@ def test_tensor_ndims(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert ttb.tensor.from_data(np.array([])) == 0
 
 
-@pytest.mark.indevelopment
-def test_tensor__setitem__(sample_tensor_2way):
-    (params, tensorInstance) = sample_tensor_2way
+class TestSetItem:
+    def test_linear_single_value(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        first_element_idx = np.unravel_index([0], dataCopy.shape, "F")
+        last_element_idx = np.unravel_index(
+            [np.prod(dataCopy.shape) - 1], dataCopy.shape, "F"
+        )
+        arbitrary_value = 13.0
 
-    # Subtensor assign with constant
-    dataCopy = params["data"].copy()
-    dataCopy[1, 1] = 0.0
-    tensorInstance[1, 1] = 0.0
-    assert (tensorInstance.data == dataCopy).all()
-    dataGrowth = np.zeros((5, 5))
-    dataGrowth[0:2, 0:3] = dataCopy
-    tensorInstance[4, 4] = 0.0
-    assert (tensorInstance.data == dataGrowth).all()
-    tensorInstance[0:2, 0:2] = 99.0
-    dataGrowth[0:2, 0:2] = 99.0
-    assert (tensorInstance.data == dataGrowth).all()
+        # NP Array Key
+        tensorInstance[np.array([0])] = arbitrary_value
+        dataCopy[first_element_idx] = arbitrary_value
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor assign with np array
-    tensorInstance[0:2, 0:3] = dataCopy
-    dataGrowth[0:2, 0:3] = dataCopy
-    assert (tensorInstance.data == dataGrowth).all()
+        # Int Key
+        tensorInstance[0] = arbitrary_value + 1
+        dataCopy[first_element_idx] = arbitrary_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
+        tensorInstance[-1] = arbitrary_value + 2
+        dataCopy[last_element_idx] = arbitrary_value + 2
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor assign with tensor
-    tensorInstance[:, :] = tensorInstance
-    assert (tensorInstance.data == dataGrowth).all()
+        # Slice Key
+        tensorInstance[0:1] = arbitrary_value + 3
+        dataCopy[first_element_idx] = arbitrary_value + 3
+        assert np.array_equal(tensorInstance.data, dataCopy)
+        tensorInstance[-1:] = arbitrary_value + 4
+        dataCopy[last_element_idx] = arbitrary_value + 4
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor add element to empty tensor
-    empty_tensor = ttb.tensor()
-    empty_tensor[0, 0] = 1
+    def test_linear_multiple_values(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        tensor_idx = [0, 1, 2]
+        multi_element_idx = np.unravel_index(tensor_idx, dataCopy.shape, "F")
+        arbitray_value = 13.0
 
-    # Subtensor add dimension
-    empty_tensor[0, 0, 0] = 2
+        # NP Array Key
+        tensorInstance[np.array(tensor_idx)] = arbitray_value
+        dataCopy[multi_element_idx] = arbitray_value
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subtensor with lists
-    some_tensor = ttb.tenones((3, 3))
-    some_tensor[[0, 1], [0, 1]] = 11
-    assert some_tensor[0, 0] == 11
-    assert some_tensor[1, 1] == 11
-    assert np.all(some_tensor[[0, 1], [0, 1]].data == 11)
+        # List Key
+        tensorInstance[tensor_idx] = arbitray_value + 1
+        dataCopy[multi_element_idx] = arbitray_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subscripts with constant
-    tensorInstance[np.array([[1, 1]])] = 13.0
-    dataGrowth[1, 1] = 13.0
-    assert (tensorInstance.data == dataGrowth).all()
+        # Slice Key
+        tensorInstance[0 : tensor_idx[-1] + 1] = arbitray_value + 2
+        dataCopy[multi_element_idx] = arbitray_value + 2
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Subscripts with array
-    tensorVector = ttb.tensor.from_data(np.array([0, 0, 0, 0]))
-    tensorVector[np.array([0, 1, 2])] = np.array([3, 4, 5])
-    assert (tensorVector.data == np.array([3, 4, 5, 0])).all()
+        # Assign with array
+        tensor_vector = ttb.tensor.from_data(np.array([0, 0, 0, 0]))
+        tensor_vector[np.array([0, 1, 2])] = np.array([3, 4, 5])
+        assert np.array_equal(tensor_vector.data, np.array([3, 4, 5, 0]))
 
-    # Subscripts with constant
-    tensorInstance[np.array([[1, 1], [1, 2]])] = 13.0
-    dataGrowth[([1, 1], [1, 2])] = 13.0
-    assert (tensorInstance.data == dataGrowth).all()
+        # Linear Index with constant, index out of bounds
+        with pytest.raises(AssertionError) as excinfo:
+            tensorInstance[np.array([0, 3, 99])] = 13.0
+        assert (
+            "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+            in str(excinfo)
+        )
 
-    # Subscripts add element to empty tensor
-    empty_tensor = ttb.tensor()
-    first_arbitrary_index = np.array([[0, 1], [2, 2]])
-    second_arbitrary_index = np.array([[1, 2], [3, 3]])
-    value = 4
-    empty_tensor[first_arbitrary_index] = value
-    # Subscripts grow existing tensor
-    empty_tensor[second_arbitrary_index] = value
+    def test_invalid_options(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        with pytest.raises(ValueError) as excinfo:
+            tensorInstance[0, "a", 5] = 13.0
+        assert "must be numeric" in str(excinfo)
 
-    # Linear Index with constant
-    tensorInstance[np.array([0])] = 13.0
-    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 13.0
-    assert (tensorInstance.data == dataGrowth).all()
+        with pytest.raises(AssertionError) as excinfo:
 
-    tensorInstance[0] = 14.0
-    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
-    assert (tensorInstance.data == dataGrowth).all()
+            class BadKey:
+                pass
 
-    tensorInstance[0:1] = 14.0
-    dataGrowth[np.unravel_index([0], dataGrowth.shape, "F")] = 14.0
-    assert (tensorInstance.data == dataGrowth).all()
+            tensorInstance[BadKey] = 13.0
+        assert "Invalid use of tensor setitem" in str(excinfo)
 
-    # Linear Index with constant
-    tensorInstance[np.array([0, 3, 4])] = 13.0
-    dataGrowth[np.unravel_index([0, 3, 4], dataGrowth.shape, "F")] = 13
-    assert (tensorInstance.data == dataGrowth).all()
+    def test_subtensor_assign(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        arbitray_value = 13.0
 
-    # Linear index with multiple indicies
-    some_tensor = ttb.tenones((3, 3))
-    some_tensor[[0, 1]] = 2
-    assert some_tensor[0] == 2
-    assert some_tensor[1] == 2
-    assert np.array_equal(some_tensor[[0, 1]], [2, 2])
+        # Assign with constant
+        dataCopy[1, 1] = arbitray_value + 1
+        tensorInstance[1, 1] = arbitray_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Test Empty Tensor Set Item, subtensor
-    emptyTensor = ttb.tensor.from_data(np.array([]))
-    emptyTensor[0, 0, 0] = 0
-    assert (emptyTensor.data == np.array([[[0]]])).all()
-    assert emptyTensor.shape == (1, 1, 1)
+        # Assign with np array
+        dataCopy[0:2, 0:3] = arbitray_value + 2
+        tensorInstance[0:2, 0:3] = dataCopy[0:2, 0:3]
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Test Empty Tensor Set Item, subscripts
-    emptyTensor = ttb.tensor.from_data(np.array([]))
-    emptyTensor[np.array([0, 0, 0])] = 0
-    assert (emptyTensor.data == np.array([[[0]]])).all()
-    assert emptyTensor.shape == (1, 1, 1)
+        # Assign with tensor
+        tensorInstance[:, :] = tensorInstance
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Linear Index with constant, index out of bounds
-    with pytest.raises(AssertionError) as excinfo:
-        tensorInstance[np.array([0, 3, 99])] = 13.0
-    assert "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized" in str(
-        excinfo
-    )
+        # Keys containing lists
+        tensorInstance[[0, 1], [0, 1]] = arbitray_value + 3
+        dataCopy[[0, 1], [0, 1]] = arbitray_value + 3
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Attempting to set some other way
-    with pytest.raises(ValueError) as excinfo:
-        tensorInstance[0, "a", 5] = 13.0
-    assert "must be numeric" in str(excinfo)
+        # Assign with negative indices
+        empty_tensor = ttb.tensor()
+        empty_tensor[0, 0] = 1
+        empty_tensor[-1, -1] = 2
+        assert empty_tensor[0, 0] == 2
 
-    with pytest.raises(AssertionError) as excinfo:
+        # Assign with negative slice
+        empty_tensor = ttb.tensor()
+        empty_tensor[1, 1] = 0
+        empty_tensor[:-1, :-1] = 3
+        assert empty_tensor[0, 0] == 3
 
-        class BadKey:
-            pass
+    def test_subtensor_growth(
+        self,
+    ):
+        arbitray_value = 0
 
-        tensorInstance[BadKey] = 13.0
-    assert "Invalid use of tensor setitem" in str(excinfo)
+        # Empty Tensor growth
+        empty_tensor = ttb.tensor()
+        empty_tensor[0, 0, 0] = arbitray_value
+        assert np.array_equal(empty_tensor.data, np.array([[[arbitray_value]]]))
+        assert empty_tensor.shape == (1, 1, 1)
 
+        # Add dimension
+        empty_tensor[0, 0, 0, 0] = arbitray_value + 1
+        assert np.array_equal(empty_tensor.data, np.array([[[[arbitray_value + 1]]]]))
+        assert empty_tensor.shape == (1, 1, 1, 1)
 
-@pytest.mark.indevelopment
-def test_tensor__getitem__(sample_tensor_2way):
-    (params, tensorInstance) = sample_tensor_2way
-    # Case 1 single element
-    assert tensorInstance[0, 0] == params["data"][0, 0]
-    # Case 1 Subtensor
-    assert (tensorInstance[:, :] == tensorInstance).data.all()
-    three_way_data = np.random.random((2, 3, 4))
-    two_slices = (slice(None, None, None), 0, slice(None, None, None))
-    assert (
-        ttb.tensor.from_data(three_way_data)[two_slices].double()
-        == three_way_data[two_slices]
-    ).all()
-    # Case 1 Subtensor
-    assert (
-        tensorInstance[np.array([0, 1]), :].data == tensorInstance.data[[0, 1], :]
-    ).all()
-    # Case 1 Subtensor
-    assert (tensorInstance[0, :].data == tensorInstance.data[0, :]).all()
-    assert (tensorInstance[:, 0].data == tensorInstance.data[:, 0]).all()
+    def test_subscripts_assign(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        dataCopy = params["data"].copy()
+        arbitrary_value = 13
 
-    # Case 2a:
-    assert tensorInstance[np.array([0, 0]), "extract"] == params["data"][0, 0]
-    assert (
-        tensorInstance[np.array([[0, 2], [1, 1], [1, 2]]), "extract"]
-        == params["data"][([0, 1, 1], [2, 1, 2])]
-    ).all()
-    # Case 2a: Extract doesn't seem to be needed
-    assert tensorInstance[np.array([[0, 0]])] == params["data"][0, 0]
-    assert (
-        tensorInstance[np.array([[0, 2], [1, 1], [1, 2]])]
-        == params["data"][([0, 1, 1], [2, 1, 2])]
-    ).all()
-    with pytest.raises(AssertionError) as excinfo:
-        # Must use numpy arrays for subscripts
-        tensorInstance[[[0, 2], [1, 1], [1, 2]]]
-    assert "Invalid use of tensor getitem" in str(excinfo)
+        # Subscripts with constant
+        tensorInstance[np.array([[1, 1]])] = arbitrary_value
+        dataCopy[1, 1] = arbitrary_value
+        assert np.array_equal(tensorInstance.data, dataCopy)
 
-    # Case 2b: Linear Indexing
-    assert tensorInstance[np.array([0])] == params["data"][0, 0]
-    assert tensorInstance[0] == params["data"][0, 0]
-    assert np.array_equal(tensorInstance[0:1], params["data"][0, 0])
-    with pytest.raises(AssertionError) as excinfo:
-        tensorInstance[np.array([0]), np.array([0]), np.array([0])]
-    assert "Linear indexing requires single input array" in str(excinfo)
-    assert np.array_equal(
-        tensorInstance[[0, 1, 2]], tensorInstance[np.array([0, 1, 2])]
-    )
+        # Multiple Subscripts with constant
+        subs = np.array([[1, 1], [1, 2]])
+        tensorInstance[subs] = arbitrary_value + 1
+        dataCopy[([1, 1], [1, 2])] = arbitrary_value + 1
+        assert np.array_equal(tensorInstance.data, dataCopy)
+        # Make sure they are self consistent with subtensor
+        one_by_one_values = []
+        for one_sub in subs:
+            one_by_one_values.append(tensorInstance[tuple(one_sub)])
+        assert np.array_equal(tensorInstance[subs].data, one_by_one_values)
+
+    def test_subscript_growth(
+        self,
+    ):
+        # Subscripts add element to empty tensor
+        empty_tensor = ttb.tensor()
+        first_arbitrary_index = np.array([[0, 1], [2, 2]])
+        second_arbitrary_index = np.array([[1, 2], [3, 3]])
+        value = 4
+        # Subscripts grow existing tensor
+        empty_tensor[first_arbitrary_index] = value
+        empty_tensor[second_arbitrary_index] = value
+
+        # Test Empty Tensor Set Item, subscripts
+        emptyTensor = ttb.tensor.from_data(np.array([]))
+        emptyTensor[np.array([[0, 0, 0]])] = 0
+        assert np.array_equal(emptyTensor.data, np.array([[[0]]]))
+        assert emptyTensor.shape == (1, 1, 1)
 
 
-@pytest.mark.indevelopment
+class TestGetItem:
+    def test_linear(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        assert tensorInstance[np.array([0])] == params["data"][0, 0]
+        assert tensorInstance[0] == params["data"][0, 0]
+        assert tensorInstance[0:1] == params["data"][0, 0]
+        negative_first_idx = -np.prod(tensorInstance.shape)
+        assert tensorInstance[negative_first_idx] == params["data"][0, 0]
+        with pytest.raises(AssertionError) as excinfo:
+            tensorInstance[np.array([0]), np.array([0]), np.array([0])]
+        assert "Linear indexing requires single input array" in str(excinfo)
+        assert np.array_equal(
+            tensorInstance[[0, 1, 2]], tensorInstance[np.array([0, 1, 2])]
+        )
+
+    def test_subtensor(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        # Single element (using positive and negative indices)
+        assert tensorInstance[0, 0] == params["data"][0, 0]
+        negative_first_idx = tuple(-1 * dim for dim in tensorInstance.shape)
+        assert tensorInstance[negative_first_idx] == params["data"][0, 0]
+        # Slice
+        assert tensorInstance[:, :].isequal(tensorInstance)
+        three_way_data = np.random.random((2, 3, 4))
+        two_slices = (slice(None, None, None), 0, slice(None, None, None))
+        assert np.array_equal(
+            ttb.tensor.from_data(three_way_data)[two_slices].double(),
+            three_way_data[two_slices],
+        )
+        # Combining slice with (multi-)integer indicies
+        assert np.array_equal(
+            tensorInstance[np.array([0, 1]), :].data, tensorInstance.data[[0, 1], :]
+        )
+        assert np.array_equal(tensorInstance[0, :].data, tensorInstance.data[0, :])
+        assert np.array_equal(tensorInstance[:, 0].data, tensorInstance.data[:, 0])
+
+    def test_tensor_subscripts(self, sample_tensor_2way):
+        (params, tensorInstance) = sample_tensor_2way
+        assert tensorInstance[np.array([[0, 0]])] == params["data"][0, 0]
+        subs = np.array([[0, 2], [1, 1], [1, 2]])
+        subscript_values = tensorInstance[subs]
+        # Make sure they match
+        assert np.array_equal(
+            subscript_values,
+            params["data"][([0, 1, 1], [2, 1, 2])],
+        )
+        # Make sure they are self consistent with subtensor
+        one_by_one_values = []
+        for one_sub in subs:
+            one_by_one_values.append(tensorInstance[tuple(one_sub)])
+        assert np.array_equal(subscript_values, one_by_one_values)
+        with pytest.raises(AssertionError) as excinfo:
+            # Must use numpy arrays for subscripts
+            tensorInstance[[[0, 2], [1, 1], [1, 2]]]
+        assert "Invalid use of tensor getitem" in str(excinfo)
+
+
 def test_tensor_logical_and(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -406,7 +436,6 @@ def test_tensor_logical_and(sample_tensor_2way):
     assert (tensorInstance.logical_and(0).data == np.zeros((params["shape"]))).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__eq__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -432,7 +461,6 @@ def test_tensor__eq__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert ((tensorInstance4 == tensorInstance4).data).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__ne__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -448,40 +476,32 @@ def test_tensor__ne__(sample_tensor_2way):
     assert not ((tensorInstance != 1).data == data).any()
 
 
-@pytest.mark.indevelopment
 def test_tensor_full(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
-    if DEBUG_tests:
-        print("\nparam2['data']:")
-        print(params2["data"])
-        print("\ntensorInstace2.data:")
-        print(tensorInstance2.data)
-        print("\ntensorInstace2.full():")
-        print(tensorInstance2.full())
-    assert (tensorInstance2.full().data == params2["data"]).all()
+    debug_str = (
+        f"param2['data']: {params2['data']}\n"
+        f"tensorInstace2.data: {tensorInstance2.data}\n"
+        f"tensorInstace2.full(): {tensorInstance2.full()}"
+    )
+    assert (tensorInstance2.full().data == params2["data"]).all(), debug_str
 
     (params3, tensorInstance3) = sample_tensor_3way
-    if DEBUG_tests:
-        print("\nparam3['data']:")
-        print(params3["data"])
-        print("\ntensorInstace3.data:")
-        print(tensorInstance3.data)
-        print("\ntensorInstace3.full():")
-        print(tensorInstance3.full())
-    assert (tensorInstance3.full().data == params3["data"]).all()
+    debug_str = (
+        f"param3['data']: {params3['data']}\n"
+        f"tensorInstace3.data: {tensorInstance3.data}\n"
+        f"tensorInstace3.full(): {tensorInstance3.full()}"
+    )
+    assert (tensorInstance3.full().data == params3["data"]).all(), debug_str
 
     (params4, tensorInstance4) = sample_tensor_4way
-    if DEBUG_tests:
-        print("\nparam4['data']:")
-        print(params4["data"])
-        print("\ntensorInstace4.data:")
-        print(tensorInstance4.data)
-        print("\ntensorInstace4.full():")
-        print(tensorInstance4.full())
-    assert (tensorInstance4.full().data == params4["data"]).all()
+    debug_str = (
+        f"param4['data']: {params4['data']}\n"
+        f"tensorInstace4.data: {tensorInstance4.data}\n"
+        f"tensorInstace4.full(): {tensorInstance4.full()}"
+    )
+    assert (tensorInstance4.full().data == params4["data"]).all(), debug_str
 
 
-@pytest.mark.indevelopment
 def test_tensor__ge__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -511,7 +531,6 @@ def test_tensor__ge__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert not ((tensorInstance >= tensorLarger).data).any()
 
 
-@pytest.mark.indevelopment
 def test_tensor__gt__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -541,7 +560,6 @@ def test_tensor__gt__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert not ((tensorInstance > tensorLarger).data).any()
 
 
-@pytest.mark.indevelopment
 def test_tensor__le__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -571,7 +589,6 @@ def test_tensor__le__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert ((tensorInstance <= tensorLarger).data).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__lt__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -601,38 +618,32 @@ def test_tensor__lt__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
     assert ((tensorInstance < tensorLarger).data).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_norm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     # 2-way tensor
     (params2, tensorInstance2) = sample_tensor_2way
-    if DEBUG_tests:
-        print("\ntensorInstace2.norm():")
-        print(tensorInstance2.norm())
-    assert tensorInstance2.norm() == np.linalg.norm(params2["data"].ravel())
+    assert tensorInstance2.norm() == np.linalg.norm(
+        params2["data"].ravel()
+    ), f"tensorInstace2.norm(): {tensorInstance2.norm()}"
 
     # 3-way tensor
     (params3, tensorInstance3) = sample_tensor_3way
-    if DEBUG_tests:
-        print("\ntensorInstace3.norm():")
-        print(tensorInstance3.norm())
-    assert tensorInstance3.norm() == np.linalg.norm(params3["data"].ravel())
+    assert tensorInstance3.norm() == np.linalg.norm(
+        params3["data"].ravel()
+    ), f"tensorInstace3.norm(): {tensorInstance3.norm()}"
 
     # 4-way tensor
     (params4, tensorInstance4) = sample_tensor_4way
-    if DEBUG_tests:
-        print("\ntensorInstace4.norm():")
-        print(tensorInstance4.norm())
-    assert tensorInstance4.norm() == np.linalg.norm(params4["data"].ravel())
+    assert tensorInstance4.norm() == np.linalg.norm(
+        params4["data"].ravel()
+    ), f"tensorInstace4.norm(): {tensorInstance4.norm()}"
 
 
-@pytest.mark.indevelopment
 def test_tensor_logical_not(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
     assert (tensorInstance.logical_not().data == np.logical_not(params["data"])).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_logical_or(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -648,7 +659,6 @@ def test_tensor_logical_or(sample_tensor_2way):
     assert (tensorInstance.logical_or(0).data == np.ones((params["shape"]))).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_logical_xor(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -664,7 +674,6 @@ def test_tensor_logical_xor(sample_tensor_2way):
     assert (tensorInstance.logical_xor(0).data == np.ones((params["shape"]))).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__add__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -678,7 +687,6 @@ def test_tensor__add__(sample_tensor_2way):
     assert ((1 + tensorInstance).data == 1 + (params["data"])).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__sub__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -689,7 +697,6 @@ def test_tensor__sub__(sample_tensor_2way):
     assert ((tensorInstance - 1).data == (params["data"] - 1)).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__pow__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -701,7 +708,6 @@ def test_tensor__pow__(sample_tensor_2way):
     assert ((tensorInstance**2).data == (params["data"] ** 2)).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__mul__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -720,7 +726,6 @@ def test_tensor__mul__(sample_tensor_2way):
     # TODO tensor * ktensor
 
 
-@pytest.mark.indevelopment
 def test_tensor__rmul__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -728,7 +733,6 @@ def test_tensor__rmul__(sample_tensor_2way):
     assert ((2 * tensorInstance).data == (params["data"] * 2)).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__pos__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -736,7 +740,6 @@ def test_tensor__pos__(sample_tensor_2way):
     assert ((+tensorInstance).data == params["data"]).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__neg__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -746,14 +749,12 @@ def test_tensor__neg__(sample_tensor_2way):
     assert ((tensorInstance).data == params["data"]).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_double(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
     assert (tensorInstance.double() == params["data"]).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_end(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -761,7 +762,6 @@ def test_tensor_end(sample_tensor_2way):
     assert tensorInstance.end(k=0) == params["shape"][0] - 1
 
 
-@pytest.mark.indevelopment
 def test_tensor_isequal(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     subs = []
@@ -781,7 +781,6 @@ def test_tensor_isequal(sample_tensor_2way):
     assert not tensorInstance.isequal(1)
 
 
-@pytest.mark.indevelopment
 def test_tensor__truediv__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -800,7 +799,6 @@ def test_tensor__truediv__(sample_tensor_2way):
     assert ((tensorInstance / 2).data == (params["data"] / 2)).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__rtruediv__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -808,7 +806,6 @@ def test_tensor__rtruediv__(sample_tensor_2way):
     assert ((2 / tensorInstance).data == (2 / params["data"])).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_nnz(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -820,16 +817,15 @@ def test_tensor_nnz(sample_tensor_2way):
     assert tensorInstance.nnz == 5
 
 
-@pytest.mark.indevelopment
 def test_tensor_reshape(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
 
     # Reshape with tuple
     tensorInstance2 = tensorInstance2.reshape((3, 2))
-    if DEBUG_tests:
-        print("\ntensorInstance2.reshape((3, 2)):")
-        print(tensorInstance2.reshape((3, 2)))
-    assert tensorInstance2.shape == (3, 2)
+    assert tensorInstance2.shape == (
+        3,
+        2,
+    ), f"tensorInstance2.reshape((3, 2)): {tensorInstance2}"
     data = np.array([[1.0, 5.0], [4.0, 3.0], [2.0, 6.0]])
     assert (tensorInstance2.data == data).all()
 
@@ -839,10 +835,11 @@ def test_tensor_reshape(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
 
     (params3, tensorInstance3) = sample_tensor_3way
     tensorInstance3 = tensorInstance3.reshape((3, 2, 2))
-    if DEBUG_tests:
-        print("\ntensorInstance3.reshape((3, 2, 2)):")
-        print(tensorInstance3)
-    assert tensorInstance3.shape == (3, 2, 2)
+    assert tensorInstance3.shape == (
+        3,
+        2,
+        2,
+    ), f"tensorInstance3.reshape((3, 2, 2)): {tensorInstance3}"
     data3 = np.array(
         [
             [[1.0, 7.0], [4.0, 10.0]],
@@ -854,10 +851,12 @@ def test_tensor_reshape(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
 
     (params4, tensorInstance4) = sample_tensor_4way
     tensorInstance4 = tensorInstance4.reshape((1, 3, 3, 9))
-    if DEBUG_tests:
-        print("\ntensorInstance4.reshape((1, 3, 3, 9)):")
-        print(tensorInstance4)
-    assert tensorInstance4.shape == (1, 3, 3, 9)
+    assert tensorInstance4.shape == (
+        1,
+        3,
+        3,
+        9,
+    ), f"tensorInstance4.reshape((1, 3, 3, 9)): {tensorInstance4}"
     data4 = np.array(
         [
             [
@@ -882,7 +881,6 @@ def test_tensor_reshape(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
     assert (tensorInstance4.data == data4).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_permute(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -910,20 +908,21 @@ def test_tensor_permute(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
     # 2-way
     (params2, tensorInstance2) = sample_tensor_2way
     tensorInstance2 = tensorInstance2.permute(np.array([1, 0]))
-    if DEBUG_tests:
-        print("\ntensorInstance2.permute(np.array([1, 0])):")
-        print(tensorInstance2)
-    assert tensorInstance2.shape == (3, 2)
+    assert tensorInstance2.shape == (
+        3,
+        2,
+    ), f"tensorInstance2.permute(np.array([1, 0])): {tensorInstance2}"
     data2 = np.array([[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
     assert (tensorInstance2.data == data2).all()
 
     # 3-way
     (params3, tensorInstance3) = sample_tensor_3way
     tensorInstance3 = tensorInstance3.permute(np.array([2, 1, 0]))
-    if DEBUG_tests:
-        print("\ntensorInstance3.permute(np.array([2, 1, 0])):")
-        print(tensorInstance3)
-    assert tensorInstance3.shape == (2, 3, 2)
+    assert tensorInstance3.shape == (
+        2,
+        3,
+        2,
+    ), f"tensorInstance3.permute(np.array([2, 1, 0])): {tensorInstance3}"
     data3 = np.array(
         [[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]]]
     )
@@ -932,10 +931,12 @@ def test_tensor_permute(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
     # 4-way
     (params4, tensorInstance4) = sample_tensor_4way
     tensorInstance4 = tensorInstance4.permute(np.array([3, 1, 2, 0]))
-    if DEBUG_tests:
-        print("\ntensorInstance4.permute(np.array([3, 1, 2, 0])):")
-        print(tensorInstance4)
-    assert tensorInstance4.shape == (3, 3, 3, 3)
+    assert tensorInstance4.shape == (
+        3,
+        3,
+        3,
+        3,
+    ), f"tensorInstance4.permute(np.array([3, 1, 2, 0])): {tensorInstance4}"
     data4 = np.array(
         [
             [
@@ -958,7 +959,6 @@ def test_tensor_permute(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
     assert (tensorInstance4.data == data4).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_collapse(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
 
@@ -1004,7 +1004,6 @@ def test_tensor_collapse(sample_tensor_2way, sample_tensor_3way, sample_tensor_4
     assert tensorInstance2.collapse(empty_data).isequal(tensorInstance2)
 
 
-@pytest.mark.indevelopment
 def test_tensor_contract(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
 
@@ -1039,7 +1038,6 @@ def test_tensor_contract(sample_tensor_2way, sample_tensor_3way, sample_tensor_4
     assert (tensorInstance4.contract(1, 3).data == data4a).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor__repr__(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     # Test that we can capture each of these
@@ -1052,13 +1050,11 @@ def test_tensor__repr__(sample_tensor_2way):
     str(ttb.tensor())
 
 
-@pytest.mark.indevelopment
 def test_tensor_exp(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     assert (tensorInstance.exp().data == np.exp(params["data"])).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_innerprod(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     # Tensor innerproduct
@@ -1085,30 +1081,23 @@ def test_tensor_innerprod(sample_tensor_2way, sample_tensor_3way, sample_tensor_
 
     # 2-way
     (params2, tensorInstance2) = sample_tensor_2way
-    if DEBUG_tests:
-        print(
-            f"\ntensorInstance2.innerprod(tensorInstance2): {tensorInstance2.innerprod(tensorInstance2)}"
-        )
-    assert tensorInstance2.innerprod(tensorInstance2) == 91
+    assert (
+        tensorInstance2.innerprod(tensorInstance2) == 91
+    ), f"tensorInstance2.innerprod(tensorInstance2): {tensorInstance2.innerprod(tensorInstance2)}"
 
     # 3-way
     (params3, tensorInstance3) = sample_tensor_3way
-    if DEBUG_tests:
-        print(
-            f"\ntensorInstance3.innerprod(tensorInstance3): {tensorInstance3.innerprod(tensorInstance3)}"
-        )
-    assert tensorInstance3.innerprod(tensorInstance3) == 650
+    assert (
+        tensorInstance3.innerprod(tensorInstance3) == 650
+    ), f"tensorInstance3.innerprod(tensorInstance3): {tensorInstance3.innerprod(tensorInstance3)}"
 
     # 4-way
     (params4, tensorInstance4) = sample_tensor_4way
-    if DEBUG_tests:
-        print(
-            f"\ntensorInstance4.innerprod(tensorInstance4): {tensorInstance4.innerprod(tensorInstance4)}"
-        )
-    assert tensorInstance4.innerprod(tensorInstance4) == 180441
+    assert (
+        tensorInstance4.innerprod(tensorInstance4) == 180441
+    ), f"tensorInstance4.innerprod(tensorInstance4): {tensorInstance4.innerprod(tensorInstance4)}"
 
 
-@pytest.mark.indevelopment
 def test_tensor_mask(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     W = ttb.tensor.from_data(np.array([[0, 1, 0], [1, 0, 0]]))
@@ -1120,7 +1109,6 @@ def test_tensor_mask(sample_tensor_2way):
     assert "Mask cannot be bigger than the data tensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tensor_squeeze(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -1139,7 +1127,6 @@ def test_tensor_squeeze(sample_tensor_2way):
     ).all()
 
 
-@pytest.mark.indevelopment
 def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
     (params3, tensorInstance3) = sample_tensor_3way
@@ -1204,7 +1191,6 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert "dims must contain values in [0,self.dims)" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tensor_ttt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     M31 = ttb.tensor.from_data(
         np.reshape(np.arange(1, 2 * 3 * 4 + 1), [4, 3, 2], order="F")
@@ -1244,7 +1230,6 @@ def test_tensor_ttt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert np.allclose(result.data, row_vector * column_vector)
 
 
-@pytest.mark.indevelopment
 def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params2, tensorInstance2) = sample_tensor_2way
     (params3, tensorInstance3) = sample_tensor_3way
@@ -1330,7 +1315,6 @@ def test_tensor_ttv(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     )
 
 
-@pytest.mark.indevelopment
 def test_tensor_ttsv(sample_tensor_4way):
     # 3-way
     tensorInstance3 = ttb.tensor.from_data(np.ones((4, 4, 4)))
@@ -1390,7 +1374,6 @@ def test_tensor_ttsv(sample_tensor_4way):
     assert "Invalid value for version; should be None, 1, or 2" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tensor_issymmetric(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -1418,7 +1401,6 @@ def test_tensor_issymmetric(sample_tensor_2way):
     assert symmetricTensor.issymmetric(version=1) is False
 
 
-@pytest.mark.indevelopment
 def test_tensor_symmetrize(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -1505,7 +1487,6 @@ def test_tensor_symmetrize(sample_tensor_2way):
     assert "Dimension mismatch for symmetrization" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tensor__str__(sample_tensor_2way):
     # Test 1D
     data = np.random.normal(size=(4,))
@@ -1592,7 +1573,6 @@ def test_tensor__str__(sample_tensor_2way):
     assert s == tensorInstance.__str__()
 
 
-@pytest.mark.indevelopment
 def test_tensor_mttkrp(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     tensorInstance = ttb.tensor.from_function(np.ones, (2, 3, 4))
@@ -1671,7 +1651,6 @@ def test_tensor_mttkrp(sample_tensor_2way):
     assert "Entry 2 of list of arrays is wrong size" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tensor_nvecs(sample_tensor_2way):
     (data, tensorInstance) = sample_tensor_2way
 
