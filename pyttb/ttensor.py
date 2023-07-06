@@ -4,15 +4,18 @@
 
 import logging
 import textwrap
+from typing import Union
 
 import numpy as np
 import scipy
+import scipy.sparse as sparse
 
 from pyttb import ktensor
 from pyttb import pyttb_utils as ttb_utils
 from pyttb import sptenmat, sptensor, tenmat, tensor
+from pyttb.sptensor import tt_to_sparse_matrix
 
-ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet"
+ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/sptensor."
 
 
 class ttensor:
@@ -30,7 +33,8 @@ class ttensor:
         :class:`pyttb.ttensor`
         """
         # Empty constructor
-        self.core = tensor()
+        # TODO explore replacing with typing protocol
+        self.core: Union[tensor, sptensor] = tensor()
         self.u = []
 
     @classmethod
@@ -63,12 +67,12 @@ class ttensor:
         >>> K0 = ttb.ttensor.from_data(core, factors)
         """
         ttensorInstance = ttensor()
-        if isinstance(core, tensor):
-            ttensorInstance.core = tensor.from_data(core.data, core.shape)
+        if isinstance(core, (tensor, sptensor)):
+            ttensorInstance.core = core.from_tensor_type(core)
             ttensorInstance.u = factors.copy()
         else:
             # TODO support any tensor type with supported ops
-            raise ValueError("TTENSOR doesn't yet support generic cores, only tensor")
+            raise ValueError(ALT_CORE_ERROR)
         ttensorInstance._validate_ttensor()
         return ttensorInstance
 
@@ -98,7 +102,7 @@ class ttensor:
         """
         # Confirm all factors are matrices
         for factor_idx, factor in enumerate(self.u):
-            if not isinstance(factor, np.ndarray):
+            if not isinstance(factor, (np.ndarray, sparse.coo_matrix)):
                 raise ValueError(
                     f"Factor matrices must be numpy arrays but factor {factor_idx} was {type(factor)}"
                 )
@@ -163,7 +167,7 @@ class ttensor:
 
         # There is a small chance tensor could be sparse so ensure we cast that to dense.
         if not isinstance(recomposed_tensor, tensor):
-            raise ValueError(ALT_CORE_ERROR)
+            recomposed_tensor = tensor.from_tensor_type(recomposed_tensor)
         return recomposed_tensor
 
     def double(self):
@@ -554,19 +558,27 @@ class ttensor:
         H = self.core.ttm(V)
 
         if isinstance(H, sptensor):
-            raise NotImplementedError(ALT_CORE_ERROR)
+            HnT = tt_to_sparse_matrix(H, n, True)
         else:
             HnT = tenmat.from_tensor_type(H.full(), cdims=np.array([n])).double()
 
         G = self.core
 
         if isinstance(G, sptensor):
-            raise NotImplementedError(ALT_CORE_ERROR)
+            GnT = tt_to_sparse_matrix(G, n, True)
         else:
             GnT = tenmat.from_tensor_type(G.full(), cdims=np.array([n])).double()
 
         # Compute Xn * Xn'
-        Y = HnT.transpose().dot(GnT.dot(self.u[n].transpose()))
+        # Big hack because if RHS is sparse wrong dot product is used
+        if sparse.issparse(self.u[n]):
+            XnT = sparse.coo_matrix.dot(GnT, self.u[n].transpose())
+        else:
+            XnT = GnT.dot(self.u[n].transpose())
+        if sparse.issparse(XnT):
+            Y = sparse.coo_matrix.dot(HnT.transpose(), XnT)
+        else:
+            Y = HnT.transpose().dot(XnT)
 
         # TODO: Lifted from tensor, consider common location
         if r < Y.shape[0] - 1:
@@ -577,6 +589,8 @@ class ttensor:
             logging.debug(
                 "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
             )
+            if sparse.issparse(Y):
+                Y = Y.toarray()
             w, v = scipy.linalg.eigh(Y)
             v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
