@@ -37,6 +37,7 @@ dev = [
 ]
 doc = [
     "sphinx_rtd_theme",
+    "myst-nb",
 ]
 
 [tool.setuptools]
