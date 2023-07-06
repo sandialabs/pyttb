@@ -1282,44 +1282,20 @@ class tensor:
         >>> X[1,1,2:3] = 1
         >>> X[1,1,4] = 1
         """
-        # Figure out if we are doing a subtensor, a list of subscripts or a list of
-        # linear indices
-        access_type = "error"
-        # TODO pull out this big decision tree into a function
-        if isinstance(key, (float, int, np.generic, slice)):
-            access_type = "linear indices"
-        elif self.ndims <= 1:
-            if isinstance(key, tuple):
-                access_type = "subtensor"
-            elif isinstance(key, np.ndarray):
-                access_type = "subscripts"
-        else:
-            if isinstance(key, np.ndarray):
-                if len(key.shape) > 1 and key.shape[1] >= self.ndims:
-                    access_type = "subscripts"
-                elif len(key.shape) == 1 or key.shape[1] == 1:
-                    access_type = "linear indices"
-            elif isinstance(key, tuple):
-                validSubtensor = [
-                    isinstance(keyElement, (int, slice, Iterable)) for keyElement in key
-                ]
-                if np.all(validSubtensor):
-                    access_type = "subtensor"
-            elif isinstance(key, Iterable):
-                key = np.array(key)
-                if len(key.shape) == 1 or key.shape[1] == 1:
-                    access_type = "linear indices"
+        access_type = ttb.get_index_variant(key)
 
         # Case 1: Rectangular Subtensor
-        if access_type == "subtensor":
+        if access_type == ttb.IndexVariant.SUBTENSOR:
             return self._set_subtensor(key, value)
 
         # Case 2a: Subscript indexing
-        if access_type == "subscripts":
+        if access_type == ttb.IndexVariant.SUBSCRIPTS:
             return self._set_subscripts(key, value)
 
         # Case 2b: Linear Indexing
-        if access_type == "linear indices":
+        if access_type == ttb.IndexVariant.LINEAR:
+            if isinstance(key, list):
+                key = np.array(key)
             return self._set_linear(key, value)
 
         assert False, "Invalid use of tensor setitem"
@@ -1352,7 +1328,7 @@ class tensor:
                 if element.stop is None:
                     sliceCheck.append(1)
                 else:
-                    sliceCheck.append(element.stop)
+                    sliceCheck.append(element.stop - 1)
             elif isinstance(element, Iterable):
                 if any(
                     not isinstance(entry, (float, int, np.generic)) for entry in element
@@ -1391,17 +1367,7 @@ class tensor:
 
         # Will the size change? If so we first need to resize x
         n = self.ndims
-        if (
-            len(subs.shape) == 1
-            and len(self.shape) == 1
-            and self.shape[0] < subs.shape[0]
-        ):
-            bsiz = subs
-        elif len(subs.shape) == 1:
-            bsiz = np.array([np.max(subs, axis=0)])
-            key = key.tolist()
-        else:
-            bsiz = np.array(np.max(subs, axis=0))
+        bsiz = np.array(np.max(subs, axis=0))
         if n == 0:
             newsiz = (bsiz[n:] + 1).astype(int)
         else:
@@ -1421,9 +1387,7 @@ class tensor:
             self.shape = tuple(newsiz)
 
         # Finally we can copy in new data
-        if isinstance(key, list):
-            self.data[key] = value
-        elif key.shape[0] == 1:  # and len(key.shape) == 1:
+        if key.shape[0] == 1:  # and len(key.shape) == 1:
             self.data[tuple(key[0, :])] = value
         else:
             self.data[tuple(key.transpose())] = value
@@ -1441,10 +1405,10 @@ class tensor:
         Case 1b: Y = X(R1,R2,...,RN), where one or more Rn is a range and
         the rest are indices, returns a tensor.
 
-        Case 2a: V = X(S) or V = X(S,'extract'), where S is a p x n array
+        Case 2a: V = X(S) where S is a p x n array
         of subscripts, returns a vector of p values.
 
-        Case 2b: V = X(I) or V = X(I,'extract'), where I is a set of p
+        Case 2b: V = X(I) where I is a set of p
         linear indices, returns a vector of p values.
 
         Any ambiguity results in executing the first valid case. This
@@ -1476,9 +1440,6 @@ class tensor:
         >>> X[[0,1,2]] # extracts the first three linearized indices
         array([1., 1., 1.])
 
-        Parameters
-        ----------
-
         Returns
         -------
         :class:`pyttb.tensor` or :class:`numpy.ndarray`
@@ -1495,11 +1456,7 @@ class tensor:
             # Todo if row make column?
             return ttb.tt_subsubsref(a, idx)
         # Case 1: Rectangular Subtensor
-        if (
-            isinstance(item, tuple)
-            and len(item) == self.ndims
-            and item[len(item) - 1] != "extract"
-        ):
+        if isinstance(item, tuple) and len(item) == self.ndims:
             # Copy the subscripts
             region = item
 
@@ -1516,7 +1473,7 @@ class tensor:
                 if isinstance(a_region, slice):
                     newsiz.append(self.shape[i])
                     kpdims.append(i)
-                elif not isinstance(a_region, int) and len(a_region) > 1:
+                elif not isinstance(a_region, (int, np.integer)) and len(a_region) > 1:
                     newsiz.append(np.prod(a_region))
                     kpdims.append(i)
                 else:
@@ -1540,15 +1497,7 @@ class tensor:
             and len(item.shape) == 2
             and item.shape[-1] == self.ndims
         )
-        is_extract_subscript = (
-            len(item) == 2
-            and isinstance(item[0], np.ndarray)
-            and isinstance(item[-1], str)
-            and item[-1] == "extract"
-        )
-        if is_subscript or is_extract_subscript:
-            if is_extract_subscript:
-                item = item[0]
+        if is_subscript:
             # Extract array of subscripts
             subs = np.array(item)
             a = np.squeeze(self.data[tuple(subs.transpose())])
@@ -1556,12 +1505,12 @@ class tensor:
             return ttb.tt_subsubsref(a, subs)
 
         # Case 2b: Linear Indexing
-        if isinstance(item, tuple) and len(item) >= 2 and not isinstance(item[-1], str):
+        if isinstance(item, tuple) and len(item) >= 2:
             assert False, "Linear indexing requires single input array"
 
         if (isinstance(item, np.ndarray) and len(item.shape) == 1) or (
             isinstance(item, list)
-            and all(isinstance(element, (int)) for element in item)
+            and all(isinstance(element, (int, np.integer)) for element in item)
         ):
             idx = np.array(item)
             a = np.squeeze(
