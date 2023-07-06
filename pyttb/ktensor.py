@@ -52,18 +52,53 @@ class ktensor(object):
 
     __slots__ = ("weights", "factor_matrices")
 
-    def __init__(self):
+    def __init__(self, weights=None, factor_matrices=None, copy=True):
         """
         Construct an empty :class:`pyttb.ktensor`
 
         The constructor takes no arguments and returns an empty
         :class:`pyttb.ktensor`.
         """
+        
+        # Cannot specify weights and not factor_matrices
+        if factor_matrices is None and weights is not None:
+            assert False, "factor_matrices cannot be None if weights are provided."
+
         # Empty constructor
-        self.weights = np.array([])
-        self.factor_matrices = []
+        if factor_matrices is None and weights is None:
+            self.weights = np.array([])
+            self.factor_matrices = []
+            return
+
+        # 'factor_matrices' must be a list
+        assert isinstance(factor_matrices, list), "Input 'factor_matrices' must be a list."
+        # each factor matrix should be a np.ndarray
+        assert all(isinstance(fm, np.ndarray) for fm in factor_matrices) and all(fm.dtype == float for fm in factor_matrices), "Each item in 'factor_matrices' must be a numpy.ndarray object with dtype=float."
+        # the number of columns of all factor_matrices must be equal
+        num_components = factor_matrices[0].shape[1]
+        assert all(fm.shape[1] == num_components for fm in factor_matrices), "The number of columns each item in 'factor_matrices' must be the same."
+
+        # process weights
+        if weights is not None:
+            # check if weights are the correct type and shape
+            assert isinstance(weights, np.ndarray) and weights.shape == (num_components,), "Input 'weights' must be a numpy.ndarray with length equal to the number of columns in each factor matrix."
+            # make copy or use reference
+            if copy:
+                self.weights = weights.copy()
+            else:
+                self.weights = weights
+        else:
+            # create weights if not provided
+            self.weights = np.ones(num_components)
+
+        # process factor_matrices
+        if copy:
+            self.factor_matrices = [fm.copy() for fm in factor_matrices]
+        else:
+            self.factor_matrices = factor_matrices
 
     @classmethod
+    # TODO: deprecated
     def from_data(cls, weights, *factor_matrices):
         """
         Construct a :class:`pyttb.ktensor` from weights and factor matrices.
@@ -157,6 +192,7 @@ class ktensor(object):
         return k
 
     @classmethod
+    # TODO: deprecated
     def from_tensor_type(cls, source) -> ktensor:
         """
         Construct a :class:`pyttb.ktensor` from another
@@ -220,6 +256,7 @@ class ktensor(object):
         assert False, "Cannot convert from {} to ktensor".format(str(source.__class__))
 
     @classmethod
+    # TODO: deprecated
     def from_factor_matrices(cls, *factor_matrices):
         """
         Construct a :class:`pyttb.ktensor` from factor matrices. The weights
@@ -374,7 +411,7 @@ class ktensor(object):
         factor_matrices = []
         for i in range(nd):
             factor_matrices.append(fun((shape[i], num_components)))
-        return cls().from_data(weights, factor_matrices)
+        return cls(weights, factor_matrices, copy=False)
 
     @classmethod
     def from_vector(cls, data, shape, contains_weights):
@@ -491,7 +528,7 @@ class ktensor(object):
             )
             factor_matrices.append(factor_matrix)
 
-        return cls().from_data(weights, factor_matrices)
+        return cls(weights, factor_matrices, copy=False)
 
     def arrange(self, weight_factor=None, permutation=None):
         """
