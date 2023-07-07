@@ -52,12 +52,70 @@ class ktensor(object):
 
     __slots__ = ("weights", "factor_matrices")
 
-    def __init__(self, weights=None, factor_matrices=None, copy=True):
+    def __init__(self, factor_matrices=None, weights=None, copy=True):
         """
-        Construct an empty :class:`pyttb.ktensor`
+        Create a :class:`pyttb.ktensor` in one of the following ways:
+          - With no inputs (or `weights` and `factor_matrices` both None), 
+            return an empty :class:`pyttb.ktensor`.
+          - If `weights` is None, return a :class:`pyttb.ktensor` with 
+            `weights` all equal to 1 and `factor_matrices` as provided.
+          - Otherwise, return a :class:`pyttb.ktensor` with `weights` and 
+            `factor_matrices` as provided.
 
-        The constructor takes no arguments and returns an empty
-        :class:`pyttb.ktensor`.
+        If `copy` is True, return a :class:`pyttb.ktensor` with copies 
+        of `weights` and `factor_matrices`, otherwise just use references 
+        to the `weights` and `factor_matrices` provided. 
+        
+        Parameters
+        ----------
+        factor_matrices: :class:`list` of :class:`numpy.ndarray` with `dtype`=:class:`float`, optional
+        weights: :class:`numpy.ndarray`, optional
+        copy: :class:`bool`, optional
+
+        Examples
+        --------
+        Create an empty :class:`pyttb.ktensor`:
+
+        >>> K = ttb.ktensor()
+        >>> print(K)
+        tensor of shape ()
+        weights=[]
+        factor_matrices=[]
+        
+        Create a :class:`pyttb.ktensor` from weights and a list of factor
+        matrices:
+
+        >>> weights = np.array([1., 2.])
+        >>> fm0 = np.array([[1., 2.], [3., 4.]])
+        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> K = ttb.ktensor([fm0, fm1], weights)
+        >>> print(K)
+        ktensor of shape 2 x 2
+        weights=[1. 2.]
+        factor_matrices[0] =
+        [[1. 2.]
+         [3. 4.]]
+        factor_matrices[1] =
+        [[5. 6.]
+         [7. 8.]]
+
+        Create a :class:`pyttb.ktensor` from a :class:`list` of factor
+        matrices (without providing weights):
+
+        >>> fm0 = np.array([[1., 2.], [3., 4.]])
+        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> factor_matrices = [fm0, fm1]
+        >>> K = ttb.ktensor([fm0, fm1])
+        >>> print(K)
+        ktensor of shape 2 x 2
+        weights=[1. 1.]
+        factor_matrices[0] =
+        [[1. 2.]
+         [3. 4.]]
+        factor_matrices[1] =
+        [[5. 6.]
+         [7. 8.]]
+
         """
         
         # Cannot specify weights and not factor_matrices
@@ -109,8 +167,9 @@ class ktensor(object):
 
         Parameters
         ----------
-        weights: :class:`numpy.ndarray`, required
-        factor_matrices: :class:`list` of :class:`numpy.ndarray` or variable number of :class:`numpy.ndarray`, required
+        weights: :class:`numpy.ndarray`, optional
+        factor_matrices: :class:`list` of :class:`numpy.ndarray` with `dtype`=:class:`float`, optional
+        copy: :class:`boolean`
 
         Returns
         -------
@@ -411,7 +470,7 @@ class ktensor(object):
         factor_matrices = []
         for i in range(nd):
             factor_matrices.append(fun((shape[i], num_components)))
-        return cls(weights, factor_matrices, copy=False)
+        return cls(factor_matrices, weights, copy=False)
 
     @classmethod
     def from_vector(cls, data, shape, contains_weights):
@@ -528,7 +587,7 @@ class ktensor(object):
             )
             factor_matrices.append(factor_matrix)
 
-        return cls(weights, factor_matrices, copy=False)
+        return cls(factor_matrices, weights, copy=False)
 
     def arrange(self, weight_factor=None, permutation=None):
         """
@@ -2449,13 +2508,18 @@ class ktensor(object):
         """
         s = ""
         s += "ktensor of shape "
-        s += (" x ").join([str(int(d)) for d in self.shape])
+        s += "("
+        s += (", ").join([str(int(d)) for d in self.shape])
+        s += ")"
         s += "\n"
         s += "weights="
         s += str(self.weights)
-        for i in range(len(self.factor_matrices)):
-            s += "\nfactor_matrices[{}] =\n".format(i)
-            s += str(self.factor_matrices[i])
+        if len(self.shape) == 0:
+            s += "\nfactor_matrices=[]"
+        else:
+            for i in range(len(self.factor_matrices)):
+                s += "\nfactor_matrices[{}] =\n".format(i)
+                s += str(self.factor_matrices[i])
         return s
 
     __str__ = __repr__
