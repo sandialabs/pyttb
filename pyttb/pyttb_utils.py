@@ -13,27 +13,26 @@ import numpy as np
 import pyttb as ttb
 
 
-def tt_to_dense_matrix(tensorInstance, mode, transpose=False):
+def tt_to_dense_matrix(
+    tensorInstance: Union[ttb.tensor, ttb.ktensor], mode: int, transpose: bool = False
+) -> np.ndarray:
     """
     Helper function to unwrap tensor into dense matrix, should replace the core need
     for tenmat
 
     Parameters
     ----------
-    tensorInstance: :class:`pyttb.tensor` or :class:`pyttb.tensor`
-        Ktensor->matrix is supported but the inverse is not
-    mode: int
-        Mode around which to unwrap tensor
-    transpose: bool
-        Whether or not to tranpose unwrapped tensor
+    tensorInstance: Tensor to matricize
+    mode: Mode around which to unwrap tensor
+    transpose: Whether or not to tranpose unwrapped tensor
 
     Returns
     -------
-    matrix: :class:`numpy.ndarray`
+    Resultant matrix.
     """
     siz = np.array(tensorInstance.shape).astype(int)
     old = np.setdiff1d(np.arange(tensorInstance.ndims), mode).astype(int)
-    permutation = np.concatenate(([mode], old))
+    permutation: np.ndarray = np.concatenate((np.array([mode]), old))
     # This mimics how tenmat handles ktensors
     # TODO check if full can be done after permutation and reshape for efficiency
     if isinstance(tensorInstance, ttb.ktensor):
@@ -47,45 +46,50 @@ def tt_to_dense_matrix(tensorInstance, mode, transpose=False):
     return matrix
 
 
-def tt_from_dense_matrix(matrix, shape, mode, idx):
+def tt_from_dense_matrix(
+    matrix: np.ndarray,
+    shape: Tuple[int, ...],
+    mode: int,
+    idx: int,
+) -> ttb.tensor:
     """
     Helper function to wrap dense matrix into tensor.
     Inverse of :class:`pyttb.tt_to_dense_matrix`
 
     Parameters
     ----------
-    matrix: :class:`numpy.ndarray`
-    mode: int
-        Mode around which tensor was unwrapped
-    idx: int
-        in {0,1}, idx of mode in matrix, s.b. 0 for tranpose=True
+    matrix: Matrix to (re-)create tensor from.
+    mode: Mode around which tensor was unwrapped
+    idx: In {0,1}, idx of mode in matrix, s.b. 0 for tranpose=True
 
     Returns
     -------
-    tensorInstance: :class:`pyttb.tensor`
+    Dense tensor.
     """
     tensorInstance = ttb.tensor.from_data(matrix)
     if idx == 0:
         tensorInstance = tensorInstance.permute(np.array([1, 0]))
     tensorInstance = tensorInstance.reshape(shape)
     tensorInstance = tensorInstance.permute(
-        np.concatenate((np.arange(1, mode + 1), [0], np.arange(mode + 1, len(shape))))
+        np.concatenate(
+            (np.arange(1, mode + 1), np.array([0]), np.arange(mode + 1, len(shape)))
+        )
     )
     return tensorInstance
 
 
-def tt_union_rows(MatrixA, MatrixB):
+def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     """
     Helper function to reproduce functionality of MATLABS intersect(a,b,'rows')
 
     Parameters
     ----------
-    MatrixA: :class:`numpy.ndarray`
-    MatrixB: :class:`numpy.ndarray`
+    MatrixA: First matrix.
+    MatrixB: Second matrix.
 
     Returns
     -------
-    location: :class:`numpy.ndarray` list of intersection indices
+    location: List of intersection indices
 
     Examples
     --------
@@ -311,18 +315,18 @@ def tt_tenfun(function_handle, *inputs):  # pylint:disable=too-many-branches
     return Z
 
 
-def tt_setdiff_rows(MatrixA, MatrixB):
+def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     """
     Helper function to reproduce functionality of MATLABS setdiff(a,b,'rows')
 
     Parameters
     ----------
-    MatrixA: :class:`numpy.ndarray`
-    MatrixB: :class:`numpy.ndarray`
+    MatrixA: First matrix.
+    MatrixB: Second matrix.
 
     Returns
     -------
-    location: :class:`numpy.ndarray` list of set difference indices
+    List of set difference indices.
     """
     # TODO intersect and setdiff are very similar in function
     if MatrixA.size > 0:
@@ -339,18 +343,18 @@ def tt_setdiff_rows(MatrixA, MatrixB):
     return np.setdiff1d(idxA, location[np.where(location >= 0)])
 
 
-def tt_intersect_rows(MatrixA, MatrixB):
+def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     """
     Helper function to reproduce functionality of MATLABS intersect(a,b,'rows')
 
     Parameters
     ----------
-    MatrixA: :class:`numpy.ndarray`
-    MatrixB: :class:`numpy.ndarray`
+    MatrixA: First matrix.
+    MatrixB: Second matrix.
 
     Returns
     -------
-    location: :class:`numpy.ndarray` list of intersection indices
+    location: List of intersection indices.
 
     Examples
     --------
@@ -411,7 +415,9 @@ def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.nd
     return newsubs
 
 
-def tt_renumber(subs, shape, number_range):
+def tt_renumber(
+    subs: np.ndarray, shape: Tuple[int, ...], number_range
+) -> Tuple[np.ndarray, Tuple[int, ...]]:
     """
     RENUMBER indices for sptensor subsref
 
@@ -424,13 +430,13 @@ def tt_renumber(subs, shape, number_range):
     Parameters
     ----------
     subs: :class:`numpy.ndarray`
-    shape: tuple
+    shape: Shape of source tensor.
     range:
 
     Returns
     -------
-    newsubs: :class:`numpy.ndarray`
-    newshape: tuple
+    newsubs: Updated subscripts.
+    newshape: Resulting shape.
     """
     newshape = np.array(shape)
     newsubs = subs
@@ -453,7 +459,7 @@ def tt_renumber(subs, shape, number_range):
     return newsubs, tuple(newshape)
 
 
-def tt_renumberdim(idx, shape, number_range):
+def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]:
     """
     RENUMBERDIM helper function for RENUMBER
 
@@ -492,7 +498,7 @@ def tt_renumberdim(idx, shape, number_range):
 # pylint: disable=line-too-long
 # https://stackoverflow.com/questions/22699756/python-version-of-ismember-with-rows-and-index
 # For thoughts on how to speed this up
-def tt_ismember_rows(search, source):
+def tt_ismember_rows(search: np.ndarray, source: np.ndarray) -> np.ndarray:
     """
     Find location of search rows in source array
 
@@ -569,7 +575,7 @@ def tt_subsubsref(obj, s):  # pylint: disable=unused-argument
     return obj
 
 
-def tt_intvec2str(v):
+def tt_intvec2str(v: np.ndarray) -> str:
     """
     Print integer vector to a string with brackets. Numpy should already handle this so
     it is a placeholder stub
@@ -584,7 +590,7 @@ def tt_intvec2str(v):
     return np.array2string(v)
 
 
-def tt_sub2ind(shape, subs):
+def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
     """
     Converts multidimensional subscripts to linear indices.
 
@@ -610,7 +616,7 @@ def tt_sub2ind(shape, subs):
     return idx
 
 
-def tt_sizecheck(shape, nargout=True):
+def tt_sizecheck(shape: Tuple[int, ...], nargout: bool = True) -> bool:
     """
     TT_SIZECHECK Checks that the shape is valid.
 
@@ -652,7 +658,7 @@ def tt_sizecheck(shape, nargout=True):
     return ok
 
 
-def tt_subscheck(subs, nargout=True):
+def tt_subscheck(subs: np.ndarray, nargout: bool = True) -> bool:
     """
     TT_SUBSCHECK Checks for valid subscripts.
 
@@ -694,7 +700,7 @@ def tt_subscheck(subs, nargout=True):
     return ok
 
 
-def tt_valscheck(vals, nargout=True):
+def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
     """
     TT_VALSCHECK Checks for valid values.
 
@@ -723,7 +729,7 @@ def tt_valscheck(vals, nargout=True):
     return ok
 
 
-def isrow(v):
+def isrow(v: np.ndarray) -> bool:
     """
     ISROW Checks if vector is a row vector.
 
@@ -741,7 +747,7 @@ def isrow(v):
     return v.ndim == 2 and v.shape[0] == 1 and v.shape[1] >= 1
 
 
-def isvector(a):
+def isvector(a: np.ndarray) -> bool:
     """
     ISVECTOR Checks if vector is a row vector.
 
@@ -760,7 +766,7 @@ def isvector(a):
 
 # TODO: this is a challenge, since it may need to apply to either Python built in types
 #  or numpy types
-def islogical(a):
+def islogical(a: np.ndarray) -> bool:
     """
     ISLOGICAL Checks if vector is a logical vector.
 
