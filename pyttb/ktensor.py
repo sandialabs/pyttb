@@ -482,11 +482,10 @@ class ktensor():
                 for i in range(self.ndims):
                     self.factor_matrices[i] = self.factor_matrices[i][:, permutation]
                 return
-            else:
-                assert False, (
-                    "Number of elements in permutation does not match number of "
-                    "components in ktensor."
-                )
+            assert False, (
+                "Number of elements in permutation does not match number of "
+                "components in ktensor."
+            )
 
         # TODO there is a relationship here between normalize and arrange that repeats
         #  tasks. Can this be made to be more efficient? ensure that factor matrices
@@ -621,8 +620,8 @@ class ktensor():
 
         if k is not None:  # Subscripted indexing
             return self.shape[k] - 1
-        else:  # For linear indexing
-            return np.prod(self.shape) - 1
+        # For linear indexing
+        return np.prod(self.shape) - 1
 
     def extract(self, idx=None):
         """
@@ -791,65 +790,63 @@ class ktensor():
                     self.factor_matrices[n][:, r] = -self.factor_matrices[n][:, r]
 
             return self
-        else:
-            if not isinstance(other, ktensor):
-                assert False, "other must be a ktensor"
+        if not isinstance(other, ktensor):
+            assert False, "other must be a ktensor"
 
-            self.normalize()
-            other = other.normalize()
+        self.normalize()
+        other = other.normalize()
 
-            N = self.ndims
-            RA = self.ncomponents
-            RB = other.ncomponents
+        N = self.ndims
+        RA = self.ncomponents
+        RB = other.ncomponents
 
-            # Try to fix the signs for each component
-            best_sign = np.zeros((N, RA))
-            for r in range(RB):
-                # Compute the inner products. They should mostly be O(1) if there is a
-                # good match because the factors have prevsiouly been normalized. If
-                # the signs are correct, then the score should be +1. Otherwise we need
-                # to flip the sign and the score should be -1.
-                sgn_score = np.zeros(N)
-                for n in range(N):
-                    sgn_score[n] = (
-                        self.factor_matrices[n][:, r].T @ other.factor_matrices[n][:, r]
-                    )
+        # Try to fix the signs for each component
+        best_sign = np.zeros((N, RA))
+        for r in range(RB):
+            # Compute the inner products. They should mostly be O(1) if there is a
+            # good match because the factors have prevsiouly been normalized. If
+            # the signs are correct, then the score should be +1. Otherwise we need
+            # to flip the sign and the score should be -1.
+            sgn_score = np.zeros(N)
+            for n in range(N):
+                sgn_score[n] = (
+                    self.factor_matrices[n][:, r].T @ other.factor_matrices[n][:, r]
+                )
 
-                # Sort the sign scores.
-                sort_idx = np.argsort(sgn_score)
-                sort_sgn_score = sgn_score.copy()[sort_idx]
+            # Sort the sign scores.
+            sort_idx = np.argsort(sgn_score)
+            sort_sgn_score = sgn_score.copy()[sort_idx]
 
-                # Determine the number of scores that should be flipped.
-                breakpt = np.nonzero(sort_sgn_score < 0)[-1]
+            # Determine the number of scores that should be flipped.
+            breakpt = np.nonzero(sort_sgn_score < 0)[-1]
 
-                # If nothing needs to be flipped, then move on the the next component.
-                if len(breakpt) == 0:
-                    continue
-                else:
-                    breakpt = breakpt[-1]
+            # If nothing needs to be flipped, then move on the the next component.
+            if len(breakpt) == 0:
+                continue
+            breakpt = breakpt[-1]
 
-                # Need to flip signs in pairs. If we don't have an even number of
-                # negative sign scores, then we need to decide to do one fewer or one
-                # more.
-                if np.mod(breakpt + 1, 2) == 0:
+            # Need to flip signs in pairs. If we don't have an even number of
+            # negative sign scores, then we need to decide to do one fewer or one
+            # more.
+            if np.mod(breakpt + 1, 2) == 0:
+                endpt = breakpt + 1
+            else:
+                warnings.warn(f"Trouble fixing signs for mode {r}")
+                if (breakpt < RB) and (
+                    -sort_sgn_score[breakpt] > sort_sgn_score[breakpt + 1]
+                ):
                     endpt = breakpt + 1
                 else:
-                    warnings.warn(f"Trouble fixing signs for mode {r}")
-                    if (breakpt < RB) and (
-                        -sort_sgn_score[breakpt] > sort_sgn_score[breakpt + 1]
-                    ):
-                        endpt = breakpt + 1
-                    else:
-                        endpt = breakpt - 1
+                    endpt = breakpt - 1
 
-                # Flip the signs
-                for i in range(endpt):
-                    self.factor_matrices[sort_idx[i]][:, r] = (
-                        -1 * self.factor_matrices[sort_idx[i]][:, r]
-                    )
-                    best_sign[sort_idx[i], r] = -1
+            # Flip the signs
+            for i in range(endpt):
+                self.factor_matrices[sort_idx[i]][:, r] = (
+                    -1 * self.factor_matrices[sort_idx[i]][:, r]
+                )
+                best_sign[sort_idx[i], r] = -1
 
-            return self
+        return self
 
     def full(self):
         """
@@ -928,6 +925,9 @@ class ktensor():
                     vecs.append(self.factor_matrices[n][:, r])
                 res = res + self.weights[r] * other.ttv(vecs)
             return res
+        raise ValueError(
+            f"Unsupported type for inner product with ktensor. Received {type(other)}"
+        )
 
     def isequal(self, other):
         """
@@ -1015,8 +1015,7 @@ class ktensor():
 
         if return_diffs:
             return issym, diffs
-        else:
-            return issym
+        return issym
 
     def mask(self, W):
         """
@@ -1229,11 +1228,10 @@ class ktensor():
                         )
                     self.weights[r] = self.weights[r] * tmp
                 return self
-            else:
-                assert False, (
-                    "Parameter single_factor is invalid; index must be an int in "
-                    "range of number of dimensions"
-                )
+            assert False, (
+                "Parameter single_factor is invalid; index must be an int in "
+                "range of number of dimensions"
+            )
 
         # ensure that all factor_matrices are normalized
         for mode in range(self.ndims):
@@ -1604,6 +1602,7 @@ class ktensor():
             best_perm[RB : RA + 1] = foo[~tf]
             A.arrange(permutation=best_perm)
             return best_score, A, flag, best_perm
+        raise ValueError("Unsupported score option") #pragma: no cover
 
     def symmetrize(self):
         """
@@ -1740,8 +1739,7 @@ class ktensor():
             if isinstance(mode, int) and mode in range(self.ndims):
                 self.normalize(mode)
                 return self.factor_matrices.copy()
-            else:
-                assert False, "Input parameter'mode' must be in the range of self.ndims"
+            assert False, "Input parameter'mode' must be in the range of self.ndims"
 
         # all weights are equal to 1
         if (self.weights == np.ones(self.weights.shape)).all():
@@ -1954,11 +1952,11 @@ class ktensor():
         # Create final result
         if len(remdims) == 0:
             return sum(new_weights)
-        else:
-            factor_matrices = []
-            for i in remdims:
-                factor_matrices.append(self.factor_matrices[i])
-            return ttb.ktensor(factor_matrices, new_weights, copy=False)
+
+        factor_matrices = []
+        for i in remdims:
+            factor_matrices.append(self.factor_matrices[i])
+        return ttb.ktensor(factor_matrices, new_weights, copy=False)
 
     def update(self, modes, data):
         """
@@ -2166,10 +2164,9 @@ class ktensor():
                         b = b * self.factor_matrices[i][item[i], k]
                     a = a + b
                 return a
-            else:
-                assert (
-                    False
-                ), f"ktensor.__getitem__ requires tuples with {self.ndims} elements"
+            assert (
+                False
+            ), f"ktensor.__getitem__ requires tuples with {self.ndims} elements"
         elif isinstance(item, (int, np.int_)) and item in range(self.ndims):
             # Extract factor matrix
             return self.factor_matrices[item].copy()
