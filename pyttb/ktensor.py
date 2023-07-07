@@ -12,14 +12,10 @@ import numpy as np
 import scipy.sparse.linalg
 
 import pyttb as ttb
-from pyttb.pyttb_utils import (
-    isvector,
-    isrow,
-    tt_ind2sub
-)
+from pyttb.pyttb_utils import isrow, isvector, tt_ind2sub
 
 
-class ktensor():
+class ktensor:
     """
     KTENSOR Class for Kruskal tensors (decomposed).
 
@@ -704,6 +700,7 @@ class ktensor():
         else:
             assert False, "Input parameter must be an int, tuple, list or numpy.ndarray"
 
+    # pylint: disable=too-many-locals,too-many-branches
     def fixsigns(self, other=None):
         """
         Change the elements of a :class:`pyttb.ktensor` in place so that the
@@ -775,7 +772,7 @@ class ktensor():
         [[ 0.5812... -0.6...]
          [ 0.8137... -0.8...]]
         """
-        if other == None:
+        if other is None:
             for r in range(self.ncomponents):
                 sgn = np.zeros(self.ndims)
                 for n in range(self.ndims):
@@ -955,7 +952,7 @@ class ktensor():
             return False
         if self.ncomponents != other.ncomponents:
             return False
-        if not (self.weights != other.weights).all():
+        if (self.weights != other.weights).any():
             return False
         for k in range(self.ndims):
             if not (self.factor_matrices[k] == other.factor_matrices[k]).all():
@@ -1454,6 +1451,7 @@ class ktensor():
         """
         return tuple([f.shape[0] for f in self.factor_matrices])
 
+    # pylint: disable=unused-argument,too-many-locals
     def score(self, other, weight_penalty=True, threshold=0.99, greedy=True):
         """
         Checks if two :class:`pyttb.ktensor` instances with the same shapes
@@ -1597,12 +1595,13 @@ class ktensor():
             flag = 1
 
             # Rearrange the components of A according to the best matching
+            # pylint: disable=disallowed-name
             foo = np.arange(RA)
             tf = np.in1d(foo, best_perm)
             best_perm[RB : RA + 1] = foo[~tf]
             A.arrange(permutation=best_perm)
             return best_score, A, flag, best_perm
-        raise ValueError("Unsupported score option") #pragma: no cover
+        raise ValueError("Unsupported score option")  # pragma: no cover
 
     def symmetrize(self):
         """
