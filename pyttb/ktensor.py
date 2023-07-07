@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse.linalg
+from typing_extensions import Self
 
 import pyttb as ttb
 from pyttb.pyttb_utils import isrow, isvector, tt_ind2sub
@@ -382,7 +383,11 @@ class ktensor:
 
         return cls(factor_matrices, weights, copy=False)
 
-    def arrange(self, weight_factor=None, permutation=None):
+    def arrange(
+        self,
+        weight_factor: Optional[int] = None,
+        permutation: Optional[Union[Tuple, List, np.ndarray]] = None,
+    ):
         """
         Arrange the rank-1 components of a :class:`pyttb.ktensor` in place.
         If `permutation` is passed, the columns of `self.factor_matrices` are
@@ -398,10 +403,8 @@ class ktensor:
 
         Parameters
         ----------
-        weight_factor: int, optional
-            The index of the factor matrix that the weights will be absorbed into.
-        permutation: :class:`tuple`, :class:`list`, or :class:`numpy.ndarray`, optional
-            The new order of the components of the :class:`pyttb.ktensor`
+        weight_factor: Index of the factor matrix the weights will be absorbed into.
+        permutation: The new order of the components of the :class:`pyttb.ktensor`
             into which to permute. The permutation must be of length equal to
             the number of components of the :class:`pyttb.ktensor`, `self.ncomponents`
             and must be a permutation of [0,...,`self.ncomponents`-1].
@@ -508,7 +511,7 @@ class ktensor:
 
         Returns
         -------
-        :class:`pyttb.ktensor`
+        Copy of original ktensor.
 
         Examples
         --------
@@ -572,13 +575,13 @@ class ktensor:
         """
         return ttb.ktensor(self.factor_matrices, self.weights, copy=True)
 
-    def double(self):
+    def double(self) -> np.ndarray:
         """
         Convert :class:`pyttb.ktensor` to :class:`numpy.ndarray`.
 
         Returns
         -------
-        :class:`numpy.ndarray`
+        Array of re-assembled ktensor.
 
         Examples
         --------
@@ -595,18 +598,17 @@ class ktensor:
         """
         return self.full().double()
 
-    def end(self, k=None):
+    def end(self, k: Optional[int] = None) -> int:
         """
         Last index of indexing expression for :class:`pyttb.ktensor`.
 
         Parameters
         ----------
-        k: int, optional
-          dimension for subscripted indexing
+        k: Dimension for subscripted indexing
 
         Returns
         -------
-        int: index
+        Final index
 
         Examples
         --------
@@ -618,9 +620,11 @@ class ktensor:
         if k is not None:  # Subscripted indexing
             return self.shape[k] - 1
         # For linear indexing
-        return np.prod(self.shape) - 1
+        return int(np.prod(self.shape) - 1)
 
-    def extract(self, idx=None):
+    def extract(
+        self, idx: Optional[Union[int, tuple, list, np.ndarray]] = None
+    ) -> ktensor:
         """
         Creates a new :class:`pyttb.ktensor` with only the specified
         components.
@@ -635,7 +639,7 @@ class ktensor:
 
         Returns
         -------
-        :class:`pyttb.ktensor`
+        Subset of original ktensor.
 
         Examples
         --------
@@ -674,9 +678,9 @@ class ktensor:
 
         if isinstance(idx, (int, tuple, list, np.ndarray)):
             if isinstance(idx, int):
-                components = [idx]
+                components = np.array([idx])
             else:
-                components = idx
+                components = np.asarray(idx)
             if len(components) == 0 or len(components) > self.ncomponents:
                 assert False, (
                     f"Number of components requested is not valid: {len(components)} "
@@ -702,7 +706,7 @@ class ktensor:
             assert False, "Input parameter must be an int, tuple, list or numpy.ndarray"
 
     # pylint: disable=too-many-locals,too-many-branches
-    def fixsigns(self, other=None):
+    def fixsigns(self, other: Optional[ktensor] = None) -> Self:
         """
         Change the elements of a :class:`pyttb.ktensor` in place so that the
         largest magnitude entries for each column vector in each factor
@@ -711,8 +715,7 @@ class ktensor:
 
         Parameters
         ----------
-        other: :class:`pyttb.ktensor`, optional
-            If not None, returns a version of the :class:`pyttb.ktensor`
+        other: If not None, returns a version of the :class:`pyttb.ktensor`
             where some of the signs of the columns of the factor matrices have
             been flipped to better align with `other`. In not None, both
             :class:`pyttb.ktensor` objects are first normalized (using
@@ -720,9 +723,7 @@ class ktensor:
 
         Returns
         -------
-        :class:`pyttb.ktensor`
-            The changes are made in place and a reference to the updated
-            tensor is returned
+        Self for chained operations.
 
         Examples
         --------
@@ -788,15 +789,18 @@ class ktensor:
                     self.factor_matrices[n][:, r] = -self.factor_matrices[n][:, r]
 
             return self
+
         if not isinstance(other, ktensor):
             assert False, "other must be a ktensor"
+        # Makes typing happy https://github.com/python/mypy/issues/4805
+        other_tensor = other
 
         self.normalize()
-        other = other.normalize()
+        other_tensor = other_tensor.normalize()
 
         N = self.ndims
         RA = self.ncomponents
-        RB = other.ncomponents
+        RB = other_tensor.ncomponents
 
         # Try to fix the signs for each component
         best_sign = np.zeros((N, RA))
@@ -808,7 +812,8 @@ class ktensor:
             sgn_score = np.zeros(N)
             for n in range(N):
                 sgn_score[n] = (
-                    self.factor_matrices[n][:, r].T @ other.factor_matrices[n][:, r]
+                    self.factor_matrices[n][:, r].T
+                    @ other_tensor.factor_matrices[n][:, r]
                 )
 
             # Sort the sign scores.
@@ -846,13 +851,13 @@ class ktensor:
 
         return self
 
-    def full(self):
+    def full(self) -> ttb.tensor:
         """
         Convert a :class:`pyttb.ktensor` to a :class:`pyttb.tensor`.
 
         Returns
         -------
-        :class:`pyttb.tensor`
+        Re-assembled dense tensor.
 
         Examples
         --------
@@ -879,7 +884,9 @@ class ktensor:
         data = self.weights @ ttb.khatrirao(*self.factor_matrices, reverse=True).T
         return ttb.tensor.from_data(data, self.shape)
 
-    def innerprod(self, other):
+    def innerprod(
+        self, other: Union[ttb.tensor, ttb.sptensor, ktensor, ttb.ttensor]
+    ) -> float:
         """
         Efficient inner product with a :class:`pyttb.ktensor`.
 
@@ -892,13 +899,11 @@ class ktensor:
 
         Parameters
         ----------
-        other: :class:`pyttb.ktensor`, :class:`pyttb.sptensor`,
-            :class:`pyttb.tensor`, or :class:`pyttb.ttensor`, required
-            Tensor with which to compute the inner product.
+        other: Tensor with which to compute the inner product.
 
         Returns
         -------
-        :float
+        Innerproduct value.
 
         Examples
         --------
@@ -913,7 +918,7 @@ class ktensor:
             M = np.outer(self.weights, other.weights)
             for i in range(self.ndims):
                 M = M * (self.factor_matrices[i].T @ other.factor_matrices[i])
-            return np.sum(np.sum(M))
+            return float(np.sum(np.sum(M)))
 
         if isinstance(other, (ttb.sptensor, ttb.tensor, ttb.ttensor)):
             res = 0.0
@@ -922,7 +927,7 @@ class ktensor:
                 for n in range(self.ndims):
                     vecs.append(self.factor_matrices[n][:, r])
                 res = res + self.weights[r] * other.ttv(vecs)
-            return res
+            return float(res)
         raise ValueError(
             f"Unsupported type for inner product with ktensor. Received {type(other)}"
         )
