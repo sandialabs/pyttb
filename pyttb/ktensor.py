@@ -497,7 +497,7 @@ class ktensor(object):
 
         return
 
-    def copy(self):
+    def copy(self) -> ktensor:
         """
         Make a deep copy of a :class:`pyttb.ktensor`.
 
