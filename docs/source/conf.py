@@ -60,6 +60,8 @@ myst_enable_extensions = [
     "dollarmath",
 ]
 
+nb_execution_raise_on_error = True
+
 napoleon_use_param = False
 napoleon_use_rtype = False
 
