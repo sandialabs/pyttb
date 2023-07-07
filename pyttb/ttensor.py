@@ -1,3 +1,4 @@
+"""Tucker Tensor Implementation"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -35,7 +36,9 @@ class ttensor:
         # Empty constructor
         # TODO explore replacing with typing protocol
         self.core: Union[tensor, sptensor] = tensor()
+        #pylint: disable=invalid-name
         self.u = []
+        # TODO consider factor_matrices to match ktensor
 
     @classmethod
     def from_data(cls, core, factors):
@@ -479,6 +482,7 @@ class ttensor:
 
         return ttensor.from_data(self.core, new_u)
 
+    #pylint: disable=too-many-branches
     def reconstruct(self, samples=None, modes=None):
         """
         Reconstruct or partially reconstruct tensor from ttensor.
@@ -540,6 +544,7 @@ class ttensor:
 
         return ttensor.from_data(self.core, new_u).full()
 
+    # pylint: disable=too-many-branches,too-many-locals
     def nvecs(self, n, r, flipsign=True):
         """
         Compute the leading mode-n vectors for a ttensor.
