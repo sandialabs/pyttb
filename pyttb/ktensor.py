@@ -9,14 +9,17 @@ import logging
 import warnings
 
 import numpy as np
-import scipy.sparse as sparse
 import scipy.sparse.linalg
 
 import pyttb as ttb
-from pyttb.pyttb_utils import *
+from pyttb.pyttb_utils import (
+    isvector,
+    isrow,
+    tt_ind2sub
+)
 
 
-class ktensor(object):
+class ktensor():
     """
     KTENSOR Class for Kruskal tensors (decomposed).
 
@@ -498,7 +501,6 @@ class ktensor(object):
 
         # absorb the weights into one factor, optional
         if weight_factor is not None:
-            r = len(self.weights)
             self.factor_matrices[weight_factor] *= self.weights
             self.weights = np.ones_like(self.weights)
 
@@ -832,7 +834,7 @@ class ktensor(object):
                 if np.mod(breakpt + 1, 2) == 0:
                     endpt = breakpt + 1
                 else:
-                    warnings.warn("Trouble fixing signs for mode {}".format(r))
+                    warnings.warn(f"Trouble fixing signs for mode {r}")
                     if (breakpt < RB) and (
                         -sort_sgn_score[breakpt] > sort_sgn_score[breakpt + 1]
                     ):
@@ -909,7 +911,7 @@ class ktensor(object):
         >>> print(K.innerprod(K))
         96.0
         """
-        if not (self.shape == other.shape):
+        if self.shape != other.shape:
             assert False, "Innerprod can only be computed for tensors of the same size"
 
         if isinstance(other, ktensor):
@@ -951,9 +953,9 @@ class ktensor(object):
         """
         if not isinstance(other, ktensor):
             return False
-        if not (self.ncomponents == other.ncomponents):
+        if self.ncomponents != other.ncomponents:
             return False
-        if not (self.weights == other.weights).all():
+        if not (self.weights != other.weights).all():
             return False
         for k in range(self.ndims):
             if not (self.factor_matrices[k] == other.factor_matrices[k]).all():
@@ -1001,7 +1003,7 @@ class ktensor(object):
         diffs = np.zeros((self.ndims, self.ndims))
         for i in range(self.ndims):
             for j in range(i + 1, self.ndims):
-                if not (self.factor_matrices[i].shape == self.factor_matrices[j].shape):
+                if self.factor_matrices[i].shape != self.factor_matrices[j].shape:
                     diffs[i, j] = np.inf
                 elif (self.factor_matrices[i] == self.factor_matrices[j]).all():
                     diffs[i, j] = 0
@@ -1538,7 +1540,7 @@ class ktensor(object):
         if not isinstance(other, ktensor):
             assert False, "The first input should be a ktensor"
 
-        if not (self.shape == other.shape):
+        if self.shape != other.shape:
             assert False, "Size mismatch"
 
         # Set-up
@@ -1586,7 +1588,7 @@ class ktensor(object):
         if greedy:
             best_perm = -1 * np.ones((RA), dtype=int)
             best_score = 0
-            for r in range(RB):
+            for _ in range(RB):
                 idx = np.argmax(C.reshape(np.prod(C.shape), order="F"))
                 ij = tt_ind2sub((RA, RB), np.array(idx))
                 best_score = best_score + C[ij[0], ij[1]]
@@ -2080,10 +2082,10 @@ class ktensor(object):
                 )
                 loc = endloc
             else:
-                assert False, "Invalid mode: {}".format(k)
+                assert False, f"Invalid mode: {k}"
 
         ## Check that we used all the data
-        if not (loc == len(data)):
+        if loc != len(data):
             warnings.warn("Failed to consume all of the input data")
 
         return self
@@ -2167,9 +2169,7 @@ class ktensor(object):
             else:
                 assert (
                     False
-                ), "ktensor.__getitem__ requires tuples with {} elements".format(
-                    self.ndims
-                )
+                ), f"ktensor.__getitem__ requires tuples with {self.ndims} elements"
         elif isinstance(item, (int, np.int_)) and item in range(self.ndims):
             # Extract factor matrix
             return self.factor_matrices[item].copy()
@@ -2322,7 +2322,7 @@ class ktensor(object):
             s += "\nfactor_matrices=[]"
         else:
             for i in range(len(self.factor_matrices)):
-                s += "\nfactor_matrices[{}] =\n".format(i)
+                s += f"\nfactor_matrices[{i}] =\n"
                 s += str(self.factor_matrices[i])
         return s
 
