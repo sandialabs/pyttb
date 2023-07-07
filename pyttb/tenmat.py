@@ -154,7 +154,7 @@ class tenmat:
                         )
                     else:
                         assert False, (
-                            'Unrecognized value for cdims_cyclic pattern, must be '
+                            "Unrecognized value for cdims_cyclic pattern, must be "
                             '"fc" or "bc".'
                         )
 
@@ -189,6 +189,9 @@ class tenmat:
             tenmatInstance.cindices = cdims.copy()
             tenmatInstance.data = data.copy()
             return tenmatInstance
+        raise ValueError(
+            f"Can only create tenmat from tensor or tenmat but recieved {type(source)}"
+        )
 
     def ctranspose(self):
         """
@@ -277,15 +280,13 @@ class tenmat:
         """
         if self.data.shape == (0,):
             return ()
-        else:
-            return self.data.shape
+        return self.data.shape
 
     def __setitem__(self, key, value):
         """
         SUBSASGN Subscripted assignment for a tensor.
         """
         self.data[key] = value
-        return
 
     def __getitem__(self, item):
         """
@@ -318,7 +319,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data * other
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes are compatible
             if not self.shape[1] == other.shape[0]:
                 assert False, (
@@ -337,19 +338,15 @@ class tenmat:
 
             if tshape == ():
                 return (self.data @ other.data)[0, 0]
-            else:
-                tenmatInstance = tenmat()
-                tenmatInstance.tshape = tshape
-                tenmatInstance.rindices = np.arange(len(self.rindices))
-                tenmatInstance.cindices = np.arange(len(other.cindices)) + len(
-                    self.rindices
-                )
-                tenmatInstance.data = self.data @ other.data
-                return tenmatInstance
-        else:
-            assert (
-                False
-            ), "tenmat multiplication only valid with scalar or tenmat objects."
+            tenmatInstance = tenmat()
+            tenmatInstance.tshape = tshape
+            tenmatInstance.rindices = np.arange(len(self.rindices))
+            tenmatInstance.cindices = np.arange(len(other.cindices)) + len(
+                self.rindices
+            )
+            tenmatInstance.data = self.data @ other.data
+            return tenmatInstance
+        assert False, "tenmat multiplication only valid with scalar or tenmat objects."
 
     def __rmul__(self, other):
         """
@@ -383,7 +380,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data + other
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes agree
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
@@ -391,8 +388,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data + other.data
             return Z
-        else:
-            assert False, "tenmat addition only valid with scalar or tenmat objects."
+        assert False, "tenmat addition only valid with scalar or tenmat objects."
 
     def __radd__(self, other):
         """
@@ -426,7 +422,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data - other
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes agree
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
@@ -434,8 +430,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data - other.data
             return Z
-        else:
-            assert False, "tenmat subtraction only valid with scalar or tenmat objects."
+        assert False, "tenmat subtraction only valid with scalar or tenmat objects."
 
     def __rsub__(self, other):
         """
@@ -455,7 +450,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = other - Z.data
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes agree
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
@@ -463,8 +458,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = other.data - Z.data
             return Z
-        else:
-            assert False, "tenmat subtraction only valid with scalar or tenmat objects."
+        assert False, "tenmat subtraction only valid with scalar or tenmat objects."
 
     def __pos__(self):
         """

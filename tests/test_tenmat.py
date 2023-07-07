@@ -350,6 +350,10 @@ def test_tenmat_initialization_from_tensor_type(
             a = ttb.tenmat.from_tensor_type(tensorInstance, d[0], d[1], tshape)
         assert exc in str(excinfo)
 
+    # Incorrect source type
+    with pytest.raises(ValueError):
+        ttb.tenmat.from_tensor_type("not a tensor")
+
 
 @pytest.mark.indevelopment
 def test_tenmat_ctranspose(sample_tenmat_4way):
