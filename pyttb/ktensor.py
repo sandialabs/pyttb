@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import warnings
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse.linalg
@@ -48,26 +49,24 @@ class ktensor:
 
     __slots__ = ("weights", "factor_matrices")
 
-    def __init__(self, factor_matrices=None, weights=None, copy=True):
+    def __init__(
+        self,
+        factor_matrices: Optional[List[np.ndarray]] = None,
+        weights: Optional[np.ndarray] = None,
+        copy: bool = True,
+    ):
         """
         Create a :class:`pyttb.ktensor` in one of the following ways:
           - With no inputs (or `weights` and `factor_matrices` both None),
             return an empty :class:`pyttb.ktensor`.
-          - If `weights` is None, return a :class:`pyttb.ktensor` with
-            `weights` all equal to 1 and `factor_matrices` as provided.
           - Otherwise, return a :class:`pyttb.ktensor` with `weights` and
             `factor_matrices` as provided.
 
-        If `copy` is True, return a :class:`pyttb.ktensor` with copies
-        of `weights` and `factor_matrices`, otherwise just use references
-        to the `weights` and `factor_matrices` provided.
-
         Parameters
         ----------
-        factor_matrices: :class:`list` of :class:`numpy.ndarray` with
-            `dtype`=:class:`float`, optional
-        weights: :class:`numpy.ndarray`, optional
-        copy: :class:`bool`, optional
+        factor_matrices: Factors for ktensor.
+        weights: Tensor weights, defaults to all 1's.
+        copy: Whether or not to copy the input data or just reference it.
 
         Examples
         --------
@@ -121,7 +120,7 @@ class ktensor:
         # Empty constructor
         if factor_matrices is None and weights is None:
             self.weights = np.array([])
-            self.factor_matrices = []
+            self.factor_matrices: List[np.ndarray] = []
             return
 
         # 'factor_matrices' must be a list
@@ -170,7 +169,12 @@ class ktensor:
             self.factor_matrices = factor_matrices
 
     @classmethod
-    def from_function(cls, fun, shape, num_components):
+    def from_function(
+        cls,
+        fun: Callable[[Tuple[int, ...]], np.ndarray],
+        shape: Tuple[int, ...],
+        num_components: int,
+    ):
         """
         Construct a :class:`pyttb.ktensor` whose factor matrix entries are
         set using a function. The weights of the returned
@@ -183,12 +187,12 @@ class ktensor:
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
             Example functions include `numpy.random.random_sample`,
             `numpy,zeros`, `numpy.ones`.
-        shape: :class:`tuple`, required
-        num_components: int, required
+        shape: Shape of the resulting tensor.
+        num_components: Number of components/weights for resulting tensor.
 
         Returns
         -------
-        :class:`pyttb.ktensor`
+        Constructed ktensor.
 
         Examples
         --------
@@ -265,7 +269,9 @@ class ktensor:
         return cls(factor_matrices, weights, copy=False)
 
     @classmethod
-    def from_vector(cls, data, shape, contains_weights):
+    def from_vector(
+        cls, data: np.ndarray, shape: Tuple[int, ...], contains_weights: bool
+    ):
         """
         Construct a :class:`pyttb.ktensor` from a vector (given as a
         :class:`numpy.ndarray`) and shape (given as a
@@ -280,16 +286,13 @@ class ktensor:
             matrices (when `contains_weights`==True). When both the elements of
             the weights and the factor_matrices are present, the weights come
             first and the columns of the factor matrices come next.
-        shape: :class:`numpy.ndarray`, required
-            Vector containing the shape of the tensor (i.e., lengths of the
-            dimensions).
-        contains_weights: bool, required
-            Flag to specify whether or not `data` contains weights. If False,
+        shape: Shape of the resulting ktensor.
+        contains_weights: Flag to specify if `data` contains weights. If False,
             all weights are set to 1.
 
         Returns
         -------
-        :class:`pyttb.ktensor`
+        Constructed ktensor.
 
         Examples
         --------
@@ -297,7 +300,7 @@ class ktensor:
         elements of the factor matrices:
 
         >>> rank = 2
-        >>> shape = np.array([2, 3, 4])
+        >>> shape = (2, 3, 4)
         >>> data = np.arange(1, rank*sum(shape)+1).astype(float)
         >>> K = ttb.ktensor.from_vector(data[:], shape, False)
         >>> print(K)
@@ -339,9 +342,7 @@ class ktensor:
          [14. 18.]]
         """
         assert isvector(data), "Input parameter 'data' must be a numpy.array vector."
-        assert isinstance(
-            shape, np.ndarray
-        ), "Input parameter 'shape' must be a numpy.array vector."
+        assert isinstance(shape, tuple), "Input parameter 'shape' must be a tuple."
         assert isinstance(
             contains_weights, bool
         ), "Input parameter 'contains_weights' must be a bool."
@@ -1775,7 +1776,7 @@ class ktensor:
         Create a :class:`pyttb.ktensor` from a vector:
 
         >>> rank = 2
-        >>> shape = np.array([2, 3, 4])
+        >>> shape = (2, 3, 4)
         >>> data = np.arange(1, rank*sum(shape)+1)
         >>> weights = 2 * np.ones(rank)
         >>> weights_and_data = np.concatenate((weights, data), axis=0)
@@ -1877,7 +1878,7 @@ class ktensor:
         (results in a :class:`pyttb.ktensor`):
 
         >>> rank = 2
-        >>> shape = np.array([2, 3, 4])
+        >>> shape = (2, 3, 4)
         >>> data = np.arange(1, rank*sum(shape)+1)
         >>> weights = 2 * np.ones(rank)
         >>> weights_and_data = np.concatenate((weights, data), axis=0)
