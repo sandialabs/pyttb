@@ -410,6 +410,11 @@ def test_ktensor_innerprod(sample_ktensor_2way):
         K.innerprod(K1)
     assert "Innerprod can only be computed for tensors of the same size" in str(excinfo)
 
+    # Wrong other type
+    with pytest.raises(ValueError) as excinfo:
+        K.innerprod(np.ones(K.shape))
+    assert "Unsupported type" in str(excinfo)
+
 
 def test_ktensor_isequal(sample_ktensor_2way):
     (data, K0) = sample_ktensor_2way
