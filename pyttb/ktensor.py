@@ -65,7 +65,8 @@ class ktensor(object):
 
         Parameters
         ----------
-        factor_matrices: :class:`list` of :class:`numpy.ndarray` with `dtype`=:class:`float`, optional
+        factor_matrices: :class:`list` of :class:`numpy.ndarray` with
+            `dtype`=:class:`float`, optional
         weights: :class:`numpy.ndarray`, optional
         copy: :class:`bool`, optional
 
@@ -132,9 +133,10 @@ class ktensor(object):
             all(isinstance(fm, np.ndarray) for fm in factor_matrices)
             and all(fm.dtype == float for fm in factor_matrices)
         ):
-            assert (
-                False
-            ), "Each item in 'factor_matrices' must be a numpy.ndarray object with dtype=float."
+            assert False, (
+                "Each item in 'factor_matrices' must be a numpy.ndarray object with "
+                "dtype=float."
+            )
         # the number of columns of all factor_matrices must be equal
         num_components = factor_matrices[0].shape[1]
         if not all(fm.shape[1] == num_components for fm in factor_matrices):
@@ -149,7 +151,10 @@ class ktensor(object):
                 isinstance(weights, np.ndarray)
                 and weights.dtype == float
                 and weights.shape == (num_components,)
-            ), "Input 'weights' must be a numpy.ndarray object with dtype=float and length equal to the number of columns in each factor matrix."
+            ), (
+                "Input 'weights' must be a numpy.ndarray object with dtype=float and "
+                "length equal to the number of columns in each factor matrix."
+            )
             # make copy or use reference
             if copy:
                 self.weights = weights.copy()
@@ -475,12 +480,14 @@ class ktensor(object):
                     self.factor_matrices[i] = self.factor_matrices[i][:, permutation]
                 return
             else:
-                assert (
-                    False
-                ), "Number of elements in permutation does not match number of components in ktensor."
+                assert False, (
+                    "Number of elements in permutation does not match number of "
+                    "components in ktensor."
+                )
 
-        # TODO there is a relationship here between normalize and arrange that repeats tasks.
-        # Can this be made to be more efficient? ensure that factor matrices are normalized
+        # TODO there is a relationship here between normalize and arrange that repeats
+        #  tasks. Can this be made to be more efficient? ensure that factor matrices
+        #  are normalized
         self.normalize()
 
         # sort
@@ -673,10 +680,9 @@ class ktensor(object):
             else:
                 components = idx
             if len(components) == 0 or len(components) > self.ncomponents:
-                assert (
-                    False
-                ), "Number of components requested is not valid: {} (should be in [1,...,{}]).".format(
-                    len(components), self.ncomponents
+                assert False, (
+                    f"Number of components requested is not valid: {len(components)} "
+                    f"(should be in [1,...,{self.ncomponents}])."
                 )
             else:
                 # check that all requested component indices are valid
@@ -685,10 +691,9 @@ class ktensor(object):
                     if components[i] not in range(self.ncomponents):
                         invalid_entries.append(components[i])
                 if len(invalid_entries) > 0:
-                    assert (
-                        False
-                    ), "Invalid component indices to be extracted: {} not in range({})".format(
-                        str(invalid_entries), self.ncomponents
+                    assert False, (
+                        f"Invalid component indices to be extracted: {invalid_entries} "
+                        f"not in range({self.ncomponents})"
                     )
                 new_weights = self.weights[components]
                 new_factor_matrices = []
@@ -890,7 +895,8 @@ class ktensor(object):
 
         Parameters
         ----------
-        other: :class:`pyttb.ktensor`, :class:`pyttb.sptensor`, :class:`pyttb.tensor`, or :class:`pyttb.ttensor`, required
+        other: :class:`pyttb.ktensor`, :class:`pyttb.sptensor`,
+            :class:`pyttb.tensor`, or :class:`pyttb.ttensor`, required
             Tensor with which to compute the inner product.
 
         Returns
@@ -1222,9 +1228,10 @@ class ktensor(object):
                     self.weights[r] = self.weights[r] * tmp
                 return self
             else:
-                assert (
-                    False
-                ), "Parameter single_factor is invalid; index must be an int in range of number of dimensions"
+                assert False, (
+                    "Parameter single_factor is invalid; index must be an int in "
+                    "range of number of dimensions"
+                )
 
         # ensure that all factor_matrices are normalized
         for mode in range(self.ndims):
@@ -1236,7 +1243,8 @@ class ktensor(object):
                     )
                 self.weights[r] = self.weights[r] * tmp
 
-        # check that all weights are positive, flip sign of columns in first factor matrix if negative weight found
+        # check that all weights are positive,
+        # flip sign of columns in first factor matrix if negative weight found
         idx = np.where(self.weights < 0)
         self.factor_matrices[0][:, idx] = -self.factor_matrices[0][:, idx]
         self.weights[idx] = -self.weights[idx]
@@ -1318,7 +1326,8 @@ class ktensor(object):
             v = v[:, :r]
         else:
             logging.debug(
-                "Greater than or equal to ktensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
+                "Greater than or equal to ktensor.shape[n] - 1 eigenvectors requires "
+                "cast to dense to solve"
             )
             w, v = scipy.linalg.eigh(y)
             v = v[:, (-np.abs(w)).argsort()]
@@ -1461,7 +1470,8 @@ class ktensor(object):
 
         where the penalty is defined by the weights such that
 
-            penalty = 1 - abs(self.weights - other.weights) / max(self.weights, other.weights).
+            max_weights = max(self.weights, other.weights)
+            penalty = 1 - abs(self.weights - other.weights) / max_weights.
 
         The score of multi-component :class:`pyttb.ktensor` instances is a
         normalized sum of the scores across the best permutation of the
@@ -1499,8 +1509,12 @@ class ktensor(object):
         Create two :class:`pyttb.ktensor` instances and compute the score
         between them:
 
-        >>> K = ttb.ktensor([np.ones((3,3)), np.ones((4,3)), np.ones((5,3))], np.array([2., 1., 3.]))
-        >>> K2 = ttb.ktensor([np.ones((3,2)), np.ones((4,2)), np.ones((5,2))], np.array([2., 4.]))
+        >>> factors = [np.ones((3,3)), np.ones((4,3)), np.ones((5,3))]
+        >>> weights = np.array([2., 1., 3.])
+        >>> K = ttb.ktensor(factors, weights)
+        >>> factors_2 = [np.ones((3,2)), np.ones((4,2)), np.ones((5,2))]
+        >>> weights_2 = np.array([2., 4.])
+        >>> K2 = ttb.ktensor(factors_2, weights_2)
         >>> score,Kperm,flag,perm = K.score(K2)
         >>> print(score)
         0.875
@@ -1912,7 +1926,8 @@ class ktensor(object):
         if isinstance(exclude_dims, (float, int)):
             exclude_dims = np.array([exclude_dims])
 
-        # Check that vector is a list of vectors, if not place single vector as element in list
+        # Check vector is a list of vectors
+        # if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv([vector], dims)
 
@@ -2159,9 +2174,10 @@ class ktensor(object):
             # Extract factor matrix
             return self.factor_matrices[item].copy()
         else:
-            assert (
-                False
-            ), "ktensor.__getitem__() can only extract single elements (tuple of indices) or factor matrices (single index)"
+            assert False, (
+                "ktensor.__getitem__() can only extract single elements (tuple of "
+                "indices) or factor matrices (single index)"
+            )
 
     def __neg__(self):
         """
@@ -2193,7 +2209,10 @@ class ktensor(object):
 
         Example
         -------
-        >>> K = ttb.ktensor([np.random.random((2,4)), np.random.random((3,4)), np.random.random((4,4))], np.ones((4,)))
+        >>> random = np.random.random
+        >>> factors = [random((2,4)), random((3,4)), random((4,4))]
+        >>> weights = np.ones((4,))
+        >>> K = ttb.ktensor(factors, weights)
         >>> K.weights = 2 * np.ones((4,1))
         >>> K.factor_matrices[0] = np.zeros((2, 4))
         >>> K.factor_matrices = [np.zeros((2, 4)), np.zeros((3, 4)), np.zeros((4, 4))]
@@ -2216,9 +2235,12 @@ class ktensor(object):
          [0. 0. 0. 0.]
          [0. 0. 0. 0.]]
         """
-        assert (
-            False
-        ), "Subscripted assignment cannot be used to update individual elements of a ktensor. However, you can update the weights vector or the factor matrices of a ktensor. The entire factor matrix or weight vector must be provided."
+        assert False, (
+            "Subscripted assignment cannot be used to update individual elements of a "
+            "ktensor. However, you can update the weights vector or the factor "
+            "matrices of a ktensor. The entire factor matrix or weight vector must be "
+            "provided."
+        )
 
     def __sub__(self, other):
         """
