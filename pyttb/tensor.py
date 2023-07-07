@@ -671,7 +671,7 @@ class tensor:
 
         # extract the list of factor matrices if given a ktensor
         if isinstance(U, ttb.ktensor):
-            # TODO: the following causes an error in typing, 
+            # TODO: the following causes an error in typing,
             # but I think this is what we want
             # U = U.copy()
             U = ttb.ktensor(U.factor_matrices, U.weights)
