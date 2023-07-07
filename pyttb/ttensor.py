@@ -8,11 +8,11 @@ from typing import Union
 
 import numpy as np
 import scipy
-import scipy.sparse as sparse
+from scipy import sparse
 
 from pyttb import ktensor
 from pyttb import pyttb_utils as ttb_utils
-from pyttb import sptenmat, sptensor, tenmat, tensor
+from pyttb import sptensor, tenmat, tensor
 from pyttb.sptensor import tt_to_sparse_matrix
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/sptensor."
@@ -104,11 +104,13 @@ class ttensor:
         for factor_idx, factor in enumerate(self.u):
             if not isinstance(factor, (np.ndarray, sparse.coo_matrix)):
                 raise ValueError(
-                    f"Factor matrices must be numpy arrays but factor {factor_idx} was {type(factor)}"
+                    f"Factor matrices must be numpy arrays but factor {factor_idx} "
+                    f" was {type(factor)}"
                 )
             if len(factor.shape) != 2:
                 raise ValueError(
-                    f"Factor matrix {factor_idx} has shape {factor.shape} and is not a matrix!"
+                    f"Factor matrix {factor_idx} has shape {factor.shape} and is not "
+                    f"a matrix!"
                 )
 
         # Verify size consistency
@@ -121,7 +123,8 @@ class ttensor:
         for factor_idx, factor in enumerate(self.u):
             if factor.shape[-1] != self.core.shape[factor_idx]:
                 raise ValueError(
-                    f"Factor matrix {factor_idx} does not have {self.core.shape[factor_idx]} columns"
+                    f"Factor matrix {factor_idx} does not have "
+                    f"{self.core.shape[factor_idx]} columns"
                 )
 
     @property
@@ -165,7 +168,7 @@ class ttensor:
         """
         recomposed_tensor = self.core.ttm(self.u)
 
-        # There is a small chance tensor could be sparse so ensure we cast that to dense.
+        # There is a small chance tensor could be sparse so cast that to dense.
         if not isinstance(recomposed_tensor, tensor):
             recomposed_tensor = tensor.from_tensor_type(recomposed_tensor)
         return recomposed_tensor
@@ -252,8 +255,9 @@ class ttensor:
         if isinstance(other, ttensor):
             if self.shape != other.shape:
                 raise ValueError(
-                    "ttensors must have same shape to perform an innerproduct, but this ttensor "
-                    f"has shape {self.shape} and the other has {other.shape}"
+                    "ttensors must have same shape to perform an innerproduct, "
+                    f" but this ttensor has shape {self.shape} and the other has "
+                    f"{other.shape}"
                 )
             if np.prod(self.core.shape) > np.prod(other.core.shape):
                 # Reverse arguments so the ttensor with the smaller core comes first.
@@ -266,8 +270,9 @@ class ttensor:
         elif isinstance(other, (tensor, sptensor)):
             if self.shape != other.shape:
                 raise ValueError(
-                    "ttensors must have same shape to perform an innerproduct, but this ttensor "
-                    f"has shape {self.shape} and the other has {other.shape}"
+                    "ttensors must have same shape to perform an innerproduct, but "
+                    f" this ttensor has shape {self.shape} and the other has "
+                    f"{other.shape}"
                 )
             if np.prod(self.shape) < np.prod(self.core.shape):
                 Z = self.full()
@@ -336,7 +341,8 @@ class ttensor:
         if isinstance(exclude_dims, (float, int)):
             exclude_dims = np.array([exclude_dims])
 
-        # Check that vector is a list of vectors, if not place single vector as element in list
+        # Check that vector is a list of vectors,
+        # if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
@@ -587,7 +593,8 @@ class ttensor:
             v = v[:, :r]
         else:
             logging.debug(
-                "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires cast to dense to solve"
+                "Greater than or equal to tensor.shape[n] - 1 eigenvectors requires "
+                "cast to dense to solve"
             )
             if sparse.issparse(Y):
                 Y = Y.toarray()
