@@ -95,6 +95,9 @@ class ttensor:
         # Copy Constructor
         if isinstance(source, ttensor):
             return cls.from_data(source.core, source.u)
+        raise ValueError(
+            f"Can only cast ttensor to ttensor but received {type(source)}"
+        )
 
     def _validate_ttensor(self):
         """
