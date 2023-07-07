@@ -68,7 +68,7 @@ def cp_als(
     >>> weights = np.array([1., 2.])
     >>> fm0 = np.array([[1., 2.], [3., 4.]])
     >>> fm1 = np.array([[5., 6.], [7., 8.]])
-    >>> K = ttb.ktensor.from_data(weights, [fm0, fm1])
+    >>> K = ttb.ktensor([fm0, fm1], weights)
     >>> np.random.seed(1)
     >>> M, Minit, output = ttb.cp_als(K.full(), 2) # doctest: +ELLIPSIS
     CP_ALS:
@@ -76,7 +76,7 @@ def cp_als(
      Iter 1: f = ... f-delta = ...
      Final f = ...
     >>> print(M) # doctest: +ELLIPSIS
-    ktensor of shape 2 x 2
+    ktensor of shape (2, 2)
     weights=[108.4715... 8.6114...]
     factor_matrices[0] =
     [[0.4187... 0.3989...]
@@ -85,7 +85,7 @@ def cp_als(
     [[0.6188... 0.2581...]
      [0.7854... 0.9661...]]
     >>> print(Minit) # doctest: +ELLIPSIS
-    ktensor of shape 2 x 2
+    ktensor of shape (2, 2)
     weights=[1. 1.]
     factor_matrices[0] =
     [[4.1702...e-01 7.2032...e-01]
@@ -147,12 +147,12 @@ def cp_als(
             factor_matrices.append(
                 np.random.uniform(0, 1, (input_tensor.shape[n], rank))
             )
-        init = ttb.ktensor.from_factor_matrices(factor_matrices)
+        init = ttb.ktensor(factor_matrices)
     elif isinstance(init, str) and init.lower() == "nvecs":
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(input_tensor.nvecs(n, rank))
-        init = ttb.ktensor.from_factor_matrices(factor_matrices)
+        init = ttb.ktensor(factor_matrices)
     else:
         assert False, "The selected initialization method is not supported"
 
@@ -208,7 +208,7 @@ def cp_als(
             U[n] = Unew
             UtU[:, :, n] = U[n].T @ U[n]
 
-        M = ttb.ktensor.from_data(weights, U)
+        M = ttb.ktensor(U, weights)
 
         # This is equivalent to innerprod(X,P).
         iprod = np.sum(

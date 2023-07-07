@@ -116,7 +116,7 @@ def cp_apr(
             factor_matrices.append(
                 np.random.uniform(0, 1, (input_tensor.shape[n], rank))
             )
-        init = ttb.ktensor.from_factor_matrices(factor_matrices)
+        init = ttb.ktensor(factor_matrices)
 
     # Call solver based on the couce of algorithm parameter, passing all the other input parameters
     if algorithm.lower() == "mu":
@@ -243,8 +243,7 @@ def tt_cp_apr_mu(
     nTimes = np.zeros((maxiters,))
 
     # Set up for iteration - initializing M and Phi.
-    # TODO replace with copy
-    M = ttb.ktensor.from_tensor_type(init)
+    M = init.copy()
     M.normalize(normtype=1)
     Phi = []  # np.zeros((N,))#cell(N,1)
     for n in range(N):
@@ -453,8 +452,7 @@ def tt_cp_apr_pdnr(
             init[n][tmpIdx, 0] = 1e-8
 
     # Start with the initial guess, normalized using the vector L1 norm
-    # TODO replace with copy
-    M = ttb.ktensor.from_tensor_type(init)
+    M = init.copy()
     M.normalize(normtype=1)
 
     # Sparse tensor flag affects how Pi and Phi are computed.
@@ -824,8 +822,7 @@ def tt_cp_apr_pqnr(
             init[n][tmpIdx, 0] = 1e-8
 
     # Start with the initial guess, normalized using the vector L1 norm
-    # TODO replace with copy
-    M = ttb.ktensor.from_tensor_type(init)
+    M = init.copy()
     M.normalize(normtype=1)
 
     # Sparse tensor flag affects how Pi and Phi are computed.

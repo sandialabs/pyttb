@@ -914,7 +914,7 @@ def test_sptensor__mul__(sample_sptensor):
     fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
     fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    K = ttb.ktensor.from_data(weights, factor_matrices)
+    K = ttb.ktensor(factor_matrices, weights)
     subs = np.array([[0, 0], [0, 1], [1, 1]])
     vals = np.array([[0.5], [1.0], [1.5]])
     shape = (2, 2)
@@ -944,7 +944,7 @@ def test_sptensor__rmul__(sample_sptensor):
     fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
     fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    K = ttb.ktensor.from_data(weights, factor_matrices)
+    K = ttb.ktensor(factor_matrices, weights)
     subs = np.array([[0, 0], [0, 1], [1, 1]])
     vals = np.array([[0.5], [1.0], [1.5]])
     shape = (2, 2)
@@ -1402,7 +1402,7 @@ def test_sptensor__truediv__(sample_sptensor):
     fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
     fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    K = ttb.ktensor.from_data(weights, factor_matrices)
+    K = ttb.ktensor(factor_matrices, weights)
     subs = np.array([[0, 0], [0, 1], [1, 1]])
     vals = np.array([[0.5], [1.0], [1.5]])
     shape = (2, 2)
@@ -1591,7 +1591,7 @@ def test_sptensor_mttkrp(sample_sptensor):
     ).all()
 
     # MTTKRP with factor matrices from ktensor
-    K = ttb.ktensor.from_factor_matrices([matrix, matrix, matrix])
+    K = ttb.ktensor([matrix, matrix, matrix])
     assert (
         sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0)
         == sptensorInstance.mttkrp(K, 0)

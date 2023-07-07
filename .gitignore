@@ -12,3 +12,4 @@ htmlcov
 __pycache__
 .vs*
 TestResults
+.DS_Store
