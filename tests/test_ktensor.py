@@ -24,7 +24,7 @@ def sample_ktensor_2way():
 @pytest.fixture()
 def sample_ktensor_3way():
     rank = 2
-    shape = np.array([2, 3, 4])
+    shape = (2, 3, 4)
     vector = np.arange(1, rank * sum(shape) + 1).astype(float)
     weights = 2 * np.ones(rank).astype(float)
     vector_with_weights = np.concatenate((weights, vector), axis=0)
@@ -184,7 +184,8 @@ def test_ktensor_from_vector(sample_ktensor_3way):
 
     # error if the shape does not match the the number of data elements
     with pytest.raises(AssertionError) as excinfo:
-        K3 = ttb.ktensor.from_vector(data["vector"].T, data["shape"] + 7, False)
+        bad_shape = tuple(dim + 7 for dim in data["shape"])
+        K3 = ttb.ktensor.from_vector(data["vector"].T, bad_shape, False)
     assert "Input parameter 'data' is not the right length." in str(excinfo)
 
 
@@ -410,6 +411,11 @@ def test_ktensor_innerprod(sample_ktensor_2way):
         K.innerprod(K1)
     assert "Innerprod can only be computed for tensors of the same size" in str(excinfo)
 
+    # Wrong other type
+    with pytest.raises(ValueError) as excinfo:
+        K.innerprod(np.ones(K.shape))
+    assert "Unsupported type" in str(excinfo)
+
 
 def test_ktensor_isequal(sample_ktensor_2way):
     (data, K0) = sample_ktensor_2way
@@ -528,7 +534,7 @@ def test_ktensor_norm():
     assert pytest.approx(K1.norm(), 1e-8) == 9.797958971132712
 
     rank = 2
-    shape = np.array([2, 3, 4])
+    shape = (2, 3, 4)
     data = np.arange(1, rank * sum(shape) + 1)
     weights = 2 * np.ones(rank)
     weights_and_data = np.concatenate((weights, data), axis=0)
