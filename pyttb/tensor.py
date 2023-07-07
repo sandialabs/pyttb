@@ -752,7 +752,7 @@ class tensor:
         """
         return np.count_nonzero(self.data)
 
-    def norm(self) -> np.floating:
+    def norm(self) -> float:
         """
         Frobenius Norm of Tensor
 
@@ -765,7 +765,7 @@ class tensor:
         # default of np.linalg.norm is to vectorize the data and compute the vector
         # norm, which is equivalent to the Frobenius norm for multidimensional arrays.
         # However, the argument 'fro' only works for 1-D and 2-D arrays currently.
-        return np.linalg.norm(self.data)
+        return float(np.linalg.norm(self.data))
 
     def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """

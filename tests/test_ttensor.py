@@ -369,6 +369,9 @@ def test_ttensor_reconstruct(random_ttensor):
     with pytest.raises(ValueError):
         _ = ttensorInstance.reconstruct(1, [0, 1])
 
+    with pytest.raises(ValueError):
+        ttensorInstance.reconstruct(modes=np.array([1]))
+
 
 @pytest.mark.indevelopment
 def test_ttensor_nvecs(random_ttensor):
