@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Literal, Optional, Tuple, Union, overload
 
 import numpy as np
 import scipy.sparse.linalg
@@ -932,18 +932,13 @@ class ktensor:
             f"Unsupported type for inner product with ktensor. Received {type(other)}"
         )
 
-    def isequal(self, other):
+    def isequal(self, other) -> bool:
         """
         Equal comparator for :class:`pyttb.ktensor` objects.
 
         Parameters
         ----------
-        other: :class:`pyttb.ktensor`, required
-            :class:`pyttb.ktensor` with which to compare.
-
-        Returns
-        -------
-        :bool
+        other: :class:`pyttb.ktensor` with which to compare.
 
         Examples
         --------
@@ -965,22 +960,30 @@ class ktensor:
                 return False
         return True
 
-    def issymmetric(self, return_diffs=False):
+    @overload
+    def issymmetric(self, return_diffs: Literal[False]) -> bool:
+        ...
+
+    @overload
+    def issymmetric(self, return_diffs: Literal[True]) -> Tuple[bool, np.ndarray]:
+        ...
+
+    def issymmetric(
+        self, return_diffs: bool = False
+    ) -> Union[bool, Tuple[bool, np.ndarray]]:
         """
         Returns True if the :class:`pyttb.ktensor` is exactly symmetric for
         every permutation.
 
         Parameters
         ----------
-        return_diffs: bool, optional
-            If True, returns the matrix of the norm of the differences between
-            the factor matrices.
+        return_diffs: If True, returns the matrix of the norm of the differences
+            between the factor matrices.
 
         Returns
         -------
-        :bool
-        :class:`numpy.ndarray`, optional
-            Matrix of the norm of the differences between the factor matrices
+        Answer and optionally matrix of the norm of the differences
+        between the factor matrices
 
         Examples
         --------
@@ -1020,7 +1023,7 @@ class ktensor:
             return issym, diffs
         return issym
 
-    def mask(self, W):
+    def mask(self, W: Union[ttb.tensor, ttb.sptensor]) -> np.ndarray:
         """
         Extract :class:`pyttb.ktensor` values as specified by `W`, a
         :class:`pyttb.tensor` or :class:`pyttb.sptensor` containing
@@ -1030,11 +1033,11 @@ class ktensor:
 
         Parameters
         ----------
-        W: :class:`pyttb.tensor` or :class:`pyttb.sptensor`, required
+        W: Mask tensor to apply to ktensor.
 
         Returns
         -------
-        :class:`numpy.ndarray`
+        Extracted values.
 
         Examples
         --------
@@ -1073,7 +1076,7 @@ class ktensor:
             vals = vals + tmpvals
         return vals
 
-    def mttkrp(self, U, n):
+    def mttkrp(self, U: List[np.ndarray], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for :class:`pyttb.ktensor`.
 
@@ -1083,13 +1086,12 @@ class ktensor:
 
         Parameters
         ----------
-        U: :class:`list` of factor matrices, required
-        n: int, required
-            Multiply by all modes except n.
+        U: Factor matrices.
+        n: Multiply by all modes except n.
 
         Returns
         -------
-        :class:`numpy.ndarray`
+        Computed result.
 
         Examples
         --------
@@ -1121,14 +1123,10 @@ class ktensor:
         return self.factor_matrices[n] @ W
 
     @property
-    def ncomponents(self):
+    def ncomponents(self) -> int:
         """
         Number of components in the :class:`pyttb.ktensor` (i.e., number of
         columns in each factor matrix) of the :class:`pyttb.ktensor`.
-
-        Returns
-        -------
-        :int
 
         Examples
         --------
@@ -1139,14 +1137,10 @@ class ktensor:
         return len(self.weights)
 
     @property
-    def ndims(self):
+    def ndims(self) -> int:
         """
         Number of dimensions (i.e., number of factor matrices) of the
         :class:`pyttb.ktensor`.
-
-        Returns
-        -------
-        :int
 
         Examples
         --------
@@ -1156,14 +1150,10 @@ class ktensor:
         """
         return len(self.factor_matrices)
 
-    def norm(self):
+    def norm(self) -> float:
         """
         Compute the norm (i.e., square root of the sum of squares of entries)
         of a :class:`pyttb.ktensor`.
-
-        Returns
-        --------
-        :int
 
         Examples
         --------
@@ -1175,31 +1165,33 @@ class ktensor:
         coefMatrix = self.weights[:, None] @ self.weights[None, :]
         for f in self.factor_matrices:
             coefMatrix = coefMatrix * (f.T @ f)
-        return np.sqrt(np.abs(np.sum(coefMatrix)))
+        return float(np.sqrt(np.abs(np.sum(coefMatrix))))
 
-    def normalize(self, weight_factor=None, sort=False, normtype=2, mode=None):
+    def normalize(
+        self,
+        weight_factor: Optional[Union[int, Literal["all"]]] = None,
+        sort: Optional[bool] = False,
+        normtype: float = 2,
+        mode: Optional[int] = None,
+    ) -> Self:
         """
         Normalize the columns of the factor matrices of a
         :class:`pyttb.ktensor` in place.
 
         Parameters
         ----------
-        weight_factor: {"all", int}, optional
-            Absorb the weights into one or more factors. If "all", absorb
+        weight_factor: Absorb the weights into one or more factors. If "all", absorb
             weight equally across all factors. If `int`, absorb weight into a
             single dimension (value must be in range(self.ndims)).
-        sort: bool, optional
-            Sort the columns in descending order of the weights.
-        normtype: {non-negative int, -1, -2, np.inf, -np.inf}, optional
-            Order of the norm (see :func:`numpy.linalg.norm` for possible
+        sort: Sort the columns in descending order of the weights.
+        normtype: Order of the norm (see :func:`numpy.linalg.norm` for possible
             values).
-        mode: int, optional
-            Index of factor matrix to normalize. A value of `None` means
+        mode: Index of factor matrix to normalize. A value of `None` means
             normalize all factor matrices.
 
         Returns
         -------
-        :class:`pyttb.ktensor`
+        Self for chained operations.
 
         Examples
         --------
@@ -1259,7 +1251,7 @@ class ktensor:
             for i in range(self.ndims):
                 self.factor_matrices[i] = self.factor_matrices[i] @ D
             self.weights[:] = 1.0
-        elif weight_factor in range(self.ndims):
+        elif weight_factor is not None and weight_factor in range(self.ndims):
             # single factor
             self.factor_matrices[weight_factor] = self.factor_matrices[
                 weight_factor
@@ -1274,7 +1266,7 @@ class ktensor:
 
         return self
 
-    def nvecs(self, n, r, flipsign=True):
+    def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
         Compute the leading mode-n vectors for a :class:`pyttb.ktensor`.
 
@@ -1288,16 +1280,13 @@ class ktensor:
 
         Parameters
         ----------
-        n: int, required
-            Mode for tensor matricization.
-        r: int, required
-            Number of eigenvectors to compute and use.
-        flipsign: bool, optional
-            If True, make each column's largest element positive.
+        n: Mode for tensor matricization.
+        r: Number of eigenvectors to compute and use.
+        flipsign: If True, make each column's largest element positive.
 
         Returns
         -------
-        :class:`numpy.ndarray`
+        Computed eigenvectors.
 
         Examples
         --------
@@ -1343,7 +1332,7 @@ class ktensor:
                     v[:, i] *= -1
         return v
 
-    def permute(self, order):
+    def permute(self, order: np.ndarray) -> ktensor:
         """
         Permute :class:`pyttb.ktensor` dimensions.
 
@@ -1354,12 +1343,11 @@ class ktensor:
 
         Parameters
         ----------
-        order: :class:`numpy.ndarray`
-            Permutation of [0,...,self.ndimensions].
+        order: Permutation of [0,...,self.ndimensions].
 
         Returns
         -------
-        :class:`pyttb.ktensor`
+        Permuted :class:`pyttb.ktensor`.
 
         Examples
         --------
@@ -1397,15 +1385,18 @@ class ktensor:
 
         return ttb.ktensor([self.factor_matrices[i] for i in order], self.weights)
 
-    def redistribute(self, mode):
+    def redistribute(self, mode: int) -> Self:
         """
         Distribute weights of a :class:`pyttb.ktensor` to the specified mode.
         The redistribution is performed in place.
 
         Parameters
         ----------
-        mode: int
-            Must be value in [0,...self.ndims].
+        mode: Must be value in [0,...self.ndims].
+
+        Returns
+        -------
+        Self for chained operations.
 
         Example
         -------
@@ -1429,7 +1420,6 @@ class ktensor:
         Distribute weights of that :class:`pyttb.ktensor` to mode 0:
 
         >>> K.redistribute(0)
-        >>> print(K)
         ktensor of shape (2, 2)
         weights=[1. 1.]
         factor_matrices[0] =
@@ -1444,16 +1434,14 @@ class ktensor:
                 self.factor_matrices[mode][:, [r]] * self.weights[r]
             )
             self.weights[r] = 1
+        return self
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """Shape of a :class:`pyttb.ktensor`.
 
         Returns the lengths of all dimensions of the :class:`pyttb.ktensor`.
 
-        Returns
-        -------
-        :class:`tuple`
         """
         return tuple(f.shape[0] for f in self.factor_matrices)
 
