@@ -1583,7 +1583,7 @@ def test_tensor_mttkrp(sample_tensor_2way):
     fm1 = np.array([[5.0, 8.0], [6.0, 9.0], [7.0, 10.0]])
     fm2 = np.array([[11.0, 15.0], [12.0, 16.0], [13.0, 17.0], [14.0, 18.0]])
     factor_matrices = [fm0, fm1, fm2]
-    ktensorInstance = ttb.ktensor.from_data(weights, factor_matrices)
+    ktensorInstance = ttb.ktensor(factor_matrices, weights)
 
     m0 = np.array([[1800.0, 3564.0], [1800.0, 3564.0]])
     m1 = np.array([[300.0, 924.0], [300.0, 924.0], [300.0, 924.0]])

@@ -174,7 +174,7 @@ def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
     )
 
     # ttensr innerprod ktensor
-    ktensorInstance = ttb.ktensor.from_data(np.array([8.0]), [np.array([[1.0]])] * 3)
+    ktensorInstance = ttb.ktensor([np.array([[1.0]])] * 3, np.array([8.0]))
     assert ttensorInstance.innerprod(ktensorInstance) == ttensorInstance.double() ** 2
 
     # ttensor innerprod tensor (shape larger than core)

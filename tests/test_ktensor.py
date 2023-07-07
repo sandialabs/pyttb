@@ -17,7 +17,7 @@ def sample_ktensor_2way():
     fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
     data = {"weights": weights, "factor_matrices": factor_matrices}
-    ktensorInstance = ttb.ktensor.from_data(weights, factor_matrices)
+    ktensorInstance = ttb.ktensor(factor_matrices, weights)
     return data, ktensorInstance
 
 
@@ -41,7 +41,7 @@ def sample_ktensor_3way():
         "vector_with_weights": vector_with_weights,
         "shape": shape,
     }
-    ktensorInstance = ttb.ktensor.from_data(weights, factor_matrices)
+    ktensorInstance = ttb.ktensor(factor_matrices, weights)
     return data, ktensorInstance
 
 
@@ -56,88 +56,67 @@ def sample_ktensor_symmetric():
     )
     factor_matrices = [fm0, fm1]
     data = {"weights": weights, "factor_matrices": factor_matrices}
-    ktensorInstance = ttb.ktensor.from_data(weights, factor_matrices)
+    ktensorInstance = ttb.ktensor(factor_matrices, weights)
     return data, ktensorInstance
 
 
-@pytest.mark.indevelopment
-def test_ktensor_init():
+def test_ktensor_init(sample_ktensor_2way):
     empty = np.array([])
 
-    # No args
-    K0 = ttb.ktensor()
-    assert (K0.weights == empty).all()
-    assert K0.factor_matrices == []
+    # Input: none (empty ktensor)
+    K = ttb.ktensor()
+    assert (K.weights == empty).all()
+    assert K.factor_matrices == []
 
+    # Input: factor_matrices, weights
+    (data, K) = sample_ktensor_2way
+    K = ttb.ktensor(data["factor_matrices"], data["weights"])
+    assert (K.weights == data["weights"]).all()
+    assert (K.factor_matrices[0] == data["factor_matrices"][0]).all()
+    assert (K.factor_matrices[1] == data["factor_matrices"][1]).all()
 
-@pytest.mark.indevelopment
-def test_ktensor_from_tensor_type(sample_ktensor_2way):
-    (data, K0) = sample_ktensor_2way
-    K1 = ttb.ktensor.from_tensor_type(K0)
-    assert (K0.weights == K1.weights).all()
-    assert (K0.factor_matrices[0] == K1.factor_matrices[0]).all()
-    assert (K0.factor_matrices[1] == K1.factor_matrices[1]).all()
-    # won't work with instances other than ktensors
+    # Input: factor_matrices provided, weights = None
+    K = ttb.ktensor(data["factor_matrices"])
+    assert (K.weights == np.ones(2,)).all()
+    assert (K.factor_matrices[0] == data["factor_matrices"][0]).all()
+    assert (K.factor_matrices[1] == data["factor_matrices"][1]).all()
+
+    # Input: copy=True
+    K = ttb.ktensor(data["factor_matrices"], data["weights"])
+    K2 = ttb.ktensor(K.factor_matrices, K.weights, copy=True)
+    assert (not(K.weights is K2.weights))
+    assert (not(K.factor_matrices[0] is K2.factor_matrices[0]))
+    assert (not(K.factor_matrices[1] is K2.factor_matrices[1]))
+    
+    # Input: copy=False
+    K = ttb.ktensor(data["factor_matrices"], data["weights"])
+    K3 = ttb.ktensor(K.factor_matrices, K.weights, copy=False)
+    assert (K.weights is K3.weights)
+    assert (K.factor_matrices[0] is K3.factor_matrices[0])
+    assert (K.factor_matrices[1] is K3.factor_matrices[1])
+
+    # Errors
+    # Cannot specify weights and not factor_matrices
     with pytest.raises(AssertionError) as excinfo:
-        K2 = ttb.ktensor.from_tensor_type(np.ones((2, 2)))
-    assert "Cannot convert from <class 'numpy.ndarray'> to ktensor" in str(excinfo)
+        KE = ttb.ktensor(None, np.array([2., 1.]))
+    assert "factor_matrices cannot be None if weights are provided." in str(excinfo)
+
+    # 'factor_matrices' must be a list
+    with pytest.raises(AssertionError) as excinfo:
+        KE = ttb.ktensor(np.ones((2, 2)), np.array([2.]))
+    assert "Input 'factor_matrices' must be a list." in str(excinfo)
+
+    # each factor matrix should be a np.ndarray
+    with pytest.raises(AssertionError) as excinfo:
+        KE = ttb.ktensor([np.ones((2, 2)), np.ones((2, 2)).astype(int)], np.array([2., 1.]))
+    assert "Each item in 'factor_matrices' must be a numpy.ndarray object with dtype=float." in str(excinfo)
+
+    # the number of columns of all factor_matrices must be equal
+    with pytest.raises(AssertionError) as excinfo:
+        KE = ttb.ktensor([np.ones((2, 2)), np.ones((2, 1))], np.array([2., 1.]))
+    assert "The number of columns each item in 'factor_matrices' must be the same." in str(excinfo)
 
 
-@pytest.mark.indevelopment
-def test_ktensor_from_factor_matrices(sample_ktensor_2way):
-    (data, K0) = sample_ktensor_2way
-    K0 = ttb.ktensor.from_factor_matrices(data["factor_matrices"])
-    assert (K0.weights == np.ones(2)).all()
-    assert (K0.factor_matrices[0] == data["factor_matrices"][0]).all()
-    assert (K0.factor_matrices[1] == data["factor_matrices"][1]).all()
-
-    # Create ktensor with weights and multiple factor matrices as arguments
-    K1 = ttb.ktensor.from_factor_matrices(
-        data["factor_matrices"][0], data["factor_matrices"][1]
-    )
-    assert (K1.weights == np.ones(2)).all()
-    assert (K1.factor_matrices[0] == data["factor_matrices"][0]).all()
-    assert (K1.factor_matrices[1] == data["factor_matrices"][1]).all()
-
-
-@pytest.mark.indevelopment
-def test_ktensor_from_data(sample_ktensor_2way, capsys):
-    (data, K0) = sample_ktensor_2way
-    K0 = ttb.ktensor.from_data(data["weights"], data["factor_matrices"])
-    assert (K0.weights == data["weights"]).all()
-    assert (K0.factor_matrices[0] == data["factor_matrices"][0]).all()
-    assert (K0.factor_matrices[1] == data["factor_matrices"][1]).all()
-
-    # Create ktensor with weights and multiple factor matrices as arguments
-    K1 = ttb.ktensor.from_data(
-        data["weights"], data["factor_matrices"][0], data["factor_matrices"][1]
-    )
-    assert (K1.weights == data["weights"]).all()
-    assert (K1.factor_matrices[0] == data["factor_matrices"][0]).all()
-    assert (K1.factor_matrices[1] == data["factor_matrices"][1]).all()
-
-    # Weights that are int should be converted
-    weights_int = np.array([1, 2])
-    K2 = ttb.ktensor.from_data(weights_int, data["factor_matrices"])
-    out, err = capsys.readouterr()
-    assert (
-        "converting weights from int64 to float" in out
-        or "converting weights from int32 to float" in out
-    )
-
-    # Weights that are int should be converted
-    fm0 = np.array([[1, 2], [3, 4]])
-    fm1 = np.array([[5, 6], [7, 8]])
-    factor_matrices = [fm0, fm1]
-    K3 = ttb.ktensor.from_data(data["weights"], factor_matrices)
-    out, err = capsys.readouterr()
-    assert (
-        "converting factor_matrices[0] from int64 to float" in out
-        or "converting factor_matrices[0] from int32 to float" in out
-    )
-
-
-@pytest.mark.indevelopment
 def test_ktensor_from_function():
     K0 = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
     assert (K0.weights == np.array([1.0, 1.0])).all()
@@ -165,7 +144,6 @@ def test_ktensor_from_function():
     assert np.linalg.norm(K1.factor_matrices[2] - fm2) < 1e-8
 
 
-@pytest.mark.indevelopment
 def test_ktensor_from_vector(sample_ktensor_3way):
     (data, K0) = sample_ktensor_3way
 
@@ -197,12 +175,11 @@ def test_ktensor_from_vector(sample_ktensor_3way):
     assert "Input parameter 'data' is not the right length." in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_arrange(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
 
     # permutation only
-    K0 = ttb.ktensor.from_tensor_type(K)
+    K0 = K.copy()
     p = [1, 0]
     K0.arrange(permutation=p)
     assert (K0.weights == data["weights"][p]).all()
@@ -210,7 +187,7 @@ def test_ktensor_arrange(sample_ktensor_2way):
     assert (K0.factor_matrices[1] == data["factor_matrices"][1][:, p]).all()
 
     # normalize and arrange by sorting weights (default)
-    K1 = ttb.ktensor.from_tensor_type(K)
+    K1 = K.copy()
     K1.arrange()
     weights = np.array([89.4427191, 27.20294102])
     fm0 = np.array([[0.4472136, 0.31622777], [0.89442719, 0.9486833]])
@@ -236,7 +213,6 @@ def test_ktensor_arrange(sample_ktensor_2way):
     )
 
 
-@pytest.mark.indevelopment
 def test_ktensor_copy(sample_ktensor_2way):
     (data, K0) = sample_ktensor_2way
     K1 = K0.copy()
@@ -249,7 +225,6 @@ def test_ktensor_copy(sample_ktensor_2way):
     assert not (K0.weights[0] == K1.weights[0])
 
 
-@pytest.mark.indevelopment
 def test_ktensor_double(sample_ktensor_2way, sample_ktensor_3way):
     (data2, K2) = sample_ktensor_2way
     assert (K2.double() == np.array([[29.0, 39.0], [63.0, 85.0]])).all()
@@ -285,7 +260,6 @@ def test_ktensor_double(sample_ktensor_2way, sample_ktensor_3way):
     assert (K3.double() == A).all()
 
 
-@pytest.mark.indevelopment
 def test_ktensor_end(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
     assert K.end() == 23
@@ -294,7 +268,6 @@ def test_ktensor_end(sample_ktensor_3way):
     assert K.end(k=2) == 3
 
 
-@pytest.mark.indevelopment
 def test_ktensor_extract(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
     weights = data["weights"][[1]]
@@ -302,7 +275,7 @@ def test_ktensor_extract(sample_ktensor_3way):
     fm1 = data["factor_matrices"][1][:, [1]]
     fm2 = data["factor_matrices"][2][:, [1]]
     factor_matrices = [fm0, fm1, fm2]
-    K_new = ttb.ktensor.from_data(weights, factor_matrices)
+    K_new = ttb.ktensor(factor_matrices, weights)
 
     # int
     K_extracted = K.extract(1)
@@ -344,11 +317,10 @@ def test_ktensor_extract(sample_ktensor_3way):
     )
 
 
-@pytest.mark.indevelopment
 def test_ktensor_fixsigns(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
-    K1 = ttb.ktensor.from_tensor_type(K)
-    K2 = ttb.ktensor.from_tensor_type(K)
+    K1 = K.copy()
+    K2 = K.copy()
 
     # use same ktensor
     K1.factor_matrices[0][1, 1] = -K1.factor_matrices[0][1, 1]
@@ -380,8 +352,8 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
     assert "other must be a ktensor" in str(excinfo)
 
     # test odd number of vectors to flip
-    K = ttb.ktensor.from_data(
-        np.array([3, 2, 1]), np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))
+    K = ttb.ktensor(
+        [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))], np.array([3., 2., 1.])
     )
     K2 = K.copy()
     # one column to flip
@@ -393,7 +365,6 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
     K = K.fixsigns(K2)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
     (data, K2) = sample_ktensor_2way
     assert K2.full().isequal(
@@ -403,7 +374,6 @@ def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
     print(K3.full())
 
 
-@pytest.mark.indevelopment
 def test_ktensor_innerprod(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     assert K.innerprod(K) == 13556
@@ -411,14 +381,14 @@ def test_ktensor_innerprod(sample_ktensor_2way):
     # test with tensor
     Tdata = np.array([[1, 2], [3, 4]])
     Tshape = (2, 2)
-    T = ttb.tensor().from_data(Tdata, Tshape)
+    T = ttb.tensor.from_data(Tdata, Tshape)
     assert K.innerprod(T) == 636
 
     # test with sptensor
     Ssubs = np.array([[0, 0], [0, 1], [1, 1]])
     Svals = np.array([[0.5], [1.0], [1.5]])
     Sshape = (2, 2)
-    S = ttb.sptensor().from_data(Ssubs, Svals, Sshape)
+    S = ttb.sptensor.from_data(Ssubs, Svals, Sshape)
     assert K.innerprod(S) == 181
 
     # Wrong shape
@@ -428,28 +398,26 @@ def test_ktensor_innerprod(sample_ktensor_2way):
     assert "Innerprod can only be computed for tensors of the same size" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_isequal(sample_ktensor_2way):
     (data, K0) = sample_ktensor_2way
     # should be equal
-    K1 = ttb.ktensor.from_tensor_type(K0)
+    K1 = K0.copy()
     assert K0.isequal(K1)
     # ncomponents don't match
     K2 = ttb.ktensor.from_function(np.ones, (2, 2), 3)
     assert ~(K0.isequal(K2))
     # weights don't match
-    K3 = ttb.ktensor.from_tensor_type(K0)
+    K3 = K0.copy()
     K3.weights[0] = 10
     assert ~(K0.isequal(K3))
     # types don't match
     assert ~(K0.isequal(np.array([])))
     # factor_matrices don't match
-    K4 = ttb.ktensor.from_tensor_type(K0)
+    K4 = K0. copy()
     K4.factor_matrices[0] = np.zeros((2, 2))
     assert ~(K0.isequal(K4))
 
 
-@pytest.mark.indevelopment
 def test_ktensor_issymetric(sample_ktensor_2way, sample_ktensor_symmetric):
     # should not be symmetric
     (data, K) = sample_ktensor_2way
@@ -470,7 +438,6 @@ def test_ktensor_issymetric(sample_ktensor_2way, sample_ktensor_symmetric):
     assert (diffs2 == np.array([[0.0, np.inf], [0.0, 0]])).all()
 
 
-@pytest.mark.indevelopment
 def test_ktensor_mask(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     W = ttb.tensor.from_data(np.array([[0, 1], [1, 0]]))
@@ -482,7 +449,6 @@ def test_ktensor_mask(sample_ktensor_2way):
     assert "Mask cannot be bigger than the data tensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_mttkrp(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
     K1 = ttb.ktensor.from_function(np.ones, (2, 3, 4), 4)
@@ -529,13 +495,11 @@ def test_ktensor_mttkrp(sample_ktensor_3way):
     assert "Second argument must be list of numpy.ndarray's" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_ncomponents(sample_ktensor_2way):
     (data, K0) = sample_ktensor_2way
     assert K0.ncomponents == 2
 
 
-@pytest.mark.indevelopment
 def test_ktensor_ndims(sample_ktensor_2way, sample_ktensor_3way):
     (data, K0) = sample_ktensor_2way
     assert K0.ndims == 2
@@ -543,7 +507,6 @@ def test_ktensor_ndims(sample_ktensor_2way, sample_ktensor_3way):
     assert K1.ndims == 3
 
 
-@pytest.mark.indevelopment
 def test_ktensor_norm():
     K0 = ttb.ktensor.from_function(np.zeros, (2, 3, 4), 2)
     assert pytest.approx(K0.norm(), 1e-8) == 0
@@ -560,14 +523,13 @@ def test_ktensor_norm():
     assert pytest.approx(K2.norm(), 1e-8) == 6.337788257744180e03
 
 
-@pytest.mark.indevelopment
 def test_ktensor_normalize(sample_ktensor_2way, sample_ktensor_3way):
     # get data and make several copies, so that all ktensor tests use the same data, as normalize computes in place
     data0, K0 = sample_ktensor_3way
-    K1 = ttb.ktensor.from_tensor_type(K0)
-    K2 = ttb.ktensor.from_tensor_type(K0)
-    K3 = ttb.ktensor.from_tensor_type(K0)
-    K4 = ttb.ktensor.from_tensor_type(K0)
+    K1 = K0.copy()
+    K2 = K0.copy()
+    K3 = K0.copy()
+    K4 = K0.copy()
 
     # normalize a single mode
     mode = 1
@@ -724,7 +686,6 @@ def test_ktensor_normalize(sample_ktensor_2way, sample_ktensor_3way):
     assert np.allclose(K5.factor_matrices[1], fm1)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_nvecs(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
 
@@ -783,12 +744,11 @@ def test_ktensor_nvecs(sample_ktensor_3way):
     K.nvecs(1, 3)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_permute(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
     order = np.array([2, 0, 1])
     fm = [data["factor_matrices"][i] for i in order]
-    K0 = ttb.ktensor.from_data(data["weights"], fm)
+    K0 = ttb.ktensor(fm, data["weights"])
     assert K0.isequal(K.permute(order))
 
     # invalid permutation
@@ -798,7 +758,6 @@ def test_ktensor_permute(sample_ktensor_3way):
     assert "Invalid permutation" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_redistribute(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     K.redistribute(0)
@@ -807,15 +766,12 @@ def test_ktensor_redistribute(sample_ktensor_2way):
     assert (np.array([1, 1]) == K.weights).all()
 
 
-pytest.mark.indevelopment
-
-
 def test_ktensor_score():
-    A = ttb.ktensor.from_data(
-        np.array([2, 1, 3]), np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))
+    A = ttb.ktensor(
+        [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))], np.array([2., 1., 3.])
     )
-    B = ttb.ktensor.from_data(
-        np.array([2, 4]), np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))
+    B = ttb.ktensor(
+        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 4.])
     )
 
     # defaults
@@ -833,11 +789,11 @@ def test_ktensor_score():
     assert (best_perm == np.array([0, 1, 2])).all()
 
     # zero lambda values lead to equal components
-    A0 = ttb.ktensor.from_data(
-        np.array([2, 0]), np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))
+    A0 = ttb.ktensor(
+       [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 0.])
     )
-    B0 = ttb.ktensor.from_data(
-        np.array([2, 0]), np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))
+    B0 = ttb.ktensor(
+        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 0.])
     )
     score, Aperm, flag, best_perm = A0.score(B0)
     assert score == 1.0
@@ -851,14 +807,14 @@ def test_ktensor_score():
 
     # try to compute score with tensor type other than ktensor
     with pytest.raises(AssertionError) as excinfo:
-        score, Aperm, flag, best_perm = A.score(ttb.tensor.from_tensor_type(B))
+        score, Aperm, flag, best_perm = A.score(B.full())
     assert "The first input should be a ktensor" in str(excinfo)
 
     # try to compute score when ktensor dimensions do not match
     with pytest.raises(AssertionError) as excinfo:
         # A is 3x4x5; B is 3x4x4
-        B = ttb.ktensor.from_data(
-            np.array([2, 4]), np.ones((3, 2)), np.ones((4, 2)), np.ones((4, 2))
+        B = ttb.ktensor(
+            [np.ones((3, 2)), np.ones((4, 2)), np.ones((4, 2))], np.array([2., 4.])
         )
         score, Aperm, flag, best_perm = A.score(B)
     assert "Size mismatch" in str(excinfo)
@@ -866,14 +822,11 @@ def test_ktensor_score():
     # invalid: number of compnents of first ktensor must be greater than or
     # equal to number of components of second ktensor
     with pytest.raises(AssertionError) as excinfo:
-        B = ttb.ktensor.from_data(
-            np.array([2, 4]), np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))
+        B = ttb.ktensor(
+            [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 4.])
         )
         score, Aperm, flag, best_perm = B.score(A)
     assert "Tensor A must have at least as many components as tensor B" in str(excinfo)
-
-
-pytest.mark.indevelopment
 
 
 def test_ktensor_shape(sample_ktensor_2way, sample_ktensor_3way):
@@ -893,7 +846,6 @@ def test_ktensor_shape(sample_ktensor_2way, sample_ktensor_3way):
     assert "tuple index out of range" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_symmetrize(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     K1 = K.symmetrize()
@@ -911,7 +863,7 @@ def test_ktensor_symmetrize(sample_ktensor_2way):
     fm0 = np.ones((4, 3))
     fm1 = np.ones((4, 3))
     fm2 = -np.ones((4, 3))
-    K2 = ttb.ktensor.from_data(weights, [fm0, fm1, fm2])
+    K2 = ttb.ktensor([fm0, fm1, fm2], weights)
     K3 = K2.symmetrize()
     out_fm = np.array(
         [
@@ -928,7 +880,6 @@ def test_ktensor_symmetrize(sample_ktensor_2way):
     assert K3.issymmetric()
 
 
-@pytest.mark.indevelopment
 def test_ktensor_tolist(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
 
@@ -960,7 +911,7 @@ def test_ktensor_tolist(sample_ktensor_3way):
     assert np.allclose(fm0[2], m2)
 
     # weights are all 1
-    K1 = ttb.ktensor.from_factor_matrices(fm0)
+    K1 = ttb.ktensor(fm0)
     fm0_tolist = K1.tolist()
     for i in range(len(fm0)):
         assert np.allclose(fm0[i], fm0_tolist[i])
@@ -998,14 +949,12 @@ def test_ktensor_tolist(sample_ktensor_3way):
     assert "Input parameter'mode' must be in the range of self.ndims" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor_tovec(sample_ktensor_3way):
     (data, K0) = sample_ktensor_3way
     assert (data["vector_with_weights"] == K0.tovec()).all()
     assert (data["vector"] == K0.tovec(include_weights=False)).all()
 
 
-@pytest.mark.indevelopment
 def test_ktensor_ttv(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
     K0 = K.ttv(np.array([1, 1, 1]), dims=1)
@@ -1013,7 +962,7 @@ def test_ktensor_ttv(sample_ktensor_3way):
     fm0 = np.array([[1.0, 3.0], [2.0, 4.0]])
     fm1 = np.array([[11.0, 15.0], [12.0, 16.0], [13.0, 17.0], [14.0, 18.0]])
     factor_matrices = [fm0, fm1]
-    K1 = ttb.ktensor.from_data(weights, factor_matrices)
+    K1 = ttb.ktensor(factor_matrices, weights)
     assert K0.isequal(K1)
 
     # Empty dims requires that # vectors == # dimensions
@@ -1035,16 +984,15 @@ def test_ktensor_ttv(sample_ktensor_3way):
     # Multiple dimensions, but fewer than all dimensions, not in same order as ktensor dimensions
     K2 = K.ttv([vec4, vec3], dims=np.array([2, 1]))
     weights = np.array([1800.0, 3564.0])
-    fm0 = np.array([[1.0, 3.0], [2.0, 4.0]])
-    assert K2.isequal(ttb.ktensor.from_data(weights, fm0))
+    fm0 = [np.array([[1.0, 3.0], [2.0, 4.0]])]
+    assert K2.isequal(ttb.ktensor(fm0, weights))
 
 
-@pytest.mark.indevelopment
 def test_ktensor_update(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
 
     # single factor matrix updates
-    K1 = ttb.ktensor.from_tensor_type(K)
+    K1 = K.copy()
     vec0 = np.random.randn(K.shape[0] * K.ncomponents)
     vec1 = np.random.randn(K.shape[1] * K.ncomponents)
     vec2 = np.random.randn(K.shape[2] * K.ncomponents)
@@ -1056,7 +1004,7 @@ def test_ktensor_update(sample_ktensor_3way):
     assert (K1.factor_matrices[2] == vec2.reshape((K1.shape[2], K1.ncomponents))).all()
 
     # all factor matrix updates
-    K2 = ttb.ktensor.from_tensor_type(K)
+    K2 = K.copy()
     vec_all = np.concatenate((vec0, vec1, vec2))
     K2.update([0, 1, 2], vec_all)
     assert (K2.factor_matrices[0] == vec0.reshape((K2.shape[0], K2.ncomponents))).all()
@@ -1064,7 +1012,7 @@ def test_ktensor_update(sample_ktensor_3way):
     assert (K2.factor_matrices[2] == vec2.reshape((K2.shape[2], K2.ncomponents))).all()
 
     # multiple but not all factor matrix updates
-    K3 = ttb.ktensor.from_tensor_type(K)
+    K3 = K.copy()
     vec_some = np.concatenate((vec0, vec2))
     K3.update([0, 2], vec_some)
     assert (K3.factor_matrices[0] == vec0.reshape((K3.shape[0], K3.ncomponents))).all()
@@ -1102,7 +1050,6 @@ def test_ktensor_update(sample_ktensor_3way):
     assert "Failed to consume all of the input data" in str(record[0].message)
 
 
-@pytest.mark.indevelopment
 def test_ktensor__add__(sample_ktensor_2way, sample_ktensor_3way):
     (data0, K0) = sample_ktensor_2way
     (data1, K1) = sample_ktensor_3way
@@ -1134,7 +1081,6 @@ def test_ktensor__add__(sample_ktensor_2way, sample_ktensor_3way):
     assert "Cannot add instance of this type to a ktensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor__getitem__(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     # adding ktensor to itself
@@ -1157,7 +1103,6 @@ def test_ktensor__getitem__(sample_ktensor_2way):
     )
 
 
-@pytest.mark.indevelopment
 def test_ktensor__neg__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
     # adding ktensor to itself
@@ -1169,7 +1114,6 @@ def test_ktensor__neg__(sample_ktensor_2way):
     assert K2.isequal(K0)
 
 
-@pytest.mark.indevelopment
 def test_ktensor__pos__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
     # adding ktensor to itself
@@ -1180,7 +1124,6 @@ def test_ktensor__pos__(sample_ktensor_2way):
     assert K1.isequal(K0)
 
 
-@pytest.mark.indevelopment
 def test_ktensor__setitem__(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     # adding ktensor to itself
@@ -1192,7 +1135,6 @@ def test_ktensor__setitem__(sample_ktensor_2way):
     )
 
 
-@pytest.mark.indevelopment
 def test_ktensor__sub__(sample_ktensor_2way, sample_ktensor_3way):
     (data0, K0) = sample_ktensor_2way
     (data1, K1) = sample_ktensor_3way
@@ -1223,7 +1165,6 @@ def test_ktensor__sub__(sample_ktensor_2way, sample_ktensor_3way):
     assert "Cannot subtract instance of this type from a ktensor" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     (data0, K0) = sample_ktensor_2way
     K1 = 2 * K0
@@ -1244,7 +1185,7 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     # test with tensor
     Tdata = np.array([[1, 2], [3, 4]])
     Tshape = (2, 2)
-    T = ttb.tensor().from_data(Tdata, Tshape)
+    T = ttb.tensor.from_data(Tdata, Tshape)
     K0T = K0 * T
     assert (K0T.double() == np.array([[29.0, 78.0], [189.0, 340.0]])).all()
 
@@ -1252,13 +1193,12 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     Ssubs = np.array([[0, 0], [0, 1], [1, 1]])
     Svals = np.array([[0.5], [1.0], [1.5]])
     Sshape = (2, 2)
-    S = ttb.sptensor().from_data(Ssubs, Svals, Sshape)
+    S = ttb.sptensor.from_data(Ssubs, Svals, Sshape)
     K0S = S * K0
     assert (K0S.double() == np.array([[14.5, 39.0], [0.0, 127.5]])).all()
 
 
-@pytest.mark.indevelopment
 def test_ktensor__str__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
-    s = """ktensor of shape 2 x 2\nweights=[1. 2.]\nfactor_matrices[0] =\n[[1. 2.]\n [3. 4.]]\nfactor_matrices[1] =\n[[5. 6.]\n [7. 8.]]"""
+    s = """ktensor of shape (2, 2)\nweights=[1. 2.]\nfactor_matrices[0] =\n[[1. 2.]\n [3. 4.]]\nfactor_matrices[1] =\n[[5. 6.]\n [7. 8.]]"""
     assert K0.__str__() == s
