@@ -4,6 +4,8 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
+from typing import Literal, Optional, Tuple, Union
+
 import numpy as np
 
 import pyttb as ttb
@@ -27,7 +29,13 @@ class tenmat:
         self.data = np.array([])
 
     @classmethod
-    def from_data(cls, data, rdims, cdims=None, tshape=None):
+    def from_data(
+        cls,
+        data: np.ndarray,
+        rdims: np.ndarray,
+        cdims: Optional[np.ndarray] = None,
+        tshape: Optional[Tuple[int, ...]] = None,
+    ) -> tenmat:
         """
         Creates a tenmat from explicit description.
 
@@ -53,7 +61,9 @@ class tenmat:
         # data is empty, return empty tenmat unless rdims, cdims, or tshape are
         # not empty
         if data.size == 0:
-            if not rdims.size == 0 or not cdims.size == 0 or not tshape == ():
+            cdims_empty = cdims is None or not cdims.size == 0
+            tshape_empty = tshape is None or tshape == ()
+            if not rdims.size == 0 or cdims_empty or not tshape_empty:
                 assert (
                     False
                 ), "When data is empty, rdims, cdims, and tshape must also be empty."
@@ -99,7 +109,13 @@ class tenmat:
 
     @classmethod
     # pylint: disable=too-many-branches
-    def from_tensor_type(cls, source, rdims=None, cdims=None, cdims_cyclic=None):
+    def from_tensor_type(
+        cls,
+        source: Union[ttb.tensor, tenmat],
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"]]] = None,
+    ):
         """
         Converts other tensor types into a tenmat
 
@@ -165,6 +181,9 @@ class tenmat:
             elif rdims is None and cdims is not None:
                 rdims = np.setdiff1d(alldims, cdims)
 
+            # Making typing happy
+            assert rdims is not None
+            assert cdims is not None
             # if rdims or cdims is empty, hstack will output an array of float not int
             if rdims.size == 0:
                 dims = cdims.copy()
@@ -193,7 +212,7 @@ class tenmat:
             f"Can only create tenmat from tensor or tenmat but recieved {type(source)}"
         )
 
-    def ctranspose(self):
+    def ctranspose(self) -> tenmat:
         """
         Complex conjugate transpose for tenmat.
 
@@ -212,18 +231,17 @@ class tenmat:
         tenmatInstance.data = self.data.conj().T.copy()
         return tenmatInstance
 
-    def double(self):
+    def double(self) -> np.ndarray:
         """
         Convert tenmat to an array of doubles
 
         Returns
         -------
-        :class:`numpy.ndarray`
-            copy of tenmat data
+        Copy of tenmat data.
         """
         return self.data.astype(np.float_).copy()
 
-    def end(self, k):
+    def end(self, k: int) -> int:
         """
         Last index of indexing expression for tenmat
 
@@ -234,35 +252,18 @@ class tenmat:
 
         Returns
         -------
-        int: index
+        Index
         """
 
         return self.data.shape[k] - 1
 
     @property
-    def ndims(self):
-        """
-        Return the number of dimensions of a tenmat
-
-        Returns
-        -------
-        int
-        """
+    def ndims(self) -> int:
+        """Return the number of dimensions of a tenmat"""
         return len(self.shape)
 
-    def norm(self):
-        """
-        Frobenius norm of a tenmat.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        Returns
-        -------
-        float
-        """
+    def norm(self) -> float:
+        """Frobenius norm of a tenmat."""
         # default of np.linalg.norm is to vectorize the data and compute the vector
         # norm, which is equivalent to the Frobenius norm for multidimensional arrays.
         # However, the argument 'fro' only workks for 1-D and 2-D
@@ -270,14 +271,8 @@ class tenmat:
         return float(np.linalg.norm(self.data))
 
     @property
-    def shape(self):
-        """
-        Return the shape of a tenmat
-
-        Returns
-        -------
-        tuple
-        """
+    def shape(self) -> Tuple[int, ...]:
+        """Return the shape of a tenmat"""
         if self.data.shape == (0,):
             return ()
         return self.data.shape
