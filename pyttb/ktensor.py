@@ -1897,7 +1897,7 @@ class ktensor(object):
 
         >>> K2 = K.ttv([vec4, vec3],np.array([2, 1]))
         >>> print(K2)
-        ktensor of shape (2)
+        ktensor of shape (2,)
         weights=[1800. 3564.]
         factor_matrices[0] =
         [[1. 3.]
@@ -2294,14 +2294,8 @@ class ktensor(object):
         -------
         str:
         """
-        s = ""
-        s += "ktensor of shape "
-        s += "("
-        s += (", ").join([str(int(d)) for d in self.shape])
-        s += ")"
-        s += "\n"
-        s += "weights="
-        s += str(self.weights)
+        s = f"ktensor of shape {self.shape}\n"
+        s += f"weights={str(self.weights)}"
         if len(self.shape) == 0:
             s += "\nfactor_matrices=[]"
         else:
