@@ -47,6 +47,9 @@ packages = ["pyttb"]
 [tool.setuptools.dynamic]
 version = {attr = "pyttb.__version__"}
 
+[tool.setuptools.package-data]
+"pyttb" = ["py.typed"]
+
 [build-system]
 requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
