@@ -7,7 +7,17 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import Callable, List, Literal, Optional, Tuple, Union, overload
+from typing import (
+    Callable,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+    overload,
+)
 
 import numpy as np
 import scipy.sparse.linalg
@@ -962,11 +972,11 @@ class ktensor:
 
     @overload
     def issymmetric(self, return_diffs: Literal[False]) -> bool:
-        ...
+        ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
     def issymmetric(self, return_diffs: Literal[True]) -> Tuple[bool, np.ndarray]:
-        ...
+        ...  # pragma: no cover see coveragepy/issues/970
 
     def issymmetric(
         self, return_diffs: bool = False
@@ -1446,7 +1456,13 @@ class ktensor:
         return tuple(f.shape[0] for f in self.factor_matrices)
 
     # pylint: disable=unused-argument,too-many-locals
-    def score(self, other, weight_penalty=True, threshold=0.99, greedy=True):
+    def score(
+        self,
+        other: ktensor,
+        weight_penalty: bool = True,
+        threshold: float = 0.99,
+        greedy: bool = True,
+    ) -> Tuple[float, ktensor, bool, np.ndarray]:
         """
         Checks if two :class:`pyttb.ktensor` instances with the same shapes
         but potentially different number of components match except for
@@ -1472,28 +1488,20 @@ class ktensor:
 
         Parameters
         ----------
-        other: :class:`pyttb.ktensor`, required
-            :class:`pyttb.ktensor` with which to match.
-        weight_penalty: bool, optional
-            Flag indicating whether or not to consider the weights in the
+        other: :class:`pyttb.ktensor` with which to match.
+        weight_penalty: Flag indicating whether or not to consider the weights in the
             calculations.
-        threshold: float, optional
-            Threshold specified in the formula above for determining a match.
-        greedy: bool, optional
-            Flag indicating whether or not to consider all possible matchings
+        threshold: Threshold specified in the formula above for determining a match.
+        greedy: Flag indicating whether or not to consider all possible matchings
             (exponentially expensive) or just do a greedy matching.
 
         Returns
         -------
-        int
-            Score (between 0 and 1).
-        :class:`pyttb.ktensor`
-            Copy of `self`, which has been normalized and permuted to best match
+        Score (between 0 and 1).
+        Copy of `self`, which has been normalized and permuted to best match
             `other`.
-        bool
-            Flag indicating a match according to a user-specified threshold.
-        :class:`numpy.ndarray`
-            Permutation (i.e. array of indices of the modes of self) of the
+        Flag indicating a match according to a user-specified threshold.
+        Permutation (i.e. array of indices of the modes of self) of the
             components of `self` that was used to best match `other`.
 
         Examples
@@ -1554,7 +1562,8 @@ class ktensor:
             Cbig[:, :, n] = np.abs(A.factor_matrices[n].T @ B.factor_matrices[n])
 
         # Collapse across all modes using the product
-        C = Cbig.collapse(np.array([2]), np.prod).double()
+        collapsed = cast(ttb.ttensor, Cbig.collapse(np.array([2]), np.prod))
+        C = collapsed.double()
 
         # Calculate penalty based on differences in the weights
         # Note that we are assuming the the weights are positive because the
@@ -1577,7 +1586,7 @@ class ktensor:
         # Option to do greedy matching
         if greedy:
             best_perm = -1 * np.ones((RA), dtype=int)
-            best_score = 0
+            best_score = 0.0
             for _ in range(RB):
                 idx = np.argmax(C.reshape(np.prod(C.shape), order="F"))
                 ij = tt_ind2sub((RA, RB), np.array(idx))
@@ -1586,7 +1595,7 @@ class ktensor:
                 C[:, ij[1]] = -10
                 best_perm[ij[1]] = ij[0]
             best_score = best_score / RB
-            flag = 1
+            flag = True
 
             # Rearrange the components of A according to the best matching
             # pylint: disable=disallowed-name
@@ -1597,7 +1606,7 @@ class ktensor:
             return best_score, A, flag, best_perm
         raise ValueError("Unsupported score option")  # pragma: no cover
 
-    def symmetrize(self):
+    def symmetrize(self) -> ktensor:
         """
         Symmetrize a :class:`pyttb.ktensor` in all modes.
 
@@ -1643,9 +1652,9 @@ class ktensor:
          [4.5960... 8.0124...]]
         """
         # Check tensor dimensions for compatibility with symmetrization
-        assert (
-            self.shape == self.shape[0] * np.ones(self.ndims)
-        ).all(), "Tensor is not cubic -- cannot be symmetrized"
+        assert np.array_equal(
+            self.shape, self.shape[0] * np.ones(self.ndims)
+        ), "Tensor is not cubic -- cannot be symmetrized"
 
         # Distribute lambda evenly into factors
         K = self.copy()
@@ -1674,7 +1683,7 @@ class ktensor:
 
         return ttb.ktensor([V.copy() for i in range(K.ndims)], weights)
 
-    def tolist(self, mode=None):
+    def tolist(self, mode: Optional[int] = None) -> List[np.ndarray]:
         """
         Convert :class:`pyttb.ktensor` to a list of factor matrices, evenly
         distributing the weights across factors. Optionally absorb the
@@ -1682,12 +1691,11 @@ class ktensor:
 
         Parameters
         ----------
-        mode: int, optional
-            Index of factor matrix to absorb all of the weights.
+        mode: Index of factor matrix to absorb all of the weights.
 
         Returns
         -------
-        :class:`list` of :class:`numpy.ndarray`
+        Distributed factor matrices.
 
         Examples
         --------
@@ -1746,23 +1754,21 @@ class ktensor:
             factor_matrices[n] = factor_matrices[n] @ D
         return factor_matrices
 
-    def tovec(self, include_weights=True):
+    def tovec(self, include_weights: bool = True) -> np.ndarray:
         """
         Convert :class:`pyttb.ktensor` to column vector. Optionally include
         or exclude the weights.
 
         Parameters
         ----------
-        include_weights: bool, optional
-            Flag to specify whether or not to include weights in output.
+        include_weights: Flag to specify whether or not to include weights in output.
 
         Returns
         -------
-        :class:`numpy.ndarray`
-            The length of the column vector is
-            (sum(self.shape)+1)*self.ncomponents. The vector contains the
-            weights (if requested) stacked on top of each of the columns of
-            the factor_matrices in order.
+        The length of the column vector is
+        (sum(self.shape)+1)*self.ncomponents. The vector contains the
+        weights (if requested) stacked on top of each of the columns of
+        the factor_matrices in order.
 
         Examples
         --------
@@ -1825,7 +1831,12 @@ class ktensor:
 
         return x
 
-    def ttv(self, vector, dims=None, exclude_dims=None):
+    def ttv(
+        self,
+        vector: Union[List[np.ndarray], np.ndarray],
+        dims: Optional[Union[int, np.ndarray]] = None,
+        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+    ) -> Union[float, ktensor]:
         """
         Tensor times vector for a :class:`pyttb.ktensor`.
 
@@ -1921,7 +1932,11 @@ class ktensor:
 
         # Check vector is a list of vectors
         # if not place single vector as element in list
-        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if (
+            len(vector) > 0
+            and isinstance(vector, np.ndarray)
+            and isinstance(vector[0], (int, float, np.int_, np.float_))
+        ):
             return self.ttv([vector], dims)
 
         # Get sorted dims and index for multiplicands
@@ -1949,7 +1964,7 @@ class ktensor:
             factor_matrices.append(self.factor_matrices[i])
         return ttb.ktensor(factor_matrices, new_weights, copy=False)
 
-    def update(self, modes, data):
+    def update(self, modes: Union[int, Iterable[int]], data: np.ndarray) -> Self:
         """
         Updates a :class:`pyttb.ktensor` in the specific dimensions with the
         values in `data` (in vector or matrix form). The value of `modes` must
@@ -1964,12 +1979,11 @@ class ktensor:
             the first element of the list is -1, then update the weights. All
             other integer values values must be sorted and in
             [0,...,self.ndims].
-        data: :class:`numpy.ndarray`, required
-            Data values to use in the update.
+        data: Data values to use in the update.
 
-        Results
+        Returns
         -------
-        :class:`pyttb.ktensor`
+        Self for chained operations.
 
         Examples
         --------
