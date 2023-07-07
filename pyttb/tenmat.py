@@ -1,12 +1,12 @@
+"""Matricized Tensor Representation"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 import numpy as np
 
 import pyttb as ttb
-
-from .pyttb_utils import *
 
 
 class tenmat:
@@ -17,7 +17,7 @@ class tenmat:
 
     def __init__(self):
         """
-        TENSOR Create empty tensor.
+        Create empty tenmat.
         """
 
         # Case 0a: Empty Contructor
@@ -28,6 +28,20 @@ class tenmat:
 
     @classmethod
     def from_data(cls, data, rdims, cdims=None, tshape=None):
+        """
+        Creates a tenmat from explicit description.
+
+        Parameters
+        ----------
+        data: Tensor source data
+        rdims:
+        cdims:
+        tshape:
+
+        Returns
+        -------
+        Constructed tenmat
+        """
         # CONVERT A MULTIDIMENSIONAL ARRAY
 
         # Verify that data is a numeric numpy.ndarray
@@ -36,7 +50,8 @@ class tenmat:
         ):
             assert False, "First argument must be a numeric numpy.ndarray."
 
-        # data is empty, return empty tenmat unless rdims, cdims, or tshape are not empty
+        # data is empty, return empty tenmat unless rdims, cdims, or tshape are
+        # not empty
         if data.size == 0:
             if not rdims.size == 0 or not cdims.size == 0 or not tshape == ():
                 assert (
@@ -65,9 +80,10 @@ class tenmat:
 
         # check that data.shape and tshape agree
         if not np.prod(data.shape) == np.prod(tshape):
-            assert (
-                False
-            ), "Incorrect dimensions specified: products of data.shape and tuple do not match"
+            assert False, (
+                "Incorrect dimensions specified: products of data.shape and tuple do "
+                "not match"
+            )
 
         # check that data.shape and product of dimensions agree
         if not np.prod(np.array(tshape)[rdims]) * np.prod(
@@ -83,6 +99,20 @@ class tenmat:
 
     @classmethod
     def from_tensor_type(cls, source, rdims=None, cdims=None, cdims_cyclic=None):
+        """
+        Converts other tensor types into a tenmat
+
+        Parameters
+        ----------
+        source: Tensor type to create dense tensor from
+        rdims:
+        cdims:
+        cdims_cyclic:
+
+        Returns
+        -------
+        Constructed tenmat
+        """
         # Case 0b: Copy Contructor
         if isinstance(source, tenmat):
             # Create tenmat
@@ -123,9 +153,10 @@ class tenmat:
                             + [i for i in range(n - 1, rdims[0], -1)]
                         )
                     else:
-                        assert (
-                            False
-                        ), 'Unrecognized value for cdims_cyclic pattern, must be "fc" or "bc".'
+                        assert False, (
+                            'Unrecognized value for cdims_cyclic pattern, must be '
+                            '"fc" or "bc".'
+                        )
 
                 else:
                     # Multiple row mapping
@@ -142,9 +173,10 @@ class tenmat:
             else:
                 dims = np.hstack([rdims, cdims])
             if not len(dims) == n or not (alldims == np.sort(dims)).all():
-                assert (
-                    False
-                ), "Incorrect specification of dimensions, the sorted concatenation of rdims and cdims must be range(source.ndims)."
+                assert False, (
+                    "Incorrect specification of dimensions, the sorted concatenation "
+                    "of rdims and cdims must be range(source.ndims)."
+                )
 
             rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
             cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
@@ -228,10 +260,11 @@ class tenmat:
         -------
         float
         """
-        # default of np.linalg.norm is to vectorize the data and compute the vector norm, which is equivalent to
-        # the Frobenius norm for multidimensional arrays. However, the argument 'fro' only workks for 1-D and 2-D
+        # default of np.linalg.norm is to vectorize the data and compute the vector
+        # norm, which is equivalent to the Frobenius norm for multidimensional arrays.
+        # However, the argument 'fro' only workks for 1-D and 2-D
         # arrays currently.
-        return np.linalg.norm(self.data)
+        return float(np.linalg.norm(self.data))
 
     @property
     def shape(self):
@@ -288,9 +321,10 @@ class tenmat:
         elif isinstance(other, tenmat):
             # Check that data shapes are compatible
             if not self.shape[1] == other.shape[0]:
-                assert (
-                    False
-                ), "tenmat shape mismatch: number or columns of left operand must match number of rows of right operand."
+                assert False, (
+                    "tenmat shape mismatch: number or columns of left operand must "
+                    "match number of rows of right operand."
+                )
 
             tshape = tuple(
                 np.hstack(
@@ -332,7 +366,6 @@ class tenmat:
         return self.__mul__(other)
 
     def __add__(self, other):
-        pass
         """
         Binary addition (+) for tenmats
 
@@ -376,7 +409,6 @@ class tenmat:
         return self.__add__(other)
 
     def __sub__(self, other):
-        pass
         """
         Binary subtraction (-) for tenmats
 
@@ -470,7 +502,8 @@ class tenmat:
         Returns
         -------
         str
-            Contains the shape, row indices (rindices), column indices (cindices) and data as strings on different lines.
+            Contains the shape, row indices (rindices), column indices (cindices) and
+            data as strings on different lines.
         """
         s = ""
         s += "matrix corresponding to a tensor of shape "
