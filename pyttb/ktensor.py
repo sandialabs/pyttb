@@ -370,12 +370,12 @@ class ktensor:
 
         # extract factor matrices
         factor_matrices = []
-        for n in range(len(shape)):
+        for n, shape_n in enumerate(shape):
             mstart = num_components * sum(shape[0:n]) + shift
             mend = num_components * sum(shape[0 : n + 1]) + shift
             # the following will match MATLAB output
             factor_matrix = np.reshape(
-                data[mstart:mend].copy(), (shape[n], num_components), order="F"
+                data[mstart:mend].copy(), (shape_n, num_components), order="F"
             )
             factor_matrices.append(factor_matrix)
 
@@ -684,9 +684,9 @@ class ktensor:
             else:
                 # check that all requested component indices are valid
                 invalid_entries = []
-                for i in range(len(components)):
-                    if components[i] not in range(self.ncomponents):
-                        invalid_entries.append(components[i])
+                for component in components:
+                    if component not in range(self.ncomponents):
+                        invalid_entries.append(component)
                 if len(invalid_entries) > 0:
                     assert False, (
                         f"Invalid component indices to be extracted: {invalid_entries} "
@@ -1231,12 +1231,12 @@ class ktensor:
             )
 
         # ensure that all factor_matrices are normalized
-        for mode in range(self.ndims):
+        for mode_idx in range(self.ndims):
             for r in range(self.ncomponents):
-                tmp = np.linalg.norm(self.factor_matrices[mode][:, r], ord=normtype)
+                tmp = np.linalg.norm(self.factor_matrices[mode_idx][:, r], ord=normtype)
                 if tmp > 0:
-                    self.factor_matrices[mode][:, r] = (
-                        1.0 / tmp * self.factor_matrices[mode][:, r]
+                    self.factor_matrices[mode_idx][:, r] = (
+                        1.0 / tmp * self.factor_matrices[mode_idx][:, r]
                     )
                 self.weights[r] = self.weights[r] * tmp
 
@@ -1449,7 +1449,7 @@ class ktensor:
         -------
         :class:`tuple`
         """
-        return tuple([f.shape[0] for f in self.factor_matrices])
+        return tuple(f.shape[0] for f in self.factor_matrices)
 
     # pylint: disable=unused-argument,too-many-locals
     def score(self, other, weight_penalty=True, threshold=0.99, greedy=True):
@@ -1943,10 +1943,8 @@ class ktensor:
 
         # Collapse dimensions that are being multiplied out
         new_weights = self.weights.copy()
-        for i in range(len(dims)):
-            new_weights = new_weights * (
-                self.factor_matrices[dims[i]].T @ vector[vidx[i]]
-            )
+        for i, dim in enumerate(dims):
+            new_weights = new_weights * (self.factor_matrices[dim].T @ vector[vidx[i]])
 
         # Create final result
         if len(remdims) == 0:
@@ -2317,9 +2315,9 @@ class ktensor:
         if len(self.shape) == 0:
             s += "\nfactor_matrices=[]"
         else:
-            for i in range(len(self.factor_matrices)):
+            for i, factor in enumerate(self.factor_matrices):
                 s += f"\nfactor_matrices[{i}] =\n"
-                s += str(self.factor_matrices[i])
+                s += str(factor)
         return s
 
     __str__ = __repr__
