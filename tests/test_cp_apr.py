@@ -516,14 +516,10 @@ def test_cp_apr_negative_tests():
         ttb.cp_apr(dense_tensor, init=bad_initial_guess_shape, rank=1)
     good_weights = np.array([8.0] * 3)
     good_factor = np.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]])
-    bad_initial_guess_factors = ttb.ktensor(
-        [-1.0 * good_factor] * 3, good_weights
-    )
+    bad_initial_guess_factors = ttb.ktensor([-1.0 * good_factor] * 3, good_weights)
     with pytest.raises(AssertionError):
         ttb.cp_apr(dense_tensor, init=bad_initial_guess_factors, rank=3)
-    bad_initial_guess_weight = ttb.ktensor(
-        [good_factor] * 3, -1.0 * good_weights
-    )
+    bad_initial_guess_weight = ttb.ktensor([good_factor] * 3, -1.0 * good_weights)
     with pytest.raises(AssertionError):
         ttb.cp_apr(dense_tensor, init=bad_initial_guess_weight, rank=3)
 

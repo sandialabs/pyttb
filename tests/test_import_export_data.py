@@ -51,7 +51,7 @@ def sample_sptensor():
 @pytest.fixture()
 def sample_ktensor():
     # truth data
-    weights = np.array([3., 2.])
+    weights = np.array([3.0, 2.0])
     fm0 = np.array([[1.0, 5.0], [2.0, 6.0], [3.0, 7.0], [4.0, 8.0]])
     fm1 = np.array([[2.0, 7.0], [3.0, 8.0], [4.0, 9.0], [5.0, 10.0], [6.0, 11.0]])
     fm2 = np.array([[3.0, 6.0], [4.0, 7.0], [5.0, 8.0]])

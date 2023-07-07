@@ -77,44 +77,57 @@ def test_ktensor_init(sample_ktensor_2way):
 
     # Input: factor_matrices provided, weights = None
     K = ttb.ktensor(data["factor_matrices"])
-    assert (K.weights == np.ones(2,)).all()
+    assert (
+        K.weights
+        == np.ones(
+            2,
+        )
+    ).all()
     assert (K.factor_matrices[0] == data["factor_matrices"][0]).all()
     assert (K.factor_matrices[1] == data["factor_matrices"][1]).all()
 
     # Input: copy=True
     K = ttb.ktensor(data["factor_matrices"], data["weights"])
     K2 = ttb.ktensor(K.factor_matrices, K.weights, copy=True)
-    assert (not(K.weights is K2.weights))
-    assert (not(K.factor_matrices[0] is K2.factor_matrices[0]))
-    assert (not(K.factor_matrices[1] is K2.factor_matrices[1]))
-    
+    assert not (K.weights is K2.weights)
+    assert not (K.factor_matrices[0] is K2.factor_matrices[0])
+    assert not (K.factor_matrices[1] is K2.factor_matrices[1])
+
     # Input: copy=False
     K = ttb.ktensor(data["factor_matrices"], data["weights"])
     K3 = ttb.ktensor(K.factor_matrices, K.weights, copy=False)
-    assert (K.weights is K3.weights)
-    assert (K.factor_matrices[0] is K3.factor_matrices[0])
-    assert (K.factor_matrices[1] is K3.factor_matrices[1])
+    assert K.weights is K3.weights
+    assert K.factor_matrices[0] is K3.factor_matrices[0]
+    assert K.factor_matrices[1] is K3.factor_matrices[1]
 
     # Errors
     # Cannot specify weights and not factor_matrices
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(None, np.array([2., 1.]))
+        KE = ttb.ktensor(None, np.array([2.0, 1.0]))
     assert "factor_matrices cannot be None if weights are provided." in str(excinfo)
 
     # 'factor_matrices' must be a list
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(np.ones((2, 2)), np.array([2.]))
+        KE = ttb.ktensor(np.ones((2, 2)), np.array([2.0]))
     assert "Input 'factor_matrices' must be a list." in str(excinfo)
 
     # each factor matrix should be a np.ndarray
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor([np.ones((2, 2)), np.ones((2, 2)).astype(int)], np.array([2., 1.]))
-    assert "Each item in 'factor_matrices' must be a numpy.ndarray object with dtype=float." in str(excinfo)
+        KE = ttb.ktensor(
+            [np.ones((2, 2)), np.ones((2, 2)).astype(int)], np.array([2.0, 1.0])
+        )
+    assert (
+        "Each item in 'factor_matrices' must be a numpy.ndarray object with dtype=float."
+        in str(excinfo)
+    )
 
     # the number of columns of all factor_matrices must be equal
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor([np.ones((2, 2)), np.ones((2, 1))], np.array([2., 1.]))
-    assert "The number of columns each item in 'factor_matrices' must be the same." in str(excinfo)
+        KE = ttb.ktensor([np.ones((2, 2)), np.ones((2, 1))], np.array([2.0, 1.0]))
+    assert (
+        "The number of columns each item in 'factor_matrices' must be the same."
+        in str(excinfo)
+    )
 
 
 def test_ktensor_from_function():
@@ -353,7 +366,7 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
 
     # test odd number of vectors to flip
     K = ttb.ktensor(
-        [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))], np.array([3., 2., 1.])
+        [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))], np.array([3.0, 2.0, 1.0])
     )
     K2 = K.copy()
     # one column to flip
@@ -413,7 +426,7 @@ def test_ktensor_isequal(sample_ktensor_2way):
     # types don't match
     assert ~(K0.isequal(np.array([])))
     # factor_matrices don't match
-    K4 = K0. copy()
+    K4 = K0.copy()
     K4.factor_matrices[0] = np.zeros((2, 2))
     assert ~(K0.isequal(K4))
 
@@ -768,10 +781,10 @@ def test_ktensor_redistribute(sample_ktensor_2way):
 
 def test_ktensor_score():
     A = ttb.ktensor(
-        [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))], np.array([2., 1., 3.])
+        [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))], np.array([2.0, 1.0, 3.0])
     )
     B = ttb.ktensor(
-        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 4.])
+        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2.0, 4.0])
     )
 
     # defaults
@@ -790,10 +803,10 @@ def test_ktensor_score():
 
     # zero lambda values lead to equal components
     A0 = ttb.ktensor(
-       [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 0.])
+        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2.0, 0.0])
     )
     B0 = ttb.ktensor(
-        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 0.])
+        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2.0, 0.0])
     )
     score, Aperm, flag, best_perm = A0.score(B0)
     assert score == 1.0
@@ -814,7 +827,7 @@ def test_ktensor_score():
     with pytest.raises(AssertionError) as excinfo:
         # A is 3x4x5; B is 3x4x4
         B = ttb.ktensor(
-            [np.ones((3, 2)), np.ones((4, 2)), np.ones((4, 2))], np.array([2., 4.])
+            [np.ones((3, 2)), np.ones((4, 2)), np.ones((4, 2))], np.array([2.0, 4.0])
         )
         score, Aperm, flag, best_perm = A.score(B)
     assert "Size mismatch" in str(excinfo)
@@ -823,7 +836,7 @@ def test_ktensor_score():
     # equal to number of components of second ktensor
     with pytest.raises(AssertionError) as excinfo:
         B = ttb.ktensor(
-            [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2., 4.])
+            [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2.0, 4.0])
         )
         score, Aperm, flag, best_perm = B.score(A)
     assert "Tensor A must have at least as many components as tensor B" in str(excinfo)

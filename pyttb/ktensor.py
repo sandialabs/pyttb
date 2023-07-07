@@ -52,17 +52,17 @@ class ktensor(object):
     def __init__(self, factor_matrices=None, weights=None, copy=True):
         """
         Create a :class:`pyttb.ktensor` in one of the following ways:
-          - With no inputs (or `weights` and `factor_matrices` both None), 
+          - With no inputs (or `weights` and `factor_matrices` both None),
             return an empty :class:`pyttb.ktensor`.
-          - If `weights` is None, return a :class:`pyttb.ktensor` with 
+          - If `weights` is None, return a :class:`pyttb.ktensor` with
             `weights` all equal to 1 and `factor_matrices` as provided.
-          - Otherwise, return a :class:`pyttb.ktensor` with `weights` and 
+          - Otherwise, return a :class:`pyttb.ktensor` with `weights` and
             `factor_matrices` as provided.
 
-        If `copy` is True, return a :class:`pyttb.ktensor` with copies 
-        of `weights` and `factor_matrices`, otherwise just use references 
-        to the `weights` and `factor_matrices` provided. 
-        
+        If `copy` is True, return a :class:`pyttb.ktensor` with copies
+        of `weights` and `factor_matrices`, otherwise just use references
+        to the `weights` and `factor_matrices` provided.
+
         Parameters
         ----------
         factor_matrices: :class:`list` of :class:`numpy.ndarray` with `dtype`=:class:`float`, optional
@@ -78,7 +78,7 @@ class ktensor(object):
         ktensor of shape ()
         weights=[]
         factor_matrices=[]
-        
+
         Create a :class:`pyttb.ktensor` from weights and a list of factor
         matrices:
 
@@ -113,7 +113,7 @@ class ktensor(object):
         [[5. 6.]
          [7. 8.]]
         """
-        
+
         # Cannot specify weights and not factor_matrices
         if factor_matrices is None and weights is not None:
             assert False, "factor_matrices cannot be None if weights are provided."
@@ -128,17 +128,28 @@ class ktensor(object):
         if not isinstance(factor_matrices, list):
             assert False, "Input 'factor_matrices' must be a list."
         # each factor matrix should be a np.ndarray
-        if not (all(isinstance(fm, np.ndarray) for fm in factor_matrices) and all(fm.dtype == float for fm in factor_matrices)):
-            assert False, "Each item in 'factor_matrices' must be a numpy.ndarray object with dtype=float."
+        if not (
+            all(isinstance(fm, np.ndarray) for fm in factor_matrices)
+            and all(fm.dtype == float for fm in factor_matrices)
+        ):
+            assert (
+                False
+            ), "Each item in 'factor_matrices' must be a numpy.ndarray object with dtype=float."
         # the number of columns of all factor_matrices must be equal
         num_components = factor_matrices[0].shape[1]
         if not all(fm.shape[1] == num_components for fm in factor_matrices):
-            assert False, "The number of columns each item in 'factor_matrices' must be the same."
+            assert (
+                False
+            ), "The number of columns each item in 'factor_matrices' must be the same."
 
         # process weights
         if weights is not None:
             # check if weights are the correct type and shape
-            assert isinstance(weights, np.ndarray) and weights.dtype == float and weights.shape == (num_components,), "Input 'weights' must be a numpy.ndarray object with dtype=float and length equal to the number of columns in each factor matrix."
+            assert (
+                isinstance(weights, np.ndarray)
+                and weights.dtype == float
+                and weights.shape == (num_components,)
+            ), "Input 'weights' must be a numpy.ndarray object with dtype=float and length equal to the number of columns in each factor matrix."
             # make copy or use reference
             if copy:
                 self.weights = weights.copy()
@@ -153,7 +164,6 @@ class ktensor(object):
             self.factor_matrices = [fm.copy() for fm in factor_matrices]
         else:
             self.factor_matrices = factor_matrices
-
 
     @classmethod
     def from_function(cls, fun, shape, num_components):
