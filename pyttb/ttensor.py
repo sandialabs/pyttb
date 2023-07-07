@@ -36,7 +36,7 @@ class ttensor:
         # Empty constructor
         # TODO explore replacing with typing protocol
         self.core: Union[tensor, sptensor] = tensor()
-        #pylint: disable=invalid-name
+        # pylint: disable=invalid-name
         self.u = []
         # TODO consider factor_matrices to match ktensor
 
@@ -273,7 +273,7 @@ class ttensor:
                 W.append(this_factor.transpose().dot(other_factor))
             J = other.core.ttm(W)
             return self.core.innerprod(J)
-        elif isinstance(other, (tensor, sptensor)):
+        if isinstance(other, (tensor, sptensor)):
             if self.shape != other.shape:
                 raise ValueError(
                     "ttensors must have same shape to perform an innerproduct, but "
@@ -285,14 +285,12 @@ class ttensor:
                 return Z.innerprod(other)
             Z = other.ttm(self.u, transpose=True)
             return Z.innerprod(self.core)
-        elif isinstance(other, ktensor):
+        if isinstance(other, ktensor):
             # Call ktensor implementation
-            # TODO needs ttensor ttv
             return other.innerprod(self)
-        else:
-            raise ValueError(
-                f"Inner product between ttensor and {type(other)} is not supported"
-            )
+        raise ValueError(
+            f"Inner product between ttensor and {type(other)} is not supported"
+        )
 
     def __mul__(self, other):
         """
@@ -375,8 +373,7 @@ class ttensor:
         # Create final result
         if remdims.size == 0:
             return newcore
-        else:
-            return ttensor.from_data(newcore, [self.u[dim] for dim in remdims])
+        return ttensor.from_data(newcore, [self.u[dim] for dim in remdims])
 
     def mttkrp(self, U, n):
         """
@@ -418,8 +415,7 @@ class ttensor:
             Y = self.core.ttm(V)
             tmp = Y.innerprod(self.core)
             return np.sqrt(tmp)
-        else:
-            return self.full().norm()
+        return self.full().norm()
 
     def permute(self, order):
         """
@@ -471,21 +467,21 @@ class ttensor:
         size_idx = int(not transpose)
 
         # Check that each multiplicand is the right size.
-        for i in range(len(dims)):
-            if matrix[vidx[i]].shape[size_idx] != self.shape[dims[i]]:
+        for i, dim in enumerate(dims):
+            if matrix[vidx[i]].shape[size_idx] != self.shape[dim]:
                 raise ValueError(f"Multiplicand {i} is wrong size")
 
         # Do the actual multiplications in the specified modes.
         new_u = self.u.copy()
-        for i in range(len(dims)):
+        for i, dim in enumerate(dims):
             if transpose:
-                new_u[dims[i]] = matrix[vidx[i]].transpose().dot(new_u[dims[i]])
+                new_u[dim] = matrix[vidx[i]].transpose().dot(new_u[dim])
             else:
-                new_u[dims[i]] = matrix[vidx[i]].dot(new_u[dims[i]])
+                new_u[dim] = matrix[vidx[i]].dot(new_u[dim])
 
         return ttensor.from_data(self.core, new_u)
 
-    #pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches
     def reconstruct(self, samples=None, modes=None):
         """
         Reconstruct or partially reconstruct tensor from ttensor.
@@ -537,7 +533,7 @@ class ttensor:
                 # Skip empty samples
                 new_u.append(self.u[k])
                 continue
-            elif (
+            if (
                 len(full_samples[k].shape) == 2
                 and full_samples[k].shape[-1] == shape[k]
             ):

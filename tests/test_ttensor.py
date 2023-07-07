@@ -91,7 +91,7 @@ def test_ttensor_initialization_from_tensor_type(sample_ttensor):
 
     # Negative test
     with pytest.raises(ValueError):
-        ttb.ttensor.from_tensor_type('Not a ttensor')
+        ttb.ttensor.from_tensor_type("Not a ttensor")
 
 
 @pytest.mark.indevelopment
