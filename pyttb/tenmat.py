@@ -79,7 +79,7 @@ class tenmat:
             assert False, "tshape must be a tuple."
 
         # check that data.shape and tshape agree
-        if not np.prod(data.shape) == np.prod(tshape):
+        if np.prod(data.shape) != np.prod(tshape):
             assert False, (
                 "Incorrect dimensions specified: products of data.shape and tuple do "
                 "not match"
@@ -98,6 +98,7 @@ class tenmat:
         )
 
     @classmethod
+    # pylint: disable=too-many-branches
     def from_tensor_type(cls, source, rdims=None, cdims=None, cdims_cyclic=None):
         """
         Converts other tensor types into a tenmat
@@ -143,14 +144,13 @@ class tenmat:
                     if cdims_cyclic == "fc":
                         # cdims = [rdims+1:n, 1:rdims-1];
                         cdims = np.array(
-                            [i for i in range(rdims[0] + 1, n)]
-                            + [i for i in range(rdims[0])]
+                            list(range(rdims[0] + 1, n)) + list(range(rdims[0]))
                         )
                     elif cdims_cyclic == "bc":
                         # cdims = [rdims-1:-1:1, n:-1:rdims+1];
                         cdims = np.array(
-                            [i for i in range(rdims[0] - 1, -1, -1)]
-                            + [i for i in range(n - 1, rdims[0], -1)]
+                            list(range(rdims[0] - 1, -1, -1))
+                            + list(range(n - 1, rdims[0], -1))
                         )
                     else:
                         assert False, (
@@ -336,7 +336,7 @@ class tenmat:
                 )
             )
 
-            if tshape == ():
+            if not tshape:
                 return (self.data @ other.data)[0, 0]
             tenmatInstance = tenmat()
             tenmatInstance.tshape = tshape
