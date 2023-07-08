@@ -1,6 +1,8 @@
+"""Non-negative CP decomposition with alternating Poisson regression"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 import time
 import warnings
@@ -10,9 +12,8 @@ from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
 
-from .pyttb_utils import *
 
-
+# pylint: disable=too-many-arguments,too-many-locals
 def cp_apr(
     input_tensor,
     rank,
@@ -104,9 +105,9 @@ def cp_apr(
         ), "Initial guess does not have the right number of componenets"
         for n in range(N):
             if init.shape[n] != input_tensor.shape[n]:
-                assert False, "Mode {} of the initial guess is the wrong size".format(n)
+                assert False, f"Mode {n} of the initial guess is the wrong size"
             if np.min(init.factor_matrices[n]) < 0.0:
-                assert False, "Initial guess has negative element in mode {}".format(n)
+                assert False, f"Initial guess has negative element in mode {n}"
         if np.min(init.weights) < 0:
             assert False, "Initial guess has a negative ktensor weight"
 
@@ -118,7 +119,8 @@ def cp_apr(
             )
         init = ttb.ktensor(factor_matrices)
 
-    # Call solver based on the couce of algorithm parameter, passing all the other input parameters
+    # Call solver based on the couce of algorithm parameter, passing all the other
+    # input parameters
     if algorithm.lower() == "mu":
         M, output = tt_cp_apr_mu(
             input_tensor,
@@ -171,11 +173,12 @@ def cp_apr(
         )
         output["algorithm"] = "pqnr"
     else:
-        assert False, "{} is not a supported cp_als algorithm".format(algorithm)
+        assert False, "{algorithm} is not a supported cp_als algorithm"
 
     return M, init, output
 
 
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 def tt_cp_apr_mu(
     input_tensor,
     rank,
@@ -231,7 +234,8 @@ def tt_cp_apr_mu(
     """
     N = input_tensor.ndims
 
-    # TODO I vote no duplicate error checking, copy error checking from cp_apr for initial guess here if disagree
+    # TODO I vote no duplicate error checking, copy error checking from cp_apr for
+    #  initial guess here if disagree
 
     # Initialize output arrays
     # fnEvals = np.zeros((maxiters,))
@@ -257,14 +261,16 @@ def tt_cp_apr_mu(
     # Start the wall clock timer.
     start = time.time()
 
-    # PDN-R and PQN-R benefit from precomputing sparse indices of X for each mode subproblem.
-    # However, MU execution time barely changes, so the precomputer option is not offered.
+    # PDN-R and PQN-R benefit from precomputing sparse indices of X for each mode
+    # subproblem. However, MU execution time barely changes, so the precomputer option
+    # is not offered.
 
     # Main loop: Iterate until convergence
     for iter in range(maxiters):
         isConverged = True
         for n in range(N):
-            # Make adjustments to entries of M[n] that are violating complementary slackness conditions.
+            # Make adjustments to entries of M[n] that are violating complementary
+            # slackness conditions.
             # TODO both these zeros were 1 in matlab
             if iter > 0:
                 V = (Phi[n] > 0) & (M[n] < kappatol)
@@ -303,9 +309,8 @@ def tt_cp_apr_mu(
                 # Print status
                 if printinneritn != 0 and divmod(i, printinneritn)[1] == 0:
                     print(
-                        "\t\tMode = {}, Inner Iter = {}, KKT violation = {}".format(
-                            n, i, kktModeViolations[n]
-                        )
+                        "\t\tMode = {n}, Inner Iter = {i}, "
+                        f"KKT violation = {kktModeViolations[n]}"
                     )
 
             # Shift weight from mode n back to lambda
@@ -314,9 +319,8 @@ def tt_cp_apr_mu(
         kktViolations[iter] = np.max(kktModeViolations)
         if divmod(iter, printitn)[1] == 0:
             print(
-                "\tIter {}: Inner Its = {} KKT violation = {}, nViolations = {}".format(
-                    iter, nInnerIters[iter], kktViolations[iter], nViolations[iter]
-                )
+                f"\tIter {iter}: Inner Its = {nInnerIters[iter]} KKT violation = "
+                f"{kktViolations[iter]}, nViolations = {nViolations[iter]}"
             )
 
         nTimes[iter] = time.time() - start
@@ -345,11 +349,11 @@ def tt_cp_apr_mu(
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
         print("===========================================")
-        print(" Final log-likelihood = {}".format(obj))
-        print(" Final least squares fit = {}".format(fit))
-        print(" Final KKT violation = {}".format(kktViolations[iter]))
-        print(" Total inner iterations = {}".format(sum(nInnerIters)))
-        print(" Total execution time = {} secs".format(t_stop))
+        print(f" Final log-likelihood = {obj}")
+        print(f" Final least squares fit = {fit}")
+        print(f" Final KKT violation = {kktViolations[iter]}")
+        print(f" Total inner iterations = {sum(nInnerIters)}")
+        print(f" Total execution time = {t_stop} secs")
 
     output = {}
     output["params"] = (
@@ -374,6 +378,7 @@ def tt_cp_apr_mu(
     return M, output
 
 
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 def tt_cp_apr_pdnr(
     input_tensor,
     rank,
@@ -399,7 +404,6 @@ def tt_cp_apr_pdnr(
 
     Parameters
     ----------
-    # TODO it looks like this method of define union helps the typ hinting better than or
     input_tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
     rank: int
         Rank of the decomposition
@@ -443,8 +447,9 @@ def tt_cp_apr_pdnr(
     # Extract the number of modes in tensor X
     N = input_tensor.ndims
 
-    # If the initial guess has any rows of all zero elements, then modify so the row subproblem is not taking log(0).
-    # Values will be restored to zero later if the unfolded X for the row has no zeros.
+    # If the initial guess has any rows of all zero elements, then modify so the row
+    # subproblem is not taking log(0). Values will be restored to zero later if the
+    # unfolded X for the row has no zeros.
     for n in range(N):
         rowsum = np.sum(init[n], axis=1)
         tmpIdx = np.where(rowsum == 0)[0]
@@ -498,6 +503,7 @@ def tt_cp_apr_pdnr(
     rowsubprobStopTol = stoptol
 
     # Main loop: iterate until convergence or a max threshold is reached
+    # pylint: disable=too-many-nested-blocks
     for iter in range(maxiters):
         isConverged = True
         kktModeViolations = np.zeros((N,))
@@ -564,7 +570,8 @@ def tt_cp_apr_pdnr(
                     # Compute the row subproblem kkt_violation.
 
                     # Note experiments in the original paper used:
-                    # kkt_violation = np.norm(np.abs(np.minimum(m_row, gradM.transpose())))
+                    # kkt_violation = \
+                    #    np.norm(np.abs(np.minimum(m_row, gradM.transpose())))
 
                     # We now use \| KKT \|_{inf}:
                     kkt_violation = np.max(
@@ -577,18 +584,14 @@ def tt_cp_apr_pdnr(
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
                         print(
-                            "\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i),
+                            f"\tMode = {n}, Row = {jj}, InnerIt = {i}",
                             end="",
                         )
 
                         if i == 0:
-                            print(", RowKKT = {}".format(kkt_violation))
+                            print(", RowKKT = {kkt_violation}")
                         else:
-                            print(
-                                ", RowKKT = {}, RowObj = {}".format(
-                                    kkt_violation, -f_new
-                                )
-                            )
+                            print(f", RowKKT = {kkt_violation}, RowObj = {-f_new}")
 
                     # Check for row subproblem convergence.
                     if kkt_violation < stoptol:
@@ -629,7 +632,8 @@ def tt_cp_apr_pdnr(
                     fnEvals[iter] += num_evals
                     m_row = m_rowNew
 
-                    # Update damping parameter mu based on the unit step length, which is returned in f_unit
+                    # Update damping parameter mu based on the unit step length, which
+                    # is returned in f_unit
                     actual_red = f_old - f_unit
                     rho = actual_red / -predicted_red
                     if predicted_red == 0:
@@ -642,15 +646,16 @@ def tt_cp_apr_pdnr(
                 M.factor_matrices[n][jj, :] = m_row
                 countInnerIters[n] += i
 
-            # Test if all row subproblems have converged, which means that no varibales in this more were changed.
+            # Test if all row subproblems have converged, which means that no variables
+            # in this row were changed.
             if np.sum(isRowNOTconverged) != 0:
                 isConverged = False
 
             # Shift weight from mode n back to lambda.
             M.normalize(mode=n, normtype=1)
 
-            # Total number of inner iterations for a given outer iteration, totalled across all modes and all
-            # row subproblems in each mode
+            # Total number of inner iterations for a given outer iteration, totalled
+            # across all modes and all row subproblems in each mode
             nInnerIters[iter] += countInnerIters[n]
 
         # Save output items for the outer iteration.
@@ -668,13 +673,8 @@ def tt_cp_apr_pdnr(
             if printitn > 0 and np.mod(iter, printitn) == 0:
                 fnVals[iter] = -tt_loglikelihood(input_tensor, M)
                 print(
-                    "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}".format(
-                        iter,
-                        nInnerIters[iter],
-                        kktViolations[iter],
-                        fnVals[iter],
-                        num_zero,
-                    )
+                    f"{iter}. Ttl Inner Its: {nInnerIters[iter]}, KKT viol = "
+                    f"{kktViolations[iter]}, obj = {fnVals[iter]}, nz: {num_zero}"
                 )
 
         times[iter] = time.time() - start
@@ -702,11 +702,11 @@ def tt_cp_apr_pdnr(
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
         print("===========================================")
-        print(" Final log-likelihood = {}".format(obj))
-        print(" Final least squares fit = {}".format(fit))
-        print(" Final KKT violation = {}".format(kktViolations[iter]))
-        print(" Total inner iterations = {}".format(sum(nInnerIters)))
-        print(" Total execution time = {} secs".format(t_stop))
+        print(f" Final log-likelihood = {obj}")
+        print(f" Final least squares fit = {fit}")
+        print(f" Final KKT violation = {kktViolations[iter]}")
+        print(f" Total inner iterations = {sum(nInnerIters)}")
+        print(f" Total execution time = {t_stop} secs")
 
     output = {}
     output["params"] = (
@@ -734,6 +734,7 @@ def tt_cp_apr_pdnr(
     return M, output
 
 
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 def tt_cp_apr_pqnr(
     input_tensor,
     rank,
@@ -809,12 +810,14 @@ def tt_cp_apr_pqnr(
     URL: http://arxiv.org/abs/1304.4964. Submitted for publication.
 
     """
-    # TODO first ~100 lines are identical to PDNR, consider abstracting just the algorithm portion
+    # TODO first ~100 lines are identical to PDNR, consider abstracting just the
+    #  algorithm portion
     # Extract the number of modes in data tensor
     N = input_tensor.ndims
 
-    # If the initial guess has any rows of all zero elements, then modify so the row subproblem is not taking log(0).
-    # Values will be restored to zero later if the unfolded X for the row has no zeros.
+    # If the initial guess has any rows of all zero elements, then modify so the row
+    # subproblem is not taking log(0). Values will be restored to zero later if the
+    # unfolded X for the row has no zeros.
     for n in range(N):
         rowsum = np.sum(init[n], axis=1)
         tmpIdx = np.where(rowsum == 0)[0]
@@ -864,6 +867,7 @@ def tt_cp_apr_pqnr(
             print("done")
 
     # Main loop: iterate until convergence or a max threshold is reached
+    # pylint: disable=too-many-nested-blocks
     for iter in range(maxiters):
         isConverged = True
         kktModeViolations = np.zeros((N,))
@@ -932,7 +936,7 @@ def tt_cp_apr_pqnr(
                         # TODO: fix in a future release.
                         m_rowOLD = m_row
                         gradOLD = gradM
-                        m_row, f, f_unit, f_new, num_evals = tt_linesearch_prowsubprob(
+                        m_row, _, _, f_new, num_evals = tt_linesearch_prowsubprob(
                             -gradM.transpose(),
                             gradM.transpose(),
                             m_rowOLD,
@@ -954,7 +958,8 @@ def tt_cp_apr_pqnr(
                     # Compute the row subproblem kkt_violation.
 
                     # Note experiments in the original paper used:
-                    # kkt_violation = np.norm(np.abs(np.minimum(m_row, gradM.transpose())))
+                    # kkt_violation = \
+                    #    np.norm(np.abs(np.minimum(m_row, gradM.transpose())))
 
                     # We now use \| KKT \|_{inf}:
                     kkt_violation = np.max(np.abs(np.minimum(m_row, gradM)))
@@ -965,18 +970,14 @@ def tt_cp_apr_pqnr(
 
                     if printinneritn > 0 and np.mod(i, printinneritn) == 0:
                         print(
-                            "\tMode = {}, Row = {}, InnerIt = {}".format(n, jj, i),
+                            f"\tMode = {n}, Row = {jj}, InnerIt = {i}",
                             end="",
                         )
 
                         if i == 0:
-                            print(", RowKKT = {}".format(kkt_violation))
+                            print(f", RowKKT = {kkt_violation}")
                         else:
-                            print(
-                                ", RowKKT = {}, RowObj = {}".format(
-                                    kkt_violation, -f_new
-                                )
-                            )
+                            print(f", RowKKT = {kkt_violation}, RowObj = {-f_new}")
 
                     # Check for row subproblem convergence.
                     if kkt_violation < stoptol:
@@ -995,13 +996,13 @@ def tt_cp_apr_pqnr(
                         delg[:, lbfgsPos] = tmp_delg
                         rho[lbfgsPos] = tmp_rho
                     else:
-                        # Rho is required to be postive; if not, then skip the L-BFGS update pair. The recommended
-                        # safeguard for full BFGS is Powell damping, but not clear how to damp in 2-loop L-BFGS
+                        # Rho is required to be postive; if not, then skip the L-BFGS
+                        # update pair. The recommended safeguard for full BFGS is
+                        # Powell damping, but not clear how to damp in 2-loop L-BFGS
                         if dispLineWarn:
                             warnings.warn(
-                                "WARNING: skipping L-BFGS update, rho whould be 1 / {}".format(
-                                    tmp_delm * tmp_delg
-                                )
+                                "WARNING: skipping L-BFGS update, rho whould be "
+                                f"1 / {tmp_delm * tmp_delg}"
                             )
                         # Roll back lbfgsPos since it will increment later.
                         if lbfgsPos == 0:
@@ -1035,7 +1036,7 @@ def tt_cp_apr_pqnr(
                     # Perform a projected linesearch and update variables.
                     # Start from a unit step length, decrease by 1/2,
                     # stop with sufficicent decrease of 1.0e-4 or at most 10 steps.
-                    m_row, f, f_unit, f_new, num_evals = ttb.tt_linesearch_prowsubprob(
+                    m_row, _, _, f_new, num_evals = ttb.tt_linesearch_prowsubprob(
                         search_dir.transpose()[0],
                         gradOLD.transpose(),
                         m_rowOLD,
@@ -1054,15 +1055,16 @@ def tt_cp_apr_pqnr(
                 M.factor_matrices[n][jj, :] = m_row
                 countInnerIters[n] += i
 
-            # Test if all row subproblems have converged, which means that no varibales in this more were changed.
+            # Test if all row subproblems have converged, which means that no variables
+            # in this row were changed.
             if np.sum(isRowNOTconverged) != 0:
                 isConverged = False
 
             # Shift weight from mode n back to lambda.
             M.normalize(mode=n, normtype=1)
 
-            # Total number of inner iterations for a given outer iteration, totalled across all modes and all
-            # row subproblems in each mode
+            # Total number of inner iterations for a given outer iteration,
+            # totalled across all modes and all row subproblems in each mode
             nInnerIters[iter] += countInnerIters[n]
 
         # Save output items for the outer iteration.
@@ -1077,9 +1079,8 @@ def tt_cp_apr_pqnr(
         if printitn > 0 and np.mod(iter, printitn) == 0:
             fnVals[iter] = -tt_loglikelihood(input_tensor, M)
             print(
-                "{}. Ttl Inner Its: {}, KKT viol = {}, obj = {}, nz: {}".format(
-                    iter, nInnerIters[iter], kktViolations[iter], fnVals[iter], num_zero
-                )
+                f"{iter}. Ttl Inner Its: {nInnerIters[iter]}, KKT viol = "
+                f"{kktViolations[iter]}, obj = {fnVals[iter]}, nz: {num_zero}"
             )
 
         times[iter] = time.time() - start
@@ -1105,11 +1106,11 @@ def tt_cp_apr_pqnr(
         )
         fit = 1 - (normresidual / normTensor)  # fraction explained by model
         print("===========================================")
-        print(" Final log-likelihood = {}".format(obj))
-        print(" Final least squares fit = {}".format(fit))
-        print(" Final KKT violation = {}".format(kktViolations[iter]))
-        print(" Total inner iterations = {}".format(sum(nInnerIters)))
-        print(" Total execution time = {} secs".format(t_stop))
+        print(f" Final log-likelihood = {obj}")
+        print(f" Final least squares fit = {fit}")
+        print(f" Final KKT violation = {kktViolations[iter]}")
+        print(f" Total inner iterations = {sum(nInnerIters)}")
+        print(f" Total execution time = {t_stop} secs")
 
     output = {}
     output["params"] = (
@@ -1163,9 +1164,11 @@ def tt_calcpi_prowsubprob(
     :class:`pyttb.calculatePi`
 
     """
-    # TODO: this can probably be merged with general calculate pi, where default for sparse_indices is slice(None,None,None)
+    # TODO: this can probably be merged with general calculate pi,
+    #  where default for sparse_indices is slice(None,None,None)
     if isSparse:
-        # Data is a sparse tensor. Compute Pi for the row problem specified by sparse_indices
+        # Data is a sparse tensor. Compute Pi for the row problem specified by
+        # sparse_indices
         num_row_nnz = len(sparse_indices)
 
         Pi = np.ones((num_row_nnz, rank))
@@ -1184,7 +1187,7 @@ def tt_calcpi_prowsubprob(
 
 
 def calc_partials(isSparse, Pi, epsilon, data_row, model_row):
-    """
+    r"""
     Compute derivative quantities for a PDNR row subproblem.
 
     Parameters
@@ -1200,10 +1203,10 @@ def calc_partials(isSparse, Pi, epsilon, data_row, model_row):
     -------
     phi_row: :class:`numpy.ndarray`
         gradient of row subproblem, except for a constant \n
-        :math:`phi\_row[r] = \sum_{j=1}^{J_n}\\frac{x_j\pi_{rj}}{\sum_i^R b_i\pi_{ij}}`
+        :math:`phi\_row[r] = \sum_{j=1}^{J_n}\frac{x_j\pi_{rj}}{\sum_i^R b_i\pi_{ij}}`
     ups_row: :class:`numpy.ndarray`
         intermediate quantity (upsilon) used for second derivatives  \n
-        :math:`ups\_row[j] = \\frac{x_j}{\\left(\sum_i^R b_i\pi_{ij}\\right)^2}`
+        :math:`ups\_row[j] = \frac{x_j}{\left(\sum_i^R b_i\pi_{ij}\right)^2}`
 
     """
     if isSparse:
@@ -1218,7 +1221,8 @@ def calc_partials(isSparse, Pi, epsilon, data_row, model_row):
 
 def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
     """
-    Compute the search direction for PDNR using a two-metric projection with damped Hessian
+    Compute the search direction for PDNR using a two-metric projection with
+    damped Hessian
 
     Parameters
     ----------
@@ -1271,8 +1275,9 @@ def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
     grad_free = -gradModel[free_indices]
 
     # Compute the damped Newton search direction over free variables
-    # TODO verify this is appropriate representation of matlab's method, s.b. because hessian is square, and addition
-    # should ensure full rank, try.catch handles singular matrix
+    # TODO verify this is appropriate representation of matlab's method,
+    #  s.b. because hessian is square, and addition should ensure full rank,
+    #  try.catch handles singular matrix
     try:
         search_dir[free_indices] = np.linalg.solve(
             Hessian_free + (mu * np.eye(num_free)), grad_free
@@ -1283,7 +1288,8 @@ def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
         search_dir = -gradModel
 
     # Calculate expected reduction in the quadratic model of the objective.
-    # TODO: double check if left or right multiplication has an speed effect, memory layout
+    # TODO: double check if left or right multiplication has an speed effect,
+    #  memory layout
     q = (
         search_dir[free_indices]
         .transpose()
@@ -1430,7 +1436,8 @@ def tt_linesearch_prowsubprob(
 
 def getHessian(upsilon, Pi, free_indices):
     """
-    Return the Hessian for one PDNR row subproblem of Model[n], for just the rows and columns corresponding to the free variables
+    Return the Hessian for one PDNR row subproblem of Model[n], for just the rows and
+    columns corresponding to the free variables
 
     Parameters
     ----------
@@ -1546,8 +1553,8 @@ def getSearchDirPqnr(
     Notes
     -----
     Adapted from MATLAB code of Dongmin Kim and Suvrit Sra written in 2008.
-    Modified extensively to solve row subproblems and use a better linesearch;  for details see
-    REFERENCE: Samantha Hansen, Todd Plantenga, Tamara G. Kolda.
+    Modified extensively to solve row subproblems and use a better linesearch;
+    for details see REFERENCE: Samantha Hansen, Todd Plantenga, Tamara G. Kolda.
     Newton-Based Optimization for Nonnegative Tensor Factorizations,
     arXiv:1304.4964 [math.NA], April 2013,
     URL: http://arxiv.org/abs/1304.4964. Submitted for publication.
@@ -1572,7 +1579,8 @@ def getSearchDirPqnr(
     direction[fixedVars] = 0
 
     if delta_model[:, lbfgs_pos].transpose().dot(delta_grad[:, lbfgs_pos]) == 0.0:
-        # Cannot proceed with this L-BFGS data; most likely the iteration has converged, so this is rarely seen.
+        # Cannot proceed with this L-BFGS data; most likely the iteration has
+        # converged, so this is rarely seen.
         if disp_warn:
             warnings.warn("WARNING: L-BFGS update is orthogonal, using gradient")
         return direction
@@ -1581,7 +1589,7 @@ def getSearchDirPqnr(
     k = lbfgs_pos
 
     # Perform an L-BFGS two-loop recursion to compute the search direction.
-    for i in range(np.minimum(iters, lbfgsSize)):
+    for _ in range(np.minimum(iters, lbfgsSize)):
         alpha[k] = rho[k] * (delta_model[:, k].transpose().dot(direction))
         direction -= alpha[k] * (delta_grad[:, k])
         # TODO check mod
@@ -1596,7 +1604,7 @@ def getSearchDirPqnr(
     )
     direction *= coef
 
-    for i in range(np.minimum(iters, lbfgsSize)):
+    for _ in range(np.minimum(iters, lbfgsSize)):
         k = np.mod(k, lbfgsSize)  # + 1
         b = rho[k] * (delta_grad[:, k].transpose().dot(direction))
         direction += (alpha[k] - b) * (delta_model[:, k])
@@ -1624,7 +1632,8 @@ def calc_grad(isSparse, Pi, eps_div_zero, data_row, model_row):
     grad_row: :class:`numpy.ndarray`
 
     """
-    # TODO: note this is duplicated exactly from calc_partials, should combine to one function
+    # TODO: note this is duplicated exactly from calc_partials, should
+    #  combine to one function
     if isSparse:
         data_row = data_row.transpose()[0]
     v = model_row.dot(Pi.transpose())
@@ -1721,11 +1730,12 @@ def tt_loglikelihood(Data, Model):
     Returns
     -------
     loglikelihood: float
-        - (sum_i m_i - x_i * log_i) where i is a multiindex across all tensor dimensions.
+        - (sum_i m_i - x_i * log_i) with i as a multiindex across all tensor dimensions
 
     Notes
     -----
-    We define for any x 0*log(x)=0, such that if our true data is 0 the loglikelihood is the value of the model.
+    We define for any x 0*log(x)=0, such that if our true data is 0 the loglikelihood
+        is the value of the model.
 
     """
     N = Data.ndims
