@@ -61,6 +61,7 @@ myst_enable_extensions = [
 ]
 
 nb_execution_raise_on_error = True
+nb_execution_timeout = 60
 
 napoleon_use_param = False
 napoleon_use_rtype = False

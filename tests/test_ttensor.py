@@ -89,6 +89,10 @@ def test_ttensor_initialization_from_tensor_type(sample_ttensor):
     assert ttensorCopy.u == ttensorInstance.u
     assert ttensorCopy.shape == ttensorInstance.shape
 
+    # Negative test
+    with pytest.raises(ValueError):
+        ttb.ttensor.from_tensor_type("Not a ttensor")
+
 
 @pytest.mark.indevelopment
 def test_ttensor_full(sample_ttensor):
@@ -364,6 +368,9 @@ def test_ttensor_reconstruct(random_ttensor):
     # Negative Tests
     with pytest.raises(ValueError):
         _ = ttensorInstance.reconstruct(1, [0, 1])
+
+    with pytest.raises(ValueError):
+        ttensorInstance.reconstruct(modes=np.array([1]))
 
 
 @pytest.mark.indevelopment

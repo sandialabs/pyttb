@@ -1,12 +1,14 @@
+"""Matricized Tensor Representation"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
+
+from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 
 import pyttb as ttb
-
-from .pyttb_utils import *
 
 
 class tenmat:
@@ -17,7 +19,7 @@ class tenmat:
 
     def __init__(self):
         """
-        TENSOR Create empty tensor.
+        Create empty tenmat.
         """
 
         # Case 0a: Empty Contructor
@@ -27,7 +29,27 @@ class tenmat:
         self.data = np.array([])
 
     @classmethod
-    def from_data(cls, data, rdims, cdims=None, tshape=None):
+    def from_data(
+        cls,
+        data: np.ndarray,
+        rdims: np.ndarray,
+        cdims: Optional[np.ndarray] = None,
+        tshape: Optional[Tuple[int, ...]] = None,
+    ) -> tenmat:
+        """
+        Creates a tenmat from explicit description.
+
+        Parameters
+        ----------
+        data: Tensor source data
+        rdims:
+        cdims:
+        tshape:
+
+        Returns
+        -------
+        Constructed tenmat
+        """
         # CONVERT A MULTIDIMENSIONAL ARRAY
 
         # Verify that data is a numeric numpy.ndarray
@@ -36,9 +58,12 @@ class tenmat:
         ):
             assert False, "First argument must be a numeric numpy.ndarray."
 
-        # data is empty, return empty tenmat unless rdims, cdims, or tshape are not empty
+        # data is empty, return empty tenmat unless rdims, cdims, or tshape are
+        # not empty
         if data.size == 0:
-            if not rdims.size == 0 or not cdims.size == 0 or not tshape == ():
+            cdims_empty = cdims is None or not cdims.size == 0
+            tshape_empty = tshape is None or tshape == ()
+            if not rdims.size == 0 or cdims_empty or not tshape_empty:
                 assert (
                     False
                 ), "When data is empty, rdims, cdims, and tshape must also be empty."
@@ -64,10 +89,11 @@ class tenmat:
             assert False, "tshape must be a tuple."
 
         # check that data.shape and tshape agree
-        if not np.prod(data.shape) == np.prod(tshape):
-            assert (
-                False
-            ), "Incorrect dimensions specified: products of data.shape and tuple do not match"
+        if np.prod(data.shape) != np.prod(tshape):
+            assert False, (
+                "Incorrect dimensions specified: products of data.shape and tuple do "
+                "not match"
+            )
 
         # check that data.shape and product of dimensions agree
         if not np.prod(np.array(tshape)[rdims]) * np.prod(
@@ -82,7 +108,28 @@ class tenmat:
         )
 
     @classmethod
-    def from_tensor_type(cls, source, rdims=None, cdims=None, cdims_cyclic=None):
+    # pylint: disable=too-many-branches
+    def from_tensor_type(
+        cls,
+        source: Union[ttb.tensor, tenmat],
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"]]] = None,
+    ):
+        """
+        Converts other tensor types into a tenmat
+
+        Parameters
+        ----------
+        source: Tensor type to create dense tensor from
+        rdims:
+        cdims:
+        cdims_cyclic:
+
+        Returns
+        -------
+        Constructed tenmat
+        """
         # Case 0b: Copy Contructor
         if isinstance(source, tenmat):
             # Create tenmat
@@ -113,19 +160,19 @@ class tenmat:
                     if cdims_cyclic == "fc":
                         # cdims = [rdims+1:n, 1:rdims-1];
                         cdims = np.array(
-                            [i for i in range(rdims[0] + 1, n)]
-                            + [i for i in range(rdims[0])]
+                            list(range(rdims[0] + 1, n)) + list(range(rdims[0]))
                         )
                     elif cdims_cyclic == "bc":
                         # cdims = [rdims-1:-1:1, n:-1:rdims+1];
                         cdims = np.array(
-                            [i for i in range(rdims[0] - 1, -1, -1)]
-                            + [i for i in range(n - 1, rdims[0], -1)]
+                            list(range(rdims[0] - 1, -1, -1))
+                            + list(range(n - 1, rdims[0], -1))
                         )
                     else:
-                        assert (
-                            False
-                        ), 'Unrecognized value for cdims_cyclic pattern, must be "fc" or "bc".'
+                        assert False, (
+                            "Unrecognized value for cdims_cyclic pattern, must be "
+                            '"fc" or "bc".'
+                        )
 
                 else:
                     # Multiple row mapping
@@ -134,6 +181,9 @@ class tenmat:
             elif rdims is None and cdims is not None:
                 rdims = np.setdiff1d(alldims, cdims)
 
+            # Making typing happy
+            assert rdims is not None
+            assert cdims is not None
             # if rdims or cdims is empty, hstack will output an array of float not int
             if rdims.size == 0:
                 dims = cdims.copy()
@@ -142,9 +192,10 @@ class tenmat:
             else:
                 dims = np.hstack([rdims, cdims])
             if not len(dims) == n or not (alldims == np.sort(dims)).all():
-                assert (
-                    False
-                ), "Incorrect specification of dimensions, the sorted concatenation of rdims and cdims must be range(source.ndims)."
+                assert False, (
+                    "Incorrect specification of dimensions, the sorted concatenation "
+                    "of rdims and cdims must be range(source.ndims)."
+                )
 
             rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
             cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
@@ -157,8 +208,11 @@ class tenmat:
             tenmatInstance.cindices = cdims.copy()
             tenmatInstance.data = data.copy()
             return tenmatInstance
+        raise ValueError(
+            f"Can only create tenmat from tensor or tenmat but recieved {type(source)}"
+        )
 
-    def ctranspose(self):
+    def ctranspose(self) -> tenmat:
         """
         Complex conjugate transpose for tenmat.
 
@@ -177,18 +231,17 @@ class tenmat:
         tenmatInstance.data = self.data.conj().T.copy()
         return tenmatInstance
 
-    def double(self):
+    def double(self) -> np.ndarray:
         """
         Convert tenmat to an array of doubles
 
         Returns
         -------
-        :class:`numpy.ndarray`
-            copy of tenmat data
+        Copy of tenmat data.
         """
         return self.data.astype(np.float_).copy()
 
-    def end(self, k):
+    def end(self, k: int) -> int:
         """
         Last index of indexing expression for tenmat
 
@@ -199,60 +252,36 @@ class tenmat:
 
         Returns
         -------
-        int: index
+        Index
         """
 
         return self.data.shape[k] - 1
 
     @property
-    def ndims(self):
-        """
-        Return the number of dimensions of a tenmat
-
-        Returns
-        -------
-        int
-        """
+    def ndims(self) -> int:
+        """Return the number of dimensions of a tenmat"""
         return len(self.shape)
 
-    def norm(self):
-        """
-        Frobenius norm of a tenmat.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        Returns
-        -------
-        float
-        """
-        # default of np.linalg.norm is to vectorize the data and compute the vector norm, which is equivalent to
-        # the Frobenius norm for multidimensional arrays. However, the argument 'fro' only workks for 1-D and 2-D
+    def norm(self) -> float:
+        """Frobenius norm of a tenmat."""
+        # default of np.linalg.norm is to vectorize the data and compute the vector
+        # norm, which is equivalent to the Frobenius norm for multidimensional arrays.
+        # However, the argument 'fro' only workks for 1-D and 2-D
         # arrays currently.
-        return np.linalg.norm(self.data)
+        return float(np.linalg.norm(self.data))
 
     @property
-    def shape(self):
-        """
-        Return the shape of a tenmat
-
-        Returns
-        -------
-        tuple
-        """
+    def shape(self) -> Tuple[int, ...]:
+        """Return the shape of a tenmat"""
         if self.data.shape == (0,):
             return ()
-        else:
-            return self.data.shape
+        return self.data.shape
 
     def __setitem__(self, key, value):
         """
         SUBSASGN Subscripted assignment for a tensor.
         """
         self.data[key] = value
-        return
 
     def __getitem__(self, item):
         """
@@ -285,12 +314,13 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data * other
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes are compatible
             if not self.shape[1] == other.shape[0]:
-                assert (
-                    False
-                ), "tenmat shape mismatch: number or columns of left operand must match number of rows of right operand."
+                assert False, (
+                    "tenmat shape mismatch: number or columns of left operand must "
+                    "match number of rows of right operand."
+                )
 
             tshape = tuple(
                 np.hstack(
@@ -301,21 +331,17 @@ class tenmat:
                 )
             )
 
-            if tshape == ():
+            if not tshape:
                 return (self.data @ other.data)[0, 0]
-            else:
-                tenmatInstance = tenmat()
-                tenmatInstance.tshape = tshape
-                tenmatInstance.rindices = np.arange(len(self.rindices))
-                tenmatInstance.cindices = np.arange(len(other.cindices)) + len(
-                    self.rindices
-                )
-                tenmatInstance.data = self.data @ other.data
-                return tenmatInstance
-        else:
-            assert (
-                False
-            ), "tenmat multiplication only valid with scalar or tenmat objects."
+            tenmatInstance = tenmat()
+            tenmatInstance.tshape = tshape
+            tenmatInstance.rindices = np.arange(len(self.rindices))
+            tenmatInstance.cindices = np.arange(len(other.cindices)) + len(
+                self.rindices
+            )
+            tenmatInstance.data = self.data @ other.data
+            return tenmatInstance
+        assert False, "tenmat multiplication only valid with scalar or tenmat objects."
 
     def __rmul__(self, other):
         """
@@ -332,7 +358,6 @@ class tenmat:
         return self.__mul__(other)
 
     def __add__(self, other):
-        pass
         """
         Binary addition (+) for tenmats
 
@@ -350,7 +375,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data + other
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes agree
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
@@ -358,8 +383,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data + other.data
             return Z
-        else:
-            assert False, "tenmat addition only valid with scalar or tenmat objects."
+        assert False, "tenmat addition only valid with scalar or tenmat objects."
 
     def __radd__(self, other):
         """
@@ -376,7 +400,6 @@ class tenmat:
         return self.__add__(other)
 
     def __sub__(self, other):
-        pass
         """
         Binary subtraction (-) for tenmats
 
@@ -394,7 +417,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data - other
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes agree
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
@@ -402,8 +425,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = Z.data - other.data
             return Z
-        else:
-            assert False, "tenmat subtraction only valid with scalar or tenmat objects."
+        assert False, "tenmat subtraction only valid with scalar or tenmat objects."
 
     def __rsub__(self, other):
         """
@@ -423,7 +445,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = other - Z.data
             return Z
-        elif isinstance(other, tenmat):
+        if isinstance(other, tenmat):
             # Check that data shapes agree
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
@@ -431,8 +453,7 @@ class tenmat:
             Z = ttb.tenmat.from_tensor_type(self)
             Z.data = other.data - Z.data
             return Z
-        else:
-            assert False, "tenmat subtraction only valid with scalar or tenmat objects."
+        assert False, "tenmat subtraction only valid with scalar or tenmat objects."
 
     def __pos__(self):
         """
@@ -470,7 +491,8 @@ class tenmat:
         Returns
         -------
         str
-            Contains the shape, row indices (rindices), column indices (cindices) and data as strings on different lines.
+            Contains the shape, row indices (rindices), column indices (cindices) and
+            data as strings on different lines.
         """
         s = ""
         s += "matrix corresponding to a tensor of shape "
