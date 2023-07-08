@@ -266,16 +266,16 @@ def tt_cp_apr_mu(
     # is not offered.
 
     # Main loop: Iterate until convergence
-    for iter in range(maxiters):
+    for iteration in range(maxiters):
         isConverged = True
         for n in range(N):
             # Make adjustments to entries of M[n] that are violating complementary
             # slackness conditions.
             # TODO both these zeros were 1 in matlab
-            if iter > 0:
+            if iteration > 0:
                 V = (Phi[n] > 0) & (M[n] < kappatol)
                 if np.any(V):
-                    nViolations[iter] += 1
+                    nViolations[iteration] += 1
                     M.factor_matrices[n][V > 0] += kappa
 
             # Shift the weight from lambda to mode n
@@ -283,24 +283,25 @@ def tt_cp_apr_mu(
 
             # Calculate product of all matrices but the n-th
             # Sparse case only calculates entries corresponding to nonzeros in X
-            Pi = calculatePi(input_tensor, M, rank, n, N)
+            Pi = calculate_pi(input_tensor, M, rank, n, N)
 
             # Do the multiplicative updates
             for i in range(maxinneriters):
                 # Count the inner iterations
-                nInnerIters[iter] += 1
+                nInnerIters[iteration] += 1
 
                 # Calculate matrix for multiplicative update
-                Phi[n] = calculatePhi(input_tensor, M, rank, n, Pi, epsDivZero)
+                Phi[n] = calculate_phi(input_tensor, M, rank, n, Pi, epsDivZero)
 
                 # Check for convergence
                 kktModeViolations[n] = np.max(
-                    np.abs(vectorizeForMu(np.minimum(M.factor_matrices[n], 1 - Phi[n])))
+                    np.abs(
+                        vectorize_for_mu(np.minimum(M.factor_matrices[n], 1 - Phi[n]))
+                    )
                 )
                 if kktModeViolations[n] < stoptol:
                     break
-                else:
-                    isConverged = False
+                isConverged = False
 
                 # Do the multiplicative update
                 # TODO cannot update M[n] in this way
@@ -316,21 +317,22 @@ def tt_cp_apr_mu(
             # Shift weight from mode n back to lambda
             M.normalize(normtype=1, mode=n)
 
-        kktViolations[iter] = np.max(kktModeViolations)
-        if divmod(iter, printitn)[1] == 0:
+        kktViolations[iteration] = np.max(kktModeViolations)
+        if divmod(iteration, printitn)[1] == 0:
             print(
-                f"\tIter {iter}: Inner Its = {nInnerIters[iter]} KKT violation = "
-                f"{kktViolations[iter]}, nViolations = {nViolations[iter]}"
+                f"\tIter {iteration}: Inner Its = {nInnerIters[iteration]} "
+                f"KKT violation = {kktViolations[iteration]}, "
+                f"nViolations = {nViolations[iteration]}"
             )
 
-        nTimes[iter] = time.time() - start
+        nTimes[iteration] = time.time() - start
 
         # Check for convergence
         if isConverged:
             if printitn > 0:
                 print("Exiting because all subproblems reached KKT tol.")
             break
-        if nTimes[iter] > stoptime:
+        if nTimes[iteration] > stoptime:
             if printitn > 0:
                 print("Exiting because time limit exceeded.")
             break
@@ -351,7 +353,7 @@ def tt_cp_apr_mu(
         print("===========================================")
         print(f" Final log-likelihood = {obj}")
         print(f" Final least squares fit = {fit}")
-        print(f" Final KKT violation = {kktViolations[iter]}")
+        print(f" Final KKT violation = {kktViolations[iteration]}")
         print(f" Total inner iterations = {sum(nInnerIters)}")
         print(f" Total execution time = {t_stop} secs")
 
@@ -367,11 +369,11 @@ def tt_cp_apr_mu(
         kappa,
         kappatol,
     )
-    output["kktViolations"] = kktViolations[: iter + 1]
-    output["nInnerIters"] = nInnerIters[: iter + 1]
-    output["nViolations"] = nViolations[: iter + 1]
+    output["kktViolations"] = kktViolations[: iteration + 1]
+    output["nInnerIters"] = nInnerIters[: iteration + 1]
+    output["nViolations"] = nViolations[: iteration + 1]
     output["nTotalIters"] = np.sum(nInnerIters)
-    output["times"] = nTimes[: iter + 1]
+    output["times"] = nTimes[: iteration + 1]
     output["totalTime"] = t_stop
     output["obj"] = obj
 
@@ -461,10 +463,7 @@ def tt_cp_apr_pdnr(
     M.normalize(normtype=1)
 
     # Sparse tensor flag affects how Pi and Phi are computed.
-    if isinstance(input_tensor, ttb.sptensor):
-        isSparse = True
-    else:
-        isSparse = False
+    isSparse = isinstance(input_tensor, ttb.sptensor)
 
     # Initialize output arrays
     fnEvals = np.zeros((maxiters, 1))
@@ -504,7 +503,7 @@ def tt_cp_apr_pdnr(
 
     # Main loop: iterate until convergence or a max threshold is reached
     # pylint: disable=too-many-nested-blocks
-    for iter in range(maxiters):
+    for iteration in range(maxiters):
         isConverged = True
         kktModeViolations = np.zeros((N,))
         countInnerIters = np.zeros((N,))
@@ -515,7 +514,7 @@ def tt_cp_apr_pdnr(
             M.redistribute(mode=n)
 
             # calculate khatri-rao product of all matrices but the n-th
-            if isSparse == False:
+            if isSparse is False:
                 # Data is not a sparse tensor.
                 Pi = ttb.tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
                 X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
@@ -555,7 +554,7 @@ def tt_cp_apr_pdnr(
                 m_row = M[n][jj, :]
 
                 # Iteratively solve the row subproblem with projected Newton steps.
-                if inexact and iter == 1:
+                if inexact and iteration == 1:
                     innerIterMaximum = 2
                 else:
                     innerIterMaximum = maxinneriters
@@ -596,13 +595,12 @@ def tt_cp_apr_pdnr(
                     # Check for row subproblem convergence.
                     if kkt_violation < stoptol:
                         break
-                    else:
-                        # Not converged, so m_row will be modified.
-                        isRowNOTconverged[jj] = 1
+                    # Not converged, so m_row will be modified.
+                    isRowNOTconverged[jj] = 1
 
                     # Calculate the search direction
                     # TODO clean up reshaping gradM to row
-                    search_dir, predicted_red = getSearchDirPdnr(
+                    search_dir, predicted_red = get_search_dir_pdnr(
                         Pi, ups_row, rank, gradM.transpose()[0], m_row, mu, epsActive
                     )
 
@@ -629,7 +627,7 @@ def tt_cp_apr_pdnr(
                         phi_row,
                         dispLineWarn,
                     )
-                    fnEvals[iter] += num_evals
+                    fnEvals[iteration] += num_evals
                     m_row = m_rowNew
 
                     # Update damping parameter mu based on the unit step length, which
@@ -656,35 +654,36 @@ def tt_cp_apr_pdnr(
 
             # Total number of inner iterations for a given outer iteration, totalled
             # across all modes and all row subproblems in each mode
-            nInnerIters[iter] += countInnerIters[n]
+            nInnerIters[iteration] += countInnerIters[n]
 
         # Save output items for the outer iteration.
         num_zero = 0
         for n in range(N):
             num_zero += np.count_nonzero(M[n] == 0)  # [0].size
 
-        nzeros[iter] = num_zero
-        kktViolations[iter] = np.max(kktModeViolations)
+        nzeros[iteration] = num_zero
+        kktViolations[iteration] = np.max(kktModeViolations)
 
         if inexact:
-            rowsubprobStopTol = np.maximum(stoptol, kktViolations[iter]) / 100.0
+            rowsubprobStopTol = np.maximum(stoptol, kktViolations[iteration]) / 100.0
 
             # Print outer iteration status.
-            if printitn > 0 and np.mod(iter, printitn) == 0:
-                fnVals[iter] = -tt_loglikelihood(input_tensor, M)
+            if printitn > 0 and np.mod(iteration, printitn) == 0:
+                fnVals[iteration] = -tt_loglikelihood(input_tensor, M)
                 print(
-                    f"{iter}. Ttl Inner Its: {nInnerIters[iter]}, KKT viol = "
-                    f"{kktViolations[iter]}, obj = {fnVals[iter]}, nz: {num_zero}"
+                    f"{iteration}. Ttl Inner Its: {nInnerIters[iteration]}, "
+                    f"KKT viol = {kktViolations[iteration]}, obj = {fnVals[iteration]}"
+                    f", nz: {num_zero}"
                 )
 
-        times[iter] = time.time() - start
+        times[iteration] = time.time() - start
 
         # Check for convergence
-        if isConverged and inexact == False:
+        if isConverged and not inexact:
             break
         if isConverged and inexact and rowsubprobStopTol <= stoptol:
             break
-        if times[iter] > stoptime:
+        if times[iteration] > stoptime:
             print("EXiting because time limit exceeded")
             break
 
@@ -704,7 +703,7 @@ def tt_cp_apr_pdnr(
         print("===========================================")
         print(f" Final log-likelihood = {obj}")
         print(f" Final least squares fit = {fit}")
-        print(f" Final KKT violation = {kktViolations[iter]}")
+        print(f" Final KKT violation = {kktViolations[iteration]}")
         print(f" Total inner iterations = {sum(nInnerIters)}")
         print(f" Total execution time = {t_stop} secs")
 
@@ -722,13 +721,13 @@ def tt_cp_apr_pdnr(
         precompinds,
         inexact,
     )
-    output["kktViolations"] = kktViolations[: iter + 1]
+    output["kktViolations"] = kktViolations[: iteration + 1]
     output["obj"] = obj
-    output["fnEvals"] = fnEvals[: iter + 1]
-    output["fnVals"] = fnVals[: iter + 1]
-    output["nInnerIters"] = nInnerIters[: iter + 1]
-    output["nZeros"] = nzeros[: iter + 1]
-    output["times"] = times[: iter + 1]
+    output["fnEvals"] = fnEvals[: iteration + 1]
+    output["fnVals"] = fnVals[: iteration + 1]
+    output["nInnerIters"] = nInnerIters[: iteration + 1]
+    output["nZeros"] = nzeros[: iteration + 1]
+    output["times"] = times[: iteration + 1]
     output["totalTime"] = t_stop
 
     return M, output
@@ -829,10 +828,7 @@ def tt_cp_apr_pqnr(
     M.normalize(normtype=1)
 
     # Sparse tensor flag affects how Pi and Phi are computed.
-    if isinstance(input_tensor, ttb.sptensor):
-        isSparse = True
-    else:
-        isSparse = False
+    isSparse = isinstance(input_tensor, ttb.sptensor)
 
     # Initialize output arrays
     fnEvals = np.zeros((maxiters, 1))
@@ -868,7 +864,7 @@ def tt_cp_apr_pqnr(
 
     # Main loop: iterate until convergence or a max threshold is reached
     # pylint: disable=too-many-nested-blocks
-    for iter in range(maxiters):
+    for iteration in range(maxiters):
         isConverged = True
         kktModeViolations = np.zeros((N,))
         countInnerIters = np.zeros((N,))
@@ -879,7 +875,7 @@ def tt_cp_apr_pqnr(
             M.redistribute(mode=n)
 
             # calculate khatri-rao product of all matrices but the n-th
-            if isSparse == False:
+            if isSparse is False:
                 # Data is not a sparse tensor.
                 Pi = ttb.tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
                 X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
@@ -950,7 +946,7 @@ def tt_cp_apr_pqnr(
                             phi_row,
                             dispLineWarn,
                         )
-                        fnEvals[iter] += num_evals
+                        fnEvals[iteration] += num_evals
                         gradM, phi_row = calc_grad(
                             isSparse, Pi, epsDivZero, x_row, m_row
                         )
@@ -982,9 +978,8 @@ def tt_cp_apr_pqnr(
                     # Check for row subproblem convergence.
                     if kkt_violation < stoptol:
                         break
-                    else:
-                        # Not converged, so m_row will be modified.
-                        isRowNOTconverged[jj] = 1
+                    # Not converged, so m_row will be modified.
+                    isRowNOTconverged[jj] = 1
 
                     # Update the L-BFGS approximation.
                     tmp_delm = m_row - m_rowOLD
@@ -1016,7 +1011,7 @@ def tt_cp_apr_pqnr(
                             lbfgsPos -= 1
 
                     # Calculate search direction
-                    search_dir = getSearchDirPqnr(
+                    search_dir = get_search_dir_pqnr(
                         m_row,
                         gradM,
                         epsActive,
@@ -1050,7 +1045,7 @@ def tt_cp_apr_pqnr(
                         phi_row,
                         dispLineWarn,
                     )
-                    fnEvals[iter] += num_evals
+                    fnEvals[iteration] += num_evals
 
                 M.factor_matrices[n][jj, :] = m_row
                 countInnerIters[n] += i
@@ -1065,30 +1060,30 @@ def tt_cp_apr_pqnr(
 
             # Total number of inner iterations for a given outer iteration,
             # totalled across all modes and all row subproblems in each mode
-            nInnerIters[iter] += countInnerIters[n]
+            nInnerIters[iteration] += countInnerIters[n]
 
         # Save output items for the outer iteration.
         num_zero = 0
         for n in range(N):
             num_zero += np.count_nonzero(M[n] == 0)  # [0].size
 
-        nzeros[iter] = num_zero
-        kktViolations[iter] = np.max(kktModeViolations)
+        nzeros[iteration] = num_zero
+        kktViolations[iteration] = np.max(kktModeViolations)
 
         # Print outer iteration status.
-        if printitn > 0 and np.mod(iter, printitn) == 0:
-            fnVals[iter] = -tt_loglikelihood(input_tensor, M)
+        if printitn > 0 and np.mod(iteration, printitn) == 0:
+            fnVals[iteration] = -tt_loglikelihood(input_tensor, M)
             print(
-                f"{iter}. Ttl Inner Its: {nInnerIters[iter]}, KKT viol = "
-                f"{kktViolations[iter]}, obj = {fnVals[iter]}, nz: {num_zero}"
+                f"{iteration}. Ttl Inner Its: {nInnerIters[iteration]}, KKT viol = "
+                f"{kktViolations[iteration]}, obj = {fnVals[iteration]}, nz: {num_zero}"
             )
 
-        times[iter] = time.time() - start
+        times[iteration] = time.time() - start
 
         # Check for convergence
         if isConverged:
             break
-        if times[iter] > stoptime:
+        if times[iteration] > stoptime:
             print("Exiting because time limit exceeded")
             break
 
@@ -1108,7 +1103,7 @@ def tt_cp_apr_pqnr(
         print("===========================================")
         print(f" Final log-likelihood = {obj}")
         print(f" Final least squares fit = {fit}")
-        print(f" Final KKT violation = {kktViolations[iter]}")
+        print(f" Final KKT violation = {kktViolations[iteration]}")
         print(f" Total inner iterations = {sum(nInnerIters)}")
         print(f" Total execution time = {t_stop} secs")
 
@@ -1125,13 +1120,13 @@ def tt_cp_apr_pqnr(
         lbfgsMem,
         precompinds,
     )
-    output["kktViolations"] = kktViolations[: iter + 1]
+    output["kktViolations"] = kktViolations[: iteration + 1]
     output["obj"] = obj
-    output["fnEvals"] = fnEvals[: iter + 1]
-    output["fnVals"] = fnVals[: iter + 1]
-    output["nInnerIters"] = nInnerIters[: iter + 1]
-    output["nZeros"] = nzeros[: iter + 1]
-    output["times"] = times[: iter + 1]
+    output["fnEvals"] = fnEvals[: iteration + 1]
+    output["fnVals"] = fnVals[: iteration + 1]
+    output["nInnerIters"] = nInnerIters[: iteration + 1]
+    output["nZeros"] = nzeros[: iteration + 1]
+    output["times"] = times[: iteration + 1]
     output["totalTime"] = t_stop
 
     return M, output
@@ -1161,7 +1156,7 @@ def tt_calcpi_prowsubprob(
 
     See Also
     --------
-    :class:`pyttb.calculatePi`
+    :class:`pyttb.calculate_pi`
 
     """
     # TODO: this can probably be merged with general calculate pi,
@@ -1219,7 +1214,7 @@ def calc_partials(isSparse, Pi, epsilon, data_row, model_row):
     return phi_row, ups_row
 
 
-def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
+def get_search_dir_pdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
     """
     Compute the search direction for PDNR using a two-metric projection with
     damped Hessian
@@ -1271,7 +1266,7 @@ def getSearchDirPdnr(Pi, ups_row, rank, gradModel, model_row, mu, epsActSet):
     free_indices = free_indices_tmp[0:num_free]
 
     # Compute the Hessian for free variables.
-    Hessian_free = getHessian(ups_row, Pi, free_indices)
+    Hessian_free = get_hessian(ups_row, Pi, free_indices)
     grad_free = -gradModel[free_indices]
 
     # Compute the damped Newton search direction over free variables
@@ -1399,9 +1394,8 @@ def tt_linesearch_prowsubprob(
             # Check for sufficient decrease.
             if f_new <= (f_old + suff_decr * gDotd):
                 break
-            else:
-                stepSize *= step_red
-                count += 1
+            stepSize *= step_red
+            count += 1
 
     if np.isinf(f_1):
         # Unit step failed; return a value that yields ared =0
@@ -1434,7 +1428,7 @@ def tt_linesearch_prowsubprob(
     return model_new, f_old, f_1, f_new, num_evals
 
 
-def getHessian(upsilon, Pi, free_indices):
+def get_hessian(upsilon, Pi, free_indices):
     """
     Return the Hessian for one PDNR row subproblem of Model[n], for just the rows and
     columns corresponding to the free variables
@@ -1513,7 +1507,7 @@ def tt_loglikelihood_row(isSparse, data_row, model_row, Pi):
 
 
 # PQNR helper functions
-def getSearchDirPqnr(
+def get_search_dir_pqnr(
     model_row,
     gradModel,
     epsActSet,
@@ -1647,7 +1641,7 @@ def calc_grad(isSparse, Pi, eps_div_zero, data_row, model_row):
 
 
 # Mu helper functions
-def calculatePi(Data, Model, rank, factorIndex, ndims):
+def calculate_pi(Data, Model, rank, factorIndex, ndims):
     """
     Helper function to calculate Pi matrix
     # TODO verify what pi is
@@ -1680,7 +1674,7 @@ def calculatePi(Data, Model, rank, factorIndex, ndims):
     return Pi
 
 
-def calculatePhi(Data, Model, rank, factorIndex, Pi, epsilon):
+def calculate_phi(Data, Model, rank, factorIndex, Pi, epsilon):
     """
 
     Parameters
@@ -1751,22 +1745,21 @@ def tt_loglikelihood(Data, Model):
         return np.sum(Data.vals * np.log(np.sum(A, axis=1))[:, None]) - np.sum(
             Model.factor_matrices[0]
         )
-    else:
-        dX = ttb.tt_to_dense_matrix(Data, 1)
-        dM = ttb.tt_to_dense_matrix(Model, 1)
-        f = 0
-        for i in range(dX.shape[0]):
-            for j in range(dX.shape[1]):
-                if dX[i, j] == 0:
-                    pass
-                else:
-                    f += dX[i, j] * np.log(dM[i, j])
+    dX = ttb.tt_to_dense_matrix(Data, 1)
+    dM = ttb.tt_to_dense_matrix(Model, 1)
+    f = 0
+    for i in range(dX.shape[0]):
+        for j in range(dX.shape[1]):
+            if dX[i, j] == 0:
+                pass
+            else:
+                f += dX[i, j] * np.log(dM[i, j])
 
-        f -= np.sum(Model.factor_matrices[0])
-        return f
+    f -= np.sum(Model.factor_matrices[0])
+    return f
 
 
-def vectorizeForMu(matrix):
+def vectorize_for_mu(matrix):
     """
     Helper Function to unravel matrix into vector
 
