@@ -1,61 +1,64 @@
+"""Tucker decomposition via Alternating Least Squares"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 from numbers import Real
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
+import pyttb as ttb
 from pyttb.ttensor import ttensor
 
 
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 def tucker_als(
-    input_tensor,
-    rank,
-    stoptol=1e-4,
-    maxiters=1000,
-    dimorder=None,
-    init="random",
-    printitn=1,
-):
+    input_tensor: ttb.tensor,
+    rank: Union[int, List[int], np.ndarray],
+    stoptol: float = 1e-4,
+    maxiters: int = 1000,
+    dimorder: Optional[List[int]] = None,
+    init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
+    printitn: int = 1,
+) -> Tuple[ttensor, ttensor, Dict]:
     """
     Compute Tucker decomposition with alternating least squares
 
     Parameters
     ----------
     input_tensor: :class:`pyttb.tensor`
-    rank: int, list[int]
-        Rank of the decomposition(s)
-    stoptol: float
-        Tolerance used for termination - when the change in the fitness function in successive iterations drops
-        below this value, the iterations terminate (default: 1e-4)
-    dimorder: list
-        Order to loop through dimensions (default: [range(tensor.ndims)])
-    maxiters: int
-        Maximum number of iterations (default: 1000)
-    init: str or list[np.ndarray]
-        Initial guess (default: "random")
+    rank: Rank of the decomposition(s)
+    stoptol: Tolerance used for termination - when the change in the fitness function
+        in successive iterations drops below this value, the iterations terminate
+    dimorder: Order to loop through dimensions (default: [range(tensor.ndims)])
+    maxiters: Maximum number of iterations
+    init: Initial guess (default: "random")
 
-             * "random": initialize using a :class:`pyttb.ttensor` with values chosen from a Normal distribution with mean 1 and standard deviation 0
-             * "nvecs": initialize factor matrices of a :class:`pyttb.ttensor` using the eigenvectors of the outer product of the matricized input tensor
-             * :class:`pyttb.ttensor`: initialize using a specific :class:`pyttb.ttensor` as input - must be the same shape as the input tensor and have the same rank as the input rank
+        * "random": initialize using a :class:`pyttb.ttensor` with values chosen from
+            a Normal distribution with mean 0 and standard deviation 1
+        * "nvecs": initialize factor matrices of a :class:`pyttb.ttensor` using the
+            eigenvectors of the outer product of the matricized input tensor
+        * :class:`pyttb.ttensor`: initialize using a specific :class:`pyttb.ttensor`
+            as input - must be the same shape as the input tensor and have the same
+            rank as the input rank
 
-    printitn: int
-        Number of iterations to perform before printing iteration status - 0 for no status printing (default: 1)
+    printitn: Number of iterations to perform before printing iteration status:
+        0 for no status printing
 
     Returns
     -------
-    M: :class:`pyttb.ttensor`
-        Resulting ttensor from Tucker-ALS factorization
-    Minit: :class:`pyttb.ttensor`
-        Initial guess
-    output: dict
-        Information about the computation. Dictionary keys:
+    M: Resulting ttensor from Tucker-ALS factorization
+    Minit: Initial guess
+    output: Information about the computation. Dictionary keys:
 
-            * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
-            * `iters`: number of iterations performed
-            * `normresidual`: norm of the difference between the input tensor and ktensor factorization
-            * `fit`: value of the fitness function (fraction of tensor data explained by the model)
+        * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
+        * `iters`: number of iterations performed
+        * `normresidual`: norm of the difference between the input tensor and ktensor
+            factorization
+        * `fit`: value of the fitness function (fraction of tensor data explained by
+            the model)
 
     """
     N = input_tensor.ndims
@@ -68,7 +71,8 @@ def tucker_als(
         )
     if not isinstance(maxiters, Real) or maxiters < 0:
         raise ValueError(
-            f"maxiters must be a non-negative real valued scalar but received: {maxiters}"
+            f"maxiters must be a non-negative real valued scalar but received: "
+            f"{maxiters}"
         )
     if not isinstance(printitn, Real):
         raise ValueError(
@@ -84,7 +88,7 @@ def tucker_als(
     else:
         if not isinstance(dimorder, list):
             raise ValueError("Dimorder must be a list")
-        elif tuple(range(N)) != tuple(sorted(dimorder)):
+        if tuple(range(N)) != tuple(sorted(dimorder)):
             raise ValueError(
                 "Dimorder must be a list or permutation of range(tensor.ndims)"
             )
@@ -93,13 +97,15 @@ def tucker_als(
         Uinit = init
         if len(init) != N:
             raise ValueError(
-                f"Init needs to be of length tensor.ndim (which was {N}) but only got length {len(init)}."
+                f"Init needs to be of length tensor.ndim (which was {N}) but only got "
+                f"length {len(init)}."
             )
         for n in dimorder[1::]:
             correct_shape = (input_tensor.shape[n], rank[n])
             if Uinit[n].shape != correct_shape:
                 raise ValueError(
-                    f"Init factor {n} had incorrect shape. Expected {correct_shape} but got {Uinit[n].shape}"
+                    f"Init factor {n} had incorrect shape. Expected {correct_shape} "
+                    f"but got {Uinit[n].shape}"
                 )
     elif isinstance(init, str) and init.lower() == "random":
         Uinit = [None] * N
@@ -129,7 +135,7 @@ def tucker_als(
         print("\nTucker Alternating Least-Squares:\n")
 
     # Main loop: Iterate until convergence
-    for iter in range(maxiters):
+    for iteration in range(maxiters):
         fitold = fit
 
         # Iterate over all N modes of the tensor
@@ -147,8 +153,8 @@ def tucker_als(
         fit = 1 - (normresidual / normX)  # fraction explained by model
         fitchange = abs(fitold - fit)
 
-        if iter % printitn == 0:
-            print(f" Iter {iter}: fit = {fit:e} fitdelta = {fitchange:7.1e}\n")
+        if iteration % printitn == 0:
+            print(f" Iter {iteration}: fit = {fit:e} fitdelta = {fitchange:7.1e}\n")
 
         # Check for convergence
         if fitchange < stoptol:
@@ -156,10 +162,11 @@ def tucker_als(
 
     solution = ttensor.from_data(core, U)
 
-    output = {}
-    output["params"] = (stoptol, maxiters, printitn, dimorder)
-    output["iters"] = iter
-    output["normresidual"] = normresidual
-    output["fit"] = fit
+    output = {
+        "params": (stoptol, maxiters, printitn, dimorder),
+        "iters": iteration,
+        "normresidual": normresidual,
+        "fit": fit,
+    }
 
     return solution, Uinit, output
