@@ -772,30 +772,31 @@ def tt_cp_apr_pqnr(
 
     Parameters
     ----------
-    input_tensor: Union[:class:`pyttb.tensor`,:class:`pyttb.sptensor`]
+    input_tensor:
+        Tensor to decompose
     rank: int
         Rank of the decomposition
-    init: str or :class:`pyttb.ktensor`
+    init:
         Initial guess
-    stoptol: float
+    stoptol:
         Tolerance on overall KKT violation
-    stoptime: float
+    stoptime:
         Maximum number of seconds to run
-    maxiters: int
+    maxiters:
         Maximum number of iterations
-    maxinneriters: int
+    maxinneriters:
         Maximum inner iterations per outer iteration
-    epsDivZero: float
+    epsDivZero:
         Safeguard against divide by zero
-    printitn: int
+    printitn:
         Print every n outer iterations, 0 for none
-    printinneritn: int
+    printinneritn:
         Print every n inner iterations
-    epsActive: float
+    epsActive:
         PDNR & PQNR ALGORITHM PARAMETER: Bertsekas tolerance for active set
-    lbfgsMem: int
+    lbfgsMem:
         Number of vector pairs to store for L-BFGS
-    precompinds: bool
+    precompinds:
         Precompute sparse tensor indices
 
     Returns
@@ -1176,13 +1177,19 @@ def tt_calcpi_prowsubprob(
 
     Parameters
     ----------
-    Data :class:`pyttb.sptensor` or :class:`pyttb.tensor`
-    isSparse: bool
-    Model :class:`pyttb.ktensor`
-    rank: int
-    factorIndex: int
-    ndims: int
-    sparse_indices: list
+    Data:
+        Tensor to compute subproblem for.
+    isSparse:
+        Flag to determine if sparse subproblem.
+    Model:
+        Current decomposition.
+    rank:
+        Rank of solution.
+    factorIndex:
+        Which factor to solve
+    ndims:
+        Number of dimensions
+    sparse_indices:
         Indices of row subproblem nonzero elements
 
     Returns
@@ -1229,12 +1236,15 @@ def calc_partials(
 
     Parameters
     ----------
-    isSparse: bool
-    Pi: :class:`numpy.ndarray`
-    epsilon: float
-        Prevent division by zero
-    data_row: :class:`numpy.ndarray`
-    model_row: :class:`numpy.ndarray`
+    isSparse:
+        Flag if sparse subproblem.
+    Pi:
+    epsilon:
+        Prevent division by zero.
+    data_row:
+        Row of data for subproblem.
+    model_row:
+        Row of model for subproblem.
 
     Returns
     -------
@@ -1271,18 +1281,18 @@ def get_search_dir_pdnr(
 
     Parameters
     ----------
-    Pi: :class:`numpy.ndarray`
-    ups_row: :class:`numpy.ndarray`
+    Pi:
+    ups_row:
         intermediate quantity (upsilon) used for second derivatives
-    rank: int
+    rank:
         number of variables for the row subproblem
-    gradModel:  :class:`numpy.ndarray`
+    gradModel:
         gradient vector for the row subproblem
-    model_row: :class:`numpy.ndarray`
+    model_row:
         vector of variables for the row subproblem
-    mu: float
+    mu:
         damping parameter
-    epsActSet: float
+    epsActSet:
         Bertsekas tolerance for active set determination
 
     Returns
@@ -1370,29 +1380,29 @@ def tt_linesearch_prowsubprob(
 
     Parameters
     ----------
-    direction:  :class:`numpy.ndarray`
+    direction:
         search direction
-    grad:  :class:`numpy.ndarray`
+    grad:
         gradient vector a model_old
-    model_old:  :class:`numpy.ndarray`
+    model_old:
         current variable values
-    step_len: float
+    step_len:
         initial step length, which is the maximum possible step length
-    step_red: float
+    step_red:
         step reduction factor (suggest 1/2)
-    max_steps: int
+    max_steps:
         maximum number of steps to try (suggest 10)
-    suff_decr: float
+    suff_decr:
         sufficent decrease for convergence (suggest 1.0e-4)
-    isSparse: bool
+    isSparse:
         sparsity flag for computing the objective
-    data_row:  :class:`numpy.ndarray`
+    data_row:
         row subproblem data, for computing the objective
-    Pi:  :class:`numpy.ndarray`
+    Pi:
         Pi matrix, for computing the objective
-    phi_row:  :class:`numpy.ndarray`
+    phi_row:
         1-grad, more accurate if failing over to multiplicative update
-    display_warning: bool
+    display_warning:
         Flag to display warning messages or not
 
     Returns
@@ -1487,10 +1497,10 @@ def get_hessian(
 
     Parameters
     ----------
-    upsilon: :class:`numpy.ndarray`
+    upsilon:
         intermediate quantity (upsilon) used for second derivatives
-    Pi: :class:`numpy.ndarray`
-    free_indices: list
+    Pi:
+    free_indices:
 
     Returns
     -------
@@ -1521,13 +1531,13 @@ def tt_loglikelihood_row(
 
     Parameters
     ----------
-    isSparse: bool
+    isSparse:
         Sparsity flag
-    data_row: :class:`numpy.ndarray`
+    data_row:
         vector of data values
-    model_row: :class:`numpy.ndarray`
+    model_row:
         vector of model values
-    Pi: :class:`numpy.ndarray`
+    Pi:
 
     Notes
     -----
@@ -1580,21 +1590,21 @@ def get_search_dir_pqnr(
 
     Parameters
     ----------
-    model_row: :class:`numpy.ndarray`
+    model_row:
         current variable values
-    gradModel: :class:`numpy.ndarray`
+    gradModel:
         gradient at model_row
-    epsActSet: float
+    epsActSet:
         Bertsekas tolerance for active set determination
-    delta_model: :class:`numpy.ndarray`
+    delta_model:
         L-BFGS array of variable deltas
-    delta_grad: :class:`numpy.ndarray`
+    delta_grad:
         L-BFGS array of gradient deltas
     rho:
-    lbfgs_pos: int
+    lbfgs_pos:
         pointer into L-BFGS arrays
     iters:
-    disp_warn: bool
+    disp_warn:
 
     Returns
     -------
@@ -1677,16 +1687,16 @@ def calc_grad(
 
     Parameters
     ----------
-    isSparse: bool
-    Pi: :class:`numpy.ndarray`
-    eps_div_zero: float
-    data_row: :class:`numpy.ndarray`
-    model_row: :class:`numpy.ndarray`
+    isSparse:
+    Pi:
+    eps_div_zero:
+    data_row:
+    model_row:
 
     Returns
     -------
-    phi_row: :class:`numpy.ndarray`
-    grad_row: :class:`numpy.ndarray`
+    phi_row:
+    grad_row:
 
     """
     # TODO: note this is duplicated exactly from calc_partials, should
@@ -1717,15 +1727,15 @@ def calculate_pi(
 
     Parameters
     ----------
-    Data: :class:`pyttb.sptensor` or :class:`pyttb.tensor`
-    Model: :class:`pyttb.ktensor`
-    rank: int
-    factorIndex: int
-    ndims: int
+    Data:
+    Model:
+    rank:
+    factorIndex:
+    ndims:
 
     Returns
     -------
-    Pi: :class:`numpy.ndarray`
+    Pi:
     """
     if isinstance(Data, ttb.sptensor):
         Pi = np.ones((Data.nnz, rank))
@@ -1755,12 +1765,12 @@ def calculate_phi(
 
     Parameters
     ----------
-    Data: :class:`pyttb.sptensor` or :class:`pyttb.tensor`
-    Model: :class:`pyttb.ktensor`
-    rank: int
-    factorIndex: int
-    Pi: :class:`numpy.ndarray`
-    epsilon: float
+    Data:
+    Model:
+    rank:
+    factorIndex:
+    Pi:
+    epsilon:
 
     Returns
     -------
@@ -1796,12 +1806,12 @@ def tt_loglikelihood(
 
     Parameters
     ----------
-    Data: :class:`pyttb.sptensor` or :class:`pyttb.tensor`
-    Model: :class:`pyttb.ktensor`
+    Data:
+    Model:
 
     Returns
     -------
-    loglikelihood: float
+    loglikelihood:
         - (sum_i m_i - x_i * log_i) with i as a multiindex across all tensor dimensions
 
     Notes
@@ -1844,11 +1854,11 @@ def vectorize_for_mu(matrix: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    matrix: :class:`numpy.ndarray`
+    matrix:
 
     Returns
     -------
-    matrix: :class:`numpy.ndarray`
-        len(matrix.shape)==1
+    matrix:
+        Unraveled matrix len(matrix.shape)==1
     """
     return matrix.ravel()

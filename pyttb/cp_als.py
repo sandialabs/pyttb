@@ -27,38 +27,46 @@ def cp_als(
 
     Parameters
     ----------
-    input_tensor: Tensor to decompose
-    rank: Rank of the decomposition
-    stoptol: Tolerance used for termination - when the change in the fitness function
+    input_tensor:
+        Tensor to decompose
+    rank:
+        Rank of the decomposition
+    stoptol:
+        Tolerance used for termination - when the change in the fitness function
         in successive iterations drops below this value, the iterations terminate
-    dimorder: Order to loop through dimensions (default: [range(tensor.ndims)])
-    maxiters: Maximum number of iterations
-    init: str or :class:`pyttb.ktensor`
+    dimorder:
+        Order to loop through dimensions (default: [range(tensor.ndims)])
+    maxiters:
+        Maximum number of iterations
+    init:
         Initial guess (default: "random")
-
-             * "random": initialize using a :class:`pyttb.ktensor` with values chosen
-                from a Normal distribution with mean 0 and standard deviation 1
-             * "nvecs": initialize factor matrices of a :class:`pyttb.ktensor` using
-                the eigenvectors of the outer product of the matricized input tensor
-             * :class:`pyttb.ktensor`: initialize using a specific
-                :class:`pyttb.ktensor` as input - must be the same shape as the input
-                tensor and have the same rank as the input rank
-
-    printitn: Number of iterations to perform before printing iteration status - 0 for
+         * "random": initialize using a :class:`pyttb.ktensor` with values chosen
+            from a Normal distribution with mean 0 and standard deviation 1
+         * "nvecs": initialize factor matrices of a :class:`pyttb.ktensor` using
+            the eigenvectors of the outer product of the matricized input tensor
+         * :class:`pyttb.ktensor`: initialize using a specific
+            :class:`pyttb.ktensor` as input - must be the same shape as the input
+            tensor and have the same rank as the input rank
+    printitn:
+        Number of iterations to perform before printing iteration status - 0 for
         no status printing
-    fixsigns: Align the signs of the columns of the factorization to align with the
+    fixsigns:
+        Align the signs of the columns of the factorization to align with the
         input tensor data
 
     Returns
     -------
-    M: Resulting ktensor from CP-ALS factorization
-    Minit: Initial guess
-    output: Information about the computation. Dictionary keys:
-        * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
-        * `iters`: number of iterations performed
-        * `normresidual`: norm of the difference between the input tensor
+    M:
+        Resulting ktensor from CP-ALS factorization
+    Minit:
+        Initial guess
+    output:
+        Information about the computation. Dictionary keys:
+         * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
+         * `iters`: number of iterations performed
+         * `normresidual`: norm of the difference between the input tensor
             and ktensor factorization
-        * `fit`: value of the fitness function (fraction of tensor data
+         * `fit`: value of the fitness function (fraction of tensor data
             explained by the model)
 
     Example

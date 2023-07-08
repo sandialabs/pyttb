@@ -31,12 +31,18 @@ def hosvd(
 
     Parameters
     ----------
-    input_tensor: Tensor to factor
-    tol: Relative error to stop at
-    verbosity: Print level
-    dimorder: Order to loop through dimensions
-    sequential: Use sequentially-truncated version
-    ranks: Specify ranks to consider rather than computing
+    input_tensor:
+        Tensor to factor
+    tol:
+        Relative error to stop at
+    verbosity:
+        Print level
+    dimorder:
+        Order to loop through dimensions
+    sequential:
+        Use sequentially-truncated version
+    ranks:
+        Specify ranks to consider rather than computing
 
     Example
     -------

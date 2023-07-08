@@ -28,30 +28,39 @@ def tucker_als(
 
     Parameters
     ----------
-    input_tensor: :class:`pyttb.tensor`
-    rank: Rank of the decomposition(s)
-    stoptol: Tolerance used for termination - when the change in the fitness function
+    input_tensor:
+        Tensor to decompose.
+    rank:
+        Rank of the decomposition(s)
+    stoptol:
+        Tolerance used for termination - when the change in the fitness function
         in successive iterations drops below this value, the iterations terminate
-    dimorder: Order to loop through dimensions (default: [range(tensor.ndims)])
-    maxiters: Maximum number of iterations
-    init: Initial guess (default: "random")
-
-        * "random": initialize using a :class:`pyttb.ttensor` with values chosen from
+    dimorder:
+        Order to loop through dimensions (default: [range(tensor.ndims)])
+    maxiters:
+        Maximum number of iterations
+    init:
+        Initial guess (default: "random")
+         * "random": initialize using a :class:`pyttb.ttensor` with values chosen from
             a Normal distribution with mean 0 and standard deviation 1
-        * "nvecs": initialize factor matrices of a :class:`pyttb.ttensor` using the
+         * "nvecs": initialize factor matrices of a :class:`pyttb.ttensor` using the
             eigenvectors of the outer product of the matricized input tensor
-        * :class:`pyttb.ttensor`: initialize using a specific :class:`pyttb.ttensor`
+         * :class:`pyttb.ttensor`: initialize using a specific :class:`pyttb.ttensor`
             as input - must be the same shape as the input tensor and have the same
             rank as the input rank
 
-    printitn: Number of iterations to perform before printing iteration status:
+    printitn:
+        Number of iterations to perform before printing iteration status:
         0 for no status printing
 
     Returns
     -------
-    M: Resulting ttensor from Tucker-ALS factorization
-    Minit: Initial guess
-    output: Information about the computation. Dictionary keys:
+    M:
+        Resulting ttensor from Tucker-ALS factorization
+    Minit:
+        Initial guess
+    output:
+        Information about the computation. Dictionary keys:
 
         * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
         * `iters`: number of iterations performed

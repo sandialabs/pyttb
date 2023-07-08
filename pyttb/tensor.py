@@ -48,8 +48,10 @@ class tensor:
 
         Parameters
         ----------
-        data: Tensor source data
-        shape: Shape of resulting tensor if not the same as data shape
+        data:
+            Tensor source data
+        shape:
+            Shape of resulting tensor if not the same as data shape
 
         Returns
         -------
@@ -103,7 +105,8 @@ class tensor:
 
         Parameters
         ----------
-        source: Tensor type to create dense tensor from
+        source:
+            Tensor type to create dense tensor from
 
         Returns
         -------
@@ -156,8 +159,10 @@ class tensor:
 
         Parameters
         ----------
-        function_handle: Function to generate data to construct tensor
-        shape: Shape of resulting tensor
+        function_handle:
+            Function to generate data to construct tensor
+        shape:
+            Shape of resulting tensor
 
         Returns
         -------
@@ -189,8 +194,10 @@ class tensor:
 
         Parameters
         ----------
-        dims: Dimensions to collapse
-        fun: Method used to collapse dimensions
+        dims:
+            Dimensions to collapse
+        fun:
+            Method used to collapse dimensions
 
         Returns
         -------
@@ -240,8 +247,10 @@ class tensor:
 
         Parameters
         ----------
-        i: First dimension
-        j: Second dimension
+        i:
+            First dimension
+        j:
+            Second dimension
 
         Returns
         -------
@@ -332,7 +341,8 @@ class tensor:
 
         Parameters
         ----------
-        k: dimension for subscripted indexing
+        k:
+            Dimension for subscripted indexing
 
         Examples
         --------
@@ -390,7 +400,8 @@ class tensor:
 
         Parameters
         ----------
-        other: Tensor type to take an innerproduct with
+        other:
+            Tensor type to take an innerproduct with
 
         Examples
         --------
@@ -415,7 +426,8 @@ class tensor:
 
         Parameters
         ----------
-        other: Tensor to compare against
+        other:
+            Tensor to compare against
 
         Examples
         --------
@@ -443,10 +455,12 @@ class tensor:
 
         Parameters
         ----------
-        grps: Modes to check for symmetry
-        version: Flag
+        grps:
+            Modes to check for symmetry
+        version:
             Any non-None value will call the non-default old version
-        return_details: Flag to return symmetry details in addition to bool
+        return_details:
+            Flag to return symmetry details in addition to bool
 
         Returns
         -------
@@ -543,7 +557,8 @@ class tensor:
 
         Parameters
         ----------
-        B: Value to and against self
+        B:
+            Value to and against self
 
         Examples
         --------
@@ -579,7 +594,8 @@ class tensor:
 
         Parameters
         ----------
-        other: Value to perform or against
+        other:
+            Value to perform or against
 
         Examples
         --------
@@ -599,7 +615,8 @@ class tensor:
 
         Parameters
         ----------
-        other: Value to perform xor against
+        other:
+            Value to perform xor against
 
         Examples
         --------
@@ -619,7 +636,8 @@ class tensor:
 
         Parameters
         ----------
-        W: Mask tensor
+        W:
+            Mask tensor
 
         Returns
         -------
@@ -649,8 +667,10 @@ class tensor:
 
         Parameters
         ----------
-        U: Matrices to create the Khatri-Rao product
-        n: Mode to matricize tensor in
+        U:
+            Matrices to create the Khatri-Rao product
+        n:
+            Mode to matricize tensor in
 
         Returns
         -------
@@ -773,9 +793,12 @@ class tensor:
 
         Parameters
         ----------
-        n: Mode to unfold
-        r: Number of eigenvectors to compute
-        flipsign: Make each eigenvector's largest element positive
+        n:
+            Mode to unfold
+        r:
+            Number of eigenvectors to compute
+        flipsign:
+            Make each eigenvector's largest element positive
 
         Examples
         --------
@@ -816,7 +839,8 @@ class tensor:
 
         Parameters
         ----------
-        order: New order of tensor dimensions
+        order:
+            New order of tensor dimensions
 
         Returns
         -------
@@ -849,7 +873,8 @@ class tensor:
 
         Parameters
         ----------
-        shape: New shape
+        shape:
+            New shape
 
         Examples
         --------
@@ -905,8 +930,11 @@ class tensor:
 
         Parameters
         ----------
-        grps: Modes to check for symmetry
-        version: Any non-None value will call the non-default old version
+        grps:
+            Modes to check for symmetry
+        version:
+            Any non-None value will call the non-default old version
+
         Returns
         -------
         """
@@ -1035,10 +1063,14 @@ class tensor:
 
         Parameters
         ----------
-        matrix: Matrix or matrices to multiple by
-        dims: Dimensions to multiply against
-        exclude_dims: Use all dimensions but these
-        transpose: Transpose matrices during multiplication
+        matrix:
+            Matrix or matrices to multiple by
+        dims:
+            Dimensions to multiply against
+        exclude_dims:
+            Use all dimensions but these
+        transpose:
+            Transpose matrices during multiplication
         """
         if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
@@ -1103,9 +1135,12 @@ class tensor:
 
         Parameters
         ----------
-        other: Tensor to multiply by
-        selfdims: Dimensions to contract this tensor by for multiplication
-        otherdims: Dimensions to contract other tensor by for multiplication
+        other:
+            Tensor to multiply by
+        selfdims:
+            Dimensions to contract this tensor by for multiplication
+        otherdims:
+            Dimensions to contract other tensor by for multiplication
         """
 
         if not isinstance(other, tensor):
@@ -1151,9 +1186,12 @@ class tensor:
 
         Parameters
         ----------
-        vector: Vector(s) to multiply against
-        dims: Dimensions to multiply with vector(s)
-        exclude_dims: Use all dimensions but these
+        vector:
+            Vector(s) to multiply against
+        dims:
+            Dimensions to multiply with vector(s)
+        exclude_dims:
+            Use all dimensions but these
         """
 
         if dims is None and exclude_dims is None:
@@ -1210,8 +1248,10 @@ class tensor:
 
         Parameters
         ----------
-        vector: Vector(s) to multiply against
-        skip_dim: Multiply tensor by vector in all dims except [0, skip_dim]
+        vector:
+            Vector(s) to multiply against
+        skip_dim:
+            Multiply tensor by vector in all dims except [0, skip_dim]
         """
         # Only two simple cases are supported
         if skip_dim is None:
@@ -1868,7 +1908,8 @@ def tenones(shape: Tuple[int, ...]) -> tensor:
 
     Parameters
     ----------
-    shape: Shape of resulting tensor
+    shape:
+        Shape of resulting tensor
 
     Returns
     -------
@@ -1887,7 +1928,8 @@ def tenzeros(shape: Tuple[int, ...]) -> tensor:
 
     Parameters
     ----------
-    shape: Shape of resulting tensor
+    shape:
+        Shape of resulting tensor
 
     Returns
     -------
@@ -1906,7 +1948,8 @@ def tenrand(shape: Tuple[int, ...]) -> tensor:
 
     Parameters
     ----------
-    shape: Shape of resulting tensor
+    shape:
+        Shape of resulting tensor
 
     Returns
     -------
@@ -1932,8 +1975,10 @@ def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> te
 
     Parameters
     ----------
-    elements: Elements to set along the diagonal
-    shape: Shape of resulting tensor
+    elements:
+        Elements to set along the diagonal
+    shape:
+        Shape of resulting tensor
 
     Returns
     -------

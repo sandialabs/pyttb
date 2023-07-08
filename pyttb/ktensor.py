@@ -75,9 +75,12 @@ class ktensor:
 
         Parameters
         ----------
-        factor_matrices: Factors for ktensor.
-        weights: Tensor weights, defaults to all 1's.
-        copy: Whether or not to copy the input data or just reference it.
+        factor_matrices:
+            Factors for ktensor.
+        weights:
+            Tensor weights, defaults to all 1's.
+        copy:
+            Whether or not to copy the input data or just reference it.
 
         Examples
         --------
@@ -198,8 +201,10 @@ class ktensor:
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
             Example functions include `numpy.random.random_sample`,
             `numpy,zeros`, `numpy.ones`.
-        shape: Shape of the resulting tensor.
-        num_components: Number of components/weights for resulting tensor.
+        shape:
+            Shape of the resulting tensor.
+        num_components:
+            Number of components/weights for resulting tensor.
 
         Returns
         -------
@@ -284,22 +289,21 @@ class ktensor:
         cls, data: np.ndarray, shape: Tuple[int, ...], contains_weights: bool
     ):
         """
-        Construct a :class:`pyttb.ktensor` from a vector (given as a
-        :class:`numpy.ndarray`) and shape (given as a
-        :class:`numpy.ndarray`). The rank of the :class:`pyttb.ktensor`
-        is inferred from the shape and length of the vector.
+        Construct a :class:`pyttb.ktensor` from a vector and shape. The rank of the
+        :class:`pyttb.ktensor` is inferred from the shape and length of the vector.
 
         Parameters
         ----------
-        data: :class:`numpy.ndarray`, required
-            Vector containing either elements of the factor matrices (when
-            `contains_weights`==False) or elements of the weights and factor
-            matrices (when `contains_weights`==True). When both the elements of
+        data:
+            Vector containing either elements of the factor matrices or elements of the
+            weights and factor matrices. When both the elements of
             the weights and the factor_matrices are present, the weights come
             first and the columns of the factor matrices come next.
-        shape: Shape of the resulting ktensor.
-        contains_weights: Flag to specify if `data` contains weights. If False,
-            all weights are set to 1.
+        shape:
+            Shape of the resulting ktensor.
+        contains_weights:
+            Flag to specify if `data` contains weights.
+            If False, all weights are set to 1.
 
         Returns
         -------
@@ -413,8 +417,10 @@ class ktensor:
 
         Parameters
         ----------
-        weight_factor: Index of the factor matrix the weights will be absorbed into.
-        permutation: The new order of the components of the :class:`pyttb.ktensor`
+        weight_factor:
+            Index of the factor matrix the weights will be absorbed into.
+        permutation:
+            The new order of the components of the :class:`pyttb.ktensor`
             into which to permute. The permutation must be of length equal to
             the number of components of the :class:`pyttb.ktensor`, `self.ncomponents`
             and must be a permutation of [0,...,`self.ncomponents`-1].
@@ -614,7 +620,8 @@ class ktensor:
 
         Parameters
         ----------
-        k: Dimension for subscripted indexing
+        k:
+            Dimension for subscripted indexing
 
         Returns
         -------
@@ -641,7 +648,7 @@ class ktensor:
 
         Parameters
         ----------
-        idx: int, :class:`tuple`, :class:`list`, :class:`numpy.ndarray`, optional
+        idx:
             Index set of components to extract. It should be the case that
             `idx` is a subset of [0,...,`self.ncomponents`]. If this
             parameter is None or is empty, a copy of the
@@ -725,7 +732,8 @@ class ktensor:
 
         Parameters
         ----------
-        other: If not None, returns a version of the :class:`pyttb.ktensor`
+        other:
+            If not None, returns a version of the :class:`pyttb.ktensor`
             where some of the signs of the columns of the factor matrices have
             been flipped to better align with `other`. In not None, both
             :class:`pyttb.ktensor` objects are first normalized (using
@@ -909,7 +917,8 @@ class ktensor:
 
         Parameters
         ----------
-        other: Tensor with which to compute the inner product.
+        other:
+            Tensor with which to compute the inner product.
 
         Returns
         -------
@@ -942,13 +951,14 @@ class ktensor:
             f"Unsupported type for inner product with ktensor. Received {type(other)}"
         )
 
-    def isequal(self, other) -> bool:
+    def isequal(self, other: ttb.ktensor) -> bool:
         """
         Equal comparator for :class:`pyttb.ktensor` objects.
 
         Parameters
         ----------
-        other: :class:`pyttb.ktensor` with which to compare.
+        other:
+            :class:`pyttb.ktensor` with which to compare.
 
         Examples
         --------
@@ -987,7 +997,8 @@ class ktensor:
 
         Parameters
         ----------
-        return_diffs: If True, returns the matrix of the norm of the differences
+        return_diffs:
+            If True, returns the matrix of the norm of the differences
             between the factor matrices.
 
         Returns
@@ -1043,7 +1054,8 @@ class ktensor:
 
         Parameters
         ----------
-        W: Mask tensor to apply to ktensor.
+        W:
+            Mask tensor to apply to ktensor.
 
         Returns
         -------
@@ -1096,8 +1108,10 @@ class ktensor:
 
         Parameters
         ----------
-        U: Factor matrices.
-        n: Multiply by all modes except n.
+        U:
+            Factor matrices.
+        n:
+            Multiply by all modes except n.
 
         Returns
         -------
@@ -1190,13 +1204,17 @@ class ktensor:
 
         Parameters
         ----------
-        weight_factor: Absorb the weights into one or more factors. If "all", absorb
+        weight_factor:
+            Absorb the weights into one or more factors. If "all", absorb
             weight equally across all factors. If `int`, absorb weight into a
             single dimension (value must be in range(self.ndims)).
-        sort: Sort the columns in descending order of the weights.
-        normtype: Order of the norm (see :func:`numpy.linalg.norm` for possible
+        sort:
+            Sort the columns in descending order of the weights.
+        normtype:
+            Order of the norm (see :func:`numpy.linalg.norm` for possible
             values).
-        mode: Index of factor matrix to normalize. A value of `None` means
+        mode:
+            Index of factor matrix to normalize. A value of `None` means
             normalize all factor matrices.
 
         Returns
@@ -1290,9 +1308,12 @@ class ktensor:
 
         Parameters
         ----------
-        n: Mode for tensor matricization.
-        r: Number of eigenvectors to compute and use.
-        flipsign: If True, make each column's largest element positive.
+        n:
+            Mode for tensor matricization.
+        r:
+            Number of eigenvectors to compute and use.
+        flipsign:
+            If True, make each column's largest element positive.
 
         Returns
         -------
@@ -1353,7 +1374,8 @@ class ktensor:
 
         Parameters
         ----------
-        order: Permutation of [0,...,self.ndimensions].
+        order:
+            Permutation of [0,...,self.ndimensions].
 
         Returns
         -------
@@ -1402,7 +1424,8 @@ class ktensor:
 
         Parameters
         ----------
-        mode: Must be value in [0,...self.ndims].
+        mode:
+            Must be value in [0,...self.ndims].
 
         Returns
         -------
@@ -1488,11 +1511,15 @@ class ktensor:
 
         Parameters
         ----------
-        other: :class:`pyttb.ktensor` with which to match.
-        weight_penalty: Flag indicating whether or not to consider the weights in the
+        other:
+            :class:`pyttb.ktensor` with which to match.
+        weight_penalty:
+            Flag indicating whether or not to consider the weights in the
             calculations.
-        threshold: Threshold specified in the formula above for determining a match.
-        greedy: Flag indicating whether or not to consider all possible matchings
+        threshold:
+            Threshold specified in the formula above for determining a match.
+        greedy:
+            Flag indicating whether or not to consider all possible matchings
             (exponentially expensive) or just do a greedy matching.
 
         Returns
@@ -1691,7 +1718,8 @@ class ktensor:
 
         Parameters
         ----------
-        mode: Index of factor matrix to absorb all of the weights.
+        mode:
+            Index of factor matrix to absorb all of the weights.
 
         Returns
         -------
@@ -1761,7 +1789,8 @@ class ktensor:
 
         Parameters
         ----------
-        include_weights: Flag to specify whether or not to include weights in output.
+        include_weights:
+            Flag to specify whether or not to include weights in output.
 
         Returns
         -------
@@ -1865,9 +1894,12 @@ class ktensor:
 
         Parameters
         ----------
-        vector: :class:`numpy.ndarray` or list[:class:`numpy.ndarray`], required
-        dims: int, :class:`numpy.ndarray`, optional
+        vector:
+            Vector to multiply by.
+        dims:
+            Dimension(s) along which to multiply.
         exclude_dims:
+            Multiply by all but excluded dimension(s).
 
         Returns
         -------
@@ -1974,12 +2006,13 @@ class ktensor:
 
         Parameters
         ----------
-        modes: int or :class:`list` of int, required
+        modes:
             List of dimensions to update; values must be in ascending order. If
             the first element of the list is -1, then update the weights. All
             other integer values values must be sorted and in
             [0,...,self.ndims].
-        data: Data values to use in the update.
+        data:
+            Data values to use in the update.
 
         Returns
         -------
