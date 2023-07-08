@@ -525,3 +525,6 @@ def test_cp_apr_negative_tests():
 
     with pytest.raises(AssertionError):
         ttb.cp_apr(dense_tensor, rank=1, algorithm="UNSUPPORTED_ALG")
+
+    with pytest.raises(ValueError):
+        ttb.cp_apr(dense_tensor, rank=1, init="Bad initial guess")
