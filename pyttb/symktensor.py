@@ -1,14 +1,10 @@
+"""Symmetric Kruskal Tensor Class Placeholder"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
-import numpy as np
 
-import pyttb as ttb
-
-from .pyttb_utils import *
-
-
+# pylint: disable=too-few-public-methods
 class symktensor:
     """
     SYMKTENSOR Class for symmetric Kruskal tensors (decomposed).
