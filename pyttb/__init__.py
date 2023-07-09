@@ -1,3 +1,4 @@
+"""Entrypoint for Python Tensor Toolbox"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -29,6 +30,7 @@ from pyttb.tucker_als import tucker_als
 
 
 def ignore_warnings(ignore=True):
+    """Helper to disable warnings"""
     if ignore:
         warnings.simplefilter("ignore")
     else:
