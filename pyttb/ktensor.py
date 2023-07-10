@@ -868,7 +868,7 @@ class ktensor:
         [[5. 6.]
          [7. 8.]]
         >>> print(K.full()) # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape 2 x 2
+        tensor of shape (2, 2)
         data[:, :] =
         [[29. 39.]
          [63. 85.]]

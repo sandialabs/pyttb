@@ -1500,8 +1500,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4,))
     tensorInstance = ttb.tensor.from_data(data)
     s = ""
-    s += "tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tensorInstance.shape])
+    s += f"tensor of shape {tensorInstance.shape}"
     s += "\n"
     s += "data"
     s += "[:] = \n"
@@ -1513,8 +1512,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 3))
     tensorInstance = ttb.tensor.from_data(data)
     s = ""
-    s += "tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tensorInstance.shape])
+    s += f"tensor of shape {tensorInstance.shape}"
     s += "\n"
     s += "data"
     s += "[:, :] = \n"
@@ -1526,8 +1524,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 3, 2))
     tensorInstance = ttb.tensor.from_data(data)
     s = ""
-    s += "tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tensorInstance.shape])
+    s += f"tensor of shape {tensorInstance.shape}"
     s += "\n"
     for i in range(data.shape[0]):
         s += "data"
@@ -1539,8 +1536,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(2, 3, 4))
     tensorInstance = ttb.tensor.from_data(data)
     s = ""
-    s += "tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tensorInstance.shape])
+    s += f"tensor of shape {tensorInstance.shape}"
     s += "\n"
     for i in range(data.shape[0]):
         s += "data"
@@ -1553,8 +1549,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 4, 3, 2))
     tensorInstance = ttb.tensor.from_data(data)
     s = ""
-    s += "tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tensorInstance.shape])
+    s += f"tensor of shape {tensorInstance.shape}"
     s += "\n"
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
@@ -1568,8 +1563,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(2, 2, 2, 2, 2))
     tensorInstance = ttb.tensor.from_data(data)
     s = ""
-    s += "tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tensorInstance.shape])
+    s += f"tensor of shape {tensorInstance.shape}"
     s += "\n"
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):

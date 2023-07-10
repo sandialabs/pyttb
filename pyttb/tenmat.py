@@ -482,10 +482,7 @@ class tenmat:
         """
         s = ""
         s += "matrix corresponding to a tensor of shape "
-        if self.data.size == 0:
-            s += str(self.shape)
-        else:
-            s += (" x ").join([str(int(d)) for d in self.tshape])
+        s += str(self.tshape)
         s += "\n"
 
         s += "rindices = "

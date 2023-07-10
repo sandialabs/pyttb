@@ -1439,12 +1439,12 @@ class tensor:
         1.0
         >>> # produces a tensor of order 1 and size 1
         >>> X[1,1,1,:] # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape 1
+        tensor of shape (1,)
         data[:] =
         [1.]
         >>> # produces a tensor of size 2 x 2 x 1
         >>> X[0:2,[2, 3],1,:] # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape 2 x 2 x 1
+        tensor of shape (2, 2, 1)
         data[0, :, :] =
         [[1.]
          [1.]]
@@ -1839,8 +1839,7 @@ class tensor:
             return s
 
         s = ""
-        s += "tensor of shape "
-        s += (" x ").join([str(int(d)) for d in self.shape])
+        s += f"tensor of shape {self.shape}"
         s += "\n"
 
         if self.ndims == 1:

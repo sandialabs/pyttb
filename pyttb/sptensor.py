@@ -2540,8 +2540,7 @@ class sptensor:
             s += (" x ").join([str(int(d)) for d in self.shape])
             return s
 
-        s = "Sparse tensor of shape "
-        s += (" x ").join([str(int(d)) for d in self.shape])
+        s = f"Sparse tensor of shape {self.shape}"
         s += f" with {nz} nonzeros \n"
 
         # Stop insane printouts
