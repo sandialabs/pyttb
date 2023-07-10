@@ -274,14 +274,6 @@ def test_ktensor_double(sample_ktensor_2way, sample_ktensor_3way):
     assert (K3.double() == A).all()
 
 
-def test_ktensor_end(sample_ktensor_3way):
-    (data, K) = sample_ktensor_3way
-    assert K.end() == 23
-    assert K.end(k=0) == 1
-    assert K.end(k=1) == 2
-    assert K.end(k=2) == 3
-
-
 def test_ktensor_extract(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
     weights = data["weights"][[1]]

@@ -799,12 +799,6 @@ def test_sptensor__ne__(sample_sptensor):
     )
 
 
-def test_sptensor__end(sample_sptensor):
-    (data, sptensorInstance) = sample_sptensor
-    assert sptensorInstance.end() == np.prod(data["shape"]) - 1
-    assert sptensorInstance.end(k=0) == data["shape"][0] - 1
-
-
 def test_sptensor__find(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     subs, vals = sptensorInstance.find()

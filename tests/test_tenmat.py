@@ -377,15 +377,6 @@ def test_tenmat_double(sample_tenmat_4way):
 
 
 @pytest.mark.indevelopment
-def test_tenmat_end(sample_tenmat_4way):
-    (params, tenmatInstance) = sample_tenmat_4way
-    shape = params["shape"]
-
-    for k in range(len(shape)):
-        assert tenmatInstance.end(k) == shape[k] - 1
-
-
-@pytest.mark.indevelopment
 def test_tenmat_ndims(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
 

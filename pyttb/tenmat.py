@@ -243,22 +243,6 @@ class tenmat:
         """
         return self.data.astype(np.float_).copy()
 
-    def end(self, k: int) -> int:
-        """
-        Last index of indexing expression for tenmat
-
-        Parameters
-        ----------
-        k:
-            Dimension for subscripted indexing
-
-        Returns
-        -------
-        Index
-        """
-
-        return self.data.shape[k] - 1
-
     @property
     def ndims(self) -> int:
         """Return the number of dimensions of a tenmat"""

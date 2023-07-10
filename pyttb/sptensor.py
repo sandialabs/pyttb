@@ -533,19 +533,6 @@ class sptensor:
             return ttb.sptensor.from_data(np.array([]), np.array([]), self.shape)
         return ttb.sptensor.from_data(self.subs[idx, :], vals[idx], self.shape)
 
-    def end(self, k: Optional[int] = None) -> int:
-        """
-        Last index of indexing expression for sparse tensor
-
-        Parameters
-        ----------
-        k:
-            Dimension for subscript indexing
-        """
-        if k is not None:
-            return self.shape[k] - 1
-        return int(np.prod(self.shape) - 1)
-
     def extract(self, searchsubs: np.ndarray) -> np.ndarray:
         """
         Extract value for a sptensor.

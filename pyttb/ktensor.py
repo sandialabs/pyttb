@@ -614,31 +614,6 @@ class ktensor:
         """
         return self.full().double()
 
-    def end(self, k: Optional[int] = None) -> int:
-        """
-        Last index of indexing expression for :class:`pyttb.ktensor`.
-
-        Parameters
-        ----------
-        k:
-            Dimension for subscripted indexing
-
-        Returns
-        -------
-        Final index
-
-        Examples
-        --------
-        >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> print(K.end(2))
-        3
-        """
-
-        if k is not None:  # Subscripted indexing
-            return self.shape[k] - 1
-        # For linear indexing
-        return int(np.prod(self.shape) - 1)
-
     def extract(
         self, idx: Optional[Union[int, tuple, list, np.ndarray]] = None
     ) -> ktensor:

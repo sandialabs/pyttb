@@ -755,13 +755,6 @@ def test_tensor_double(sample_tensor_2way):
     assert (tensorInstance.double() == params["data"]).all()
 
 
-def test_tensor_end(sample_tensor_2way):
-    (params, tensorInstance) = sample_tensor_2way
-
-    assert tensorInstance.end() == np.prod(params["shape"]) - 1
-    assert tensorInstance.end(k=0) == params["shape"][0] - 1
-
-
 def test_tensor_isequal(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     subs = []

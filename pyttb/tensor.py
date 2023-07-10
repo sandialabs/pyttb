@@ -335,29 +335,6 @@ class tensor:
         """
         return ttb.tensor.from_data(np.exp(self.data))
 
-    def end(self, k: Optional[int] = None) -> int:
-        """
-        Last index of indexing expression for tensor
-
-        Parameters
-        ----------
-        k:
-            Dimension for subscripted indexing
-
-        Examples
-        --------
-        >>> X = ttb.tensor.from_data(np.ones((2,2)))
-        >>> X.end()  # linear indexing
-        3
-        >>> X.end(0)
-        1
-        """
-
-        if k is not None:  # Subscripted indexing
-            return self.shape[k] - 1
-        # For linear indexing
-        return np.prod(self.shape) - 1
-
     def find(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         FIND Find subscripts of nonzero elements in a tensor.
