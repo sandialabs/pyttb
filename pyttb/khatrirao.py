@@ -17,8 +17,10 @@ def khatrirao(*matrices: np.ndarray, reverse: bool = False) -> np.ndarray:
 
     Parameters
     ----------
-    matrices: Collection of matrices to take the product of
-    reverse: bool Set to true to calculate product in reverse
+    matrices:
+        Collection of matrices to take the product of
+    reverse:
+        Set to true to calculate product in reverse
 
     Examples
     --------

@@ -48,13 +48,17 @@ def tt_to_sparse_matrix(
 
     Parameters
     ----------
-    sptensorInstance: sparse tensor to unwrap
-    mode: Mode around which to unwrap tensor
-    transpose: Whether or not to tranpose unwrapped tensor
+    sptensorInstance:
+        Sparse tensor to unwrap
+    mode:
+        Mode around which to unwrap tensor
+    transpose:
+        Whether or not to transpose unwrapped tensor
 
     Returns
     -------
-    spmatrix: unwrapped tensor
+    spmatrix:
+        Unwrapped tensor
     """
     old = np.setdiff1d(np.arange(sptensorInstance.ndims), mode).astype(int)
     spmatrix = sptensorInstance.reshape(
@@ -74,10 +78,10 @@ def tt_from_sparse_matrix(
 
     Parameters
     ----------
-    spmatrix: :class:`Scipy.sparse.coo_matrix`
-    mode: int
+    spmatrix:
+    mode:
         Mode around which tensor was unwrapped
-    idx: int
+    idx:
         in {0,1}, idx of mode in spmatrix, s.b. 0 for tranpose=True
 
     Returns
@@ -134,9 +138,12 @@ class sptensor:
 
         Parameters
         ----------
-        subs: location of non-zero entries
-        vals: values for non-zero entries
-        shape: shape of sparse tensor
+        subs:
+            Location of non-zero entries
+        vals:
+            Values for non-zero entries
+        shape:
+            Shape of sparse tensor
 
         Examples
         --------
@@ -168,7 +175,8 @@ class sptensor:
 
         Parameters
         ----------
-        source: Source tensor to create sptensor from
+        source:
+            Source tensor to create sptensor from
 
         Returns
         -------
@@ -216,10 +224,13 @@ class sptensor:
 
         Parameters
         ----------
-        function_handle: function that accepts 2 arguments and generates
+        function_handle:
+            Function that accepts 2 arguments and generates
             :class:`numpy.ndarray` of length nonzeros
-        shape: tuple
-        nonzeros: int or float
+        shape:
+            Shape of generated tensor
+        nonzeros:
+            Number of nonzeros in generated tensor
 
         Returns
         -------
@@ -270,10 +281,14 @@ class sptensor:
 
         Parameters
         ----------
-        subs: location of non-zero entries
-        vals: values for non-zero entries
-        shape: shape of sparse tensor
-        function_handle: Aggregation function, or name of supported
+        subs:
+            Location of non-zero entries
+        vals:
+            Values for non-zero entries
+        shape:
+            Shape of sparse tensor
+        function_handle:
+            Aggregation function, or name of supported
             aggregation function from numpy_groupies
 
         Returns
@@ -372,8 +387,10 @@ class sptensor:
 
         Parameters
         ----------
-        dims: Dimensions to collapse
-        fun: Method used to collapse dimensions
+        dims:
+            Dimensions to collapse
+        fun:
+            Method used to collapse dimensions
 
         Returns
         -------
@@ -427,8 +444,10 @@ class sptensor:
 
         Parameters
         ----------
-        i: First dimension
-        j: Second dimension
+        i:
+            First dimension
+        j:
+            Second dimension
 
         Returns
         -------
@@ -492,7 +511,8 @@ class sptensor:
 
         Parameters
         ----------
-        function_handle: Function that updates all values.
+        function_handle:
+            Function that updates all values.
 
         Returns
         -------
@@ -519,7 +539,8 @@ class sptensor:
 
         Parameters
         ----------
-        k: int Dimension for subscript indexing
+        k:
+            Dimension for subscript indexing
         """
         if k is not None:
             return self.shape[k] - 1
@@ -531,7 +552,8 @@ class sptensor:
 
         Parameters
         ----------
-        searchsubs: subscripts to find in sptensor
+        searchsubs:
+            subscripts to find in sptensor
 
         See Also
         --------
@@ -607,7 +629,8 @@ class sptensor:
 
         Parameters
         ----------
-        other: Other tensor to take innerproduct with
+        other:
+            Other tensor to take innerproduct with
         """
         # If all entries are zero innerproduct must be 0
         if self.nnz == 0:
@@ -647,7 +670,8 @@ class sptensor:
 
         Parameters
         ----------
-        other: Other tensor to compare against
+        other:
+            Other tensor to compare against
         """
         if self.shape != other.shape:
             return False
@@ -663,7 +687,8 @@ class sptensor:
 
         Parameters
         ----------
-        B: Other value to compare with
+        B:
+            Other value to compare with
 
         Returns
         ----------
@@ -767,7 +792,8 @@ class sptensor:
 
         Parameters
         ----------
-        other: Other value to xor against
+        other:
+            Other value to xor against
 
         Returns
         -------
@@ -796,7 +822,8 @@ class sptensor:
 
         Parameters
         ----------
-        W: Mask tensor
+        W:
+            Mask tensor
 
         Returns
         -------
@@ -826,8 +853,10 @@ class sptensor:
 
         Parameters
         ----------
-        U: Matrices to create the Khatri-Rao product
-        n: Mode to matricize sptensor in
+        U:
+            Matrices to create the Khatri-Rao product
+        n:
+            Mode to matricize sptensor in
 
         Returns
         -------
@@ -915,9 +944,12 @@ class sptensor:
 
         Parameters
         ----------
-        n: Mode to unfold
-        r: Number of eigenvectors to compute
-        flipsign: Make each eigenvector's largest element positive
+        n:
+            Mode to unfold
+        r:
+            Number of eigenvectors to compute
+        flipsign:
+            Make each eigenvector's largest element positive
         """
         old = np.setdiff1d(np.arange(self.ndims), n).astype(int)
         # tnt calculation is a workaround for missing sptenmat
@@ -964,7 +996,8 @@ class sptensor:
 
         Parameters
         ----------
-        order: Updated order of dimensions
+        order:
+            Updated order of dimensions
         """
         # Error check
         if self.ndims != order.size or np.any(
@@ -991,8 +1024,8 @@ class sptensor:
 
         Parameters
         ----------
-        new_shape: tuple
-        old_modes: :class:`Numpy.ndarray`
+        new_shape:
+        old_modes:
 
         Returns
         -------
@@ -1036,8 +1069,8 @@ class sptensor:
 
         Parameters
         ----------
-        factor: :class:`numpy.ndarray`
-        dims: int or :class:`numpy.ndarray`
+        factor:
+        dims:
 
         Returns
         -------
@@ -1115,7 +1148,7 @@ class sptensor:
 
         Parameters
         ----------
-        region: :class:`numpy.ndarray` or tuple denoting indexing
+        region:
             Subset of total sptensor shape in which to find non-zero values
 
         Returns
@@ -1189,9 +1222,12 @@ class sptensor:
 
         Parameters
         ----------
-        vector: Vector(s) to multiply against
-        dims: Dimensions to multiply with vector(s)
-        exclude_dims: Use all dimensions but these
+        vector:
+            Vector(s) to multiply against
+        dims:
+            Dimensions to multiply with vector(s)
+        exclude_dims:
+            Use all dimensions but these
         """
 
         if dims is None and exclude_dims is None:
@@ -1284,7 +1320,7 @@ class sptensor:
 
         Parameters
         ----------
-        item: tuple(int),tuple(slice),:class:`numpy.ndarray`
+        item:
 
         Returns
         -------
@@ -1451,8 +1487,8 @@ class sptensor:
 
         Parameters
         ----------
-        key: tuple(int),tuple(slice),:class:`numpy.ndarray`
-        value: int,float, :class:`numpy.ndarray`, :class:`pyttb.sptensor`
+        key:
+        value:
 
         """
         # TODO IndexError for value outside of indices
@@ -1779,7 +1815,8 @@ class sptensor:
 
         Parameters
         ----------
-        other: compare equality of sptensor to other
+        other:
+            Compare equality of sptensor to other
 
         Returns
         -------
@@ -1857,7 +1894,8 @@ class sptensor:
 
         Parameters
         ----------
-        other: compare equality of sptensor to other
+        other:
+            Compare equality of sptensor to other
 
         Returns
         -------
@@ -2543,16 +2581,20 @@ class sptensor:
         dims: Optional[Union[float, np.ndarray]] = None,
         exclude_dims: Optional[Union[float, np.ndarray]] = None,
         transpose: bool = False,
-    ):
+    ) -> Union[ttb.tensor, sptensor]:
         """
         Sparse tensor times matrix.
 
         Parameters
         ----------
-        matrices: A matrix or list of matrices
-        dims: Dimensions to multiply against
-        exclude_dims: Use all dimensions but these
-        transpose: Transpose matrices to be multiplied
+        matrices:
+            A matrix or list of matrices
+        dims:
+            Dimensions to multiply against
+        exclude_dims:
+            Use all dimensions but these
+        transpose:
+            Transpose matrices to be multiplied
 
         Returns
         -------
@@ -2640,7 +2682,8 @@ class sptensor:
 
         Parameters
         ----------
-        return_inverse: Return mapping from new tensor to old tensor subscripts.
+        return_inverse:
+            Return mapping from new tensor to old tensor subscripts.
 
         Examples
         --------
@@ -2679,9 +2722,12 @@ def sptenrand(
 
     Parameters
     ----------
-    shape: Shape of resulting tensor
-    density: Density of resulting sparse tensor
-    nonzeros: Number of nonzero entries in resulting sparse tensor
+    shape:
+        Shape of resulting tensor
+    density:
+        Density of resulting sparse tensor
+    nonzeros:
+        Number of nonzero entries in resulting sparse tensor
 
     Returns
     -------
@@ -2727,8 +2773,10 @@ def sptendiag(
 
     Parameters
     ----------
-    elements: Elements to set along the diagonal
-    shape: Shape of resulting tensor
+    elements:
+        Elements to set along the diagonal
+    shape:
+        Shape of resulting tensor
 
     Returns
     -------

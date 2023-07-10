@@ -1,63 +1,73 @@
+"""CP Decomposition via Alternating Least Squares"""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
+
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
 import pyttb as ttb
-from pyttb.pyttb_utils import *
 
 
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 def cp_als(
-    input_tensor,
-    rank,
-    stoptol=1e-4,
-    maxiters=1000,
-    dimorder=None,
-    init="random",
-    printitn=1,
-    fixsigns=True,
-):
+    input_tensor: Union[ttb.tensor, ttb.sptensor],
+    rank: int,
+    stoptol: float = 1e-4,
+    maxiters: int = 1000,
+    dimorder: Optional[List[int]] = None,
+    init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
+    printitn: int = 1,
+    fixsigns: bool = True,
+) -> Tuple[ttb.ktensor, ttb.ktensor, Dict]:
     """
     Compute CP decomposition with alternating least squares
 
     Parameters
     ----------
-    input_tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor` or :class:`pyttb.ktensor`
-    rank: int
+    input_tensor:
+        Tensor to decompose
+    rank:
         Rank of the decomposition
-    stoptol: float
-        Tolerance used for termination - when the change in the fitness function in successive iterations drops
-        below this value, the iterations terminate (default: 1e-4)
-    dimorder: list
+    stoptol:
+        Tolerance used for termination - when the change in the fitness function
+        in successive iterations drops below this value, the iterations terminate
+    dimorder:
         Order to loop through dimensions (default: [range(tensor.ndims)])
-    maxiters: int
-        Maximum number of iterations (default: 1000)
-    init: str or :class:`pyttb.ktensor`
+    maxiters:
+        Maximum number of iterations
+    init:
         Initial guess (default: "random")
-
-             * "random": initialize using a :class:`pyttb.ktensor` with values chosen from a Normal distribution with mean 0 and standard deviation 1
-             * "nvecs": initialize factor matrices of a :class:`pyttb.ktensor` using the eigenvectors of the outer product of the matricized input tensor
-             * :class:`pyttb.ktensor`: initialize using a specific :class:`pyttb.ktensor` as input - must be the same shape as the input tensor and have the same rank as the input rank
-
-    printitn: int
-        Number of iterations to perform before printing iteration status - 0 for no status printing (default: 1)
-    fixsigns: bool
-        Align the signs of the columns of the factorization to align with the input tensor data (default: True)
+         * "random": initialize using a :class:`pyttb.ktensor` with values chosen
+            from a Normal distribution with mean 0 and standard deviation 1
+         * "nvecs": initialize factor matrices of a :class:`pyttb.ktensor` using
+            the eigenvectors of the outer product of the matricized input tensor
+         * :class:`pyttb.ktensor`: initialize using a specific
+            :class:`pyttb.ktensor` as input - must be the same shape as the input
+            tensor and have the same rank as the input rank
+    printitn:
+        Number of iterations to perform before printing iteration status - 0 for
+        no status printing
+    fixsigns:
+        Align the signs of the columns of the factorization to align with the
+        input tensor data
 
     Returns
     -------
-    M: :class:`pyttb.ktensor`
+    M:
         Resulting ktensor from CP-ALS factorization
-    Minit: :class:`pyttb.ktensor`
+    Minit:
         Initial guess
-    output: dict
+    output:
         Information about the computation. Dictionary keys:
-
-            * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
-            * `iters`: number of iterations performed
-            * `normresidual`: norm of the difference between the input tensor and ktensor factorization
-            * `fit`: value of the fitness function (fraction of tensor data explained by the model)
+         * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
+         * `iters`: number of iterations performed
+         * `normresidual`: norm of the difference between the input tensor
+            and ktensor factorization
+         * `fit`: value of the fitness function (fraction of tensor data
+            explained by the model)
 
     Example
     -------
@@ -118,7 +128,7 @@ def cp_als(
     normX = input_tensor.norm()
 
     # Set up dimorder if not specified
-    if not dimorder:
+    if dimorder is None:
         dimorder = list(range(N))
     else:
         if not isinstance(dimorder, list):
@@ -134,13 +144,13 @@ def cp_als(
     # Set up and error checking on initial guess
     if isinstance(init, ttb.ktensor):
         # User provided an initial ktensor; validate it
-        assert init.ndims == N, "Initial guess does not have {} modes".format(N)
+        assert init.ndims == N, f"Initial guess does not have {N} modes"
         assert (
             init.ncomponents == rank
-        ), "Initial guess does not have {} components".format(rank)
+        ), f"Initial guess does not have {rank} components"
         for n in dimorder:
             if init.factor_matrices[n].shape != (input_tensor.shape[n], rank):
-                assert False, "Mode {} of the initial guess is the wrong size".format(n)
+                assert False, f"Mode {n} of the initial guess is the wrong size"
     elif isinstance(init, str) and init.lower() == "random":
         factor_matrices = []
         for n in range(N):
@@ -172,7 +182,7 @@ def cp_als(
     for n in range(N):
         UtU[:, :, n] = U[n].T @ U[n]
 
-    for iter in range(maxiters):
+    for iteration in range(maxiters):
         fitold = fit
 
         # Iterate over all N modes of the tensor
@@ -191,12 +201,13 @@ def cp_als(
                 Unew = np.zeros(Unew.shape)
             else:
                 Unew = np.linalg.solve(Y.T, Unew.T).T
-            # TODO: should we have issparse implemented? I am not sure when the following will occur
+            # TODO: should we have issparse implemented? I am not sure
+            #  when the following will occur
             # if issparse(Unew):
             #    Unew = full(Unew)   # for the case R=1
 
             # Normalize each vector to prevent singularities in coefmatrix
-            if iter == 0:
+            if iteration == 0:
                 weights = np.sqrt(sum(Unew**2, 0))  # 2-norm
             else:
                 weights = np.maximum(np.max(np.abs(Unew), 0), 1)  # max-norm
@@ -218,20 +229,21 @@ def cp_als(
             normresidual = M.norm() ** 2 - 2 * iprod
             fit = normresidual
         else:
-            # the following input to np.sqrt can be negative due to rounding and truncation errors, so np.abs is used
+            # the following input to np.sqrt can be negative due to rounding and
+            # truncation errors, so np.abs is used
             normresidual = np.sqrt(np.abs(normX**2 + M.norm() ** 2 - 2 * iprod))
             fit = 1 - (normresidual / normX)  # fraction explained by model
 
         fitchange = np.abs(fitold - fit)
 
         # Check for convergence
-        if (iter > 0) and (fitchange < stoptol):
+        if (iteration > 0) and (fitchange < stoptol):
             flag = 0
         else:
             flag = 1
 
-        if (divmod(iter, printitn)[1] == 0) or (printitn > 0 and flag == 0):
-            print(f" Iter {iter}: f = {fit:e} f-delta = {fitchange:7.1e}")
+        if (divmod(iteration, printitn)[1] == 0) or (printitn > 0 and flag == 0):
+            print(f" Iter {iteration}: f = {fit:e} f-delta = {fitchange:7.1e}")
 
         # Check for convergence
         if flag == 0:
@@ -256,11 +268,12 @@ def cp_als(
             fit = 1 - (normresidual / normX)  # fraction explained by model
         print(f" Final f = {fit:e}")
 
-    output = {}
-    output["params"] = (stoptol, maxiters, printitn, dimorder)
-    output["iters"] = iter
-    output["normresidual"] = normresidual
-    output["fit"] = fit
+    output = {
+        "params": (stoptol, maxiters, printitn, dimorder),
+        "iters": iteration,
+        "normresidual": normresidual,
+        "fit": fit,
+    }
 
     return M, init, output
 

@@ -3,6 +3,8 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+from __future__ import annotations
+
 import warnings
 from typing import List, Optional
 
@@ -12,14 +14,15 @@ import scipy
 import pyttb as ttb
 
 
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 def hosvd(
-    input_tensor,
+    input_tensor: ttb.tensor,
     tol: float,
     verbosity: float = 1,
     dimorder: Optional[List[int]] = None,
     sequential: bool = True,
     ranks: Optional[List[int]] = None,
-):
+) -> ttb.ttensor:
     """Compute sequentially-truncated higher-order SVD (Tucker).
 
     Computes a Tucker decomposition with relative error
@@ -28,12 +31,18 @@ def hosvd(
 
     Parameters
     ----------
-    input_tensor: Tensor to factor
-    tol: Relative error to stop at
-    verbosity: Print level
-    dimorder: Order to loop through dimensions
-    sequential: Use sequentially-truncated version
-    ranks: Specify ranks to consider rather than computing
+    input_tensor:
+        Tensor to factor
+    tol:
+        Relative error to stop at
+    verbosity:
+        Print level
+    dimorder:
+        Order to loop through dimensions
+    sequential:
+        Use sequentially-truncated version
+    ranks:
+        Specify ranks to consider rather than computing
 
     Example
     -------
@@ -63,12 +72,13 @@ def hosvd(
     else:
         if not isinstance(dimorder, list):
             raise ValueError("Dimorder must be a list")
-        elif tuple(range(d)) != tuple(sorted(dimorder)):
+        if tuple(range(d)) != tuple(sorted(dimorder)):
             raise ValueError(
                 "Dimorder must be a list or permutation of range(tensor.ndims)"
             )
 
-    # TODO should unify printing throughout. Probably easier to use python logging levels
+    # TODO should unify printing throughout. Probably easier to use python logging
+    #  levels
     if verbosity > 0:
         print("Computing HOSVD...\n")
 
@@ -104,9 +114,9 @@ def hosvd(
             ranks[k] = np.where(eigsum > eigsumthresh)[0][-1]
 
             if verbosity > 5:
-                print(f"Reverse cummulative sum of evals of Gram matrix:")
-                for i in range(len(eigsum)):
-                    print_msg = f"{i: d}: {eigsum[i]: 6.4f}"
+                print("Reverse cummulative sum of evals of Gram matrix:")
+                for i, a_sum in enumerate(eigsum):
+                    print_msg = f"{i: d}: {a_sum: 6.4f}"
                     if i == ranks[k]:
                         print_msg += " <-- Cutoff"
                     print(print_msg)

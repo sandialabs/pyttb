@@ -41,7 +41,8 @@ class tenmat:
 
         Parameters
         ----------
-        data: Tensor source data
+        data:
+            Tensor source data
         rdims:
         cdims:
         tshape:
@@ -121,7 +122,8 @@ class tenmat:
 
         Parameters
         ----------
-        source: Tensor type to create dense tensor from
+        source:
+            Tensor type to create dense tensor from
         rdims:
         cdims:
         cdims_cyclic:
@@ -247,8 +249,8 @@ class tenmat:
 
         Parameters
         ----------
-        k: int
-            dimension for subscripted indexing
+        k:
+            Dimension for subscripted indexing
 
         Returns
         -------

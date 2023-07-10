@@ -22,9 +22,12 @@ def tt_to_dense_matrix(
 
     Parameters
     ----------
-    tensorInstance: Tensor to matricize
-    mode: Mode around which to unwrap tensor
-    transpose: Whether or not to tranpose unwrapped tensor
+    tensorInstance:
+        Tensor to matricize
+    mode:
+        Mode around which to unwrap tensor
+    transpose:
+        Whether or not to tranpose unwrapped tensor
 
     Returns
     -------
@@ -58,9 +61,12 @@ def tt_from_dense_matrix(
 
     Parameters
     ----------
-    matrix: Matrix to (re-)create tensor from.
-    mode: Mode around which tensor was unwrapped
-    idx: In {0,1}, idx of mode in matrix, s.b. 0 for tranpose=True
+    matrix:
+        Matrix to (re-)create tensor from.
+    mode:
+        Mode around which tensor was unwrapped
+    idx:
+        In {0,1}, idx of mode in matrix, s.b. 0 for tranpose=True
 
     Returns
     -------
@@ -84,12 +90,15 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    MatrixA: First matrix.
-    MatrixB: Second matrix.
+    MatrixA:
+        First matrix.
+    MatrixB:
+        Second matrix.
 
     Returns
     -------
-    location: List of intersection indices
+    location:
+        List of intersection indices
 
     Examples
     --------
@@ -224,8 +233,10 @@ def tt_tenfun(function_handle, *inputs):  # pylint:disable=too-many-branches
 
     Parameters
     ----------
-    function_handle: callable
-    inputs: tensor type, or np.array
+    function_handle:
+        callable
+    inputs:
+        tensor type, or np.array
 
     Returns
     -------
@@ -321,8 +332,10 @@ def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    MatrixA: First matrix.
-    MatrixB: Second matrix.
+    MatrixA:
+        First matrix.
+    MatrixB:
+        Second matrix.
 
     Returns
     -------
@@ -349,12 +362,15 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    MatrixA: First matrix.
-    MatrixB: Second matrix.
+    MatrixA:
+        First matrix.
+    MatrixB:
+        Second matrix.
 
     Returns
     -------
-    location: List of intersection indices.
+    location:
+        List of intersection indices.
 
     Examples
     --------
@@ -386,9 +402,12 @@ def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.nd
 
     Parameters
     ----------
-    t: Sptensor we are trying to assign from
-    shape: Shape of destination tensor
-    number_range: Key from __setitem__ for destination tensor
+    t:
+        Sptensor we are trying to assign from
+    shape:
+        Shape of destination tensor
+    number_range:
+        Key from __setitem__ for destination tensor
 
     Returns
     -------
@@ -429,14 +448,17 @@ def tt_renumber(
 
     Parameters
     ----------
-    subs: :class:`numpy.ndarray`
-    shape: Shape of source tensor.
+    subs:
+    shape:
+        Shape of source tensor.
     range:
 
     Returns
     -------
-    newsubs: Updated subscripts.
-    newshape: Resulting shape.
+    newsubs:
+        Updated subscripts.
+    newshape:
+        Resulting shape.
     """
     newshape = np.array(shape)
     newsubs = subs
@@ -465,9 +487,9 @@ def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]
 
     Parameters
     ----------
-    idx: :class:`numpy.ndarray`
-    shape: int
-    number_range: :class:`numpy.ndarray`
+    idx:
+    shape:
+    number_range:
 
     Returns
     -------
@@ -504,15 +526,15 @@ def tt_ismember_rows(search: np.ndarray, source: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    search: :class:`numpy.ndarray`
-    source: :class:`numpy.ndarray`
+    search:
+    source:
 
     Returns
     -------
-    results: :class:`numpy.ndarray`
-    search.size==results.size,
-    if search[0,:] == source[3,:], then results[0] = 3
-    if exists i such that search[i,:] != source[j,:] for any j, then results[i] = -1
+    results:
+        search.size==results.size,
+        if search[0,:] == source[3,:], then results[0] = 3
+        if exists i such that search[i,:] != source[j,:] for any j, then results[i] = -1
 
     Examples
     --------
@@ -539,8 +561,9 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    shape: tuple
-    idx: :class:`numpy.ndarray`
+    shape:
+    idx:
+
     Returns
     -------
     :class:`numpy.ndarray`
@@ -557,8 +580,10 @@ def tt_subsubsref(obj, s):  # pylint: disable=unused-argument
 
     Parameters
     ----------
-    obj: Tensor Data Structure
-    s: Reference into tensor
+    obj:
+        Tensor Data Structure
+    s:
+        Reference into tensor
 
     Returns
     -------
@@ -582,10 +607,12 @@ def tt_intvec2str(v: np.ndarray) -> str:
 
     Parameters
     ----------
-    v: :class:`numpy.ndarray` integer vector
+    v:
+        Integer vector
+
     Returns
     -------
-    str: formatted string to print
+    Formatted string to print
     """
     return np.array2string(v)
 
@@ -596,10 +623,10 @@ def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    shape: tuple
-    Shape of tensor
-    subs: :class:`numpy.ndarray`
-    Subscripts for tensor
+    shape:
+        Shape of tensor
+    subs:
+        Subscripts for tensor
 
     Returns
     -------
@@ -626,10 +653,10 @@ def tt_sizecheck(shape: Tuple[int, ...], nargout: bool = True) -> bool:
 
     Parameters
     ----------
-    shape: tuple
-    Shape of tensor
-    nargout: bool
-    Controls if response returned or just acts as assert
+    shape:
+        Shape of tensor
+    nargout:
+        Controls if response returned or just acts as assert
 
     Returns
     -------
@@ -668,10 +695,10 @@ def tt_subscheck(subs: np.ndarray, nargout: bool = True) -> bool:
 
     Parameters
     ----------
-    subs: :class:`numpy.ndarray`
-    Subs of tensor
-    nargout: bool
-    Controls if response returned or just acts as assert
+    subs:
+        Subs of tensor
+    nargout:
+        Controls if response returned or just acts as assert
 
     Returns
     -------
@@ -709,10 +736,10 @@ def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
 
     Parameters
     ----------
-    vals: :class:`numpy.ndarray`
-    Values of tensor
-    nargout: bool
-    Controls if response returned or just acts as assert
+    vals:
+        Values of tensor
+    nargout:
+        Controls if response returned or just acts as assert
 
     Returns
     -------
@@ -737,8 +764,8 @@ def isrow(v: np.ndarray) -> bool:
 
     Parameters
     ----------
-    v: :class:`numpy.ndarray`
-    vector input
+    v:
+        Vector input
 
     Returns
     -------
@@ -755,7 +782,7 @@ def isvector(a: np.ndarray) -> bool:
 
     Parameters
     ----------
-    a: :class:`numpy.ndarray`
+    a:
 
     Returns
     -------
@@ -774,7 +801,7 @@ def islogical(a: np.ndarray) -> bool:
 
     Parameters
     ----------
-    a: :class:`numpy.ndarray`
+    a:
 
     Returns
     -------

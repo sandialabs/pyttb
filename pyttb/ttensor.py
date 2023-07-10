@@ -50,8 +50,10 @@ class ttensor:
 
         Parameters
         ----------
-        core: Core of tucker tensor.
-        factors: Factor matrices.
+        core:
+            Core of tucker tensor.
+        factors:
+            Factor matrices.
 
         Returns
         -------
@@ -89,7 +91,8 @@ class ttensor:
 
         Parameters
         ----------
-        source: :class:`pyttb.ttensor`
+        source:
+            Source tensor to create a new ttensor from.
 
         Returns
         -------
@@ -192,7 +195,8 @@ class ttensor:
 
         Parameters
         ----------
-        other: TTensor to compare against.
+        other:
+            TTensor to compare against.
 
         Returns
         -------
@@ -235,7 +239,8 @@ class ttensor:
 
         Parameters
         ----------
-        other: Tensor to take an innerproduct with.
+        other:
+            Tensor to take an innerproduct with.
 
         Returns
         -------
@@ -264,7 +269,7 @@ class ttensor:
                     f"{other.shape}"
                 )
             if np.prod(self.shape) < np.prod(self.core.shape):
-                Z = self.full()
+                Z: Union[ttb.tensor, ttb.sptensor] = self.full()
                 return Z.innerprod(other)
             Z = other.ttm(self.u, transpose=True)
             return Z.innerprod(self.core)
@@ -321,8 +326,12 @@ class ttensor:
 
         Parameters
         ----------
-        vector: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
-        dims: :class:`Numpy.ndarray`, int
+        vector:
+            Vector to multiply by.
+        dims:
+            Dimensions to multiply in.
+        exclude_dims:
+            Alternative multiply by all dimensions but these.
         """
         if dims is None and exclude_dims is None:
             dims = np.array([])
@@ -374,8 +383,10 @@ class ttensor:
 
         Parameters
         ----------
-        U: array of matrices or ktensor
-        n: multiplies by all modes except n
+        U:
+            Array of matrices or ktensor
+        n:
+            Multiplies by all modes except n
 
         Returns
         -------
@@ -421,7 +432,8 @@ class ttensor:
 
         Parameters
         ----------
-        order: Permutation of [0,...,self.ndims].
+        order:
+            Permutation of [0,...,self.ndims].
 
         Returns
         -------
@@ -445,10 +457,14 @@ class ttensor:
 
         Parameters
         ----------
-        matrix: Matrix or matrices to multiple by
-        dims: Dimensions to multiply against
-        exclude_dims: Use all dimensions but these
-        transpose: Transpose matrices during multiplication
+        matrix:
+            Matrix or matrices to multiple by
+        dims:
+            Dimensions to multiply against
+        exclude_dims:
+            Use all dimensions but these
+        transpose:
+            Transpose matrices during multiplication
         """
         if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
@@ -495,8 +511,8 @@ class ttensor:
 
         Parameters
         ----------
-        samples: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
-        modes: :class:`Numpy.ndarray`, list[:class:`Numpy.ndarray`]
+        samples:
+        modes:
 
         Returns
         -------
@@ -564,9 +580,12 @@ class ttensor:
 
         Parameters
         ----------
-        n: mode for tensor matricization
-        r: number of eigenvalues
-        flipsign: Make each column's largest element positive if true
+        n:
+            Mode for tensor matricization
+        r:
+            Number of eigenvalues
+        flipsign:
+            Make each column's largest element positive if true
 
         Returns
         -------
