@@ -55,25 +55,25 @@ def test_sptensor_from_dense_matrix():
 def test_tt_union_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6], [99, 0]])
     b = np.array([[1, 7], [1, 8], [2, 6]])
-    assert (
-        ttb.tt_union_rows(a, b)
-        == np.array([[1, 7], [1, 8], [4, 6], [1, 9], [2, 6], [99, 0]])
-    ).all()
+    assert np.array_equal(
+        ttb.tt_union_rows(a, b),
+        np.array([[1, 7], [1, 8], [4, 6], [1, 9], [2, 6], [99, 0]]),
+    )
     _, idx = np.unique(a, axis=0, return_index=True)
-    assert (ttb.tt_union_rows(a, np.array([])) == a[np.sort(idx)]).all()
-    assert (ttb.tt_union_rows(np.array([]), a) == a[np.sort(idx)]).all()
+    assert np.array_equal(ttb.tt_union_rows(a, np.array([])), a[np.sort(idx)])
+    assert np.array_equal(ttb.tt_union_rows(np.array([]), a), a[np.sort(idx)])
 
 
 @pytest.mark.indevelopment
 def test_tt_dimscheck():
     #  Empty
     rdims, ridx = ttb.tt_dimscheck(6, dims=np.array([]))
-    assert (rdims == np.array([0, 1, 2, 3, 4, 5])).all()
+    assert np.array_equal(rdims, np.array([0, 1, 2, 3, 4, 5]))
     assert ridx is None
 
     # Exclude Dims
     rdims, ridx = ttb.tt_dimscheck(6, exclude_dims=np.array([1]))
-    assert (rdims == np.array([0, 2, 3, 4, 5])).all()
+    assert np.array_equal(rdims, np.array([0, 2, 3, 4, 5]))
     assert ridx is None
 
     # Invalid minus
@@ -83,18 +83,18 @@ def test_tt_dimscheck():
 
     # Positive
     rdims, ridx = ttb.tt_dimscheck(6, dims=np.array([5]))
-    assert (rdims == np.array([5])).all()
+    assert np.array_equal(rdims, np.array([5]))
     assert ridx is None
 
     # M==P
     rdims, ridx = ttb.tt_dimscheck(6, 5, exclude_dims=np.array([0]))
-    assert (rdims == np.array([1, 2, 3, 4, 5])).all()
-    assert (ridx == np.arange(0, 5)).all()
+    assert np.array_equal(rdims, np.array([1, 2, 3, 4, 5]))
+    assert np.array_equal(ridx, np.arange(0, 5))
 
     # M==N
     rdims, ridx = ttb.tt_dimscheck(6, 6, exclude_dims=np.array([0]))
-    assert (rdims == np.array([1, 2, 3, 4, 5])).all()
-    assert (ridx == rdims).all()
+    assert np.array_equal(rdims, np.array([1, 2, 3, 4, 5]))
+    assert np.array_equal(ridx, rdims)
 
     # M>N
     with pytest.raises(AssertionError) as excinfo:
@@ -127,23 +127,23 @@ def test_tt_tenfun():
     def add(x, y):
         return x + y
 
-    assert (ttb.tt_tenfun(add, t1, t2).data == 2 * data).all()
+    assert np.array_equal(ttb.tt_tenfun(add, t1, t2).data, 2 * data)
 
     # Single argument case
     def add1(x):
         return x + 1
 
-    assert (ttb.tt_tenfun(add1, t1).data == (data + 1)).all()
+    assert np.array_equal(ttb.tt_tenfun(add1, t1).data, (data + 1))
 
     # Multi argument case
     def tensor_max(x):
         return np.max(x, axis=0)
 
-    assert (ttb.tt_tenfun(tensor_max, t1, t1, t1).data == data).all()
+    assert np.array_equal(ttb.tt_tenfun(tensor_max, t1, t1, t1).data, data)
     # TODO: sptensor arguments, depends on fixing the indexing ordering
 
     # No np array case
-    assert (ttb.tt_tenfun(tensor_max, data, data, data).data == data).all()
+    assert np.array_equal(ttb.tt_tenfun(tensor_max, data, data, data).data, data)
 
     # No argument case
     with pytest.raises(AssertionError) as excinfo:
@@ -177,16 +177,16 @@ def test_tt_setdiff_rows():
     b = np.array(
         [[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]]
     )
-    assert (ttb.tt_setdiff_rows(a, b) == np.array([1, 4])).all()
+    assert np.array_equal(ttb.tt_setdiff_rows(a, b), np.array([1, 4]))
 
     a = np.array([[4, 6], [1, 9]])
     b = np.array([[1, 7], [1, 8]])
-    assert (ttb.tt_setdiff_rows(a, b) == np.array([0, 1])).all()
+    assert np.array_equal(ttb.tt_setdiff_rows(a, b), np.array([0, 1]))
 
     a = np.array([[4, 6], [1, 9]])
     b = np.array([])
-    assert (ttb.tt_setdiff_rows(a, b) == np.arange(a.shape[0])).all()
-    assert (ttb.tt_setdiff_rows(b, a) == b).all()
+    assert np.array_equal(ttb.tt_setdiff_rows(a, b), np.arange(a.shape[0]))
+    assert np.array_equal(ttb.tt_setdiff_rows(b, a), b)
 
 
 @pytest.mark.indevelopment
@@ -195,12 +195,12 @@ def test_tt_intersect_rows():
     b = np.array(
         [[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]]
     )
-    assert (ttb.tt_intersect_rows(a, b) == np.array([2, 0])).all()
+    assert np.array_equal(ttb.tt_intersect_rows(a, b), np.array([2, 0]))
 
     a = np.array([[4, 6], [1, 9]])
     b = np.array([])
-    assert (ttb.tt_intersect_rows(a, b) == b).all()
-    assert (ttb.tt_intersect_rows(a, b) == ttb.tt_intersect_rows(b, a)).all()
+    assert np.array_equal(ttb.tt_intersect_rows(a, b), b)
+    assert np.array_equal(ttb.tt_intersect_rows(a, b), ttb.tt_intersect_rows(b, a))
 
 
 @pytest.mark.indevelopment
@@ -209,10 +209,10 @@ def test_tt_ismember_rows():
     b = np.array(
         [[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]]
     )
-    assert (ttb.tt_ismember_rows(a, b) == np.array([5, -1, 2])).all()
-    assert (
-        ttb.tt_ismember_rows(b, a) == np.array([-1, -1, 2, -1, -1, 0, -1, -1, -1, -1])
-    ).all()
+    assert np.array_equal(ttb.tt_ismember_rows(a, b), np.array([5, -1, 2]))
+    assert np.array_equal(
+        ttb.tt_ismember_rows(b, a), np.array([-1, -1, 2, -1, -1, 0, -1, -1, -1, -1])
+    )
 
 
 @pytest.mark.indevelopment
@@ -235,23 +235,23 @@ def test_tt_irenumber():
     )
 
     # Pad equal to number of modes
-    assert (
-        ttb.tt_irenumber(sptensorInstance, shape, (const, const, const))
-        == extended_result
-    ).all()
+    assert np.array_equal(
+        ttb.tt_irenumber(sptensorInstance, shape, (const, const, const)),
+        extended_result,
+    )
 
     # Full slice should equal original
-    assert (ttb.tt_irenumber(sptensorInstance, shape, slice_tuple) == subs).all()
+    assert np.array_equal(ttb.tt_irenumber(sptensorInstance, shape, slice_tuple), subs)
 
     # Verify that list and equivalent slice act the same
-    assert (
-        ttb.tt_irenumber(sptensorInstance, shape, (const, const, slice(0, 1, 1)))
-        == np.array([[const, const, const, const, 0], [const, const, const, const, 1]])
-    ).all()
-    assert (
-        ttb.tt_irenumber(sptensorInstance, shape, (const, const, [0, 1]))
-        == np.array([[const, const, const, const, 0], [const, const, const, const, 1]])
-    ).all()
+    assert np.array_equal(
+        ttb.tt_irenumber(sptensorInstance, shape, (const, const, slice(0, 1, 1))),
+        np.array([[const, const, const, const, 0], [const, const, const, const, 1]]),
+    )
+    assert np.array_equal(
+        ttb.tt_irenumber(sptensorInstance, shape, (const, const, [0, 1])),
+        np.array([[const, const, const, const, 0], [const, const, const, const, 1]]),
+    )
 
 
 @pytest.mark.indevelopment
@@ -267,7 +267,7 @@ def test_tt_renumberdims():
     number_range = np.array([1, 3, 4])
     idx = [1, 3, 4]
     newidx, newshape = ttb.tt_renumberdim(idx, shape, number_range)
-    assert (newidx == np.array([0, 1, 2])).all()
+    assert np.array_equal(newidx, np.array([0, 1, 2]))
     assert newshape == 3
 
     # Slice input
@@ -275,7 +275,7 @@ def test_tt_renumberdims():
     number_range = slice(1, 3, None)
     idx = [1, 2]
     newidx, newshape = ttb.tt_renumberdim(idx, shape, number_range)
-    assert (newidx == np.array([0, 1])).all()
+    assert np.array_equal(newidx, np.array([0, 1]))
     assert newshape == 2
 
 
@@ -286,7 +286,7 @@ def test_tt_renumber():
     number_range = (1, 1, 1)
     subs = np.array([[3, 3, 3]])
     newsubs, newshape = ttb.tt_renumber(subs, shape, number_range)
-    assert (newsubs == np.array([[0, 0, 0]])).all()
+    assert np.array_equal(newsubs, np.array([[0, 0, 0]]))
     assert newshape == (0, 0, 0)
 
     # Array in each dimension
@@ -294,7 +294,7 @@ def test_tt_renumber():
     number_range = ([1, 3, 4], [1, 3, 4], [1, 3, 4])
     subs = np.array([[1, 1, 1], [3, 3, 3]])
     newsubs, newshape = ttb.tt_renumber(subs, shape, number_range)
-    assert (newsubs == np.array([[0, 0, 0], [1, 1, 1]])).all()
+    assert np.array_equal(newsubs, np.array([[0, 0, 0], [1, 1, 1]]))
     assert newshape == (3, 3, 3)
 
     # Slice in each dimension
@@ -302,7 +302,7 @@ def test_tt_renumber():
     number_range = (slice(1, 3, None), slice(1, 3, None), slice(1, 3, None))
     subs = np.array([[2, 2, 2]])
     newsubs, newshape = ttb.tt_renumber(subs, shape, number_range)
-    assert (newsubs == np.array([[1, 1, 1]])).all()
+    assert np.array_equal(newsubs, np.array([[1, 1, 1]]))
     assert newshape == (2, 2, 2)
 
     # Slice in each dimension, empty subs
@@ -327,10 +327,10 @@ def test_tt_sub2ind_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     idx = np.array([0, 21, 63])
     siz = np.array([4, 4, 4])
-    assert (ttb.tt_sub2ind(siz, subs) == idx).all()
+    assert np.array_equal(ttb.tt_sub2ind(siz, subs), idx)
 
     empty = np.array([])
-    assert (ttb.tt_sub2ind(siz, empty) == empty).all()
+    assert np.array_equal(ttb.tt_sub2ind(siz, empty), empty)
 
 
 @pytest.mark.indevelopment

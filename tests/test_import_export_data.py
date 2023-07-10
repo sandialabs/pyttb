@@ -126,7 +126,7 @@ def test_import_data_array(sample_array):
     data_filename = os.path.join(os.path.dirname(__file__), "data", "matrix.tns")
     X = ttb.import_data(data_filename)
 
-    assert (M == X).all()
+    assert np.array_equal(M, X)
 
 
 @pytest.mark.indevelopment
@@ -230,14 +230,14 @@ def test_export_data_array(sample_array):
     ttb.export_data(M, data_filename)
 
     X = ttb.import_data(data_filename)
-    assert (M == X).all()
+    assert np.array_equal(M, X)
     os.unlink(data_filename)
 
     data_filename = os.path.join(os.path.dirname(__file__), "data", "matrix_int.out")
     ttb.export_data(M, data_filename, fmt_data="%d")
 
     X = ttb.import_data(data_filename)
-    assert (M == X).all()
+    assert np.array_equal(M, X)
     os.unlink(data_filename)
 
 

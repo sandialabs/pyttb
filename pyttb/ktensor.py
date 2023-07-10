@@ -951,7 +951,7 @@ class ktensor:
         if (self.weights != other.weights).any():
             return False
         for k in range(self.ndims):
-            if not (self.factor_matrices[k] == other.factor_matrices[k]).all():
+            if not np.array_equal(self.factor_matrices[k], other.factor_matrices[k]):
                 return False
         return True
 
@@ -1007,7 +1007,7 @@ class ktensor:
             for j in range(i + 1, self.ndims):
                 if self.factor_matrices[i].shape != self.factor_matrices[j].shape:
                     diffs[i, j] = np.inf
-                elif (self.factor_matrices[i] == self.factor_matrices[j]).all():
+                elif np.array_equal(self.factor_matrices[i], self.factor_matrices[j]):
                     diffs[i, j] = 0
                 else:
                     diffs[i, j] = np.linalg.norm(
@@ -1746,7 +1746,7 @@ class ktensor:
             assert False, "Input parameter'mode' must be in the range of self.ndims"
 
         # all weights are equal to 1
-        if (self.weights == np.ones(self.weights.shape)).all():
+        if np.array_equal(self.weights, np.ones(self.weights.shape)):
             return self.factor_matrices.copy()
 
         lsgn = np.sign(self.weights)

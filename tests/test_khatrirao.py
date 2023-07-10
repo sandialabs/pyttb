@@ -24,9 +24,9 @@ def test_khatrirao():
             [64, 125, 216],
         ]
     )
-    assert (ttb.khatrirao(*[A, A, A]) == answer).all()
-    assert (ttb.khatrirao(*[A, A, A], reverse=True) == answer).all()
-    assert (ttb.khatrirao(A, A, A) == answer).all()
+    assert np.array_equal(ttb.khatrirao(*[A, A, A]), answer)
+    assert np.array_equal(ttb.khatrirao(*[A, A, A], reverse=True), answer)
+    assert np.array_equal(ttb.khatrirao(A, A, A), answer)
 
     # Test case where inputs are column vectors
     a_1 = np.array([[1], [1], [1], [1]])
@@ -40,8 +40,8 @@ def test_khatrirao():
             a_2[3, 0] * np.ones((16, 1)),
         )
     )
-    assert (ttb.khatrirao(*[a_2, a_1, a_1]) == result).all()
-    assert (ttb.khatrirao(a_2, a_1, a_1) == result).all()
+    assert np.array_equal(ttb.khatrirao(*[a_2, a_1, a_1]), result)
+    assert np.array_equal(ttb.khatrirao(a_2, a_1, a_1), result)
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.khatrirao(a_2, a_1, np.ones((2, 2, 2)))

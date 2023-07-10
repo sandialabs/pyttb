@@ -429,7 +429,7 @@ class sptensor:
                     size=newsize[0],
                     func=fun,
                 )
-            return np.zeros((newsize[0], 1))
+            return np.zeros((newsize[0],))
 
         # Create Result
         if self.subs.size > 0:
@@ -1089,7 +1089,7 @@ class sptensor:
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
-                self.vals * factor[self.subs[:, dims].transpose()[0]],
+                self.vals * factor[self.subs[:, dims].transpose()[0]][:, None],
                 self.shape,
             )
         assert False, "Invalid scaling factor"

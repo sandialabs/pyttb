@@ -197,7 +197,7 @@ def cp_als(
             # Compute the matrix of coefficients for linear system
             Y = np.prod(UtU, axis=2, where=[i != n for i in range(N)])
             # don't try to solve linear system with Y = 0
-            if (Y == np.zeros(Y.shape)).all():
+            if (Y == 0).all():
                 Unew = np.zeros(Unew.shape)
             else:
                 Unew = np.linalg.solve(Y.T, Unew.T).T
@@ -213,7 +213,7 @@ def cp_als(
                 weights = np.maximum(np.max(np.abs(Unew), 0), 1)  # max-norm
 
             # if weights are 0, do not divide
-            if not (weights == np.zeros(weights.shape)).all():
+            if not (weights == 0).all():
                 Unew = Unew / weights
 
             U[n] = Unew
