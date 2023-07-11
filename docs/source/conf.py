@@ -55,6 +55,8 @@ extensions = [
     "myst_nb",
 ]
 
+autodoc_preserve_defaults = True
+
 myst_enable_extensions = [
     "amsmath",
     "dollarmath",
@@ -68,7 +70,7 @@ napoleon_use_rtype = False
 
 intersphinx_mapping = {
     "numpy": ("http://docs.scipy.org/doc/numpy/", "numpy.inv"),
-    "python": ("http://docs.python.org/3.6/", "python.inv"),
+    "python": ("http://docs.python.org/3.8/", "python.inv"),
 }
 
 # Add any paths that contain templates here, relative to this directory.
