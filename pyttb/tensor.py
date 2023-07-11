@@ -335,29 +335,6 @@ class tensor:
         """
         return ttb.tensor.from_data(np.exp(self.data))
 
-    def end(self, k: Optional[int] = None) -> int:
-        """
-        Last index of indexing expression for tensor
-
-        Parameters
-        ----------
-        k:
-            Dimension for subscripted indexing
-
-        Examples
-        --------
-        >>> X = ttb.tensor.from_data(np.ones((2,2)))
-        >>> X.end()  # linear indexing
-        3
-        >>> X.end(0)
-        1
-        """
-
-        if k is not None:  # Subscripted indexing
-            return self.shape[k] - 1
-        # For linear indexing
-        return np.prod(self.shape) - 1
-
     def find(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         FIND Find subscripts of nonzero elements in a tensor.
@@ -1462,12 +1439,12 @@ class tensor:
         1.0
         >>> # produces a tensor of order 1 and size 1
         >>> X[1,1,1,:] # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape 1
+        tensor of shape (1,)
         data[:] =
         [1.]
         >>> # produces a tensor of size 2 x 2 x 1
         >>> X[0:2,[2, 3],1,:] # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape 2 x 2 x 1
+        tensor of shape (2, 2, 1)
         data[0, :, :] =
         [[1.]
          [1.]]
@@ -1862,8 +1839,7 @@ class tensor:
             return s
 
         s = ""
-        s += "tensor of shape "
-        s += (" x ").join([str(int(d)) for d in self.shape])
+        s += f"tensor of shape {self.shape}"
         s += "\n"
 
         if self.ndims == 1:

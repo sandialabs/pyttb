@@ -377,15 +377,6 @@ def test_tenmat_double(sample_tenmat_4way):
 
 
 @pytest.mark.indevelopment
-def test_tenmat_end(sample_tenmat_4way):
-    (params, tenmatInstance) = sample_tenmat_4way
-    shape = params["shape"]
-
-    for k in range(len(shape)):
-        assert tenmatInstance.end(k) == shape[k] - 1
-
-
-@pytest.mark.indevelopment
 def test_tenmat_ndims(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
 
@@ -688,7 +679,7 @@ def test_tenmat__str__(
     tenmatInstance = ttb.tenmat.from_data(ndarrayInstance1, rdims, cdims, tshape)
     s = ""
     s += "matrix corresponding to a tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tenmatInstance.tshape])
+    s += str(tenmatInstance.tshape)
     s += "\n"
     s += "rindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.rindices]) + " ] "
@@ -705,7 +696,7 @@ def test_tenmat__str__(
     tenmatInstance = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, tshape)
     s = ""
     s += "matrix corresponding to a tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tenmatInstance.tshape])
+    s += str(tenmatInstance.tshape)
     s += "\n"
     s += "rindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.rindices]) + " ] "
@@ -722,7 +713,7 @@ def test_tenmat__str__(
     tenmatInstance = ttb.tenmat.from_data(ndarrayInstance4, rdims, cdims, tshape)
     s = ""
     s += "matrix corresponding to a tensor of shape "
-    s += (" x ").join([str(int(d)) for d in tenmatInstance.tshape])
+    s += str(tenmatInstance.tshape)
     s += "\n"
     s += "rindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.rindices]) + " ] "

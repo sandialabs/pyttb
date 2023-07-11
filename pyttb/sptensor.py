@@ -429,7 +429,7 @@ class sptensor:
                     size=newsize[0],
                     func=fun,
                 )
-            return np.zeros((newsize[0], 1))
+            return np.zeros((newsize[0],))
 
         # Create Result
         if self.subs.size > 0:
@@ -532,19 +532,6 @@ class sptensor:
         if idx.size == 0:
             return ttb.sptensor.from_data(np.array([]), np.array([]), self.shape)
         return ttb.sptensor.from_data(self.subs[idx, :], vals[idx], self.shape)
-
-    def end(self, k: Optional[int] = None) -> int:
-        """
-        Last index of indexing expression for sparse tensor
-
-        Parameters
-        ----------
-        k:
-            Dimension for subscript indexing
-        """
-        if k is not None:
-            return self.shape[k] - 1
-        return int(np.prod(self.shape) - 1)
 
     def extract(self, searchsubs: np.ndarray) -> np.ndarray:
         """
@@ -1102,7 +1089,7 @@ class sptensor:
                 assert False, "Size mismatch in scale"
             return ttb.sptensor.from_data(
                 self.subs,
-                self.vals * factor[self.subs[:, dims].transpose()[0]],
+                self.vals * factor[self.subs[:, dims].transpose()[0]][:, None],
                 self.shape,
             )
         assert False, "Invalid scaling factor"
@@ -2553,8 +2540,7 @@ class sptensor:
             s += (" x ").join([str(int(d)) for d in self.shape])
             return s
 
-        s = "Sparse tensor of shape "
-        s += (" x ").join([str(int(d)) for d in self.shape])
+        s = f"Sparse tensor of shape {self.shape}"
         s += f" with {nz} nonzeros \n"
 
         # Stop insane printouts
