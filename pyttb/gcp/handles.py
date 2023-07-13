@@ -2,12 +2,29 @@
 
 from __future__ import annotations
 
+from enum import Enum
+
 import numpy as np
 
 import pyttb as ttb
 
 # Epsilon values for distributions
 EPS = 1e-10
+
+
+class Objectives(Enum):
+    """Valid objective functions for GCP"""
+
+    GAUSSIAN = 0
+    BERNOULLI_ODDS = 1
+    BERNOULLI_LOGIT = 2
+    POISSON = 3
+    POISSON_LOG = 4
+    RAYLEIGH = 5
+    GAMMA = 6
+    HUBER = 7
+    NEGATIVE_BINOMIAL = 8
+    BETA = 9
 
 
 def gaussian(data: np.ndarray, model: np.ndarray) -> np.ndarray:
