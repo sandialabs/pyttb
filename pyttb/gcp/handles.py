@@ -89,7 +89,7 @@ def rayleigh_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
 
 def gamma(data: np.ndarray, model: np.ndarray) -> np.ndarray:
     """Return objective function for gamma distributions"""
-    return data / (model + EPS) + np.log(model + EPS)
+    return np.multiply(data,-1) / (model + EPS) + np.log(model + EPS)
 
 
 def gamma_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
