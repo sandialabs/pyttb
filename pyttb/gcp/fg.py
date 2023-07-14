@@ -13,7 +13,7 @@ from pyttb.gcp.fg_setup import function_type
 @overload
 def evaluate(
     model: ttb.ktensor,
-    data: ttb.tensor,
+    data: Union[ttb.tensor, ttb.sptensor],
     function_handle: Literal[None],
     gradient_handle: function_type,
     weights: Optional[np.ndarray],
@@ -24,7 +24,7 @@ def evaluate(
 @overload
 def evaluate(
     model: ttb.ktensor,
-    data: ttb.tensor,
+    data: Union[ttb.tensor, ttb.sptensor],
     function_handle: function_type,
     gradient_handle: Literal[None],
     weights: Optional[np.ndarray],
@@ -35,7 +35,7 @@ def evaluate(
 @overload
 def evaluate(
     model: ttb.ktensor,
-    data: ttb.tensor,
+    data: Union[ttb.tensor, ttb.sptensor],
     function_handle: function_type,
     gradient_handle: function_type,
     weights: Optional[np.ndarray],
@@ -45,7 +45,7 @@ def evaluate(
 
 def evaluate(
     model: ttb.ktensor,
-    data: ttb.tensor,
+    data: Union[ttb.tensor, ttb.sptensor],
     function_handle: Optional[function_type] = None,
     gradient_handle: Optional[function_type] = None,
     weights: Optional[np.ndarray] = None,
@@ -73,6 +73,9 @@ def evaluate(
         raise ValueError(
             "Either a function handle, or a gradient handle must be provided."
         )
+
+    if isinstance(data, ttb.sptensor):
+        data = data.double()
 
     full_model = model.full()
     # TODO should we early check shapes?
