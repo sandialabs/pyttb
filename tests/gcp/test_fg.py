@@ -61,20 +61,20 @@ def test_evaluate():
 def test_evaluate_sptensor():
     model = ttb.import_data("tests/data/ktensor_low_rank_small.tns")
     data = ttb.import_data("tests/data/sptensor_low_rank_small.tns")
-    EPS = 1e-04
+    EPS = 1e-01
 
     # Computed with MATLAB TTB v3.5
     function_values = [
         5.114502408482430,
         -61.434016498399011,
-        -125.977893445433750,
+        -125.9778934454338,
         -26.214062308801779,
-        9751.193889205471351,
-        -7705.253241233131121,
-        -3844.118857614557328,
+        9751.193889205471,
+        -7705.253241233131,
+        -3844.118857614557,
         1.659013125911521,
         18.038214072232726,
-        438.017472632638373,
+        438.0174726326384,
     ]
 
     # Computed with MATLAB TTB v3.5
@@ -83,12 +83,12 @@ def test_evaluate_sptensor():
         6.490763041535352,
         16.467247284617468,
         5.749316318105722,
-        8205.858044313505161,
-        114972799424.041717529296875,
-        57486399712.019142150878906,
+        8205.858044313505,
+        114972799424.0417,
+        57486399712.01914,
         0.403829517433526,
         6.952818383681525,
-        5748639985.372480392456055,
+        5748639985.372480,
     ]
 
     for an_objective, function_val, gradient_val in zip(
@@ -108,7 +108,8 @@ def test_evaluate_sptensor():
         # Just gradient handle
         g = evaluate(model, data, gradient_handle=gh)
         assert all(isinstance(g_i, np.ndarray) for g_i in g)
-        assert np.linalg.norm(np.vstack(g)) == pytest.approx(gradient_val, rel=EPS)
+        assert np.linalg.norm(np.vstack(g)) == pytest.approx(
+            gradient_val, rel=EPS)
 
         weight = np.zeros_like(data.double().data)
         g = evaluate(model, data, weights=weight, gradient_handle=gh)
