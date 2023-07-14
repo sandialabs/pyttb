@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-from inspect import Parameter, signature
-from math import exp, log, pi
-
 import numpy as np
 import pytest
-import scipy
 
 import pyttb as ttb
-from pyttb.gcp import fg_setup
 from pyttb.gcp.fg import evaluate
-from pyttb.gcp.handles import Objectives
 
 
 def test_evaluate():
+    # No function or gradient handle
     with pytest.raises(ValueError):
         model = ttb.ktensor()
         data = ttb.tensor()
