@@ -184,3 +184,39 @@ def semistrat(
     all_vals = np.concatenate((nonzero_vals, zero_vals))
     all_weights = np.concatenate((nonzero_weights, zero_weights))
     return all_subs, all_vals, all_weights
+
+
+def stratified(
+    data: ttb.sptensor,
+    nz_idx: np.ndarray,
+    num_nonzeros: int,
+    num_zeros: int,
+    over_sample_rate: float = 1.1,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Sample nonzer and zero entries from a sparse tensor
+
+    Parameters
+    ----------
+    data:
+        Tensor to sample.
+    num_nonzeros:
+        Number of nonzero samples requested.
+    num_zeros:
+        Number of zero samples requested.
+
+    Returns
+    -------
+    Subscripts, values, and weights of samples (Nonzeros then zeros).
+    """
+    [nonzero_subs, nonzero_vals] = nonzeros(data, num_nonzeros, with_replacement=True)
+    nonzero_weights = (data.nnz / num_nonzeros) * np.ones((num_nonzeros,))
+
+    zero_subs = zeros(data, nz_idx, num_zeros, over_sample_rate, with_replacement=True)
+    zero_vals = np.zeros((num_zeros, 1))
+    data_nonzero_count = np.prod(data.shape) - data.nnz
+    zero_weights = (data_nonzero_count / num_zeros) * np.ones((num_zeros,))
+
+    all_subs = np.vstack((nonzero_subs, zero_subs))
+    all_vals = np.concatenate((nonzero_vals, zero_vals))
+    all_weights = np.concatenate((nonzero_weights, zero_weights))
+    return all_subs, all_vals, all_weights

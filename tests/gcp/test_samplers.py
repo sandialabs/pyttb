@@ -35,8 +35,9 @@ def test_nonzeros():
 
 
 def test_zeros():
-    data = ttb.sptenrand((2, 2), nonzeros=2)
-    lin_idx = np.sort(ttb.tt_sub2ind((2, 2), data.subs))
+    shape = (2, 2)
+    data = ttb.sptenrand(shape, nonzeros=2)
+    lin_idx = np.sort(ttb.tt_sub2ind(shape, data.subs))
     subs = samplers.zeros(data, lin_idx, 1)
     assert len(subs.shape) == 2
 
@@ -67,7 +68,24 @@ def test_uniform():
 
 def test_semistrat():
     data = ttb.sptenrand((4, 4), nonzeros=2)
-    subs, vals, wgts = samplers.semistrat(data, 2, 2)
+    num_zeros = 2
+    num_nonzeros = 2
+    subs, vals, wgts = samplers.semistrat(data, num_nonzeros, num_zeros)
     assert len(subs.shape) == 2
-    assert len(vals) == 4
+    assert len(vals) == num_zeros + num_nonzeros
     assert len(wgts) == 4
+    assert np.all(vals[:num_nonzeros] != 0.0)
+
+
+def test_stratified():
+    shape = (4, 4)
+    num_zeros = 2
+    num_nonzeros = 2
+    data = ttb.sptenrand(shape, nonzeros=2)
+    lin_idx = np.sort(ttb.tt_sub2ind(shape, data.subs))
+    subs, vals, wgts = samplers.stratified(data, lin_idx, num_nonzeros, num_zeros)
+    assert len(subs.shape) == 2
+    assert len(vals) == num_zeros + num_nonzeros
+    assert len(wgts) == num_zeros + num_nonzeros
+    assert np.all(vals[:num_nonzeros] != 0.0)
+    assert np.all(vals[-num_zeros:] == 0.0)
