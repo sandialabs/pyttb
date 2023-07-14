@@ -55,3 +55,11 @@ def test_zeros():
     # Too many samples without replacement (over sampling)
     with pytest.raises(ValueError):
         samplers.zeros(data, lin_idx, 2, with_replacement=False)
+
+
+def test_uniform():
+    data = ttb.tenrand((4, 4))
+    subs, vals, wgts = samplers.uniform(data, 2)
+    assert np.all(np.isin(vals, data.data))
+    assert len(subs) == 2
+    assert len(wgts) == 2

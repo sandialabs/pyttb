@@ -126,3 +126,27 @@ def zeros(
         )
 
     return tmpsubs[:samples, :]
+
+
+def uniform(
+    data: ttb.tensor, samples: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Uniformly samples indices from a tensor
+
+    Parameters
+    ----------
+    data:
+        Tensor to sample.
+    samples:
+        Number of samples to take.
+
+    Returns
+    -------
+        Subscripts of samples, values at those subscripts, and weight of samples.
+    """
+    subs = np.ceil(
+        np.random.uniform(0, 1, (samples, data.ndims)) * (np.array(data.shape) - 1),
+    ).astype(int)
+    vals = data[subs]
+    wgts = (np.prod(data.shape) / samples) * np.ones((samples,))
+    return subs, vals, wgts
