@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from inspect import Parameter, signature
-from math import exp, log, pi
 
 import numpy as np
 import pytest
-import scipy
 
 import pyttb as ttb
 from pyttb.gcp import fg_setup

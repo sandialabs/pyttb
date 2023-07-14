@@ -721,6 +721,14 @@ class tensor:
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
             return V
 
+    def mttkrps(self, U: Union[ttb.ktensor, List[np.ndarray]]) -> List[np.ndarray]:
+        """Sequence of MTTKRP calculations for a tensor.
+
+        Result is equivalent to [X.mttkrp(U, k) for k in range(X.ndims)]
+        """
+        # TODO actually implement but stub to validate fg
+        return list(self.mttkrp(U, k) for k in range(self.ndims))
+
     @property
     def ndims(self) -> int:
         """
