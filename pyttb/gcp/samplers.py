@@ -150,3 +150,37 @@ def uniform(
     vals = data[subs]
     wgts = (np.prod(data.shape) / samples) * np.ones((samples,))
     return subs, vals, wgts
+
+
+def semistrat(
+    data: ttb.sptensor, num_nonzeros: int, num_zeros: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Sample nonzero and zero entries from a sparse tensor
+
+    Parameters
+    ----------
+    data:
+        Tensor to sample.
+    num_nonzeros:
+        Number of nonzero samples requested.
+    num_zeros:
+        Number of zero samples requested.
+
+    Returns
+    -------
+    Subscripts, values, and weights of samples (Nonzeros then zeros).
+    """
+    [nonzero_subs, nonzero_vals] = nonzeros(data, num_nonzeros, with_replacement=True)
+    nonzero_weights = (data.nnz / num_nonzeros) * np.ones((num_nonzeros,))
+
+    # Uniformly sample unconfirmed zeros
+    zero_subs = np.ceil(
+        np.random.uniform(0, 1, (num_zeros, data.ndims)) * (np.array(data.shape) - 1),
+    ).astype(int)
+    zero_vals = np.zeros((num_zeros, 1))
+    zero_weights = (np.prod(data.shape) / num_zeros) * np.ones((num_zeros,))
+
+    all_subs = np.vstack((nonzero_subs, zero_subs))
+    all_vals = np.concatenate((nonzero_vals, zero_vals))
+    all_weights = np.concatenate((nonzero_weights, zero_weights))
+    return all_subs, all_vals, all_weights

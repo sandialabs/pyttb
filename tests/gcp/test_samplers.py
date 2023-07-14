@@ -63,3 +63,11 @@ def test_uniform():
     assert np.all(np.isin(vals, data.data))
     assert len(subs) == 2
     assert len(wgts) == 2
+
+
+def test_semistrat():
+    data = ttb.sptenrand((4, 4), nonzeros=2)
+    subs, vals, wgts = samplers.semistrat(data, 2, 2)
+    assert len(subs.shape) == 2
+    assert len(vals) == 4
+    assert len(wgts) == 4
