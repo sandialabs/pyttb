@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
+from pyttb.tensor import min_split, mttv_left, mttv_mid
 
 
 @pytest.fixture()
@@ -1726,3 +1727,61 @@ def test_tendiag():
     for i in range(N):
         diag_index = (i,) * N
         assert X[diag_index] == i
+
+
+def test_mttv_left():
+    m1 = 2
+    mi = [range(1, 4)]
+    C = 5
+    U = np.ones((m1, C))
+    W = np.ones((m1 * np.prod(mi), C))
+    W_out = mttv_left(W, U)
+    assert W_out.shape == (np.prod(mi), C)
+
+
+def test_mttv_mid():
+    m1 = 2
+    mi = list(range(1, 4))
+    C = 5
+    U = [np.ones((m, C)) for m in mi]
+    W = np.ones((m1 * np.prod(mi), C))
+    W_out = mttv_mid(W, U)
+    assert W_out.shape == (m1, C)
+
+    W_out = mttv_mid(W, [])
+    assert W_out is W
+
+
+def test_min_split():
+    shape = (3, 3, 3, 3)
+    idx = min_split(shape)
+    assert idx == 1
+
+
+def test_mttkrps():
+    model = ttb.ktensor([k * np.random.random((k, 2)) for k in (2, 3, 4)])
+    data = ttb.tenrand(model.shape)
+    direct = list(data.mttkrp(model.factor_matrices, k) for k in range(data.ndims))
+
+    optimized = data.mttkrps(model.factor_matrices)
+    assert all(
+        np.allclose(a_direct, an_optimized)
+        for a_direct, an_optimized in zip(direct, optimized)
+    )
+
+    # Using ktensor directly
+    optimized = data.mttkrps(model)
+    assert all(
+        np.allclose(a_direct, an_optimized)
+        for a_direct, an_optimized in zip(direct, optimized)
+    )
+
+    # More dims to hit various combinations and iterations
+    model = ttb.ktensor([np.ones((k, 2)) for k in (2, 2, 2, 2, 2, 2)])
+    data = ttb.tenones(model.shape)
+    direct = list(data.mttkrp(model.factor_matrices, k) for k in range(data.ndims))
+    optimized = data.mttkrps(model)
+    assert all(
+        np.allclose(a_direct, an_optimized)
+        for a_direct, an_optimized in zip(direct, optimized)
+    )
