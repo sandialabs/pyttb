@@ -7,6 +7,19 @@ import pyttb as ttb
 from pyttb.gcp import samplers
 
 
+def check_sample_output(
+    subs: np.ndarray,
+    vals: np.ndarray,
+    wgts: np.ndarray,
+    num_zeros: int,
+    num_nonzeros: int,
+):
+    """Verify shapes of values returned from sampler"""
+    assert len(subs.shape) == 2
+    assert len(vals) == num_zeros + num_nonzeros
+    assert len(wgts) == num_zeros + num_nonzeros
+
+
 def test_nonzeros():
     data = ttb.sptenrand((2, 2), nonzeros=2)
 
@@ -67,9 +80,7 @@ def test_semistrat():
     num_zeros = 2
     num_nonzeros = 2
     subs, vals, wgts = samplers.semistrat(data, num_nonzeros, num_zeros)
-    assert len(subs.shape) == 2
-    assert len(vals) == num_zeros + num_nonzeros
-    assert len(wgts) == 4
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert np.all(vals[:num_nonzeros] != 0.0)
 
 
@@ -80,8 +91,135 @@ def test_stratified():
     data = ttb.sptenrand(shape, nonzeros=2)
     lin_idx = np.sort(ttb.tt_sub2ind(shape, data.subs))
     subs, vals, wgts = samplers.stratified(data, lin_idx, num_nonzeros, num_zeros)
-    assert len(subs.shape) == 2
-    assert len(vals) == num_zeros + num_nonzeros
-    assert len(wgts) == num_zeros + num_nonzeros
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert np.all(vals[:num_nonzeros] != 0.0)
     assert np.all(vals[-num_zeros:] == 0.0)
+
+
+def test_gcp_sampler():
+    num_zeros = 2
+    num_nonzeros = 2
+    # Dense data defaults
+    dense_data = ttb.tenones((2, 2))
+    dense_data[0, 1] = 0.0
+    dense_data[1, 0] = 0.0
+    sampler = samplers.GCPSampler(dense_data, num_zeros, num_nonzeros)
+    subs, vals, wgts = sampler.function_sample(dense_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    subs, vals, wgts = sampler.gradient_sample(dense_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    assert sampler.crng.size == 0
+
+    # Sparse data defaults
+    sparse_data = ttb.sptensor.from_tensor_type(dense_data)
+    sampler = samplers.GCPSampler(sparse_data, num_zeros, num_nonzeros)
+    subs, vals, wgts = sampler.function_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    subs, vals, wgts = sampler.gradient_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    assert sampler.crng.size == 0
+
+    # Sparse stratified integer sample count
+    sampler = samplers.GCPSampler(
+        sparse_data,
+        num_zeros,
+        num_nonzeros,
+        function_samples=2,
+        gradient_samples=2,
+    )
+    subs, vals, wgts = sampler.function_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    subs, vals, wgts = sampler.gradient_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    assert sampler.crng.size == 0
+
+    # Sparse stratified stratified count
+    sampler = samplers.GCPSampler(
+        sparse_data,
+        num_zeros,
+        num_nonzeros,
+        function_samples=samplers.StratifiedCount(2, 2),
+        gradient_samples=samplers.StratifiedCount(2, 2),
+    )
+    subs, vals, wgts = sampler.function_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    subs, vals, wgts = sampler.gradient_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    assert sampler.crng.size == 0
+
+    # Sparse uniform sampling
+    sampler = samplers.GCPSampler(
+        sparse_data,
+        num_zeros,
+        num_nonzeros,
+        function_sampler=samplers.Samplers.UNIFORM,
+        gradient_sampler=samplers.Samplers.UNIFORM,
+    )
+    subs, vals, wgts = sampler.function_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    sampler.gradient_sample(sparse_data)
+    # We skip verifying sptensor UNIFORM gradient samples since it can vary in shape
+    assert sampler.crng.size == 0
+
+    # Sparse semi-stratified sampling
+    sampler = samplers.GCPSampler(
+        sparse_data,
+        num_zeros,
+        num_nonzeros,
+        function_sampler=samplers.Samplers.UNIFORM,
+        gradient_sampler=samplers.Samplers.SEMISTRATIFIED,
+    )
+    subs, vals, wgts = sampler.function_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    subs, vals, wgts = sampler.gradient_sample(sparse_data)
+    check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
+    assert sampler.crng.size != 0
+
+    # Negative tests
+
+    # No dense stratified function
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            dense_data,
+            num_zeros,
+            num_nonzeros,
+            function_sampler=samplers.Samplers.STRATIFIED,
+        )
+    # No dense stratified gradient
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            dense_data,
+            num_zeros,
+            num_nonzeros,
+            gradient_sampler=samplers.Samplers.STRATIFIED,
+        )
+    # Incorrect function samples type stratified
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            sparse_data, num_zeros, num_nonzeros, function_samples=(2, 2)
+        )
+    # Incorrect gradient samples type stratified
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            sparse_data, num_zeros, num_nonzeros, gradient_samples=(2, 2)
+        )
+    # Incorrect function samples type uniform
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            dense_data, num_zeros, num_nonzeros, function_samples=(2, 2)
+        )
+    # Incorrect gradient samples type uniform
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            dense_data, num_zeros, num_nonzeros, gradient_samples=(2, 2)
+        )
+    # Bad function sampler type
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            dense_data, num_zeros, num_nonzeros, function_sampler="Something bad"
+        )
+    # Bad gradient sampler type
+    with pytest.raises(ValueError):
+        samplers.GCPSampler(
+            dense_data, num_zeros, num_nonzeros, gradient_sampler="Something bad"
+        )

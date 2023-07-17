@@ -3,11 +3,227 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+from dataclasses import dataclass
+from enum import Enum
+from functools import partial
+from math import ceil
+from typing import Callable, Optional, Tuple, Union, cast
 
 import numpy as np
 
 import pyttb as ttb
+
+sample_type = Tuple[np.ndarray, np.ndarray, np.ndarray]
+sampler_type = Callable[[Union[ttb.tensor, ttb.sptensor]], sample_type]
+
+
+@dataclass
+class StratifiedCount:
+    """Contains stratified sampling counts"""
+
+    num_zeros: int
+    num_nonzeros: int
+
+
+class Samplers(Enum):
+    """Implemented Samplers"""
+
+    UNIFORM = 0
+    SEMISTRATIFIED = 1
+    STRATIFIED = 2
+
+
+class GCPSampler:
+    """Contains Gradient and Function Sampling Details"""
+
+    # pylint: disable=too-many-arguments
+    def __init__(
+        self,
+        data: Union[ttb.tensor, ttb.sptensor],
+        num_zeros: int,
+        num_nonzeros: int,
+        function_sampler: Optional[Samplers] = None,
+        function_samples: Optional[Union[int, StratifiedCount]] = None,
+        gradient_sampler: Optional[Samplers] = None,
+        gradient_samples: Optional[Union[int, StratifiedCount]] = None,
+        max_iters: int = 1000,
+        over_sample_rate: float = 1.1,
+    ):
+        self._crng = np.array([])
+        # TODO add interface for arbitrary callable with no args that returns ndarray
+        # TODO might be simpler to provide mask instead of num_zeros and nonzeros
+        if function_sampler is None:
+            if isinstance(data, ttb.sptensor):
+                function_sampler = Samplers.STRATIFIED
+            else:
+                function_sampler = Samplers.UNIFORM
+        self._prepare_function_sampler(
+            data,
+            function_sampler,
+            num_zeros,
+            num_nonzeros,
+            over_sample_rate,
+            function_samples,
+        )
+        if gradient_sampler is None:
+            if isinstance(data, ttb.sptensor):
+                gradient_sampler = Samplers.STRATIFIED
+            else:
+                gradient_sampler = Samplers.UNIFORM
+        self._prepare_gradient_sampler(
+            data,
+            gradient_sampler,
+            num_zeros,
+            num_nonzeros,
+            over_sample_rate,
+            gradient_samples,
+            max_iters,
+        )
+
+    # pylint: disable=too-many-arguments
+    def _prepare_function_sampler(
+        self,
+        data: Union[ttb.tensor, ttb.sptensor],
+        function_sampler: Samplers,
+        num_zeros: int,
+        num_nonzeros: int,
+        over_sample_rate: float,
+        function_samples: Optional[Union[int, StratifiedCount]],
+    ):
+        if function_sampler == Samplers.STRATIFIED:
+            if not isinstance(data, ttb.sptensor):
+                raise ValueError(
+                    "Stratified sampling is only supported for sptensor data."
+                )
+            if function_samples is None:
+                ftmp = int(max(ceil(num_nonzeros / 100), 10**5))
+                function_samples = StratifiedCount(
+                    num_nonzeros=min(ftmp, num_nonzeros),
+                    num_zeros=min(ftmp, num_nonzeros, num_zeros),
+                )
+            elif isinstance(function_samples, int):
+                function_samples = StratifiedCount(
+                    num_nonzeros=function_samples, num_zeros=function_samples
+                )
+            elif not isinstance(function_samples, StratifiedCount):
+                raise ValueError(
+                    "Function samples should be an int or StratifiedCount but "
+                    f" received: {function_samples}"
+                )
+            xnzidx = np.sort(ttb.tt_sub2ind(data.shape, data.subs))
+            self._fsampler = partial(
+                stratified,
+                nz_idx=xnzidx,
+                num_nonzeros=function_samples.num_nonzeros,
+                num_zeros=function_samples.num_zeros,
+                over_sample_rate=over_sample_rate,
+            )
+        elif function_sampler == Samplers.UNIFORM:
+            if function_samples is None:
+                tensor_size = int(np.prod(data.shape))
+                function_samples = min(
+                    max(ceil(tensor_size / 10), 10**6), tensor_size
+                )
+            if not isinstance(function_samples, int):
+                raise ValueError(
+                    "Uniform sampling only accepts integers for number of samples"
+                )
+            self._fsampler = partial(
+                uniform,
+                samples=function_samples,
+            )
+        else:
+            raise ValueError("Invalid choice for function_sampler")
+
+    # pylint: disable=too-many-arguments, too-many-branches
+    def _prepare_gradient_sampler(
+        self,
+        data: Union[ttb.tensor, ttb.sptensor],
+        gradient_sampler: Samplers,
+        num_zeros: int,
+        num_nonzeros: int,
+        over_sample_rate: float,
+        gradient_samples: Optional[Union[int, StratifiedCount]],
+        max_iters: int,
+    ):
+        if gradient_sampler in (Samplers.STRATIFIED, Samplers.SEMISTRATIFIED):
+            if gradient_samples is None:
+                gtmp = int(max(1000, ceil(3 * num_nonzeros / max_iters)))
+                gradient_samples = StratifiedCount(
+                    num_nonzeros=int(min(gtmp, num_nonzeros)),
+                    num_zeros=int(min(gtmp, num_nonzeros, num_zeros)),
+                )
+            elif isinstance(gradient_samples, int):
+                gradient_samples = StratifiedCount(
+                    num_nonzeros=gradient_samples, num_zeros=gradient_samples
+                )
+            elif not isinstance(gradient_samples, StratifiedCount):
+                raise ValueError(
+                    "Gradient samples should be an int or StratifiedCount but "
+                    f" received: {gradient_samples}"
+                )
+            if gradient_sampler == Samplers.SEMISTRATIFIED:
+                self._gsampler: sampler_type = partial(
+                    semistrat,
+                    num_nonzeros=gradient_samples.num_nonzeros,
+                    num_zeros=gradient_samples.num_zeros,
+                )
+                self._crng = np.arange(gradient_samples.num_nonzeros)
+            else:
+                if not isinstance(data, ttb.sptensor):
+                    raise ValueError(
+                        "Stratified sampling is only supported for sptensor data."
+                    )
+                # TODO store value if computed to avoid duplicate work
+                xnzidx = np.sort(ttb.tt_sub2ind(data.shape, data.subs))
+                self._gsampler = partial(
+                    stratified,
+                    nz_idx=xnzidx,
+                    num_nonzeros=gradient_samples.num_nonzeros,
+                    num_zeros=gradient_samples.num_zeros,
+                    over_sample_rate=over_sample_rate,
+                )
+        elif gradient_sampler == Samplers.UNIFORM:
+            tensor_size = int(np.prod(data.shape))
+            if gradient_samples is None:
+                gradient_samples = int(
+                    min(max(1000, ceil(10 * tensor_size / max_iters)), tensor_size)
+                )
+            if not isinstance(gradient_samples, int):
+                raise ValueError(
+                    "Uniform sampling only accepts integers for number of samples"
+                )
+            if isinstance(data, ttb.sptensor):
+                exp_nonzeros = gradient_samples * num_nonzeros / tensor_size
+                exp_zeros = gradient_samples * num_zeros / tensor_size
+                xnzidx = np.sort(ttb.tt_sub2ind(data.shape, data.subs))
+                # NOTE: Must use lambda over partial because we need late binding,
+                # every draw should first uniquely sample num_nonzeros
+                self._gsampler = lambda data: stratified(
+                    data=cast(ttb.sptensor, data),
+                    nz_idx=xnzidx,
+                    num_nonzeros=np.random.poisson(exp_nonzeros),
+                    num_zeros=np.random.poisson(exp_zeros),
+                    over_sample_rate=over_sample_rate,
+                )
+            else:
+                self._gsampler = partial(uniform, samples=gradient_samples)
+
+        else:
+            raise ValueError("Invalid choice for function_sampler")
+
+    def function_sample(self, data: Union[ttb.tensor, ttb.sptensor]) -> sample_type:
+        """Draw a sample from the objective function"""
+        return self._fsampler(data)
+
+    def gradient_sample(self, data: Union[ttb.tensor, ttb.sptensor]) -> sample_type:
+        """Draw a sample from the gradient function"""
+        return self._gsampler(data)
+
+    @property
+    def crng(self):
+        """Correction Range for possibly missampled zeros"""
+        return self._crng
 
 
 def nonzeros(
@@ -128,9 +344,7 @@ def zeros(
     return tmpsubs[:samples, :]
 
 
-def uniform(
-    data: ttb.tensor, samples: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def uniform(data: ttb.tensor, samples: int) -> sample_type:
     """Uniformly samples indices from a tensor
 
     Parameters
@@ -152,9 +366,7 @@ def uniform(
     return subs, vals, wgts
 
 
-def semistrat(
-    data: ttb.sptensor, num_nonzeros: int, num_zeros: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def semistrat(data: ttb.sptensor, num_nonzeros: int, num_zeros: int) -> sample_type:
     """Sample nonzero and zero entries from a sparse tensor
 
     Parameters
@@ -192,8 +404,8 @@ def stratified(
     num_nonzeros: int,
     num_zeros: int,
     over_sample_rate: float = 1.1,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Sample nonzer and zero entries from a sparse tensor
+) -> sample_type:
+    """Sample nonzero and zero entries from a sparse tensor
 
     Parameters
     ----------
