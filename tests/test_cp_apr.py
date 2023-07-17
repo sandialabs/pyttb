@@ -6,13 +6,26 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
+from pyttb.cp_apr import (
+    calc_partials,
+    calculate_phi,
+    calculate_pi,
+    get_hessian,
+    get_search_dir_pdnr,
+    get_search_dir_pqnr,
+    tt_calcpi_prowsubprob,
+    tt_linesearch_prowsubprob,
+    tt_loglikelihood,
+    tt_loglikelihood_row,
+    vectorize_for_mu,
+)
 
 
 @pytest.mark.indevelopment
 def test_vectorizeForMu():
     matrix = np.array([[1, 2], [3, 4]])
     vector = np.array([1, 2, 3, 4])
-    assert np.array_equal(ttb.vectorize_for_mu(matrix), vector)
+    assert np.array_equal(vectorize_for_mu(matrix), vector)
 
 
 @pytest.mark.indevelopment
@@ -32,11 +45,9 @@ def test_loglikelihood():
     vector = [element for element in vector if element > 0]
     explicitAnswer = -np.sum(np.array(vector) - np.array(vector2))
     assert np.isclose(
-        explicitAnswer, ttb.tt_loglikelihood(sptensorInstance, ktensorInstance)
+        explicitAnswer, tt_loglikelihood(sptensorInstance, ktensorInstance)
     )
-    assert np.isclose(
-        explicitAnswer, ttb.tt_loglikelihood(tensorInstance, ktensorInstance)
-    )
+    assert np.isclose(explicitAnswer, tt_loglikelihood(tensorInstance, ktensorInstance))
 
     # Test case for randomly selected model and data
     np.random.seed(123)
@@ -61,11 +72,9 @@ def test_loglikelihood():
             vector2.append(data[idx] * np.log(element))
     explicitAnswer = -np.sum(np.array(vector) - np.array(vector2))
     assert np.isclose(
-        explicitAnswer, ttb.tt_loglikelihood(sptensorInstance, ktensorInstance)
+        explicitAnswer, tt_loglikelihood(sptensorInstance, ktensorInstance)
     )
-    assert np.isclose(
-        explicitAnswer, ttb.tt_loglikelihood(tensorInstance, ktensorInstance)
-    )
+    assert np.isclose(explicitAnswer, tt_loglikelihood(tensorInstance, ktensorInstance))
 
 
 @pytest.mark.indevelopment
@@ -81,15 +90,13 @@ def test_calculatePi():
     answer = np.array([[0, 6], [7, 8]])
     assert np.all(
         np.isclose(
-            ttb.calculate_pi(
-                tensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims
-            ),
+            calculate_pi(tensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims),
             answer,
         )
     )
     assert np.all(
         np.isclose(
-            ttb.calculate_pi(
+            calculate_pi(
                 sptensorInstance, ktensorInstance, 2, 0, sptensorInstance.ndims
             ),
             answer,
@@ -110,10 +117,10 @@ def test_calculatePi():
 
     print(tensorInstance.shape)
     print(sptensorInstance.shape)
-    print(ttb.calculate_pi(tensorInstance, ktensorInstance, n, 0, tensorInstance.ndims).shape)
-    print(ttb.calculate_pi(sptensorInstance, ktensorInstance, n, 0, sptensorInstance.ndims).shape)
-    print(np.all(np.isclose(ttb.calculate_pi(tensorInstance, ktensorInstance, n, 0, tensorInstance.ndims),
-               ttb.calculate_pi(sptensorInstance, ktensorInstance, n, 0, sptensorInstance.ndims))))
+    print(calculate_pi(tensorInstance, ktensorInstance, n, 0, tensorInstance.ndims).shape)
+    print(calculate_pi(sptensorInstance, ktensorInstance, n, 0, sptensorInstance.ndims).shape)
+    print(np.all(np.isclose(calculate_pi(tensorInstance, ktensorInstance, n, 0, tensorInstance.ndims),
+               calculate_pi(sptensorInstance, ktensorInstance, n, 0, sptensorInstance.ndims))))
     assert True
     """
 
@@ -129,12 +136,12 @@ def test_calculatePhi():
     tensorInstance = ktensorInstance.full()
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
     answer = np.array([[0, 0], [11.226415094339623, 24.830188679245282]])
-    Pi = ttb.calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
+    Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     assert np.isclose(
-        ttb.calculate_phi(sptensorInstance, ktensorInstance, 2, 0, Pi, 1e-12), answer
+        calculate_phi(sptensorInstance, ktensorInstance, 2, 0, Pi, 1e-12), answer
     ).all()
     assert np.isclose(
-        ttb.calculate_phi(tensorInstance, ktensorInstance, 2, 0, Pi, 1e-12), answer
+        calculate_phi(tensorInstance, ktensorInstance, 2, 0, Pi, 1e-12), answer
     ).all()
 
 
@@ -259,7 +266,7 @@ def test_calculatepi_prowsubprob():
     # Reproduce calculate pi with the appropriate inputs
     assert np.all(
         np.isclose(
-            ttb.tt_calcpi_prowsubprob(
+            tt_calcpi_prowsubprob(
                 tensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims
             ),
             answer,
@@ -267,7 +274,7 @@ def test_calculatepi_prowsubprob():
     )
     assert np.all(
         np.isclose(
-            ttb.tt_calcpi_prowsubprob(
+            tt_calcpi_prowsubprob(
                 sptensorInstance,
                 ktensorInstance,
                 2,
@@ -292,21 +299,21 @@ def test_calc_partials():
     # print(tensorInstance[:, 0])
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
     answer = np.array([[0, 6], [7, 8]])
-    Pi = ttb.calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
+    Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     # TODO: These are just verifying same functionality as matlab
-    phi, ups = ttb.calc_partials(
+    phi, ups = calc_partials(
         False, Pi, 1e-12, tensorInstance[0, :].data, ktensorInstance[0][0, :]
     )
     assert np.isclose(phi, np.array([0, 0])).all()
     assert np.isclose(ups, np.array([0, 0])).all()
 
-    phi, ups = ttb.calc_partials(
+    phi, ups = calc_partials(
         False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
     )
     assert np.isclose(phi, 1e14 * np.array([5.95, 9.68])).all()
     assert np.isclose(ups, 1e13 * np.array([4.8, 8.5])).all()
 
-    phi, ups = ttb.calc_partials(
+    phi, ups = calc_partials(
         True, Pi, 1e-12, sptensorInstance.vals, ktensorInstance[0][0, :]
     )
     assert np.isclose(phi, 1e14 * np.array([5.95, 9.68])).all()
@@ -339,7 +346,7 @@ def test_calc_partials():
 
         gradM[r] = grad_sum
 
-    phi, ups = ttb.calc_partials(False, Pi, eps_div_zero, x_row, m_row)
+    phi, ups = calc_partials(False, Pi, eps_div_zero, x_row, m_row)
     assert np.allclose(phi, gradM)
     assert np.allclose(ups, hessM)
 
@@ -356,13 +363,11 @@ def test_getHessian():
     free_indices = [0, 1]
     rank = 2
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
-    Pi = ttb.calculate_pi(
-        sptensorInstance, ktensorInstance, rank, 0, tensorInstance.ndims
-    )
-    phi, ups = ttb.calc_partials(
+    Pi = calculate_pi(sptensorInstance, ktensorInstance, rank, 0, tensorInstance.ndims)
+    phi, ups = calc_partials(
         False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
     )
-    Hessian = ttb.get_hessian(ups, Pi, free_indices)
+    Hessian = get_hessian(ups, Pi, free_indices)
     assert np.allclose(Hessian, Hessian.transpose())
 
     # Element indexed simple test
@@ -371,9 +376,9 @@ def test_getHessian():
     m_row = np.random.normal(size=(rank,))
     x_row = np.random.normal(size=(length,))
     Pi = np.random.normal(size=(length, rank))
-    phi, ups = ttb.calc_partials(False, Pi, 1e-12, x_row, m_row)
+    phi, ups = calc_partials(False, Pi, 1e-12, x_row, m_row)
     free_indices = [0, 1]
-    Hessian = ttb.get_hessian(ups, Pi, free_indices)
+    Hessian = get_hessian(ups, Pi, free_indices)
 
     #
     num_free = len(free_indices)
@@ -402,9 +407,9 @@ def test_getSearchDirPdnr():
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
     data_row = tensorInstance[1, :].data
     model_row = ktensorInstance[0][0, :]
-    Pi = ttb.calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
-    phi, ups = ttb.calc_partials(False, Pi, 1e-12, data_row, model_row)
-    search, pred = ttb.get_search_dir_pdnr(Pi, ups, 2, phi, model_row, 0.1, 1e-6)
+    Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
+    phi, ups = calc_partials(False, Pi, 1e-12, data_row, model_row)
+    search, pred = get_search_dir_pdnr(Pi, ups, 2, phi, model_row, 0.1, 1e-6)
     # TODO validate this projection formulation
     projGradStep = (model_row - ups.transpose()) * (
         model_row - (ups.transpose() > 0).astype(float)
@@ -420,7 +425,7 @@ def test_getSearchDirPdnr():
             assert search[r] == ups[r]
         else:
             free_indices.append(r)
-    Hessian_free = ttb.get_hessian(ups, Pi, free_indices)
+    Hessian_free = get_hessian(ups, Pi, free_indices)
     direction = np.linalg.solve(
         Hessian_free + (0.1 * np.eye(len(free_indices))), -ups[free_indices]
     )[:, None]
@@ -439,8 +444,8 @@ def test_tt_loglikelihood_row():
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
-    Pi = ttb.calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
-    loglikelihood = ttb.tt_loglikelihood_row(
+    Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
+    loglikelihood = tt_loglikelihood_row(
         False, tensorInstance[1, :].data, tensorInstance[1, :].data, Pi
     )
     # print(loglikelihood)
@@ -457,15 +462,15 @@ def test_tt_linesearch_prowsubprob():
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
-    Pi = ttb.calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
-    phi, ups = ttb.calc_partials(
+    Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
+    phi, ups = calc_partials(
         False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
     )
-    search, pred = ttb.get_search_dir_pdnr(
+    search, pred = get_search_dir_pdnr(
         Pi, ups, 2, phi, tensorInstance[1, :].data, 0.1, 1e-6
     )
     with pytest.warns(Warning) as record:
-        ttb.tt_linesearch_prowsubprob(
+        tt_linesearch_prowsubprob(
             search.transpose()[0],
             phi.transpose(),
             tensorInstance[1, :].data,
@@ -496,11 +501,11 @@ def test_getSearchDirPqnr():
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
     data_row = tensorInstance[1, :].data
     model_row = ktensorInstance[0][0, :]
-    Pi = ttb.calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
-    phi, ups = ttb.calc_partials(False, Pi, 1e-12, data_row, model_row)
+    Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
+    phi, ups = calc_partials(False, Pi, 1e-12, data_row, model_row)
     delta_model = np.random.normal(size=(2, model_row.shape[0]))
     delta_grad = np.random.normal(size=(2, phi.shape[0]))
-    search, pred = ttb.get_search_dir_pqnr(
+    search, pred = get_search_dir_pqnr(
         model_row, phi, 1e-6, delta_model, delta_grad, phi, 1, 5, False
     )
     # This only verifies that for the right shaped input nothing crashes. Doesn't verify correctness
