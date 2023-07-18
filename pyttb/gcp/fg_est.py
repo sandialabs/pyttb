@@ -6,6 +6,7 @@ import warnings
 from typing import List, Literal, Optional, Tuple, Union, overload
 
 import numpy as np
+from scipy.sparse import csr_array
 
 import pyttb as ttb
 from pyttb.gcp.fg_setup import function_type
@@ -20,8 +21,8 @@ def estimate(
     weights: np.ndarray,
     function_handle: Literal[None],
     gradient_handle: function_type,
-    lambda_check: bool,
-    crng: Optional[np.ndarray],
+    lambda_check: bool = True,
+    crng: Optional[np.ndarray] = None,
 ) -> List[np.ndarray]:
     ...  # pragma: no cover see coveragepy/issues/970
 
@@ -33,9 +34,9 @@ def estimate(
     data_vals: np.ndarray,
     weights: np.ndarray,
     function_handle: function_type,
-    gradient_handle: Literal[None],
-    lambda_check: bool,
-    crng: Optional[np.ndarray],
+    gradient_handle: Literal[None] = None,
+    lambda_check: bool = False,
+    crng: Optional[np.ndarray] = None,
 ) -> float:
     ...  # pragma: no cover see coveragepy/issues/970
 
@@ -121,9 +122,10 @@ def estimate(
             # The row of each element is the row index to accumulate in the gradient.
             # The columns are the corresponding samples. They are in order because they
             # match the vector of samples to be multiplied on the right.
-            G[k] = Zexp[k]
-            # Just multiply a slice inplace instead of constructing sparse matrix
-            G[k][data_subs[:, k], np.arange(nsamples)] *= Y
+            S = csr_array(
+                (Y, (data_subs[:, k], np.arange(nsamples))), shape=(model.shape[k], nsamples)
+            )
+            G[k] = S.dot(Zexp[k])
 
     if F is not None and G is not None:
         return F, G

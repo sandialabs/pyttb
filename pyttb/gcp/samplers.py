@@ -12,9 +12,11 @@ from typing import Callable, Optional, Tuple, Union, cast
 import numpy as np
 
 import pyttb as ttb
+from pyttb.sptensor import sptensor
+from pyttb.tensor import tensor
 
 sample_type = Tuple[np.ndarray, np.ndarray, np.ndarray]
-sampler_type = Callable[[Union[ttb.tensor, ttb.sptensor]], sample_type]
+sampler_type = Callable[[Union[tensor, sptensor]], sample_type]
 
 
 @dataclass
@@ -49,7 +51,7 @@ class GCPSampler:
         max_iters: int = 1000,
         over_sample_rate: float = 1.1,
     ):
-        self._crng = np.array([])
+        self._crng = np.array([], dtype=int)
         # TODO add interface for arbitrary callable with no args that returns ndarray
         # TODO might be simpler to provide mask instead of num_zeros and nonzeros
         if function_sampler is None:
@@ -221,7 +223,7 @@ class GCPSampler:
         return self._gsampler(data)
 
     @property
-    def crng(self):
+    def crng(self) -> np.ndarray:
         """Correction Range for possibly missampled zeros"""
         return self._crng
 

@@ -109,6 +109,7 @@ def test_gcp_sampler():
     subs, vals, wgts = sampler.gradient_sample(dense_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert sampler.crng.size == 0
+    assert np.issubdtype(sampler.crng.dtype, np.integer)
 
     # Sparse data defaults
     sparse_data = ttb.sptensor.from_tensor_type(dense_data)
@@ -118,6 +119,7 @@ def test_gcp_sampler():
     subs, vals, wgts = sampler.gradient_sample(sparse_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert sampler.crng.size == 0
+    assert np.issubdtype(sampler.crng.dtype, np.integer)
 
     # Sparse stratified integer sample count
     sampler = samplers.GCPSampler(
@@ -132,6 +134,7 @@ def test_gcp_sampler():
     subs, vals, wgts = sampler.gradient_sample(sparse_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert sampler.crng.size == 0
+    assert np.issubdtype(sampler.crng.dtype, np.integer)
 
     # Sparse stratified stratified count
     sampler = samplers.GCPSampler(
@@ -146,6 +149,7 @@ def test_gcp_sampler():
     subs, vals, wgts = sampler.gradient_sample(sparse_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert sampler.crng.size == 0
+    assert np.issubdtype(sampler.crng.dtype, np.integer)
 
     # Sparse uniform sampling
     sampler = samplers.GCPSampler(
@@ -160,6 +164,7 @@ def test_gcp_sampler():
     sampler.gradient_sample(sparse_data)
     # We skip verifying sptensor UNIFORM gradient samples since it can vary in shape
     assert sampler.crng.size == 0
+    assert np.issubdtype(sampler.crng.dtype, np.integer)
 
     # Sparse semi-stratified sampling
     sampler = samplers.GCPSampler(
@@ -174,6 +179,7 @@ def test_gcp_sampler():
     subs, vals, wgts = sampler.gradient_sample(sparse_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert sampler.crng.size != 0
+    assert np.issubdtype(sampler.crng.dtype, np.integer)
 
     # Negative tests
 
