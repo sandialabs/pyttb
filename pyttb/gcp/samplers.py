@@ -423,12 +423,16 @@ def stratified(
     Subscripts, values, and weights of samples (Nonzeros then zeros).
     """
     [nonzero_subs, nonzero_vals] = nonzeros(data, num_nonzeros, with_replacement=True)
-    nonzero_weights = (data.nnz / num_nonzeros) * np.ones((num_nonzeros,))
+    nonzero_weights = np.ones((num_nonzeros,))
+    if num_nonzeros > 0:
+        nonzero_weights *= data.nnz / num_nonzeros
 
     zero_subs = zeros(data, nz_idx, num_zeros, over_sample_rate, with_replacement=True)
     zero_vals = np.zeros((num_zeros, 1))
     data_nonzero_count = np.prod(data.shape) - data.nnz
-    zero_weights = (data_nonzero_count / num_zeros) * np.ones((num_zeros,))
+    zero_weights = np.ones((num_zeros,))
+    if num_zeros > 0:
+        zero_weights *= data_nonzero_count / num_zeros
 
     all_subs = np.vstack((nonzero_subs, zero_subs))
     all_vals = np.concatenate((nonzero_vals, zero_vals))

@@ -55,6 +55,7 @@ def estimate(
     ...  # pragma: no cover see coveragepy/issues/970
 
 
+# pylint: disable=too-many-locals
 def estimate(
     model: ttb.ktensor,
     data_subs: np.ndarray,
@@ -123,7 +124,8 @@ def estimate(
             # The columns are the corresponding samples. They are in order because they
             # match the vector of samples to be multiplied on the right.
             S = csr_array(
-                (Y, (data_subs[:, k], np.arange(nsamples))), shape=(model.shape[k], nsamples)
+                (Y, (data_subs[:, k], np.arange(nsamples))),
+                shape=(model.shape[k], nsamples),
             )
             G[k] = S.dot(Zexp[k])
 
