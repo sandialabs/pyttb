@@ -84,7 +84,7 @@ def rayleigh(data: np.ndarray, model: np.ndarray) -> np.ndarray:
 
 def rayleigh_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
     """Return gradient function for rayleigh distributions"""
-    return 2 / (model + EPS) - (np.pi / 2) * np.power(data, 2) / (model + EPS) ** 3
+    return 2 / (model + EPS) - (np.pi / 2) * data**2 / (model + EPS) ** 3
 
 
 def gamma(data: np.ndarray, model: np.ndarray) -> np.ndarray:
@@ -94,7 +94,7 @@ def gamma(data: np.ndarray, model: np.ndarray) -> np.ndarray:
 
 def gamma_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
     """Return gradient function for gamma distributions"""
-    return np.multiply(-1,data) / (model + EPS) ** 2 + 1 / (model + EPS)
+    return -data / (model + EPS) ** 2 + 1 / (model + EPS)
 
 
 def huber(data: ttb.tensor, model: ttb.tensor, threshold: float) -> np.ndarray:
@@ -131,9 +131,9 @@ def negative_binomial_grad(
 
 def beta(data: np.ndarray, model: np.ndarray, b: float) -> np.ndarray:
     """Return objective function for beta distributions"""
-    return (1 / b) * (model + EPS) ** b - np.multiply((1 / (b - 1)), data) * (
-        model + EPS
-    ) ** (b - 1)
+    return (1 / b) * (model + EPS) ** b - (1 / (b - 1)) * data * (model + EPS) ** (
+        b - 1
+    )
 
 
 def beta_grad(data: np.ndarray, model: np.ndarray, b: float) -> np.ndarray:

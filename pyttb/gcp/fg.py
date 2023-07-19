@@ -75,7 +75,7 @@ def evaluate(
         )
 
     if isinstance(data, ttb.sptensor):
-        data = data.double()
+        data = data.full()
 
     full_model = model.full()
     # TODO should we early check shapes?
