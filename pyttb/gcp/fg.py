@@ -54,16 +54,16 @@ def evaluate(
 
     Parameters
     ----------
-    data:
-        Source tensor to decompose.
     model:
         Current decomposition.
+    data:
+        Source tensor to decompose.
+    weights:
+        Weighted values for returned tensor. Can be used as a mask.
     function_handle:
         Objective function.
     gradient_handle:
         Gradient definition.
-    weights:
-        Weighted values for returned tensor. Can be used as a mask.
 
     Returns
     -------

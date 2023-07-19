@@ -119,7 +119,7 @@ def negative_binomial(
     data: np.ndarray, model: np.ndarray, num_trials: int
 ) -> np.ndarray:
     """Return objective function for negative binomial distributions"""
-    return (np.add(num_trials, data)) * np.log(model + 1) - data * np.log(model + EPS)
+    return (num_trials + data) * np.log(model + 1) - data * np.log(model + EPS)
 
 
 def negative_binomial_grad(
