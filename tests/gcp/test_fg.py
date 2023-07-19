@@ -108,8 +108,7 @@ def test_evaluate_sptensor():
         # Just gradient handle
         g = evaluate(model, data, gradient_handle=gh)
         assert all(isinstance(g_i, np.ndarray) for g_i in g)
-        assert np.linalg.norm(np.vstack(g)) == pytest.approx(
-            gradient_val, rel=EPS)
+        assert np.linalg.norm(np.vstack(g)) == pytest.approx(gradient_val, rel=EPS)
 
         weight = np.zeros_like(data.double().data)
         g = evaluate(model, data, weights=weight, gradient_handle=gh)
