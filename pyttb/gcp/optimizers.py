@@ -5,11 +5,13 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from math import inf
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+from scipy.optimize import fmin_l_bfgs_b
 
 import pyttb as ttb
+from pyttb.gcp.fg import evaluate
 from pyttb.gcp.fg_est import estimate
 from pyttb.gcp.fg_setup import function_type
 from pyttb.gcp.samplers import GCPSampler
@@ -29,7 +31,6 @@ class StochasticSolver(ABC):
         f_est_tol: float = -inf,
         max_iters: int = 1000,
         printitn: int = 1,
-        lower_bound: float = -np.inf,
     ):
         self._rate = rate
         self._decay = decay
@@ -39,11 +40,13 @@ class StochasticSolver(ABC):
         self._max_iters = max_iters
         self._printitn = printitn
         self._nfails = 0
-        self._lb = lower_bound
 
     @abstractmethod
     def update_step(
-        self, model: ttb.ktensor, gradient: List[np.ndarray]
+        self,
+        model: ttb.ktensor,
+        gradient: List[np.ndarray],
+        lower_bound: float,
     ) -> Tuple[List[np.ndarray], float]:
         """Generate update step"""
 
@@ -59,6 +62,7 @@ class StochasticSolver(ABC):
         function_handle: function_type,
         gradient_handle: function_type,
         sampler: GCPSampler,
+        lower_bound: float = -np.inf,
     ) -> Tuple[ttb.ktensor, Dict]:
         """Run solver until completion"""
         solver_start = time.monotonic()
@@ -114,7 +118,9 @@ class StochasticSolver(ABC):
                         f"Infinite gradient encountered! (epoch = {n_epoch}, "
                         f"iter = {iteration}"
                     )
-                model.factor_matrices, step = self.update_step(model, g_est)
+                model.factor_matrices, step = self.update_step(
+                    model, g_est, lower_bound
+                )
             # Estimate objective function value
             f_est = estimate(
                 model, f_subs, f_vals, f_wgts, function_handle, lambda_check=False
@@ -180,11 +186,11 @@ class SGD(StochasticSolver):
     """General Stochastic Gradient Descent"""
 
     def update_step(
-        self, model: ttb.ktensor, gradient: List[np.ndarray]
+        self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
     ) -> Tuple[List[np.ndarray], float]:
         step = self._decay**self._nfails * self._rate
         factor_matrices = [
-            np.maximum(self._lb, factor - step * grad)
+            np.maximum(lower_bound, factor - step * grad)
             for factor, grad in zip(model.factor_matrices, gradient)
         ]
         return factor_matrices, step
@@ -237,7 +243,7 @@ class Adam(StochasticSolver):
         self._v = self._v_prev.copy()
 
     def update_step(
-        self, model: ttb.ktensor, gradient: List[np.ndarray]
+        self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
     ) -> Tuple[List[np.ndarray], float]:
         if self._total_iterations == 0:
             for shape_i in model.shape:
@@ -266,7 +272,9 @@ class Adam(StochasticSolver):
         mhat = [mk / (1 - self._beta_1**self._total_iterations) for mk in self._m]
         vhat = [vk / (1 - self._beta_2**self._total_iterations) for vk in self._v]
         factor_matrices = [
-            np.maximum(self._lb, factor_k - step * mhk / (np.sqrt(vhk) + self._epsilon))
+            np.maximum(
+                lower_bound, factor_k - step * mhk / (np.sqrt(vhk) + self._epsilon)
+            )
             for factor_k, mhk, vhk in zip(model.factor_matrices, mhat, vhat)
         ]
         return factor_matrices, step
@@ -303,12 +311,100 @@ class Adagrad(StochasticSolver):
         self._gnormsum = 0.0
 
     def update_step(
-        self, model: ttb.ktensor, gradient: List[np.ndarray]
+        self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
     ) -> Tuple[List[np.ndarray], float]:
         self._gnormsum += np.sum([np.sum(gk**2) for gk in gradient])
         step = 1.0 / np.sqrt(self._gnormsum)
         factor_matrices = [
-            np.maximum(self._lb, factor_k - step * gk)
+            np.maximum(lower_bound, factor_k - step * gk)
             for factor_k, gk in zip(model.factor_matrices, gradient)
         ]
         return factor_matrices, step
+
+
+# If we use more scipy optimizers in the future we should generalize this
+# pylint: disable=too-few-public-methods
+class LBFGSB:
+    """Simple wrapper around scipy lbfgsb
+
+    NOTE: If used for publications please see scipy documentation for adding citation
+    for the implementation.
+    """
+
+    # pylint: disable=too-many-arguments
+    def __init__(
+        self,
+        m: Optional[int] = None,
+        factr: float = 1e7,
+        pgtol: Optional[float] = None,
+        epsilon: Optional[float] = None,
+        iprint: Optional[int] = None,
+        disp: Optional[int] = None,
+        maxfun: Optional[int] = None,
+        maxiter: int = 1000,
+        callback: Optional[Callable[[np.ndarray], None]] = None,
+        maxls: Optional[int] = None,
+    ):
+        """Setup all hyper-parameters for solver.
+
+        See scipy for details and standard defaults.
+        A variety of defaults are set specifically for gcp opt.
+        """
+        self._solver_kwargs = {
+            "m": m,
+            "factr": factr,
+            "pgtol": pgtol,
+            "epsilon": epsilon,
+            "iprint": iprint,
+            "disp": disp,
+            "maxfun": maxfun,
+            "maxiter": maxiter,
+            "callback": callback,
+            "maxls": maxls,
+        }
+        # Prune None values so we don't have to maintain compatibility with scipy
+        self._solver_kwargs = {
+            key: value
+            for key, value in self._solver_kwargs.items()
+            if value is not None
+        }
+
+    def solve(
+        self,
+        initial_model: ttb.ktensor,
+        data: ttb.tensor,
+        function_handle: function_type,
+        gradient_handle: function_type,
+        lower_bound: float = -np.inf,
+        mask: Optional[np.ndarray] = None,
+    ) -> Tuple[ttb.ktensor, Dict]:
+        """Solves the defined optimization problem"""
+        model = initial_model.copy()
+
+        def lbfgsb_func_grad(vector: np.ndarray):
+            model.update(np.arange(initial_model.ndims), vector)
+            func_val, grads = evaluate(
+                model,
+                data,
+                mask,
+                function_handle,
+                gradient_handle,
+            )
+            return func_val, ttb.ktensor(grads, copy=False).tovec(False)
+
+        x0 = model.tovec(False)
+        if "pgtol" not in self._solver_kwargs:
+            self._solver_kwargs["pgtol"] = 1e-4 * np.prod(data.shape)
+        final_vector, final_f, lbfgsb_info = fmin_l_bfgs_b(
+            lbfgsb_func_grad,
+            x0,
+            fprime=None,
+            approx_grad=False,
+            bounds=[(lower_bound, np.inf)] * len(x0),
+            **self._solver_kwargs,
+        )
+        model.update(np.arange(initial_model.ndims), final_vector)
+        lbfgsb_info["final_f"] = final_f
+
+        # TODO big print output
+        return model, lbfgsb_info

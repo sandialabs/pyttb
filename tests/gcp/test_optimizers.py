@@ -6,7 +6,7 @@ import pytest
 import pyttb as ttb
 from pyttb.gcp import samplers
 from pyttb.gcp.handles import gaussian, gaussian_grad
-from pyttb.gcp.optimizers import SGD, Adagrad, Adam
+from pyttb.gcp.optimizers import LBFGSB, SGD, Adagrad, Adam
 
 global f_est
 f_est = 0.0
@@ -84,3 +84,13 @@ def test_adagrad(generate_problem):
     assert model.isequal(result)
     assert solver._gnormsum == 0.0
     assert solver._nfails == min(solver._max_iters, solver._max_fails + 1)
+
+
+def test_lbfgsb(generate_problem):
+    dense_data, model, sampler = generate_problem
+
+    solver = LBFGSB(maxiter=2)
+    result, info = solver.solve(model, dense_data, gaussian, gaussian_grad)
+    assert isinstance(info, dict)
+    assert not model.isequal(result)
+    assert (model.full() - dense_data).norm() > (result.full() - dense_data).norm()

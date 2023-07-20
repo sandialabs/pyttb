@@ -81,6 +81,7 @@ module = [
     "scipy",
     "scipy.sparse",
     "scipy.sparse.linalg",
+    "scipy.optimize",
     "numpy_groupies"
 ]
 ignore_missing_imports = true
