@@ -14,9 +14,9 @@ from pyttb.gcp.fg_setup import function_type
 def evaluate(
     model: ttb.ktensor,
     data: Union[ttb.tensor, ttb.sptensor],
+    weights: Optional[np.ndarray],
     function_handle: Literal[None],
     gradient_handle: function_type,
-    weights: Optional[np.ndarray],
 ) -> List[np.ndarray]:
     ...  # pragma: no cover see coveragepy/issues/970
 
@@ -25,9 +25,9 @@ def evaluate(
 def evaluate(
     model: ttb.ktensor,
     data: Union[ttb.tensor, ttb.sptensor],
+    weights: Optional[np.ndarray],
     function_handle: function_type,
     gradient_handle: Literal[None],
-    weights: Optional[np.ndarray],
 ) -> float:
     ...  # pragma: no cover see coveragepy/issues/970
 
@@ -36,9 +36,9 @@ def evaluate(
 def evaluate(
     model: ttb.ktensor,
     data: Union[ttb.tensor, ttb.sptensor],
+    weights: Optional[np.ndarray],
     function_handle: function_type,
     gradient_handle: function_type,
-    weights: Optional[np.ndarray],
 ) -> Tuple[float, List[np.ndarray]]:
     ...  # pragma: no cover see coveragepy/issues/970
 
@@ -46,9 +46,9 @@ def evaluate(
 def evaluate(
     model: ttb.ktensor,
     data: Union[ttb.tensor, ttb.sptensor],
+    weights: Optional[np.ndarray] = None,
     function_handle: Optional[function_type] = None,
     gradient_handle: Optional[function_type] = None,
-    weights: Optional[np.ndarray] = None,
 ) -> Union[float, List[np.ndarray], Tuple[float, List[np.ndarray]]]:
     """Evaluate an objective function and/or gradient function
 
