@@ -42,8 +42,6 @@ class GCPSampler:
     def __init__(
         self,
         data: Union[ttb.tensor, ttb.sptensor],
-        num_zeros: int,
-        num_nonzeros: int,
         function_sampler: Optional[Samplers] = None,
         function_samples: Optional[Union[int, StratifiedCount]] = None,
         gradient_sampler: Optional[Samplers] = None,
@@ -53,12 +51,16 @@ class GCPSampler:
     ):
         self._crng = np.array([], dtype=int)
         # TODO add interface for arbitrary callable with no args that returns ndarray
-        # TODO might be simpler to provide mask instead of num_zeros and nonzeros
         if function_sampler is None:
             if isinstance(data, ttb.sptensor):
                 function_sampler = Samplers.STRATIFIED
             else:
                 function_sampler = Samplers.UNIFORM
+
+        tensor_size = int(np.prod(data.shape))
+        num_nonzeros = data.nnz
+        num_zeros = tensor_size - num_nonzeros
+
         self._prepare_function_sampler(
             data,
             function_sampler,

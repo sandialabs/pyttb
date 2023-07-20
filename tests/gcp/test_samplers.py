@@ -103,7 +103,7 @@ def test_gcp_sampler():
     dense_data = ttb.tenones((2, 2))
     dense_data[0, 1] = 0.0
     dense_data[1, 0] = 0.0
-    sampler = samplers.GCPSampler(dense_data, num_zeros, num_nonzeros)
+    sampler = samplers.GCPSampler(dense_data)
     subs, vals, wgts = sampler.function_sample(dense_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     subs, vals, wgts = sampler.gradient_sample(dense_data)
@@ -113,7 +113,7 @@ def test_gcp_sampler():
 
     # Sparse data defaults
     sparse_data = ttb.sptensor.from_tensor_type(dense_data)
-    sampler = samplers.GCPSampler(sparse_data, num_zeros, num_nonzeros)
+    sampler = samplers.GCPSampler(sparse_data)
     subs, vals, wgts = sampler.function_sample(sparse_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     subs, vals, wgts = sampler.gradient_sample(sparse_data)
@@ -124,8 +124,6 @@ def test_gcp_sampler():
     # Sparse stratified integer sample count
     sampler = samplers.GCPSampler(
         sparse_data,
-        num_zeros,
-        num_nonzeros,
         function_samples=2,
         gradient_samples=2,
     )
@@ -139,8 +137,6 @@ def test_gcp_sampler():
     # Sparse stratified stratified count
     sampler = samplers.GCPSampler(
         sparse_data,
-        num_zeros,
-        num_nonzeros,
         function_samples=samplers.StratifiedCount(2, 2),
         gradient_samples=samplers.StratifiedCount(2, 2),
     )
@@ -154,8 +150,6 @@ def test_gcp_sampler():
     # Sparse uniform sampling
     sampler = samplers.GCPSampler(
         sparse_data,
-        num_zeros,
-        num_nonzeros,
         function_sampler=samplers.Samplers.UNIFORM,
         gradient_sampler=samplers.Samplers.UNIFORM,
     )
@@ -169,8 +163,6 @@ def test_gcp_sampler():
     # Sparse semi-stratified sampling
     sampler = samplers.GCPSampler(
         sparse_data,
-        num_zeros,
-        num_nonzeros,
         function_sampler=samplers.Samplers.UNIFORM,
         gradient_sampler=samplers.Samplers.SEMISTRATIFIED,
     )
@@ -187,45 +179,29 @@ def test_gcp_sampler():
     with pytest.raises(ValueError):
         samplers.GCPSampler(
             dense_data,
-            num_zeros,
-            num_nonzeros,
             function_sampler=samplers.Samplers.STRATIFIED,
         )
     # No dense stratified gradient
     with pytest.raises(ValueError):
         samplers.GCPSampler(
             dense_data,
-            num_zeros,
-            num_nonzeros,
             gradient_sampler=samplers.Samplers.STRATIFIED,
         )
     # Incorrect function samples type stratified
     with pytest.raises(ValueError):
-        samplers.GCPSampler(
-            sparse_data, num_zeros, num_nonzeros, function_samples=(2, 2)
-        )
+        samplers.GCPSampler(sparse_data, function_samples=(2, 2))
     # Incorrect gradient samples type stratified
     with pytest.raises(ValueError):
-        samplers.GCPSampler(
-            sparse_data, num_zeros, num_nonzeros, gradient_samples=(2, 2)
-        )
+        samplers.GCPSampler(sparse_data, gradient_samples=(2, 2))
     # Incorrect function samples type uniform
     with pytest.raises(ValueError):
-        samplers.GCPSampler(
-            dense_data, num_zeros, num_nonzeros, function_samples=(2, 2)
-        )
+        samplers.GCPSampler(dense_data, function_samples=(2, 2))
     # Incorrect gradient samples type uniform
     with pytest.raises(ValueError):
-        samplers.GCPSampler(
-            dense_data, num_zeros, num_nonzeros, gradient_samples=(2, 2)
-        )
+        samplers.GCPSampler(dense_data, gradient_samples=(2, 2))
     # Bad function sampler type
     with pytest.raises(ValueError):
-        samplers.GCPSampler(
-            dense_data, num_zeros, num_nonzeros, function_sampler="Something bad"
-        )
+        samplers.GCPSampler(dense_data, function_sampler="Something bad")
     # Bad gradient sampler type
     with pytest.raises(ValueError):
-        samplers.GCPSampler(
-            dense_data, num_zeros, num_nonzeros, gradient_sampler="Something bad"
-        )
+        samplers.GCPSampler(dense_data, gradient_sampler="Something bad")
