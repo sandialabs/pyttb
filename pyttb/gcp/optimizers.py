@@ -32,6 +32,25 @@ class StochasticSolver(ABC):
         max_iters: int = 1000,
         printitn: int = 1,
     ):
+        """General Setup for Stochastic Solvers
+
+        Parameters
+        ----------
+        rate:
+            Rate of descent, proportional to step size.
+        decay:
+            How much to decrease step size on failed epochs.
+        max_fails:
+            How many failed epochs before terminating the solve.
+        epoch_iters:
+            Number of steps to take per epoch.
+        f_est_tol:
+            Tolerance for function estimate changes to terminate solve.
+        max_iters:
+            Maximum number of epochs.
+        printitn:
+            Controls verbosity of information during solve.
+        """
         self._rate = rate
         self._decay = decay
         self._max_fails = max_fails
@@ -48,7 +67,22 @@ class StochasticSolver(ABC):
         gradient: List[np.ndarray],
         lower_bound: float,
     ) -> Tuple[List[np.ndarray], float]:
-        """Generate update step"""
+        """Calculates the update step for the solver
+
+        Parameters
+        ----------
+        model:
+            Current decomposition.
+        gradient:
+            Gradient calculation.
+        lower_bound:
+            Minimum value for the decomposition.
+
+        Returns
+        -------
+            Update to be applied to decomposition (to be applied by caller).
+            Step size used.
+        """
 
     @abstractmethod
     def set_failed_epoch(self):
@@ -64,7 +98,27 @@ class StochasticSolver(ABC):
         lower_bound: float = -np.inf,
         sampler: Optional[GCPSampler] = None,
     ) -> Tuple[ttb.ktensor, Dict]:
-        """Run solver until completion"""
+        """Run solver until completion
+
+        Parameters
+        ----------
+        initial_model:
+            Beginning solution.
+        data:
+            Tensor to solve for.
+        function_handle:
+            Callable to sample objective values.
+        gradient_handle:
+            Callable to sample gradient values.
+        lower_bound:
+            Lower bound on model values.
+        sampler:
+            Sampler to select which values to evaluate or take gradients from.
+
+        Returns
+        -------
+            Final answer and dictionary of details.
+        """
         if sampler is None:
             sampler = GCPSampler(data)
         solver_start = time.monotonic()
@@ -219,6 +273,31 @@ class Adam(StochasticSolver):
         beta_2: float = 0.999,
         epsilon: float = 1e-8,
     ):
+        """General Setup for Adam Solver
+
+        Parameters
+        ----------
+        rate:
+            Rate of descent, proportional to step size.
+        decay:
+            How much to decrease step size on failed epochs.
+        max_fails:
+            How many failed epochs before terminating the solve.
+        epoch_iters:
+            Number of steps to take per epoch.
+        f_est_tol:
+            Tolerance for function estimate changes to terminate solve.
+        max_iters:
+            Maximum number of epochs.
+        printitn:
+            Controls verbosity of information during solve.
+        beta_1:
+            Adam specific momentum parameter beta_1.
+        beta_2:
+            Adam specific momentum parameter beta_2.
+        epsilon:
+            Adam specifi momentum parameter to avoid division by zero.
+        """
         super().__init__(
             rate,
             decay,

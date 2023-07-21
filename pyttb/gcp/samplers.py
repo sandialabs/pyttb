@@ -49,6 +49,26 @@ class GCPSampler:
         max_iters: int = 1000,
         over_sample_rate: float = 1.1,
     ):
+        """Create sampler.
+
+        Parameters
+        ----------
+        data:
+            Tensor we will be sampling. Allows for automated decisions and sanity
+            checks.
+        function_sampler:
+            Type of sampling used for evaluating function estimates.
+        function_samples:
+            How many samples to take of the function every iteration.
+        gradient_sampler:
+            Type of sampling used for evaluating gradient estimates.
+        gradient_samples:
+            How many samples to take of the gradient every iteration.
+        max_iters:
+            Maximum number of iterations to normalize number of samples.
+        over_sample_rate:
+            Ratio of extra samples to take to account for bad draws.
+        """
         self._crng = np.array([], dtype=int)
         # TODO add interface for arbitrary callable with no args that returns ndarray
         if function_sampler is None:
@@ -226,7 +246,7 @@ class GCPSampler:
 
     @property
     def crng(self) -> np.ndarray:
-        """Correction Range for possibly missampled zeros"""
+        """Correction Range for possibly miss-sampled zeros"""
         return self._crng
 
 
@@ -421,10 +441,14 @@ def stratified(
     ----------
     data:
         Tensor to sample.
+    nz_idx:
+        Sorted linear indices of non-zero entries in tensor.
     num_nonzeros:
         Number of nonzero samples requested.
     num_zeros:
         Number of zero samples requested.
+    over_sample_rate:
+        Rate of oversampling to account for bad random draws.
 
     Returns
     -------

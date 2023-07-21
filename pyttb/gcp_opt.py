@@ -24,7 +24,33 @@ def gcp_opt(
     sampler: Optional[GCPSampler] = None,
     printitn: int = 1,
 ) -> Tuple[ttb.ktensor, ttb.ktensor, Dict]:
-    """Fits Generalized CP decomposition with user-specified function."""
+    """Fits Generalized CP decomposition with user-specified function.
+
+    Parameters
+    ----------
+    data:
+        Tensor to decompose.
+    rank:
+        Rank of desired CP decomposition.
+    objective:
+        Objective function to minimize for the CP decomposition. Either a pre-defined
+        objective or a tuple of function_handle, gradient_handle, and lower_bound.
+    optimizer:
+        Optimizer class for solving the decompistion problem defined.
+    init:
+        Initial solution to the problem.
+    mask:
+        A binary mask to note missing rather than sparse data.
+        (Only valid for dense, LBFGSB solves)
+    sampler:
+        Class that defined sampling strategy for stochastic solves.
+    printitn:
+        Controls verbosity of printing throughout the solve
+
+    Returns
+    -------
+        Solution, Initial Guess, Dictionary of meta data
+    """
     if not isinstance(objective, Objectives):
         # TODO probably do some runtime type validation here to make
         #  sure tuple is correct
