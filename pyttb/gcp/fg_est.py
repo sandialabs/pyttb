@@ -98,7 +98,7 @@ def estimate(
 
     if lambda_check and any(model.weights != 1.0):
         warnings.warn("Normalizing model to have all 1's for weights")
-        model = model.normalize(1)  # TODO confirm argument correctness
+        model = model.normalize(0)
     model_vals, Zexp = estimate_helper(model.factor_matrices, data_subs)
 
     F: Optional[float] = None

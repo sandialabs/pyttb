@@ -61,10 +61,12 @@ class StochasticSolver(ABC):
         data: Union[ttb.tensor, ttb.sptensor],
         function_handle: function_type,
         gradient_handle: function_type,
-        sampler: GCPSampler,
         lower_bound: float = -np.inf,
+        sampler: Optional[GCPSampler] = None,
     ) -> Tuple[ttb.ktensor, Dict]:
         """Run solver until completion"""
+        if sampler is None:
+            sampler = GCPSampler(data)
         solver_start = time.monotonic()
 
         # Extract samples for estimating function value - these never change
@@ -173,8 +175,8 @@ class StochasticSolver(ABC):
             # TODO print setup time which include sampler setup time external to here
             msg = (
                 "End Main Loop\n"
-                f"Final f-est: {f_est}"
-                f"Main loop time: {main_time}"
+                f"Final f-est: {f_est: 10.4e}\n"
+                f"Main loop time: {main_time: .2f}\n"
                 f"Total iterations: {n_epoch*self._epoch_iters}"
             )
             logging.info(msg)

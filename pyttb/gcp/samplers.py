@@ -259,7 +259,7 @@ def nonzeros(
         raise ValueError("Tensor doesn't have enough nonzeros to sample")
     subs = data.subs[nidx, :]
     vals = data.vals[nidx]
-    return subs, vals
+    return subs, vals.squeeze(1)
 
 
 def zeros(
@@ -321,9 +321,12 @@ def zeros(
     samples = int(np.ceil(over_sample_rate * ntmp))
 
     # Generate actual samples, removing duplicates, nonzeros and excess
-    tmpsubs = np.ceil(
-        np.random.uniform(0, 1, (samples, data.ndims)) * (np.array(data.shape) - 1),
-    ).astype(int)
+    tmpsubs = (
+        np.ceil(
+            np.random.uniform(0, 1, (samples, data.ndims)) * np.array(data.shape),
+        ).astype(int)
+        - 1
+    )
 
     if not with_replacement:
         tmpsubs = np.unique(tmpsubs, axis=0)
@@ -340,7 +343,7 @@ def zeros(
     if samples < samples_requested:
         logging.warning(
             "Unable to get number of zero samples requested"
-            "Requested: %d but obtained: %d.",
+            " Requested: %d but obtained: %d.",
             samples_requested,
             samples,
         )
@@ -362,9 +365,12 @@ def uniform(data: ttb.tensor, samples: int) -> sample_type:
     -------
         Subscripts of samples, values at those subscripts, and weight of samples.
     """
-    subs = np.ceil(
-        np.random.uniform(0, 1, (samples, data.ndims)) * (np.array(data.shape) - 1),
-    ).astype(int)
+    subs = (
+        np.ceil(
+            np.random.uniform(0, 1, (samples, data.ndims)) * np.array(data.shape),
+        ).astype(int)
+        - 1
+    )
     vals = data[subs]
     wgts = (np.prod(data.shape) / samples) * np.ones((samples,))
     return subs, vals, wgts
@@ -393,7 +399,7 @@ def semistrat(data: ttb.sptensor, num_nonzeros: int, num_zeros: int) -> sample_t
     zero_subs = np.ceil(
         np.random.uniform(0, 1, (num_zeros, data.ndims)) * (np.array(data.shape) - 1),
     ).astype(int)
-    zero_vals = np.zeros((num_zeros, 1))
+    zero_vals = np.zeros((num_zeros,))
     zero_weights = (np.prod(data.shape) / num_zeros) * np.ones((num_zeros,))
 
     all_subs = np.vstack((nonzero_subs, zero_subs))
@@ -430,7 +436,7 @@ def stratified(
         nonzero_weights *= data.nnz / num_nonzeros
 
     zero_subs = zeros(data, nz_idx, num_zeros, over_sample_rate, with_replacement=True)
-    zero_vals = np.zeros((num_zeros, 1))
+    zero_vals = np.zeros((num_zeros,))
     data_nonzero_count = np.prod(data.shape) - data.nnz
     zero_weights = np.ones((num_zeros,))
     if num_zeros > 0:
@@ -439,4 +445,4 @@ def stratified(
     all_subs = np.vstack((nonzero_subs, zero_subs))
     all_vals = np.concatenate((nonzero_vals, zero_vals))
     all_weights = np.concatenate((nonzero_weights, zero_weights))
-    return all_subs, all_vals, all_weights
+    return all_subs, all_vals.squeeze(), all_weights
