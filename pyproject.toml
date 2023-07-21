@@ -41,8 +41,10 @@ doc = [
     "myst-nb",
 ]
 
-[tool.setuptools]
-packages = ["pyttb"]
+[tool.setuptools.packages.find]
+include = ["pyttb*"]
+exclude = ["tests*"]
+namespaces = false
 
 [tool.setuptools.dynamic]
 version = {attr = "pyttb.__version__"}
