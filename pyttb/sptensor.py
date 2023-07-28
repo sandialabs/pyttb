@@ -165,7 +165,7 @@ class sptensor:
             for i, idx in enumerate(sub):
                 if idx < 0 or idx >= shape[i]:
                     raise ValueError(f"Index out of bounds: {idx} for dimension: {i}")
-        
+
         sptensorInstance = cls()
         sptensorInstance.subs = subs
         sptensorInstance.vals = vals
