@@ -162,7 +162,7 @@ class sptensor:
         """
         # Validate the subs against the shape
         tt_subscheck(subs)
-        
+
         # Check if dimensions of subscripts match with shape
         if subs.shape[1] != len(shape):
             raise ValueError("Mismatch in dimensions between subscripts and shape")
