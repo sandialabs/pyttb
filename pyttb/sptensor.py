@@ -161,10 +161,15 @@ class sptensor:
         >>> K0 = ttb.sptensor.from_data(subs,vals, shape)
         """
         # Validate the subs against the shape
-        for sub in subs:
-            for i, idx in enumerate(sub):
-                if idx < 0 or idx >= shape[i]:
-                    raise ValueError(f"Index out of bounds: {idx} for dimension: {i}")
+        tt_subscheck(subs)
+        
+        # Check if dimensions of subscripts match with shape
+        if subs.shape[1] != len(shape):
+            raise ValueError("Mismatch in dimensions between subscripts and shape")
+
+        # Validate that all indices are within the specified shape
+        if not all(a <= b for a, b in zip(tuple(np.max(subs, axis=0) + 1), shape)):
+            raise ValueError("One or more indices are out of bounds")
 
         sptensorInstance = cls()
         sptensorInstance.subs = subs
