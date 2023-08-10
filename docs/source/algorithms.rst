@@ -5,5 +5,6 @@ Algorithms
 
     cpals.rst
     cpapr.rst
+    gcpopt.rst
     hosvd.rst
     tuckerals.rst

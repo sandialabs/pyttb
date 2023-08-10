@@ -522,7 +522,7 @@ def tt_cp_apr_pdnr(
             # calculate khatri-rao product of all matrices but the n-th
             if isinstance(input_tensor, ttb.tensor) and isSparse is False:
                 # Data is not a sparse tensor.
-                Pi = ttb.tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
+                Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
                 X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
@@ -549,7 +549,7 @@ def tt_cp_apr_pdnr(
                     x_row = input_tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
-                    Pi = ttb.tt_calcpi_prowsubprob(
+                    Pi = tt_calcpi_prowsubprob(
                         input_tensor, M, rank, n, N, isSparse, sparse_indices
                     )
 
@@ -620,7 +620,7 @@ def tt_cp_apr_pdnr(
                         f_unit,
                         f_new,
                         num_evals,
-                    ) = ttb.tt_linesearch_prowsubprob(
+                    ) = tt_linesearch_prowsubprob(
                         search_dir.transpose()[0],
                         gradM.transpose(),
                         m_row,
@@ -879,7 +879,7 @@ def tt_cp_apr_pqnr(
             # calculate khatri-rao product of all matrices but the n-th
             if not isinstance(input_tensor, ttb.sptensor) and not isSparse:
                 # Data is not a sparse tensor.
-                Pi = ttb.tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
+                Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
                 X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
@@ -903,7 +903,7 @@ def tt_cp_apr_pqnr(
                     x_row = input_tensor.vals[sparse_indices]
 
                     # Calculate just the columns of Pi needed for this row.
-                    Pi = ttb.tt_calcpi_prowsubprob(
+                    Pi = tt_calcpi_prowsubprob(
                         input_tensor, M, rank, n, N, isSparse, sparse_indices
                     )
 
@@ -1033,7 +1033,7 @@ def tt_cp_apr_pqnr(
                     # Perform a projected linesearch and update variables.
                     # Start from a unit step length, decrease by 1/2,
                     # stop with sufficicent decrease of 1.0e-4 or at most 10 steps.
-                    m_row, _, _, f_new, num_evals = ttb.tt_linesearch_prowsubprob(
+                    m_row, _, _, f_new, num_evals = tt_linesearch_prowsubprob(
                         search_dir.transpose()[0],
                         gradOLD.transpose(),
                         m_rowOLD,
@@ -1446,7 +1446,7 @@ def tt_linesearch_prowsubprob(
             count += 1
         else:
             # Evaluate objective function at new iterate
-            f_new = -ttb.tt_loglikelihood_row(isSparse, data_row, model_new, Pi)
+            f_new = -tt_loglikelihood_row(isSparse, data_row, model_new, Pi)
             num_evals += 1
             if count == 1:
                 f_1 = f_new
@@ -1474,7 +1474,7 @@ def tt_linesearch_prowsubprob(
 
         # Project to the constraints and reevaluate the subproblem objective
         model_new *= model_new > 0
-        f_new = -ttb.tt_loglikelihood_row(isSparse, data_row, model_new, Pi)
+        f_new = -tt_loglikelihood_row(isSparse, data_row, model_new, Pi)
         num_evals += 1
 
         # Let the caller know the search direction made no progress.

@@ -1975,7 +1975,7 @@ class ktensor:
         """
         Updates a :class:`pyttb.ktensor` in the specific dimensions with the
         values in `data` (in vector or matrix form). The value of `modes` must
-        be a value in [-1,...,self.ndoms]. If the Further, the number of elements in
+        be a value in [-1,...,self.ndims]. If the Further, the number of elements in
         `data` must equal self.shape[modes] * self.ncomponents. The update is
         performed in place.
 
@@ -2070,9 +2070,12 @@ class ktensor:
 
         """
         if not isinstance(modes, int):
-            assert modes == sorted(modes), "Modes must be sorted in ascending order"
+            modes = np.array(modes)
+            assert np.all(
+                modes[:-1] <= modes[1:]
+            ), "Modes must be sorted in ascending order"
         else:
-            modes = [modes]
+            modes = np.array([modes])
 
         loc = 0  # Location in data array
         for k in modes:

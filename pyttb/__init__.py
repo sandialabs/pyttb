@@ -10,8 +10,9 @@ __version__ = "1.6.2"
 import warnings
 
 from pyttb.cp_als import cp_als
-from pyttb.cp_apr import *
+from pyttb.cp_apr import cp_apr
 from pyttb.export_data import export_data
+from pyttb.gcp_opt import gcp_opt
 from pyttb.hosvd import hosvd
 from pyttb.import_data import import_data
 from pyttb.khatrirao import khatrirao
