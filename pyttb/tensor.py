@@ -1116,7 +1116,7 @@ class tensor:
         # old version (ver=0)
         shape = np.array(self.shape, dtype=int)
         n = dims[0]
-        order = np.array([n] + list(range(0, n)) + list(range(n + 1, self.ndims)))
+        order = np.array([n, *list(range(0, n)), *list(range(n + 1, self.ndims))])
         newdata = self.permute(order).data
         ids = np.array(list(range(0, n)) + list(range(n + 1, self.ndims)))
         second_dim = 1
@@ -1131,7 +1131,7 @@ class tensor:
             p = matrix.shape[0]
 
         newshape = np.array(
-            [p] + list(shape[range(0, n)]) + list(shape[range(n + 1, self.ndims)])
+            [p, *list(shape[range(0, n)]), *list(shape[range(n + 1, self.ndims)])]
         )
         Y_data = np.reshape(newdata, newshape, order="F")
         Y_data = np.transpose(Y_data, np.argsort(order))

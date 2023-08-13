@@ -2330,7 +2330,7 @@ class ktensor:
         str:
         """
         s = f"ktensor of shape {self.shape}\n"
-        s += f"weights={str(self.weights)}"
+        s += f"weights={self.weights}"
         if len(self.shape) == 0:
             s += "\nfactor_matrices=[]"
         else:
