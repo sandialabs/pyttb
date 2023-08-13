@@ -24,7 +24,7 @@ import scipy.sparse.linalg
 from typing_extensions import Self
 
 import pyttb as ttb
-from pyttb.pyttb_utils import isrow, isvector, tt_ind2sub
+from pyttb.pyttb_utils import isrow, isvector, tt_dimscheck, tt_ind2sub
 
 
 class ktensor:
@@ -1947,7 +1947,7 @@ class ktensor:
             return self.ttv([vector], dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
+        dims, vidx = tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):

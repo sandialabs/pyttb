@@ -17,7 +17,6 @@ from pyttb.hosvd import hosvd
 from pyttb.import_data import import_data
 from pyttb.khatrirao import khatrirao
 from pyttb.ktensor import ktensor
-from pyttb.pyttb_utils import *
 from pyttb.sptenmat import sptenmat
 from pyttb.sptensor import sptendiag, sptenrand, sptensor
 from pyttb.sptensor3 import sptensor3
@@ -39,3 +38,30 @@ def ignore_warnings(ignore=True):
 
 
 ignore_warnings(True)
+
+__all__ = [
+    cp_als.__name__,
+    cp_apr.__name__,
+    export_data.__name__,
+    gcp_opt.__name__,
+    hosvd.__name__,
+    import_data.__name__,
+    khatrirao.__name__,
+    ktensor.__name__,
+    sptenmat.__name__,
+    sptendiag.__name__,
+    sptenrand.__name__,
+    sptensor.__name__,
+    sptensor3.__name__,
+    sumtensor.__name__,
+    symktensor.__name__,
+    symtensor.__name__,
+    tenmat.__name__,
+    tendiag.__name__,
+    tenones.__name__,
+    tenrand.__name__,
+    tensor.__name__,
+    tenzeros.__name__,
+    ttensor.__name__,
+    tucker_als.__name__,
+]

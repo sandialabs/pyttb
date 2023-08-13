@@ -12,6 +12,7 @@ import numpy as np
 from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
+from pyttb.pyttb_utils import tt_to_dense_matrix
 
 
 # pylint: disable=too-many-arguments,too-many-locals
@@ -525,7 +526,7 @@ def tt_cp_apr_pdnr(
             if isinstance(input_tensor, ttb.tensor) and isSparse is False:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
+                X_mat = tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -883,7 +884,7 @@ def tt_cp_apr_pqnr(
             if not isinstance(input_tensor, ttb.sptensor) and not isSparse:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
+                X_mat = tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -1792,7 +1793,7 @@ def calculate_phi(
             )
             Phi[:, r] = Yr
     else:
-        Xn = ttb.tt_to_dense_matrix(Data, factorIndex)
+        Xn = tt_to_dense_matrix(Data, factorIndex)
         V = Model.factor_matrices[factorIndex].dot(Pi.transpose())
         W = Xn / np.maximum(V, epsilon)
         Y = W.dot(Pi)
@@ -1837,8 +1838,8 @@ def tt_loglikelihood(
             np.sum(Data.vals * np.log(np.sum(A, axis=1))[:, None])
             - np.sum(Model.factor_matrices[0])
         )
-    dX = ttb.tt_to_dense_matrix(Data, 1)
-    dM = ttb.tt_to_dense_matrix(Model, 1)
+    dX = tt_to_dense_matrix(Data, 1)
+    dM = tt_to_dense_matrix(Model, 1)
     f = 0
     for i in range(dX.shape[0]):
         for j in range(dX.shape[1]):

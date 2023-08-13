@@ -104,7 +104,7 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     --------
     >>> a = np.array([[1,2],[3,4]])
     >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>> ttb.tt_union_rows(a,b)
+    >>> tt_union_rows(a,b)
     array([[0, 0],
            [1, 2],
            [3, 4]])
@@ -376,12 +376,12 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     --------
     >>> a = np.array([[1,2],[3,4]])
     >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>> ttb.tt_intersect_rows(a,b)
+    >>> tt_intersect_rows(a,b)
     array([0, 1])
-    >>> ttb.tt_intersect_rows(b,a)
+    >>> tt_intersect_rows(b,a)
     array([1, 2])
     """
-    # TODO ismember and uniqe are very similar in function
+    # TODO ismember and unique are very similar in function
     if MatrixA.size > 0:
         MatrixAUnique, idxA = np.unique(MatrixA, axis=0, return_index=True)
     else:
