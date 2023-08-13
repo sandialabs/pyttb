@@ -227,7 +227,8 @@ def tt_dimscheck(
     return sdims, vidx
 
 
-def tt_tenfun(function_handle, *inputs):  # pylint:disable=too-many-branches
+# pylint:disable=too-many-branches
+def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
     """
     Apply a function to each element in a tensor
 

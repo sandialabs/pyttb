@@ -40,7 +40,7 @@ class GCPSampler:
     """Contains Gradient and Function Sampling Details"""
 
     # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         data: Union[ttb.tensor, ttb.sptensor],
         function_sampler: Optional[Samplers] = None,
@@ -106,7 +106,7 @@ class GCPSampler:
         )
 
     # pylint: disable=too-many-arguments
-    def _prepare_function_sampler(
+    def _prepare_function_sampler(  # noqa: PLR0913
         self,
         data: Union[ttb.tensor, ttb.sptensor],
         function_sampler: Samplers,
@@ -161,7 +161,7 @@ class GCPSampler:
             raise ValueError("Invalid choice for function_sampler")
 
     # pylint: disable=too-many-arguments, too-many-branches
-    def _prepare_gradient_sampler(
+    def _prepare_gradient_sampler(  # noqa: PLR0912,PLR0913
         self,
         data: Union[ttb.tensor, ttb.sptensor],
         gradient_sampler: Samplers,

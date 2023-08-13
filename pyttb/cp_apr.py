@@ -16,7 +16,7 @@ from pyttb.pyttb_utils import tt_to_dense_matrix
 
 
 # pylint: disable=too-many-arguments,too-many-locals
-def cp_apr(
+def cp_apr(  # noqa: PLR0913
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     algorithm: Union[Literal["mu"], Literal["pdnr"], Literal["pqnr"]] = "mu",
@@ -186,7 +186,7 @@ def cp_apr(
 
 # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
 # pylint: disable=too-many-statements
-def tt_cp_apr_mu(
+def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     init: ttb.ktensor,
@@ -390,7 +390,7 @@ def tt_cp_apr_mu(
 
 # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
 # pylint: disable=too-many-statements
-def tt_cp_apr_pdnr(
+def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     init: ttb.ktensor,
@@ -746,7 +746,7 @@ def tt_cp_apr_pdnr(
 
 # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
 # pylint: disable=too-many-statements
-def tt_cp_apr_pqnr(
+def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     init: ttb.ktensor,
@@ -1143,7 +1143,7 @@ def tt_cp_apr_pqnr(
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: ttb.sptensor,
     Model: ttb.ktensor,
     rank: int,
@@ -1156,7 +1156,7 @@ def tt_calcpi_prowsubprob(
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: ttb.tensor,
     Model: ttb.ktensor,
     rank: int,
@@ -1167,7 +1167,7 @@ def tt_calcpi_prowsubprob(
     ...  # pragma: no cover see coveragepy/issues/970
 
 
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: Union[ttb.sptensor, ttb.tensor],
     Model: ttb.ktensor,
     rank: int,
@@ -1270,7 +1270,7 @@ def calc_partials(
     return phi_row, ups_row
 
 
-def get_search_dir_pdnr(
+def get_search_dir_pdnr(  # noqa: PLR0913
     Pi: np.ndarray,
     ups_row: np.ndarray,
     rank: int,
@@ -1365,7 +1365,7 @@ def get_search_dir_pdnr(
     return search_dir, pred_red
 
 
-def tt_linesearch_prowsubprob(
+def tt_linesearch_prowsubprob(  # noqa: PLR0913
     direction: np.ndarray,
     grad: np.ndarray,
     model_old: np.ndarray,
@@ -1578,7 +1578,7 @@ def tt_loglikelihood_row(
 
 
 # PQNR helper functions
-def get_search_dir_pqnr(
+def get_search_dir_pqnr(  # noqa: PLR0913
     model_row: np.ndarray,
     gradModel: np.ndarray,
     epsActSet: float,
@@ -1757,7 +1757,7 @@ def calculate_pi(
     return Pi
 
 
-def calculate_phi(
+def calculate_phi(  # noqa: PLR0913
     Data: Union[ttb.sptensor, ttb.tensor],
     Model: ttb.ktensor,
     rank: int,

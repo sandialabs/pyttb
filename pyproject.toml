@@ -75,7 +75,12 @@ variable-naming-style = "any"
 max-public-methods = 40
 
 [tool.ruff]
-select = ["E", "F", "PLE", "PLC", "PLW"]
+#select = ["E", "F", "PLE", "PLC", "PLW", "PLR"]
+select = ["E", "F", "PL"]
+ignore = [
+    # Ignored in conversion to ruff since not previously enforced
+    "PLR2004"
+]
 
 [tool.mypy]
 warn_unused_configs = true

@@ -22,7 +22,7 @@ class StochasticSolver(ABC):
     """Interface for Stochastic GCP Solvers"""
 
     # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         rate: float = 1e-3,
         decay: float = 0.1,
@@ -89,7 +89,7 @@ class StochasticSolver(ABC):
         """Set internal state on failed epoch"""
 
     # pylint: disable=too-many-locals
-    def solve(
+    def solve(  # noqa: PLR0913
         self,
         initial_model: ttb.ktensor,
         data: Union[ttb.tensor, ttb.sptensor],
@@ -260,7 +260,7 @@ class Adam(StochasticSolver):
     """Adam Optimizer"""
 
     # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         rate: float = 1e-3,
         decay: float = 0.1,
@@ -365,7 +365,7 @@ class Adagrad(StochasticSolver):
     """Adagrad Optimizer"""
 
     # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         rate: float = 1e-3,
         decay: float = 0.1,
@@ -413,7 +413,7 @@ class LBFGSB:
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         m: Optional[int] = None,
         factr: float = 1e7,
@@ -450,7 +450,7 @@ class LBFGSB:
             if value is not None
         }
 
-    def solve(
+    def solve(  # noqa: PLR0913
         self,
         initial_model: ttb.ktensor,
         data: ttb.tensor,

@@ -698,7 +698,7 @@ class ktensor:
             assert False, "Input parameter must be an int, tuple, list or numpy.ndarray"
 
     # pylint: disable=too-many-locals,too-many-branches
-    def fixsigns(self, other: Optional[ktensor] = None) -> Self:
+    def fixsigns(self, other: Optional[ktensor] = None) -> Self:  # noqa: PLR0912
         """
         Change the elements of a :class:`pyttb.ktensor` in place so that the
         largest magnitude entries for each column vector in each factor

@@ -79,9 +79,8 @@ class tensor:
         # Create or check second argument
         if shape is None:
             shape = data.shape
-        else:
-            if not isinstance(shape, tuple):
-                assert False, "Second argument must be a tuple."
+        elif not isinstance(shape, tuple):
+            assert False, "Second argument must be a tuple."
 
         # Make sure the number of elements matches what's been specified
         if len(shape) == 0:
@@ -429,7 +428,7 @@ class tensor:
 
     # TODO: We should probably always return details and let caller drop them
     # pylint: disable=too-many-branches, too-many-locals
-    def issymmetric(
+    def issymmetric(  # noqa: PLR0912
         self,
         grps: Optional[np.ndarray] = None,
         version: Optional[Any] = None,
@@ -646,7 +645,9 @@ class tensor:
         return self.data[tuple(wsubs.transpose())]
 
     # pylint: disable=too-many-branches
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(  # noqa: PLR0912
+        self, U: Union[ttb.ktensor, List[np.ndarray]], n: int
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product
 
@@ -928,7 +929,7 @@ class tensor:
                 return np.squeeze(self.data)[()]
             return ttb.tensor.from_data(np.squeeze(self.data))
 
-    def symmetrize(
+    def symmetrize(  # noqa: PLR0912,PLR0915
         self, grps: Optional[np.ndarray] = None, version: Optional[Any] = None
     ) -> (
         tensor
@@ -1370,7 +1371,7 @@ class tensor:
             actualIdx = tuple(idx.transpose())
             self.data[actualIdx] = value
 
-    def _set_subtensor(self, key, value):
+    def _set_subtensor(self, key, value):  # noqa: PLR0912
         # Extract array of subscripts
         subs = key
         # Will the size change? If so we first need to resize x
@@ -1445,7 +1446,7 @@ class tensor:
         else:
             self.data[tuple(key.transpose())] = value
 
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # noqa: PLR0912
         """
         SUBSREF Subscripted reference for tensors.
 

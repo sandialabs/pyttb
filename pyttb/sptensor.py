@@ -1206,7 +1206,7 @@ class sptensor:
         return loc
 
     # pylint: disable=too-many-branches, too-many-locals
-    def ttv(
+    def ttv(  # noqa: PLR0912
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[int, np.ndarray]] = None,
@@ -1290,7 +1290,7 @@ class sptensor:
         return c
 
     # pylint: disable=too-many-branches,too-many-statements
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # noqa: PLR0912, PLR0915
         """
         Subscripted reference for a sparse tensor.
 
@@ -1516,7 +1516,7 @@ class sptensor:
             return self._set_subscripts(key, value)
         raise ValueError("Unknown assignment type")  # pragma: no cover
 
-    def _set_subscripts(self, key, value):
+    def _set_subscripts(self, key, value):  # noqa: PLR0912
         # Case II: Replacing values at specific indices
         newsubs = key
         tt_subscheck(newsubs, nargout=False)
@@ -1622,7 +1622,7 @@ class sptensor:
         self.shape = tuple(newshape)
 
     # pylint:disable=too-many-statements
-    def _set_subtensor(self, key, value):
+    def _set_subtensor(self, key, value):  # noqa: PLR0912, PLR0915
         # Case I(a): RHS is another sparse tensor
         if isinstance(value, ttb.sptensor):
             # First, Resize the tensor and check the size match with the tensor
@@ -1636,11 +1636,10 @@ class sptensor:
                             newsz.append(value.shape[m])
                         else:
                             newsz.append(key_n.stop)
+                    elif key_n.stop is None:
+                        newsz.append(max([self.shape[n], value.shape[m]]))
                     else:
-                        if key_n.stop is None:
-                            newsz.append(max([self.shape[n], value.shape[m]]))
-                        else:
-                            newsz.append(max([self.shape[n], key_n.stop]))
+                        newsz.append(max([self.shape[n], key_n.stop]))
                     m = m + 1
                 elif isinstance(key_n, (float, int)):
                     if self.ndims <= n:
@@ -2102,7 +2101,7 @@ class sptensor:
         assert False, "This object cannot be multiplied by sptensor"
 
     # pylint:disable=too-many-branches
-    def __le__(self, other):
+    def __le__(self, other):  # noqa: PLR0912
         """
         Less than or equal (<=) for sptensor
 
@@ -2194,7 +2193,7 @@ class sptensor:
         assert False, "Cannot compare sptensor with that type"
 
     # pylint:disable=too-many-branches
-    def __lt__(self, other):
+    def __lt__(self, other):  # noqa: PLR0912
         """
         Less than (<) for sptensor
 
@@ -2396,7 +2395,7 @@ class sptensor:
         assert False, "Cannot compare sptensor with that type"
 
     # pylint:disable=too-many-statements, too-many-branches, too-many-locals
-    def __truediv__(self, other):
+    def __truediv__(self, other):  # noqa: PLR0912, PLR0915
         """
         Division for sparse tensors (sptensor/other).
 
