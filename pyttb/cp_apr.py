@@ -183,7 +183,8 @@ def cp_apr(
     return M, init, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
 def tt_cp_apr_mu(
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
@@ -386,7 +387,8 @@ def tt_cp_apr_mu(
     return M, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
 def tt_cp_apr_pdnr(
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
@@ -741,7 +743,8 @@ def tt_cp_apr_pdnr(
     return M, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
 def tt_cp_apr_pqnr(
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,

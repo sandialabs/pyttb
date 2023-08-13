@@ -13,7 +13,8 @@ import pyttb as ttb
 from pyttb.ttensor import ttensor
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
 def tucker_als(
     input_tensor: ttb.tensor,
     rank: Union[int, List[int], np.ndarray],

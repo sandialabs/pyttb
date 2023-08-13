@@ -810,7 +810,8 @@ def islogical(a: np.ndarray) -> bool:
     return isinstance(a, bool)
 
 
-# Adding all sorts of index support here, might consider splitting out to more specific file later
+# Adding all sorts of index support here, might consider splitting out to
+# more specific file later
 
 
 class IndexVariant(Enum):
