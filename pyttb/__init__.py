@@ -39,7 +39,8 @@ def ignore_warnings(ignore=True):
 
 ignore_warnings(True)
 
-__all__ = [
+# Ruff inspection rules are too strict heres
+__all__ = [  # noqa: PLE0604
     cp_als.__name__,
     cp_apr.__name__,
     export_data.__name__,

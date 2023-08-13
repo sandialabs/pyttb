@@ -1342,7 +1342,7 @@ class sptensor:
             region = []
             for dim, value in enumerate(item):
                 if isinstance(value, (int, np.integer)) and value < 0:
-                    value = self.shape[dim] + value
+                    value = self.shape[dim] + value  # noqa: PLW2901
                 region.append(value)
 
             # Pare down the list of subscripts (and values) to only
@@ -1502,7 +1502,7 @@ class sptensor:
             updated_key = []
             for dim, entry in enumerate(key):
                 if isinstance(entry, (int, np.integer)) and entry < 0:
-                    entry = self.shape[dim] + entry
+                    entry = self.shape[dim] + entry  # noqa: PLW2901
                 updated_key.append(entry)
             return self._set_subtensor(updated_key, value)
         # Case 2: Subscripts

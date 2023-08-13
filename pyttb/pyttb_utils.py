@@ -429,7 +429,7 @@ def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.nd
             newsubs = np.insert(newsubs, obj=i, values=r, axis=1)
         else:
             if isinstance(r, list):
-                r = np.array(r)
+                r = np.array(r)  # noqa: PLW2901
             newsubs[:, i] = r[newsubs[:, i]]
     return newsubs
 

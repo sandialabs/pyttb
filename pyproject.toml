@@ -74,6 +74,9 @@ variable-naming-style = "any"
 # MATLAB Tensortoolbox interface
 max-public-methods = 40
 
+[tool.ruff]
+select = ["E", "F", "PLE", "PLC", "PLW"]
+
 [tool.mypy]
 warn_unused_configs = true
 plugins = "numpy.typing.mypy_plugin"
