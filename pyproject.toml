@@ -34,6 +34,7 @@ dev = [
     "mypy",
     "pytest",
     "pytest-cov",
+    "ruff",
 ]
 doc = [
     "sphinx >= 4.0",
