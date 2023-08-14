@@ -12,7 +12,6 @@ import numpy as np
 import pyttb as ttb
 
 
-# pylint: disable=too-many-locals
 def import_data(
     filename: str, index_base: int = 1
 ) -> Union[ttb.sptensor, ttb.ktensor, ttb.tensor, np.ndarray]:
@@ -31,7 +30,6 @@ def import_data(
         assert False, f"File path {filename} does not exist."
 
     # import
-    # pylint: disable=unspecified-encoding
     with open(filename, "r") as fp:
         # tensor type should be on the first line
         # valid: tensor, sptensor, matrix, ktensor

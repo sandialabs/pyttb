@@ -12,7 +12,6 @@ import pyttb as ttb
 from pyttb.gcp.fg_setup import function_type
 
 
-# pylint: disable=too-many-arguments
 @overload
 def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
@@ -55,7 +54,6 @@ def estimate(  # noqa: PLR0913
     ...  # pragma: no cover see coveragepy/issues/970
 
 
-# pylint: disable=too-many-locals
 def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,

@@ -109,7 +109,6 @@ class tenmat:
         )
 
     @classmethod
-    # pylint: disable=too-many-branches
     def from_tensor_type(  # noqa: PLR0912
         cls,
         source: Union[ttb.tensor, tenmat],

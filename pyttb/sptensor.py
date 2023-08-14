@@ -1205,7 +1205,6 @@ class sptensor:
 
         return loc
 
-    # pylint: disable=too-many-branches, too-many-locals
     def ttv(  # noqa: PLR0912
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
@@ -1289,7 +1288,6 @@ class sptensor:
 
         return c
 
-    # pylint: disable=too-many-branches,too-many-statements
     def __getitem__(self, item):  # noqa: PLR0912, PLR0915
         """
         Subscripted reference for a sparse tensor.
@@ -1621,7 +1619,6 @@ class sptensor:
             newshape.append(max(dim, smax))
         self.shape = tuple(newshape)
 
-    # pylint:disable=too-many-statements
     def _set_subtensor(self, key, value):  # noqa: PLR0912, PLR0915
         # Case I(a): RHS is another sparse tensor
         if isinstance(value, ttb.sptensor):
@@ -2100,7 +2097,6 @@ class sptensor:
             return self.__mul__(other)
         assert False, "This object cannot be multiplied by sptensor"
 
-    # pylint:disable=too-many-branches
     def __le__(self, other):  # noqa: PLR0912
         """
         Less than or equal (<=) for sptensor
@@ -2192,7 +2188,6 @@ class sptensor:
         # Otherwise
         assert False, "Cannot compare sptensor with that type"
 
-    # pylint:disable=too-many-branches
     def __lt__(self, other):  # noqa: PLR0912
         """
         Less than (<) for sptensor
@@ -2394,7 +2389,6 @@ class sptensor:
         # Otherwise
         assert False, "Cannot compare sptensor with that type"
 
-    # pylint:disable=too-many-statements, too-many-branches, too-many-locals
     def __truediv__(self, other):  # noqa: PLR0912, PLR0915
         """
         Division for sparse tensors (sptensor/other).

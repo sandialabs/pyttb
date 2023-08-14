@@ -4,7 +4,6 @@
 # U.S. Government retains certain rights in this software.
 
 
-# pylint: disable=too-few-public-methods
 class symtensor:
     """
     SYMTENSOR Class for storing only unique entries of symmetric tensor.

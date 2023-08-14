@@ -15,7 +15,6 @@ import pyttb as ttb
 from pyttb.pyttb_utils import tt_to_dense_matrix
 
 
-# pylint: disable=too-many-arguments,too-many-locals
 def cp_apr(  # noqa: PLR0913
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
@@ -184,8 +183,6 @@ def cp_apr(  # noqa: PLR0913
     return M, init, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
-# pylint: disable=too-many-statements
 def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
@@ -388,8 +385,6 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     return M, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
-# pylint: disable=too-many-statements
 def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
@@ -511,7 +506,6 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     rowsubprobStopTol = stoptol
 
     # Main loop: iterate until convergence or a max threshold is reached
-    # pylint: disable=too-many-nested-blocks
     for iteration in range(maxiters):
         isConverged = True
         kktModeViolations = np.zeros((N,))
@@ -744,8 +738,6 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     return M, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
-# pylint: disable=too-many-statements
 def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
@@ -869,7 +861,6 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
             print("done")
 
     # Main loop: iterate until convergence or a max threshold is reached
-    # pylint: disable=too-many-nested-blocks
     for iteration in range(maxiters):
         isConverged = True
         kktModeViolations = np.zeros((N,))
