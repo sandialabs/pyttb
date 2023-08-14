@@ -28,13 +28,21 @@ from scipy import sparse
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
+    IndexVariant,
+    get_index_variant,
     tt_dimscheck,
     tt_ind2sub,
+    tt_intersect_rows,
     tt_intvec2str,
+    tt_irenumber,
+    tt_ismember_rows,
+    tt_renumber,
+    tt_setdiff_rows,
     tt_sizecheck,
     tt_sub2ind,
     tt_subscheck,
     tt_subsubsref,
+    tt_union_rows,
     tt_valscheck,
 )
 
@@ -568,7 +576,7 @@ class sptensor:
         a = np.zeros(shape=(p, 1), dtype=self.vals.dtype)
 
         # Find which indices already exist and their locations
-        loc = ttb.tt_ismember_rows(searchsubs, self.subs)
+        loc = tt_ismember_rows(searchsubs, self.subs)
         # Fill in the non-zero elements in the answer
         nzsubs = np.where(loc >= 0)
         non_zeros = self.vals[loc[nzsubs]]
@@ -722,7 +730,7 @@ class sptensor:
         sparse tensor
         """
         allsubs = self.allsubs()
-        subsIdx = ttb.tt_setdiff_rows(allsubs, self.subs)
+        subsIdx = tt_setdiff_rows(allsubs, self.subs)
         subs = allsubs[subsIdx]
         trueVector = np.ones(shape=(subs.shape[0], 1), dtype=bool)
         return sptensor.from_data(subs, trueVector, self.shape)
@@ -826,7 +834,7 @@ class sptensor:
         wsubs, _ = W.find()
 
         # Find which values in the mask match nonzeros in X
-        idx = ttb.tt_ismember_rows(wsubs, self.subs)
+        idx = tt_ismember_rows(wsubs, self.subs)
 
         # Assemble return array
         nvals = wsubs.shape[0]
@@ -1040,10 +1048,10 @@ class sptensor:
             )
         if np.isscalar(old_shape):
             old_shape = (old_shape,)
-            inds = ttb.tt_sub2ind(old_shape, self.subs[:, old_modes][:, None])
+            inds = tt_sub2ind(old_shape, self.subs[:, old_modes][:, None])
         else:
-            inds = ttb.tt_sub2ind(old_shape, self.subs[:, old_modes])
-        new_subs = ttb.tt_ind2sub(new_shape, inds)
+            inds = tt_sub2ind(old_shape, self.subs[:, old_modes])
+        new_subs = tt_ind2sub(new_shape, inds)
         return ttb.sptensor.from_data(
             np.concatenate((self.subs[:, keep_modes], new_subs), axis=1),
             self.vals,
@@ -1065,7 +1073,7 @@ class sptensor:
         """
         if isinstance(dims, (float, int)):
             dims = np.array([dims])
-        dims, _ = ttb.tt_dimscheck(self.ndims, dims=dims)
+        dims, _ = tt_dimscheck(self.ndims, dims=dims)
 
         if isinstance(factor, ttb.tensor):
             shapeArray = np.array(self.shape)
@@ -1198,7 +1206,7 @@ class sptensor:
         return loc
 
     # pylint: disable=too-many-branches, too-many-locals
-    def ttv(
+    def ttv(  # noqa: PLR0912
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[int, np.ndarray]] = None,
@@ -1231,7 +1239,7 @@ class sptensor:
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
+        dims, vidx = tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims).astype(int)
 
         # Check that each multiplicand is the right size.
@@ -1282,7 +1290,7 @@ class sptensor:
         return c
 
     # pylint: disable=too-many-branches,too-many-statements
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # noqa: PLR0912, PLR0915
         """
         Subscripted reference for a sparse tensor.
 
@@ -1334,7 +1342,7 @@ class sptensor:
             region = []
             for dim, value in enumerate(item):
                 if isinstance(value, (int, np.integer)) and value < 0:
-                    value = self.shape[dim] + value
+                    value = self.shape[dim] + value  # noqa: PLW2901
                 region.append(value)
 
             # Pare down the list of subscripts (and values) to only
@@ -1352,7 +1360,7 @@ class sptensor:
 
             # Find the size of the subtensor and renumber the
             # subscripts
-            [subs, shape] = ttb.tt_renumber(subs, self.shape, region)
+            [subs, shape] = tt_renumber(subs, self.shape, region)
 
             # Determine the subscripts
             newsiz = []  # (future) new size
@@ -1487,20 +1495,20 @@ class sptensor:
         ):
             return None
 
-        access_type = ttb.get_index_variant(key)
+        access_type = get_index_variant(key)
 
         # Case 1: Replace a sub-tensor
-        if access_type == ttb.IndexVariant.SUBTENSOR:
+        if access_type == IndexVariant.SUBTENSOR:
             updated_key = []
             for dim, entry in enumerate(key):
                 if isinstance(entry, (int, np.integer)) and entry < 0:
-                    entry = self.shape[dim] + entry
+                    entry = self.shape[dim] + entry  # noqa: PLW2901
                 updated_key.append(entry)
             return self._set_subtensor(updated_key, value)
         # Case 2: Subscripts
-        if access_type == ttb.IndexVariant.SUBSCRIPTS:
+        if access_type == IndexVariant.SUBSCRIPTS:
             return self._set_subscripts(key, value)
-        if access_type == ttb.IndexVariant.LINEAR and len(self.shape) == 1:
+        if access_type == IndexVariant.LINEAR and len(self.shape) == 1:
             if isinstance(key, slice):
                 key = np.arange(0, self.shape[0])[key, None]
             else:
@@ -1508,7 +1516,7 @@ class sptensor:
             return self._set_subscripts(key, value)
         raise ValueError("Unknown assignment type")  # pragma: no cover
 
-    def _set_subscripts(self, key, value):
+    def _set_subscripts(self, key, value):  # noqa: PLR0912
         # Case II: Replacing values at specific indices
         newsubs = key
         tt_subscheck(newsubs, nargout=False)
@@ -1567,7 +1575,7 @@ class sptensor:
         newvals = newvals[idx]
 
         # Find which subscripts already exist and their locations
-        tf = ttb.tt_ismember_rows(newsubs, self.subs)
+        tf = tt_ismember_rows(newsubs, self.subs)
         loc = np.where(tf >= 0)[0].astype(int)
 
         # Split into three groups for processing:
@@ -1614,7 +1622,7 @@ class sptensor:
         self.shape = tuple(newshape)
 
     # pylint:disable=too-many-statements
-    def _set_subtensor(self, key, value):
+    def _set_subtensor(self, key, value):  # noqa: PLR0912, PLR0915
         # Case I(a): RHS is another sparse tensor
         if isinstance(value, ttb.sptensor):
             # First, Resize the tensor and check the size match with the tensor
@@ -1628,11 +1636,10 @@ class sptensor:
                             newsz.append(value.shape[m])
                         else:
                             newsz.append(key_n.stop)
+                    elif key_n.stop is None:
+                        newsz.append(max([self.shape[n], value.shape[m]]))
                     else:
-                        if key_n.stop is None:
-                            newsz.append(max([self.shape[n], value.shape[m]]))
-                        else:
-                            newsz.append(max([self.shape[n], key_n.stop]))
+                        newsz.append(max([self.shape[n], key_n.stop]))
                     m = m + 1
                 elif isinstance(key_n, (float, int)):
                     if self.ndims <= n:
@@ -1672,7 +1679,7 @@ class sptensor:
             newvals = self.vals[kploc.astype(int)]
 
             # Renumber the subscripts
-            addsubs = ttb.tt_irenumber(value, self.shape, key)
+            addsubs = tt_irenumber(value, self.shape, key)
             if newsubs.size > 0 and addsubs.size > 0:
                 self.subs = np.vstack((newsubs, addsubs))
                 self.vals = np.vstack((newvals, value.vals))
@@ -1777,10 +1784,10 @@ class sptensor:
 
             if self.subs.size > 0:
                 # Replace existing values
-                loc = ttb.tt_intersect_rows(self.subs, addsubs)
+                loc = tt_intersect_rows(self.subs, addsubs)
                 self.vals[loc] = value
                 # pare down list of subscripts to add
-                addsubs = addsubs[ttb.tt_setdiff_rows(addsubs, self.subs)]
+                addsubs = addsubs[tt_setdiff_rows(addsubs, self.subs)]
 
             # If there are things to insert then insert them
             if addsubs.size > 0:
@@ -1828,10 +1835,10 @@ class sptensor:
         # Case 2a: other is a sparse tensor
         if isinstance(other, ttb.sptensor):
             # Find where their zeros intersect
-            xzerosubs = ttb.tt_setdiff_rows(self.allsubs(), self.subs)
-            otherzerosubs = ttb.tt_setdiff_rows(other.allsubs(), other.subs)
+            xzerosubs = tt_setdiff_rows(self.allsubs(), self.subs)
+            otherzerosubs = tt_setdiff_rows(other.allsubs(), other.subs)
             # zzerosubs = np.isin(xzerosubs, otherzerosubs)
-            zzerosubsIdx = ttb.tt_intersect_rows(
+            zzerosubsIdx = tt_intersect_rows(
                 self.allsubs()[xzerosubs], other.allsubs()[otherzerosubs]
             )
             zzerosubs = self.allsubs()[xzerosubs][zzerosubsIdx]
@@ -1839,9 +1846,9 @@ class sptensor:
             # Find where their nonzeros intersect
             # TODO consider if intersect rows should return 3 args so we don't have to
             #  call it twice
-            nzsubsIdx = ttb.tt_intersect_rows(self.subs, other.subs)
+            nzsubsIdx = tt_intersect_rows(self.subs, other.subs)
             nzsubs = self.subs[nzsubsIdx]
-            iother = ttb.tt_intersect_rows(other.subs, self.subs)
+            iother = tt_intersect_rows(other.subs, self.subs)
             znzsubs = nzsubs[
                 (self.vals[nzsubsIdx] == other.vals[iother]).transpose()[0], :
             ]
@@ -1895,7 +1902,7 @@ class sptensor:
                     self.subs, True * np.ones((self.subs.shape[0], 1)), self.shape
                 )
             subs1 = self.subs[self.vals.transpose()[0] != other, :]
-            subs2Idx = ttb.tt_setdiff_rows(self.allsubs(), self.subs)
+            subs2Idx = tt_setdiff_rows(self.allsubs(), self.subs)
             subs2 = self.allsubs()[subs2Idx, :]
             return ttb.sptensor.from_data(
                 np.vstack((subs1, subs2)),
@@ -1911,16 +1918,16 @@ class sptensor:
         if isinstance(other, ttb.sptensor):
             # find entries where either x *or* y is nonzero, but not both
             # TODO this is a quick alternative to setxor
-            nonUniqueSelf = ttb.tt_intersect_rows(self.subs, other.subs)
+            nonUniqueSelf = tt_intersect_rows(self.subs, other.subs)
             selfIdx = True * np.ones(self.subs.shape[0], dtype=bool)
             selfIdx[nonUniqueSelf] = False
-            nonUniqueOther = ttb.tt_intersect_rows(other.subs, self.subs)
+            nonUniqueOther = tt_intersect_rows(other.subs, self.subs)
             otherIdx = True * np.ones(other.subs.shape[0], dtype=bool)
             otherIdx[nonUniqueOther] = False
             subs1 = np.concatenate((self.subs[selfIdx], other.subs[otherIdx]))
             # subs1 = setxor(self.subs, other.subs,'rows')
             # find entries where both are nonzero, but inequal
-            subs2 = ttb.tt_intersect_rows(self.subs, other.subs)
+            subs2 = tt_intersect_rows(self.subs, other.subs)
             subs_pad = np.zeros((self.shape[0],)).astype(bool)
             subs_pad[subs2] = (
                 self.extract(self.subs[subs2]) != other.extract(self.subs[subs2])
@@ -1936,11 +1943,11 @@ class sptensor:
         # Case 2b: y is a dense tensor
         if isinstance(other, ttb.tensor):
             # find entries where x is zero but y is nonzero
-            unionSubs = ttb.tt_union_rows(
+            unionSubs = tt_union_rows(
                 self.subs, np.array(np.where(other.data == 0)).transpose()
             )
             if unionSubs.shape[0] != np.prod(self.shape):
-                subs1Idx = ttb.tt_setdiff_rows(self.allsubs(), unionSubs)
+                subs1Idx = tt_setdiff_rows(self.allsubs(), unionSubs)
                 subs1 = self.allsubs()[subs1Idx]
             else:
                 subs1 = np.empty((0, self.subs.shape[1]))
@@ -2050,8 +2057,8 @@ class sptensor:
             assert False, "Sptensor Multiply requires two tensors of the same shape."
 
         if isinstance(other, ttb.sptensor):
-            idxSelf = ttb.tt_intersect_rows(self.subs, other.subs)
-            idxOther = ttb.tt_intersect_rows(other.subs, self.subs)
+            idxSelf = tt_intersect_rows(self.subs, other.subs)
+            idxOther = tt_intersect_rows(other.subs, self.subs)
             return ttb.sptensor.from_data(
                 self.subs[idxSelf],
                 self.vals[idxSelf] * other.vals[idxOther],
@@ -2094,7 +2101,7 @@ class sptensor:
         assert False, "This object cannot be multiplied by sptensor"
 
     # pylint:disable=too-many-branches
-    def __le__(self, other):
+    def __le__(self, other):  # noqa: PLR0912
         """
         Less than or equal (<=) for sptensor
 
@@ -2112,9 +2119,7 @@ class sptensor:
         if isinstance(other, (float, int)):
             subs1 = self.subs[(self.vals <= other).transpose()[0], :]
             if other >= 0:
-                subs2 = self.allsubs()[
-                    ttb.tt_setdiff_rows(self.allsubs(), self.subs), :
-                ]
+                subs2 = self.allsubs()[tt_setdiff_rows(self.allsubs(), self.subs), :]
                 subs = np.vstack((subs1, subs2))
             else:
                 subs = subs1
@@ -2134,7 +2139,7 @@ class sptensor:
         if isinstance(other, ttb.sptensor):
             # self not zero, other zero
             if self.subs.size > 0:
-                subs1 = self.subs[ttb.tt_setdiff_rows(self.subs, other.subs), :]
+                subs1 = self.subs[tt_setdiff_rows(self.subs, other.subs), :]
                 if subs1.size > 0:
                     subs1 = subs1[(self.extract(subs1) < 0).transpose()[0], :]
             else:
@@ -2142,7 +2147,7 @@ class sptensor:
 
             # self zero, other not zero
             if other.subs.size > 0:
-                subs2 = other.subs[ttb.tt_setdiff_rows(other.subs, self.subs), :]
+                subs2 = other.subs[tt_setdiff_rows(other.subs, self.subs), :]
                 if subs2.size > 0:
                     subs2 = subs2[(other.extract(subs2) > 0).transpose()[0], :]
             else:
@@ -2150,7 +2155,7 @@ class sptensor:
 
             # self and other not zero
             if self.subs.size > 0:
-                subs3 = self.subs[ttb.tt_intersect_rows(self.subs, other.subs), :]
+                subs3 = self.subs[tt_intersect_rows(self.subs, other.subs), :]
                 if subs3.size > 0:
                     subs3 = subs3[
                         (self.extract(subs3) <= other.extract(subs3)).transpose()[0], :
@@ -2159,13 +2164,9 @@ class sptensor:
                 subs3 = np.empty(shape=(0, other.subs.shape[1]))
 
             # self and other zero
-            xzerosubs = self.allsubs()[
-                ttb.tt_setdiff_rows(self.allsubs(), self.subs), :
-            ]
-            yzerosubs = other.allsubs()[
-                ttb.tt_setdiff_rows(other.allsubs(), other.subs), :
-            ]
-            subs4 = xzerosubs[ttb.tt_intersect_rows(xzerosubs, yzerosubs), :]
+            xzerosubs = self.allsubs()[tt_setdiff_rows(self.allsubs(), self.subs), :]
+            yzerosubs = other.allsubs()[tt_setdiff_rows(other.allsubs(), other.subs), :]
+            subs4 = xzerosubs[tt_intersect_rows(xzerosubs, yzerosubs), :]
 
             # assemble
             subs = np.vstack((subs1, subs2, subs3, subs4))
@@ -2177,7 +2178,7 @@ class sptensor:
         if isinstance(other, ttb.tensor):
             # self zero
             subs1, _ = (other >= 0).find()
-            subs1 = subs1[ttb.tt_setdiff_rows(subs1, self.subs), :]
+            subs1 = subs1[tt_setdiff_rows(subs1, self.subs), :]
 
             # self nonzero
             subs2 = self.subs[self.vals.transpose()[0] <= other[self.subs], :]
@@ -2192,7 +2193,7 @@ class sptensor:
         assert False, "Cannot compare sptensor with that type"
 
     # pylint:disable=too-many-branches
-    def __lt__(self, other):
+    def __lt__(self, other):  # noqa: PLR0912
         """
         Less than (<) for sptensor
 
@@ -2208,9 +2209,7 @@ class sptensor:
         if isinstance(other, (float, int)):
             subs1 = self.subs[(self.vals < other).transpose()[0], :]
             if other > 0:
-                subs2 = self.allsubs()[
-                    ttb.tt_setdiff_rows(self.allsubs(), self.subs), :
-                ]
+                subs2 = self.allsubs()[tt_setdiff_rows(self.allsubs(), self.subs), :]
                 subs = np.vstack((subs1, subs2))
             else:
                 subs = subs1
@@ -2230,7 +2229,7 @@ class sptensor:
         if isinstance(other, ttb.sptensor):
             # self not zero, other zero
             if self.subs.size > 0:
-                subs1 = self.subs[ttb.tt_setdiff_rows(self.subs, other.subs), :]
+                subs1 = self.subs[tt_setdiff_rows(self.subs, other.subs), :]
                 if subs1.size > 0:
                     subs1 = subs1[(self.extract(subs1) < 0).transpose()[0], :]
             else:
@@ -2238,7 +2237,7 @@ class sptensor:
 
             # self zero, other not zero
             if other.subs.size > 0:
-                subs2 = other.subs[ttb.tt_setdiff_rows(other.subs, self.subs), :]
+                subs2 = other.subs[tt_setdiff_rows(other.subs, self.subs), :]
                 if subs2.size > 0:
                     subs2 = subs2[(other.extract(subs2) > 0).transpose()[0], :]
             else:
@@ -2246,7 +2245,7 @@ class sptensor:
 
             # self and other not zero
             if self.subs.size > 0:
-                subs3 = self.subs[ttb.tt_intersect_rows(self.subs, other.subs), :]
+                subs3 = self.subs[tt_intersect_rows(self.subs, other.subs), :]
                 if subs3.size > 0:
                     subs3 = subs3[
                         (self.extract(subs3) < other.extract(subs3)).transpose()[0], :
@@ -2264,7 +2263,7 @@ class sptensor:
         if isinstance(other, ttb.tensor):
             # self zero
             subs1, _ = (other > 0).find()
-            subs1 = subs1[ttb.tt_setdiff_rows(subs1, self.subs), :]
+            subs1 = subs1[tt_setdiff_rows(subs1, self.subs), :]
 
             # self nonzero
             subs2 = self.subs[self.vals.transpose()[0] < other[self.subs], :]
@@ -2294,7 +2293,7 @@ class sptensor:
         if isinstance(other, (float, int)):
             subs1 = self.subs[(self.vals >= other).transpose()[0], :]
             if other <= 0:
-                subs2 = ttb.tt_setdiff_rows(self.allsubs(), self.subs)
+                subs2 = tt_setdiff_rows(self.allsubs(), self.subs)
                 subs = np.vstack((subs1, self.allsubs()[subs2]))
             else:
                 subs = subs1
@@ -2318,7 +2317,7 @@ class sptensor:
         if isinstance(other, ttb.tensor):
             # self zero
             subs1, _ = (other <= 0).find()
-            subs1 = subs1[ttb.tt_setdiff_rows(subs1, self.subs), :]
+            subs1 = subs1[tt_setdiff_rows(subs1, self.subs), :]
 
             # self nonzero
             subs2 = self.subs[
@@ -2352,7 +2351,7 @@ class sptensor:
         if isinstance(other, (float, int)):
             subs1 = self.subs[(self.vals > other).transpose()[0], :]
             if other < 0:
-                subs2 = ttb.tt_setdiff_rows(self.allsubs(), self.subs)
+                subs2 = tt_setdiff_rows(self.allsubs(), self.subs)
                 subs = np.vstack((subs1, self.allsubs()[subs2]))
             else:
                 subs = subs1
@@ -2377,7 +2376,7 @@ class sptensor:
             # self zero and other < 0
             subs1, _ = (other < 0).find()
             if subs1.size > 0:
-                subs1 = subs1[ttb.tt_setdiff_rows(subs1, self.subs), :]
+                subs1 = subs1[tt_setdiff_rows(subs1, self.subs), :]
 
             # self and other nonzero
             subs2 = self.subs[
@@ -2396,7 +2395,7 @@ class sptensor:
         assert False, "Cannot compare sptensor with that type"
 
     # pylint:disable=too-many-statements, too-many-branches, too-many-locals
-    def __truediv__(self, other):
+    def __truediv__(self, other):  # noqa: PLR0912, PLR0915
         """
         Division for sparse tensors (sptensor/other).
 
@@ -2418,7 +2417,7 @@ class sptensor:
             with np.errstate(divide="ignore", invalid="ignore"):
                 newvals = self.vals / other
             if other == 0:
-                nansubsidx = ttb.tt_setdiff_rows(self.allsubs(), newsubs)
+                nansubsidx = tt_setdiff_rows(self.allsubs(), newsubs)
                 nansubs = self.allsubs()[nansubsidx]
                 newsubs = np.vstack((newsubs, nansubs))
                 newvals = np.vstack((newvals, np.nan * np.ones((nansubs.shape[0], 1))))
@@ -2437,18 +2436,18 @@ class sptensor:
             if self.subs.size == 0:
                 SelfZeroSubs = self.allsubs()
             else:
-                SelfZeroSubsIdx = ttb.tt_setdiff_rows(self.allsubs(), self.subs)
+                SelfZeroSubsIdx = tt_setdiff_rows(self.allsubs(), self.subs)
                 SelfZeroSubs = self.allsubs()[SelfZeroSubsIdx]
             if other.subs.size == 0:
                 OtherZeroSubs = other.allsubs()
             else:
-                OtherZeroSubsIdx = ttb.tt_setdiff_rows(other.allsubs(), other.subs)
+                OtherZeroSubsIdx = tt_setdiff_rows(other.allsubs(), other.subs)
                 OtherZeroSubs = other.allsubs()[OtherZeroSubsIdx]
 
             # Both nonzero
             if self.subs.size > 0 and other.subs.size > 0:
-                idxSelf = ttb.tt_intersect_rows(self.subs, other.subs)
-                idxOther = ttb.tt_intersect_rows(other.subs, self.subs)
+                idxSelf = tt_intersect_rows(self.subs, other.subs)
+                idxOther = tt_intersect_rows(other.subs, self.subs)
                 newsubs = self.subs[idxSelf, :]
                 newvals = self.vals[idxSelf] / other.vals[idxOther]
             else:
@@ -2457,7 +2456,7 @@ class sptensor:
 
             # Self nonzero and other zero
             if self.subs.size > 0:
-                moresubs = ttb.tt_intersect_rows(self.subs, OtherZeroSubs)
+                moresubs = tt_intersect_rows(self.subs, OtherZeroSubs)
                 morevals = np.empty((moresubs.shape[0], 1))
                 morevals.fill(np.nan)
                 if moresubs.size > 0:
@@ -2466,7 +2465,7 @@ class sptensor:
 
             # other nonzero and self zero
             if other.subs.size > 0:
-                moresubs = ttb.tt_intersect_rows(other.subs, SelfZeroSubs)
+                moresubs = tt_intersect_rows(other.subs, SelfZeroSubs)
                 morevals = np.empty((moresubs.shape[0], 1))
                 morevals.fill(0)
                 if moresubs.size > 0:
@@ -2474,7 +2473,7 @@ class sptensor:
                     newvals = np.vstack((newvals, morevals))
 
             # Both zero
-            moresubs = ttb.tt_intersect_rows(SelfZeroSubs, OtherZeroSubs)
+            moresubs = tt_intersect_rows(SelfZeroSubs, OtherZeroSubs)
             morevals = np.empty((SelfZeroSubs[moresubs, :].shape[0], 1))
             morevals.fill(np.nan)
             if moresubs.size > 0:

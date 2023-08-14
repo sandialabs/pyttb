@@ -5,6 +5,7 @@ import pytest
 
 import pyttb as ttb
 from pyttb.gcp import samplers
+from pyttb.pyttb_utils import tt_sub2ind
 
 
 def check_sample_output(
@@ -46,7 +47,7 @@ def test_nonzeros():
 def test_zeros():
     shape = (2, 2)
     data = ttb.sptenrand(shape, nonzeros=2)
-    lin_idx = np.sort(ttb.tt_sub2ind(shape, data.subs))
+    lin_idx = np.sort(tt_sub2ind(shape, data.subs))
     subs = samplers.zeros(data, lin_idx, 1)
     assert len(subs.shape) == 2
 
@@ -89,7 +90,7 @@ def test_stratified():
     num_zeros = 2
     num_nonzeros = 2
     data = ttb.sptenrand(shape, nonzeros=2)
-    lin_idx = np.sort(ttb.tt_sub2ind(shape, data.subs))
+    lin_idx = np.sort(tt_sub2ind(shape, data.subs))
     subs, vals, wgts = samplers.stratified(data, lin_idx, num_nonzeros, num_zeros)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)
     assert np.all(vals[:num_nonzeros] != 0.0)

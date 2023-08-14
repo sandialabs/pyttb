@@ -12,10 +12,11 @@ import numpy as np
 from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
+from pyttb.pyttb_utils import tt_to_dense_matrix
 
 
 # pylint: disable=too-many-arguments,too-many-locals
-def cp_apr(
+def cp_apr(  # noqa: PLR0913
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     algorithm: Union[Literal["mu"], Literal["pdnr"], Literal["pqnr"]] = "mu",
@@ -183,8 +184,9 @@ def cp_apr(
     return M, init, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-def tt_cp_apr_mu(
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
+def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     init: ttb.ktensor,
@@ -386,8 +388,9 @@ def tt_cp_apr_mu(
     return M, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-def tt_cp_apr_pdnr(
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
+def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     init: ttb.ktensor,
@@ -523,7 +526,7 @@ def tt_cp_apr_pdnr(
             if isinstance(input_tensor, ttb.tensor) and isSparse is False:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
+                X_mat = tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -741,8 +744,9 @@ def tt_cp_apr_pdnr(
     return M, output
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-def tt_cp_apr_pqnr(
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
+def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     init: ttb.ktensor,
@@ -880,7 +884,7 @@ def tt_cp_apr_pqnr(
             if not isinstance(input_tensor, ttb.sptensor) and not isSparse:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = ttb.tt_to_dense_matrix(input_tensor, n)
+                X_mat = tt_to_dense_matrix(input_tensor, n)
 
             num_rows = M[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -1139,7 +1143,7 @@ def tt_cp_apr_pqnr(
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: ttb.sptensor,
     Model: ttb.ktensor,
     rank: int,
@@ -1152,7 +1156,7 @@ def tt_calcpi_prowsubprob(
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: ttb.tensor,
     Model: ttb.ktensor,
     rank: int,
@@ -1163,7 +1167,7 @@ def tt_calcpi_prowsubprob(
     ...  # pragma: no cover see coveragepy/issues/970
 
 
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: Union[ttb.sptensor, ttb.tensor],
     Model: ttb.ktensor,
     rank: int,
@@ -1266,7 +1270,7 @@ def calc_partials(
     return phi_row, ups_row
 
 
-def get_search_dir_pdnr(
+def get_search_dir_pdnr(  # noqa: PLR0913
     Pi: np.ndarray,
     ups_row: np.ndarray,
     rank: int,
@@ -1361,7 +1365,7 @@ def get_search_dir_pdnr(
     return search_dir, pred_red
 
 
-def tt_linesearch_prowsubprob(
+def tt_linesearch_prowsubprob(  # noqa: PLR0913
     direction: np.ndarray,
     grad: np.ndarray,
     model_old: np.ndarray,
@@ -1574,7 +1578,7 @@ def tt_loglikelihood_row(
 
 
 # PQNR helper functions
-def get_search_dir_pqnr(
+def get_search_dir_pqnr(  # noqa: PLR0913
     model_row: np.ndarray,
     gradModel: np.ndarray,
     epsActSet: float,
@@ -1753,7 +1757,7 @@ def calculate_pi(
     return Pi
 
 
-def calculate_phi(
+def calculate_phi(  # noqa: PLR0913
     Data: Union[ttb.sptensor, ttb.tensor],
     Model: ttb.ktensor,
     rank: int,
@@ -1789,7 +1793,7 @@ def calculate_phi(
             )
             Phi[:, r] = Yr
     else:
-        Xn = ttb.tt_to_dense_matrix(Data, factorIndex)
+        Xn = tt_to_dense_matrix(Data, factorIndex)
         V = Model.factor_matrices[factorIndex].dot(Pi.transpose())
         W = Xn / np.maximum(V, epsilon)
         Y = W.dot(Pi)
@@ -1834,8 +1838,8 @@ def tt_loglikelihood(
             np.sum(Data.vals * np.log(np.sum(A, axis=1))[:, None])
             - np.sum(Model.factor_matrices[0])
         )
-    dX = ttb.tt_to_dense_matrix(Data, 1)
-    dM = ttb.tt_to_dense_matrix(Model, 1)
+    dX = tt_to_dense_matrix(Data, 1)
+    dM = tt_to_dense_matrix(Model, 1)
     f = 0
     for i in range(dX.shape[0]):
         for j in range(dX.shape[1]):

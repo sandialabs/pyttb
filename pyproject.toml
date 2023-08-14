@@ -34,6 +34,7 @@ dev = [
     "mypy",
     "pytest",
     "pytest-cov",
+    "ruff",
 ]
 doc = [
     "sphinx >= 4.0",
@@ -73,6 +74,21 @@ variable-naming-style = "any"
 [tool.pylint.design]
 # MATLAB Tensortoolbox interface
 max-public-methods = 40
+
+[tool.ruff]
+select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF"]
+ignore = [
+    # Ignored in conversion to ruff since not previously enforced
+    "PLR2004",
+    # Lower case in function, matching MATLAB names
+    "N806",
+    # Argument name lower case, matching MATLAB names
+    "N803",
+    # Class name not CapWords, matching MATLAB names
+    "N801",
+    # Numpy legacy random transition is a TODO
+    "NPY002",
+]
 
 [tool.mypy]
 warn_unused_configs = true

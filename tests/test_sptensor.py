@@ -65,7 +65,7 @@ def test_sptensor_initialization_from_tensor_type(sample_sptensor):
     logging.debug(f"sptensorFromTensor = {sptensorFromTensor}")
     assert np.array_equal(
         sptensorFromTensor.subs,
-        ttb.tt_ind2sub(inputData.shape, np.arange(0, inputData.size)),
+        ttb.pyttb_utils.tt_ind2sub(inputData.shape, np.arange(0, inputData.size)),
     )
     assert np.array_equal(
         sptensorFromTensor.vals, inputData.reshape((inputData.size, 1), order="F")

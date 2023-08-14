@@ -16,7 +16,7 @@ fg_return = Tuple[function_type, function_type, float]
 
 
 # pylint: disable=too-many-branches, too-many-statements
-def setup(
+def setup(  # noqa: PLR0912,PLR0915
     objective: Objectives,
     data: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
     additional_parameter: Optional[float] = None,

@@ -11,8 +11,9 @@ import numpy as np
 import pyttb as ttb
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-def cp_als(
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
+def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     stoptol: float = 1e-4,
@@ -130,13 +131,10 @@ def cp_als(
     # Set up dimorder if not specified
     if dimorder is None:
         dimorder = list(range(N))
-    else:
-        if not isinstance(dimorder, list):
-            assert False, "Dimorder must be a list"
-        elif tuple(range(N)) != tuple(sorted(dimorder)):
-            assert (
-                False
-            ), "Dimorder must be a list or permutation of range(tensor.ndims)"
+    elif not isinstance(dimorder, list):
+        assert False, "Dimorder must be a list"
+    elif tuple(range(N)) != tuple(sorted(dimorder)):
+        assert False, "Dimorder must be a list or permutation of range(tensor.ndims)"
 
     # Error checking
     assert rank > 0, "Number of components requested must be positive"

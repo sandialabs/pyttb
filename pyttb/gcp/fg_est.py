@@ -14,7 +14,7 @@ from pyttb.gcp.fg_setup import function_type
 
 # pylint: disable=too-many-arguments
 @overload
-def estimate(
+def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -28,7 +28,7 @@ def estimate(
 
 
 @overload
-def estimate(
+def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -42,7 +42,7 @@ def estimate(
 
 
 @overload
-def estimate(
+def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -56,7 +56,7 @@ def estimate(
 
 
 # pylint: disable=too-many-locals
-def estimate(
+def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
