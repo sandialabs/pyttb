@@ -163,13 +163,10 @@ class sptensor:
         # Validate the subs against the shape
         tt_subscheck(subs)
 
-        # Check if dimensions of subscripts match with shape
-        if subs.shape[1] != len(shape):
-            raise ValueError("Mismatch in dimensions between subscripts and shape")
-
-        # Validate that all indices are within the specified shape
-        if not all(a <= b for a, b in zip(tuple(np.max(subs, axis=0) + 1), shape)):
-            raise ValueError("One or more indices are out of bounds")
+        if subs.size != 0:
+            # Validate that all indices are within the specified shape
+            if not all(a <= b for a, b in zip(tuple(np.max(subs, axis=0) + 1), shape)):
+                raise ValueError("One or more indices are out of bounds")
 
         sptensorInstance = cls()
         sptensorInstance.subs = subs
