@@ -38,18 +38,24 @@ def test_ttensor_initialization_empty():
     # No args
     ttensorInstance = ttb.ttensor()
     assert ttensorInstance.core == empty_tensor
-    assert ttensorInstance.u == []
+    assert ttensorInstance.factor_matrices == []
 
 
 @pytest.mark.indevelopment
 def test_ttensor_initialization_from_data(sample_ttensor):
     ttensorInstance = sample_ttensor
     assert isinstance(ttensorInstance.core, ttb.tensor)
-    assert all([isinstance(a_factor, np.ndarray) for a_factor in ttensorInstance.u])
+    assert all(
+        [
+            isinstance(a_factor, np.ndarray)
+            for a_factor in ttensorInstance.factor_matrices
+        ]
+    )
 
     # Sparse ttensor smoke test
     sparse_u = [
-        sparse.coo_matrix(np.ones(factor.shape)) for factor in ttensorInstance.u
+        sparse.coo_matrix(np.ones(factor.shape))
+        for factor in ttensorInstance.factor_matrices
     ]
     sparse_ttensor = ttb.ttensor.from_data(
         ttb.sptensor.from_tensor_type(ttensorInstance.core), sparse_u
@@ -57,27 +63,27 @@ def test_ttensor_initialization_from_data(sample_ttensor):
     assert isinstance(sparse_ttensor, ttb.ttensor)
 
     # Negative Tests
-    non_array_factor = ttensorInstance.u + [1]
+    non_array_factor = ttensorInstance.factor_matrices + [1]
     with pytest.raises(ValueError):
         ttb.ttensor.from_data(ttensorInstance.core, non_array_factor[1:])
 
-    non_matrix_factor = ttensorInstance.u + [np.array([1])]
+    non_matrix_factor = ttensorInstance.factor_matrices + [np.array([1])]
     with pytest.raises(ValueError):
         ttb.ttensor.from_data(ttensorInstance.core, non_matrix_factor[1:])
 
-    too_few_factors = ttensorInstance.u.copy()
+    too_few_factors = ttensorInstance.factor_matrices.copy()
     too_few_factors.pop()
     with pytest.raises(ValueError):
         ttb.ttensor.from_data(ttensorInstance.core, too_few_factors)
 
-    wrong_shape_factor = ttensorInstance.u.copy()
+    wrong_shape_factor = ttensorInstance.factor_matrices.copy()
     row, col = wrong_shape_factor[0].shape
     wrong_shape_factor[0] = np.random.random((row + 1, col + 1))
     with pytest.raises(ValueError):
         ttb.ttensor.from_data(ttensorInstance.core, wrong_shape_factor)
     # Invalid core type
     with pytest.raises(ValueError):
-        ttb.ttensor.from_data(ttensorInstance, ttensorInstance.u)
+        ttb.ttensor.from_data(ttensorInstance, ttensorInstance.factor_matrices)
 
 
 @pytest.mark.indevelopment
@@ -86,7 +92,7 @@ def test_ttensor_initialization_from_tensor_type(sample_ttensor):
     ttensorInstance = sample_ttensor
     ttensorCopy = ttb.ttensor.from_tensor_type(ttensorInstance)
     assert ttensorCopy.core == ttensorInstance.core
-    assert ttensorCopy.u == ttensorInstance.u
+    assert ttensorCopy.factor_matrices == ttensorInstance.factor_matrices
     assert ttensorCopy.shape == ttensorInstance.shape
 
     # Negative test
@@ -104,7 +110,8 @@ def test_ttensor_full(sample_ttensor):
     # Sparse tests
     sparse_core = ttb.sptensor.from_tensor_type(ttensorInstance.core)
     sparse_u = [
-        sparse.coo_matrix(np.ones(factor.shape)) for factor in ttensorInstance.u
+        sparse.coo_matrix(np.ones(factor.shape))
+        for factor in ttensorInstance.factor_matrices
     ]
     # We could probably make these properties to avoid this edge case but expect to eventually cover these alternate
     # cores
@@ -115,7 +122,8 @@ def test_ttensor_full(sample_ttensor):
     sparse_core = ttb.sptensor()
     sparse_core.shape = ttensorInstance.core.shape
     sparse_u = [
-        sparse.coo_matrix(np.zeros(factor.shape)) for factor in ttensorInstance.u
+        sparse.coo_matrix(np.zeros(factor.shape))
+        for factor in ttensorInstance.factor_matrices
     ]
     sparse_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
     assert sparse_ttensor.full().double().item() == 0
@@ -186,7 +194,7 @@ def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
 
     # Negative Tests
     ttensor_extra_factors = ttb.ttensor.from_tensor_type(ttensorInstance)
-    ttensor_extra_factors.u.extend(ttensorInstance.u)
+    ttensor_extra_factors.factor_matrices.extend(ttensorInstance.factor_matrices)
     with pytest.raises(ValueError):
         ttensorInstance.innerprod(ttensor_extra_factors)
 
@@ -264,7 +272,10 @@ def test_ttensor_ttv(sample_ttensor):
 def test_ttensor_mttkrp(random_ttensor):
     ttensorInstance = random_ttensor
     column_length = 6
-    vectors = [np.random.random((u.shape[0], column_length)) for u in ttensorInstance.u]
+    vectors = [
+        np.random.random((u.shape[0], column_length))
+        for u in ttensorInstance.factor_matrices
+    ]
     final_value = ttensorInstance.mttkrp(vectors, 2)
     full_value = ttensorInstance.full().mttkrp(vectors, 2)
     assert np.allclose(final_value, full_value), (
@@ -299,7 +310,10 @@ def test_ttensor_permute(random_ttensor):
 def test_ttensor_ttm(random_ttensor):
     ttensorInstance = random_ttensor
     row_length = 9
-    matrices = [np.random.random((row_length, u.shape[0])) for u in ttensorInstance.u]
+    matrices = [
+        np.random.random((row_length, u.shape[0]))
+        for u in ttensorInstance.factor_matrices
+    ]
     final_value = ttensorInstance.ttm(matrices, np.arange(len(matrices)))
     reverse_value = ttensorInstance.ttm(
         list(reversed(matrices)), np.arange(len(matrices) - 1, -1, -1)
@@ -361,7 +375,7 @@ def test_ttensor_reconstruct(random_ttensor):
     full_scalar = ttensorInstance.full()[tuple(sample_all_modes)]
     assert np.isclose(reconstruct_scalar, full_scalar)
 
-    scale = np.random.random(ttensorInstance.u[1].shape).transpose()
+    scale = np.random.random(ttensorInstance.factor_matrices[1].shape).transpose()
     _ = ttensorInstance.reconstruct(scale, 1)
     # FIXME from the MATLAB docs wasn't totally clear how to validate this
 
@@ -378,9 +392,11 @@ def test_ttensor_nvecs(random_ttensor):
     ttensorInstance = random_ttensor
 
     sparse_core = ttb.sptensor.from_tensor_type(ttensorInstance.core)
-    sparse_core_ttensor = ttb.ttensor.from_data(sparse_core, ttensorInstance.u)
+    sparse_core_ttensor = ttb.ttensor.from_data(
+        sparse_core, ttensorInstance.factor_matrices
+    )
 
-    sparse_u = [sparse.coo_matrix(factor) for factor in ttensorInstance.u]
+    sparse_u = [sparse.coo_matrix(factor) for factor in ttensorInstance.factor_matrices]
     sparse_factor_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
 
     # Smaller number of eig vals
@@ -417,13 +433,14 @@ def test_ttensor_nvecs_all_zeros(random_ttensor):
     r = 2
 
     # Construct all zeros ttensors
-    dense_u = [np.zeros(factor.shape) for factor in ttensorInstance.u]
+    dense_u = [np.zeros(factor.shape) for factor in ttensorInstance.factor_matrices]
     dense_core = ttb.tenzeros(ttensorInstance.core.shape)
     dense_ttensor = ttb.ttensor.from_data(dense_core, dense_u)
     dense_nvecs = dense_ttensor.nvecs(n, r)
 
     sparse_u = [
-        sparse.coo_matrix(np.zeros(factor.shape)) for factor in ttensorInstance.u
+        sparse.coo_matrix(np.zeros(factor.shape))
+        for factor in ttensorInstance.factor_matrices
     ]
     sparse_core = ttb.sptensor()
     sparse_core.shape = ttensorInstance.core.shape
@@ -444,5 +461,5 @@ def test_sptensor_isequal(sample_ttensor):
     # Negative Tests
     assert not ttensorInstance.isequal(ttensorInstance.full())
     ttensor_extra_factors = ttb.ttensor.from_tensor_type(ttensorInstance)
-    ttensor_extra_factors.u.extend(ttensorInstance.u)
+    ttensor_extra_factors.factor_matrices.extend(ttensorInstance.factor_matrices)
     assert not ttensorInstance.isequal(ttensor_extra_factors)
