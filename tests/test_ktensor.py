@@ -392,6 +392,15 @@ def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
     print(K3.full())
 
 
+def test_ktensor_to_tensor(sample_ktensor_2way, sample_ktensor_3way):
+    (data, K2) = sample_ktensor_2way
+    assert K2.to_tensor().isequal(
+        ttb.tensor(np.array([[29.0, 39.0], [63.0, 85.0]]), (2, 2))
+    )
+    (data, K3) = sample_ktensor_3way
+    print(K3.full())
+
+
 def test_ktensor_innerprod(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     assert K.innerprod(K) == 13556

@@ -94,7 +94,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     # Main Loop
     factor_matrices = [np.empty(1)] * d
     # Copy input tensor, shrinks every step for sequential
-    Y = ttb.tensor.from_tensor_type(input_tensor)
+    Y = input_tensor.copy()
 
     for k in dimorder:
         # Compute Gram matrix

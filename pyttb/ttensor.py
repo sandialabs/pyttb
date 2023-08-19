@@ -173,7 +173,7 @@ class ttensor:
 
         # There is a small chance tensor could be sparse so cast that to dense.
         if not isinstance(recomposed_tensor, ttb.tensor):
-            recomposed_tensor = ttb.tensor.from_tensor_type(recomposed_tensor)
+            recomposed_tensor = recomposed_tensor.to_tensor()
         return recomposed_tensor
 
     def double(self) -> np.ndarray:

@@ -846,6 +846,12 @@ class ktensor:
 
         return self
 
+    def to_tensor(self) -> ttb.tensor:
+        """Convenience method to convert to tensor.
+        Same as :meth:`pyttb.ktensor.full`
+        """
+        return self.full()
+
     def full(self) -> ttb.tensor:
         """
         Convert a :class:`pyttb.ktensor` to a :class:`pyttb.tensor`.

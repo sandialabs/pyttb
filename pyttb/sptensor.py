@@ -532,7 +532,7 @@ class sptensor:
         # Check if result should be dense
         if y.nnz > 0.5 * np.prod(y.shape):
             # Final result is a dense tensor
-            return ttb.tensor.from_tensor_type(y)
+            return y.to_tensor()
         return y
 
     def double(self) -> np.ndarray:
@@ -625,6 +625,12 @@ class sptensor:
         vals: Values at corresponding subscripts
         """
         return self.subs, self.vals
+
+    def to_tensor(self) -> ttb.tensor:
+        """Convenience method to convert to tensor.
+        Same as :meth:`pyttb.sptensor.full`
+        """
+        return self.full()
 
     def full(self) -> ttb.tensor:
         """
@@ -1312,7 +1318,7 @@ class sptensor:
 
         # Convert to a dense tensor if more than 50% of the result is nonzero.
         if c.nnz > 0.5 * np.prod(newsiz):
-            c = ttb.tensor.from_tensor_type(c)
+            c = c.to_tensor()
 
         return c
 
@@ -2651,7 +2657,7 @@ class sptensor:
             return Ynt
         # TODO evaluate performance loss by casting into sptensor then tensor.
         #  I assume minimal since we are already using spare matrix representation
-        return ttb.tensor.from_tensor_type(Ynt)
+        return Ynt.to_tensor()
 
     @overload
     def squash(self, return_inverse: Literal[False]) -> sptensor:

@@ -106,57 +106,6 @@ class tensor:
         return
 
     @classmethod
-    def from_tensor_type(
-        cls, source: Union[ttb.sptensor, tensor, ttb.ktensor, ttb.tenmat]
-    ) -> tensor:
-        """
-        Converts other tensor types into a dense tensor
-
-        Parameters
-        ----------
-        source:
-            Tensor type to create dense tensor from
-
-        Returns
-        -------
-        Constructed tensor
-
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = ttb.tensor.from_tensor_type(X)
-        """
-        # CONVERSION/COPY CONSTRUCTORS
-        if isinstance(source, tensor):
-            # COPY CONSTRUCTOR
-            return source.copy()
-        if isinstance(
-            source,
-            (
-                ttb.ktensor,
-                ttb.ttensor,
-                ttb.sptensor,
-                ttb.sumtensor,
-                ttb.symtensor,
-                ttb.symktensor,
-            ),
-        ):
-            # CONVERSION
-            return source.full()
-        if isinstance(source, ttb.tenmat):
-            # RESHAPE TENSOR-AS-MATRIX
-            # Here we just reverse what was done in the tenmat constructor.
-            # First we reshape the data to be an MDA, then we un-permute
-            # it using ipermute.
-            shape = source.tshape
-            order = np.hstack([source.rindices, source.cindices])
-            data = np.reshape(source.data.copy(), np.array(shape)[order], order="F")
-            if order.size > 1:
-                data = np.transpose(data, np.argsort(order))
-            return cls(data, shape, copy=False)
-        raise ValueError(f"Unsupported type for tensor source, received {type(source)}")
-
-    @classmethod
     def from_function(
         cls,
         function_handle: Callable[[Tuple[int, ...]], np.ndarray],
@@ -942,7 +891,7 @@ class tensor:
         """
         shapeArray = np.array(self.shape)
         if np.all(shapeArray > 1):
-            return ttb.tensor.from_tensor_type(self)
+            return self.copy()
         else:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
@@ -1203,7 +1152,7 @@ class tensor:
 
         # Check whether or not the result is a scalar
         if isinstance(cmatrix, ttb.tenmat):
-            return ttb.tensor.from_tensor_type(cmatrix)
+            return cmatrix.to_tensor()
         return cmatrix
 
     def ttv(

@@ -211,6 +211,19 @@ class tenmat:
             f"Can only create tenmat from tensor or tenmat but recieved {type(source)}"
         )
 
+    def to_tensor(self) -> ttb.tensor:
+        """Return copy of tenmat data as a tensor"""
+        # RESHAPE TENSOR-AS-MATRIX
+        # Here we just reverse what was done in the tenmat constructor.
+        # First we reshape the data to be an MDA, then we un-permute
+        # it using ipermute.
+        shape = self.tshape
+        order = np.hstack([self.rindices, self.cindices])
+        data = np.reshape(self.data.copy(), np.array(shape)[order], order="F")
+        if order.size > 1:
+            data = np.transpose(data, np.argsort(order))
+        return ttb.tensor(data, shape, copy=False)
+
     def ctranspose(self) -> tenmat:
         """
         Complex conjugate transpose for tenmat.

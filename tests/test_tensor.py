@@ -104,47 +104,6 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
     ), f"tensorInstance1:\n{tensorInstance1}"
 
 
-def test_tensor_initialization_from_tensor_type(sample_tensor_2way, sample_tensor_4way):
-    (params, tensorInstance) = sample_tensor_2way
-    (_, tensorInstance4) = sample_tensor_4way
-
-    # Copy Constructor
-    tensorCopy = ttb.tensor.from_tensor_type(tensorInstance)
-    assert np.array_equal(tensorCopy.data, params["data"])
-    assert tensorCopy.shape == params["shape"]
-
-    subs = np.array([[0, 0], [0, 1], [0, 2], [1, 0]])
-    vals = np.array([[1], [2], [3], [4]])
-    shape = (2, 3)
-    data = np.array([[1, 2, 3], [4, 0, 0]])
-    a = ttb.sptensor(subs, vals, shape)
-
-    # Sptensor
-    b = ttb.tensor.from_tensor_type(a)
-    assert np.array_equal(b.data, data)
-    assert b.shape == shape
-
-    # tenmat
-    tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, np.array([0]))
-    tensorTenmatInstance = ttb.tensor.from_tensor_type(tenmatInstance)
-    assert tensorInstance.isequal(tensorTenmatInstance)
-
-    # 1D 1-element tenmat
-    tensorInstance1 = ttb.tensor(np.array([3]))
-    tenmatInstance1 = ttb.tenmat.from_tensor_type(tensorInstance1, np.array([0]))
-    tensorTenmatInstance1 = ttb.tensor.from_tensor_type(tenmatInstance1)
-    assert tensorInstance1.isequal(tensorTenmatInstance1)
-
-    # 4D tenmat
-    tenmatInstance4 = ttb.tenmat.from_tensor_type(tensorInstance4, np.array([3, 0]))
-    tensorTenmatInstance4 = ttb.tensor.from_tensor_type(tenmatInstance4)
-    assert tensorInstance4.isequal(tensorTenmatInstance4)
-
-    # Non-tensor type
-    with pytest.raises(ValueError):
-        ttb.tensor.from_tensor_type(1)
-
-
 def test_tensor_initialization_from_function():
     def function_handle(x):
         return np.array([[1, 2, 3], [4, 5, 6]])
@@ -184,19 +143,19 @@ def test_tensor__deepcopy__(sample_tensor_2way):
 def test_tensor_find(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     subs, vals = tensorInstance.find()
-    a = ttb.tensor.from_tensor_type(ttb.sptensor(subs, vals, tensorInstance.shape))
+    a = ttb.sptensor(subs, vals, tensorInstance.shape).to_tensor()
     assert np.array_equal(a.data, tensorInstance.data), f"subs: {subs}\nvals: {vals}"
     assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
     (params, tensorInstance) = sample_tensor_3way
     subs, vals = tensorInstance.find()
-    a = ttb.tensor.from_tensor_type(ttb.sptensor(subs, vals, tensorInstance.shape))
+    a = ttb.sptensor(subs, vals, tensorInstance.shape).to_tensor()
     assert np.array_equal(a.data, tensorInstance.data), f"subs: {subs}\nvals: {vals}"
     assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
     (params, tensorInstance) = sample_tensor_4way
     subs, vals = tensorInstance.find()
-    a = ttb.tensor.from_tensor_type(ttb.sptensor(subs, vals, tensorInstance.shape))
+    a = ttb.sptensor(subs, vals, tensorInstance.shape).to_tensor()
     assert np.array_equal(a.data, tensorInstance.data), f"subs: {subs}\nvals: {vals}"
     assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 

@@ -221,7 +221,7 @@ def test_sptensor_and_sptensor(sample_sptensor):
 
 def test_sptensor_and_tensor(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
-    b = sptensorInstance.logical_and(ttb.tensor.from_tensor_type(sptensorInstance))
+    b = sptensorInstance.logical_and(sptensorInstance.to_tensor())
     assert np.array_equal(b.subs, data["subs"])
     assert np.array_equal(b.vals, np.ones(data["vals"].shape))
 
@@ -714,9 +714,7 @@ def test_sptensor_logical_or(sample_sptensor):
     assert np.array_equal(sptensorOr.vals, np.ones((data["vals"].shape[0], 1)))
 
     # Sptensor logical or with tensor
-    sptensorOr = sptensorInstance.logical_or(
-        ttb.tensor.from_tensor_type(sptensorInstance)
-    )
+    sptensorOr = sptensorInstance.logical_or(sptensorInstance.to_tensor())
     nonZeroMatrix = np.zeros(data["shape"])
     nonZeroMatrix[tuple(data["subs"].transpose())] = 1
     assert np.array_equal(sptensorOr.data, nonZeroMatrix)
@@ -755,7 +753,7 @@ def test_sptensor__eq__(sample_sptensor):
         eqSptensor.subs, np.vstack((sptensorInstance.logical_not().subs, data["subs"]))
     )
 
-    denseTensor = ttb.tensor.from_tensor_type(sptensorInstance)
+    denseTensor = sptensorInstance.to_tensor()
     eqSptensor = sptensorInstance == denseTensor
     logging.debug(f"\ndenseTensor = {denseTensor}")
     logging.debug(f"\nsptensorInstance = {sptensorInstance}")
@@ -805,11 +803,11 @@ def test_sptensor__ne__(sample_sptensor):
     eqSptensor = sptensorInstance != sptensorInstance
     assert eqSptensor.vals.size == 0
 
-    denseTensor = ttb.tensor.from_tensor_type(sptensorInstance)
+    denseTensor = sptensorInstance.to_tensor()
     eqSptensor = sptensorInstance != denseTensor
     assert eqSptensor.vals.size == 0
 
-    denseTensor = ttb.tensor.from_tensor_type(sptensorInstance)
+    denseTensor = sptensorInstance.to_tensor()
     denseTensor[1, 1, 2] = 1
     eqSptensor = sptensorInstance != denseTensor
     assert np.array_equal(eqSptensor.subs.squeeze(), np.array([1, 1, 2]))
@@ -846,14 +844,12 @@ def test_sptensor__sub__(sample_sptensor):
     assert "Must be two sparse tensors of the same shape" in str(excinfo)
 
     # Sptensor - tensor
-    subSptensor = sptensorInstance - ttb.tensor.from_tensor_type(sptensorInstance)
+    subSptensor = sptensorInstance - sptensorInstance.to_tensor()
     assert np.array_equal(subSptensor.data, np.zeros(data["shape"]))
 
     # Sptensor - scalar
     subSptensor = sptensorInstance - 0
-    assert np.array_equal(
-        subSptensor.data, ttb.tensor.from_tensor_type(sptensorInstance).data
-    )
+    assert np.array_equal(subSptensor.data, sptensorInstance.to_tensor().data)
 
 
 def test_sptensor__add__(sample_sptensor):
@@ -869,15 +865,13 @@ def test_sptensor__add__(sample_sptensor):
     assert "Must be two sparse tensors of the same shape" in str(excinfo)
 
     # Sptensor + tensor
-    subSptensor = sptensorInstance + ttb.tensor.from_tensor_type(sptensorInstance)
-    results = ttb.tensor.from_tensor_type(sptensorInstance).data * 2
+    subSptensor = sptensorInstance + sptensorInstance.to_tensor()
+    results = sptensorInstance.to_tensor().data * 2
     assert np.array_equal(subSptensor.data, results)
 
     # Sptensor + scalar
     subSptensor = sptensorInstance + 0
-    assert np.array_equal(
-        subSptensor.data, ttb.tensor.from_tensor_type(sptensorInstance).data
-    )
+    assert np.array_equal(subSptensor.data, sptensorInstance.to_tensor().data)
 
 
 def test_sptensor_isequal(sample_sptensor):
@@ -892,7 +886,7 @@ def test_sptensor_isequal(sample_sptensor):
     assert sptensorInstance.isequal(sptensorInstance)
 
     # Sptensor equality with tensor
-    assert sptensorInstance.isequal(ttb.tensor.from_tensor_type(sptensorInstance))
+    assert sptensorInstance.isequal(sptensorInstance.to_tensor())
 
     # Sptensor equality with not sptensor or tensor
     assert not sptensorInstance.isequal(np.ones(data["shape"]))
@@ -927,7 +921,7 @@ def test_sptensor__mul__(sample_sptensor):
     )
     # Test mul with tensor
     assert np.array_equal(
-        (sptensorInstance * ttb.tensor.from_tensor_type(sptensorInstance)).vals,
+        (sptensorInstance * sptensorInstance.to_tensor()).vals,
         data["vals"] * data["vals"],
     )
     # Test mul with ktensor
@@ -1162,9 +1156,9 @@ def test_sptensor_innerprod(sample_sptensor):
     assert "Sptensors must be same shape for innerproduct" in str(excinfo)
 
     # Tensor innerproduct
-    assert sptensorInstance.innerprod(
-        ttb.tensor.from_tensor_type(sptensorInstance)
-    ) == data["vals"].transpose().dot(data["vals"])
+    assert sptensorInstance.innerprod(sptensorInstance.to_tensor()) == data[
+        "vals"
+    ].transpose().dot(data["vals"])
 
     # Wrong shape tensor
     with pytest.raises(AssertionError) as excinfo:
@@ -1196,9 +1190,7 @@ def test_sptensor_logical_xor(sample_sptensor):
     assert sptensorXor.vals.size == 0
 
     # Sptensor logical xor with tensor
-    sptensorXor = sptensorInstance.logical_xor(
-        ttb.tensor.from_tensor_type(sptensorInstance)
-    )
+    sptensorXor = sptensorInstance.logical_xor(sptensorInstance.to_tensor())
     assert np.array_equal(sptensorXor.data, np.zeros(data["shape"], dtype=bool))
 
     # Sptensor logical xor with wrong shape sptensor
@@ -1254,9 +1246,7 @@ def test_sptensor_scale(sample_sptensor):
 
     # Scale with tensor
     assert np.array_equal(
-        sptensorInstance.scale(
-            ttb.tensor.from_tensor_type(sptensorInstance), np.arange(0, 3)
-        ).vals,
+        sptensorInstance.scale(sptensorInstance.to_tensor(), np.arange(0, 3)).vals,
         data["vals"] ** 2,
     )
 

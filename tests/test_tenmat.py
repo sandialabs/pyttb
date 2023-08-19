@@ -355,6 +355,26 @@ def test_tenmat_initialization_from_tensor_type(
         ttb.tenmat.from_tensor_type("not a tensor")
 
 
+def test_tenmat_to_tensor():
+    tensorInstance = ttb.tenrand((4, 3))
+    tensorInstance4 = ttb.tenrand((4, 3, 2, 2))
+    # tenmat
+    tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, np.array([0]))
+    tensorTenmatInstance = tenmatInstance.to_tensor()
+    assert tensorInstance.isequal(tensorTenmatInstance)
+
+    # 1D 1-element tenmat
+    tensorInstance1 = ttb.tensor(np.array([3]))
+    tenmatInstance1 = ttb.tenmat.from_tensor_type(tensorInstance1, np.array([0]))
+    tensorTenmatInstance1 = tenmatInstance1.to_tensor()
+    assert tensorInstance1.isequal(tensorTenmatInstance1)
+
+    # 4D tenmat
+    tenmatInstance4 = ttb.tenmat.from_tensor_type(tensorInstance4, np.array([3, 0]))
+    tensorTenmatInstance4 = tenmatInstance4.to_tensor()
+    assert tensorInstance4.isequal(tensorTenmatInstance4)
+
+
 @pytest.mark.indevelopment
 def test_tenmat_ctranspose(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way

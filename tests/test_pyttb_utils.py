@@ -40,13 +40,13 @@ def test_sptensor_to_dense_matrix():
 def test_sptensor_from_dense_matrix():
     tensorInstance = ttb.tensor(np.random.normal(size=(4, 4, 4)))
     for mode in range(tensorInstance.ndims):
-        tensorCopy = ttb.tensor.from_tensor_type(tensorInstance)
+        tensorCopy = tensorInstance.copy()
         Xnt = ttb_utils.tt_to_dense_matrix(tensorCopy, mode, True)
         Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 0)
         assert tensorCopy.isequal(Ynt)
 
     for mode in range(tensorInstance.ndims):
-        tensorCopy = ttb.tensor.from_tensor_type(tensorInstance)
+        tensorCopy = tensorInstance.copy()
         Xnt = ttb_utils.tt_to_dense_matrix(tensorCopy, mode, False)
         Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 1)
         assert tensorCopy.isequal(Ynt)

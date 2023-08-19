@@ -267,7 +267,7 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
                 ttb.symktensor,
             ),
         ):
-            inputs[i] = ttb.tensor.from_tensor_type(an_input)
+            inputs[i] = an_input.to_tensor()
         else:
             assert False, "Invalid input to ten fun"
 
