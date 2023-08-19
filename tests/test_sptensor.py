@@ -4,6 +4,7 @@
 
 import logging
 
+import copy
 import numpy as np
 import pytest
 import scipy.sparse as sparse
@@ -46,6 +47,9 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     assert np.array_equal(sptensorInstance.subs, data["subs"])
     assert np.array_equal(sptensorInstance.vals, data["vals"])
     assert sptensorInstance.shape == data["shape"]
+
+    with pytest.raises(ValueError):
+        ttb.sptensor(data["subs"], data["vals"])
 
 
 def test_sptensor_initialization_from_tensor_type(sample_sptensor):
@@ -158,6 +162,26 @@ def test_sptensor_initialization_from_aggregator(sample_sptensor):
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_aggregator(badSubs, vals, shape)
     assert "Subscript exceeds sptensor shape" in str(excinfo)
+
+
+def test_sptensor_copy():
+    first = ttb.sptensor(shape=(2, 2))
+    copy_tensor = first.copy()
+    assert copy_tensor.isequal(first)
+
+    # make sure it is a deep copy
+    copy_tensor[0, 0] = 1
+    assert copy_tensor[0, 0] != first[0, 0]
+
+
+def test_sptensor__deepcopy__():
+    first = ttb.sptensor(shape=(2, 2))
+    copy_tensor = copy.deepcopy(first)
+    assert copy_tensor.isequal(first)
+
+    # make sure it is a deep copy
+    copy_tensor[0, 0] = 1
+    assert copy_tensor[0, 0] != first[0, 0]
 
 
 def test_sptensor_and_scalar(sample_sptensor):

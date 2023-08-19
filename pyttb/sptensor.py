@@ -199,7 +199,7 @@ class sptensor:
         """
         # Copy Constructor
         if isinstance(source, sptensor):
-            return cls(source.subs.copy(), source.vals.copy(), source.shape)
+            return source.copy()
 
         # Convert SPTENMAT
         if isinstance(source, ttb.sptenmat):  # pragma: no cover
@@ -208,7 +208,7 @@ class sptensor:
         # Convert Tensor
         if isinstance(source, ttb.tensor):
             subs, vals = source.find()
-            return cls(subs, vals, source.shape, copy=True)
+            return cls(subs, vals, source.shape, copy=False)
 
         # Convert SPTENSOR3
         if isinstance(source, ttb.sptensor3):  # pragma: no cover
@@ -363,6 +363,30 @@ class sptensor:
 
         # Store everything
         return cls(newsubs, newvals, shape, copy=False)
+
+    def copy(self) -> sptensor:
+        """Make a deep copy of a :class:`pyttb.sptensor`.
+
+        Returns
+        -------
+        Copy of original sptensor.
+
+        Examples
+        --------
+        >>> first = ttb.sptensor(shape=(2,2))
+        >>> first[0,0] = 1
+        >>> second = first
+        >>> third = second.copy()
+        >>> first[0,0] = 3
+        >>> first[0,0] == second[0,0]
+        True
+        >>> first[0,0] == third[0,0]
+        False
+        """
+        return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
+
+    def __deepcopy__(self, memodict={}):
+        return self.copy()
 
     # TODO decide if property
     def allsubs(self) -> np.ndarray:
@@ -956,9 +980,7 @@ class sptensor:
         old = np.setdiff1d(np.arange(self.ndims), n).astype(int)
         # tnt calculation is a workaround for missing sptenmat
         mutatable_sptensor = (
-            sptensor.from_tensor_type(self)
-            .reshape((np.prod(np.array(self.shape)[old]), 1), old)
-            .squeeze()
+            self.copy().reshape((np.prod(np.array(self.shape)[old]), 1), old).squeeze()
         )
         if isinstance(mutatable_sptensor, (int, float, np.generic)):
             raise ValueError(
@@ -1134,7 +1156,7 @@ class sptensor:
 
         # No singleton dimensions
         if np.all(shapeArray > 1):
-            return ttb.sptensor.from_tensor_type(self)
+            return self.copy()
         idx = np.where(shapeArray > 1)[0]
         if idx.size == 0:
             return self.vals[0].copy()
@@ -2021,7 +2043,7 @@ class sptensor:
         :class:`pyttb.sptensor`, copy of tensor
         """
 
-        return ttb.sptensor.from_tensor_type(self)
+        return self.copy()
 
     def __neg__(self):
         """
