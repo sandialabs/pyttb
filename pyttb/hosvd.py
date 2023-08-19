@@ -133,7 +133,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     else:
         G = Y.ttm(factor_matrices, transpose=True)
 
-    result = ttb.ttensor.from_data(G, factor_matrices)
+    result = ttb.ttensor(G, factor_matrices, copy=False)
 
     if verbosity > 0:
         diffnormsqr = ((input_tensor - result.full()) ** 2).collapse()

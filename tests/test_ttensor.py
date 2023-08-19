@@ -14,7 +14,7 @@ def sample_ttensor():
     """Simple TTENSOR to verify by hand"""
     core = ttb.tensor(np.ones((2, 2, 2)))
     factors = [np.ones((1, 2))] * len(core.shape)
-    ttensorInstance = ttb.ttensor().from_data(core, factors)
+    ttensorInstance = ttb.ttensor(core, factors)
     return ttensorInstance
 
 
@@ -27,7 +27,7 @@ def random_ttensor():
         np.random.random((2, 3)),
         np.random.random((4, 4)),
     ]
-    ttensorInstance = ttb.ttensor().from_data(core, factors)
+    ttensorInstance = ttb.ttensor(core, factors)
     return ttensorInstance
 
 
@@ -57,7 +57,7 @@ def test_ttensor_initialization_from_data(sample_ttensor):
         sparse.coo_matrix(np.ones(factor.shape))
         for factor in ttensorInstance.factor_matrices
     ]
-    sparse_ttensor = ttb.ttensor.from_data(
+    sparse_ttensor = ttb.ttensor(
         ttb.sptensor.from_tensor_type(ttensorInstance.core), sparse_u
     )
     assert isinstance(sparse_ttensor, ttb.ttensor)
@@ -65,25 +65,29 @@ def test_ttensor_initialization_from_data(sample_ttensor):
     # Negative Tests
     non_array_factor = ttensorInstance.factor_matrices + [1]
     with pytest.raises(ValueError):
-        ttb.ttensor.from_data(ttensorInstance.core, non_array_factor[1:])
+        ttb.ttensor(ttensorInstance.core, non_array_factor[1:])
 
     non_matrix_factor = ttensorInstance.factor_matrices + [np.array([1])]
     with pytest.raises(ValueError):
-        ttb.ttensor.from_data(ttensorInstance.core, non_matrix_factor[1:])
+        ttb.ttensor(ttensorInstance.core, non_matrix_factor[1:])
 
     too_few_factors = ttensorInstance.factor_matrices.copy()
     too_few_factors.pop()
     with pytest.raises(ValueError):
-        ttb.ttensor.from_data(ttensorInstance.core, too_few_factors)
+        ttb.ttensor(ttensorInstance.core, too_few_factors)
 
     wrong_shape_factor = ttensorInstance.factor_matrices.copy()
     row, col = wrong_shape_factor[0].shape
     wrong_shape_factor[0] = np.random.random((row + 1, col + 1))
     with pytest.raises(ValueError):
-        ttb.ttensor.from_data(ttensorInstance.core, wrong_shape_factor)
+        ttb.ttensor(ttensorInstance.core, wrong_shape_factor)
     # Invalid core type
     with pytest.raises(ValueError):
-        ttb.ttensor.from_data(ttensorInstance, ttensorInstance.factor_matrices)
+        ttb.ttensor(ttensorInstance, ttensorInstance.factor_matrices)
+
+    with pytest.raises(ValueError):
+        # Improperly specified non-empty arguments
+        ttb.ttensor(ttensorInstance.core, None)
 
 
 @pytest.mark.indevelopment
@@ -115,7 +119,7 @@ def test_ttensor_full(sample_ttensor):
     ]
     # We could probably make these properties to avoid this edge case but expect to eventually cover these alternate
     # cores
-    sparse_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+    sparse_ttensor = ttb.ttensor(sparse_core, sparse_u)
     assert sparse_ttensor.full().isequal(tensor)
 
     # Empty sparse ttensor components
@@ -125,7 +129,7 @@ def test_ttensor_full(sample_ttensor):
         sparse.coo_matrix(np.zeros(factor.shape))
         for factor in ttensorInstance.factor_matrices
     ]
-    sparse_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+    sparse_ttensor = ttb.ttensor(sparse_core, sparse_u)
     assert sparse_ttensor.full().double().item() == 0
 
 
@@ -171,7 +175,7 @@ def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
     assert ttensorInstance.innerprod(ttensorInstance) == ttensorInstance.double() ** 2
     core_dim = ttensorInstance.core.shape[0] + 1
     ndim = ttensorInstance.ndims
-    large_core_ttensor = ttb.ttensor.from_data(
+    large_core_ttensor = ttb.ttensor(
         ttb.tensor(np.ones((core_dim,) * ndim)),
         [np.ones((1, core_dim))] * ndim,
     )
@@ -392,12 +396,10 @@ def test_ttensor_nvecs(random_ttensor):
     ttensorInstance = random_ttensor
 
     sparse_core = ttb.sptensor.from_tensor_type(ttensorInstance.core)
-    sparse_core_ttensor = ttb.ttensor.from_data(
-        sparse_core, ttensorInstance.factor_matrices
-    )
+    sparse_core_ttensor = ttb.ttensor(sparse_core, ttensorInstance.factor_matrices)
 
     sparse_u = [sparse.coo_matrix(factor) for factor in ttensorInstance.factor_matrices]
-    sparse_factor_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+    sparse_factor_ttensor = ttb.ttensor(sparse_core, sparse_u)
 
     # Smaller number of eig vals
     n = 0
@@ -435,7 +437,7 @@ def test_ttensor_nvecs_all_zeros(random_ttensor):
     # Construct all zeros ttensors
     dense_u = [np.zeros(factor.shape) for factor in ttensorInstance.factor_matrices]
     dense_core = ttb.tenzeros(ttensorInstance.core.shape)
-    dense_ttensor = ttb.ttensor.from_data(dense_core, dense_u)
+    dense_ttensor = ttb.ttensor(dense_core, dense_u)
     dense_nvecs = dense_ttensor.nvecs(n, r)
 
     sparse_u = [
@@ -444,7 +446,7 @@ def test_ttensor_nvecs_all_zeros(random_ttensor):
     ]
     sparse_core = ttb.sptensor()
     sparse_core.shape = ttensorInstance.core.shape
-    sparse_ttensor = ttb.ttensor.from_data(sparse_core, sparse_u)
+    sparse_ttensor = ttb.ttensor(sparse_core, sparse_u)
     sparse_nvecs = sparse_ttensor.nvecs(n, r)
     # Currently just a smoke test need to find a very sparse
     # but well formed tensor for nvecs
