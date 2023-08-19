@@ -92,25 +92,6 @@ def test_ttensor_initialization_from_data(sample_ttensor):
         ttb.ttensor(ttensorInstance.core, None)
 
 
-@pytest.mark.indevelopment
-def test_ttensor_initialization_from_tensor_type(sample_ttensor):
-    # Copy constructor
-    ttensorInstance = sample_ttensor
-    ttensorCopy = ttb.ttensor.from_tensor_type(ttensorInstance)
-    assert ttensorCopy.core == ttensorInstance.core
-    assert all(
-        np.array_equal(copy_fm, orig_fm)
-        for copy_fm, orig_fm in zip(
-            ttensorCopy.factor_matrices, ttensorInstance.factor_matrices
-        )
-    )
-    assert ttensorCopy.shape == ttensorInstance.shape
-
-    # Negative test
-    with pytest.raises(ValueError):
-        ttb.ttensor.from_tensor_type("Not a ttensor")
-
-
 def test_ttensor_copy(sample_ttensor):
     tensor_instance = sample_ttensor
     copy_tensor = tensor_instance.copy()
@@ -228,7 +209,7 @@ def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
     random_ttensor.innerprod(random_ttensor.full())
 
     # Negative Tests
-    ttensor_extra_factors = ttb.ttensor.from_tensor_type(ttensorInstance)
+    ttensor_extra_factors = ttensorInstance.copy()
     ttensor_extra_factors.factor_matrices.extend(ttensorInstance.factor_matrices)
     with pytest.raises(ValueError):
         ttensorInstance.innerprod(ttensor_extra_factors)
@@ -493,6 +474,6 @@ def test_sptensor_isequal(sample_ttensor):
     ttensorInstance = sample_ttensor
     # Negative Tests
     assert not ttensorInstance.isequal(ttensorInstance.full())
-    ttensor_extra_factors = ttb.ttensor.from_tensor_type(ttensorInstance)
+    ttensor_extra_factors = ttensorInstance.copy()
     ttensor_extra_factors.factor_matrices.extend(ttensorInstance.factor_matrices)
     assert not ttensorInstance.isequal(ttensor_extra_factors)

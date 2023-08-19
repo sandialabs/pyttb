@@ -87,27 +87,6 @@ class ttensor:
         self._validate_ttensor()
         return
 
-    @classmethod
-    def from_tensor_type(cls, source: ttensor) -> ttensor:
-        """
-        Converts other tensor types into a ttensor
-
-        Parameters
-        ----------
-        source:
-            Source tensor to create a new ttensor from.
-
-        Returns
-        -------
-        :class:`pyttb.ttensor`
-        """
-        # Copy Constructor
-        if isinstance(source, ttensor):
-            return cls(source.core, source.factor_matrices)
-        raise ValueError(
-            f"Can only cast ttensor to ttensor but received {type(source)}"
-        )
-
     def copy(self) -> ttensor:
         """Make a deep copy of a :class:`pyttb.ttensor`.
 
