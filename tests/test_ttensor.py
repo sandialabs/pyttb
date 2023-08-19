@@ -2,6 +2,8 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import copy
+
 import numpy as np
 import pytest
 from scipy import sparse
@@ -96,12 +98,41 @@ def test_ttensor_initialization_from_tensor_type(sample_ttensor):
     ttensorInstance = sample_ttensor
     ttensorCopy = ttb.ttensor.from_tensor_type(ttensorInstance)
     assert ttensorCopy.core == ttensorInstance.core
-    assert ttensorCopy.factor_matrices == ttensorInstance.factor_matrices
+    assert all(
+        np.array_equal(copy_fm, orig_fm)
+        for copy_fm, orig_fm in zip(
+            ttensorCopy.factor_matrices, ttensorInstance.factor_matrices
+        )
+    )
     assert ttensorCopy.shape == ttensorInstance.shape
 
     # Negative test
     with pytest.raises(ValueError):
         ttb.ttensor.from_tensor_type("Not a ttensor")
+
+
+def test_ttensor_copy(sample_ttensor):
+    tensor_instance = sample_ttensor
+    copy_tensor = tensor_instance.copy()
+    assert copy_tensor.isequal(tensor_instance)
+
+    # make sure it is a deep copy
+    copy_tensor.factor_matrices[0][0, 0] = 55
+    assert (
+        copy_tensor.factor_matrices[0][0, 0] != tensor_instance.factor_matrices[0][0, 0]
+    )
+
+
+def test_ttensor__deepcopy__(sample_ttensor):
+    tensor_instance = sample_ttensor
+    copy_tensor = copy.deepcopy(tensor_instance)
+    assert copy_tensor.isequal(tensor_instance)
+
+    # make sure it is a deep copy
+    copy_tensor.factor_matrices[0][0, 0] = 55
+    assert (
+        copy_tensor.factor_matrices[0][0, 0] != tensor_instance.factor_matrices[0][0, 0]
+    )
 
 
 @pytest.mark.indevelopment

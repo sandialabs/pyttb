@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import textwrap
+from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -76,7 +77,7 @@ class ttensor:
         if isinstance(core, (ttb.tensor, ttb.sptensor)):
             if copy:
                 self.core = core.copy()
-                self.factor_matrices = factors.copy()
+                self.factor_matrices = deepcopy(factors)
             else:
                 self.core = core
                 self.factor_matrices = factors
@@ -106,6 +107,32 @@ class ttensor:
         raise ValueError(
             f"Can only cast ttensor to ttensor but received {type(source)}"
         )
+
+    def copy(self) -> ttensor:
+        """Make a deep copy of a :class:`pyttb.ttensor`.
+
+        Returns
+        -------
+        Copy of original ttensor.
+
+        Examples
+        --------
+        >>> core_values = np.ones((2,2,2))
+        >>> core = ttb.tensor(core_values)
+        >>> factors = [np.ones((1,2))] * len(core_values.shape)
+        >>> first = ttb.ttensor(core, factors)
+        >>> second = first
+        >>> third = second.copy()
+        >>> first.factor_matrices[0][0,0] = 2
+        >>> first.factor_matrices[0][0,0] == second.factor_matrices[0][0,0]
+        True
+        >>> first.factor_matrices[0][0,0] == third.factor_matrices[0][0,0]
+        False
+        """
+        return ttb.ttensor(self.core, self.factor_matrices, copy=True)
+
+    def __deepcopy__(self, memodict={}):
+        return self.copy()
 
     def _validate_ttensor(self):
         """Verifies the validity of constructed ttensor"""
@@ -224,7 +251,7 @@ class ttensor:
         :class:`pyttb.ttensor`, copy of tensor
         """
 
-        return ttensor.from_tensor_type(self)
+        return self.copy()
 
     def __neg__(self):
         """
