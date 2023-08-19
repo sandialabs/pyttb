@@ -129,8 +129,7 @@ class tensor:
         # CONVERSION/COPY CONSTRUCTORS
         if isinstance(source, tensor):
             # COPY CONSTRUCTOR
-            # TODO replace with explicit copy
-            return cls(source.data, source.shape)
+            return source.copy()
         if isinstance(
             source,
             (
@@ -143,9 +142,7 @@ class tensor:
             ),
         ):
             # CONVERSION
-            t = source.full()
-            # TODO replace with explicit copy
-            return cls(t.data, t.shape)
+            return source.full()
         if isinstance(source, ttb.tenmat):
             # RESHAPE TENSOR-AS-MATRIX
             # Here we just reverse what was done in the tenmat constructor.
@@ -156,7 +153,7 @@ class tensor:
             data = np.reshape(source.data.copy(), np.array(shape)[order], order="F")
             if order.size > 1:
                 data = np.transpose(data, np.argsort(order))
-            return cls(data, shape)
+            return cls(data, shape, copy=False)
         raise ValueError(f"Unsupported type for tensor source, received {type(source)}")
 
     @classmethod
@@ -195,6 +192,29 @@ class tensor:
         # Create the tensor
         return cls(data, shape, copy=False)
 
+    def copy(self) -> tensor:
+        """Make a deep copy of a :class:`pyttb.tensor`.
+
+        Returns
+        -------
+        Copy of original tensor.
+
+        Examples
+        --------
+        >>> first = ttb.tensor(np.ones((3,2)))
+        >>> second = first
+        >>> third = second.copy()
+        >>> first[0,0] = 3
+        >>> first[0,0] == second[0,0]
+        True
+        >>> first[0,0] == third[0,0]
+        False
+        """
+        return ttb.tensor(self.data, self.shape, copy=True)
+
+    def __deepcopy__(self, memodict={}):
+        return self.copy()
+
     def collapse(
         self,
         dims: Optional[np.ndarray] = None,
@@ -229,7 +249,7 @@ class tensor:
             dims = np.arange(0, self.ndims)
 
         if dims.size == 0:
-            return ttb.tensor.from_tensor_type(self)
+            return self.copy()
 
         dims, _ = tt_dimscheck(self.ndims, dims=dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
@@ -871,11 +891,11 @@ class tensor:
 
         # If order is empty, return
         if order.size == 0:
-            return ttb.tensor.from_tensor_type(self)
+            return self.copy()
 
         # Check for special case of an order-1 object, has no effect
         if (order == 1).all():
-            return ttb.tensor.from_tensor_type(self)
+            return self.copy()
 
         # Np transpose does error checking on order, acts as permutation
         return ttb.tensor(np.transpose(self.data, order), copy=False)

@@ -2,6 +2,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import copy
 import numpy as np
 import pytest
 
@@ -157,6 +158,26 @@ def test_tensor_initialization_from_function():
     with pytest.raises(AssertionError) as excinfo:
         ttb.tensor.from_function(function_handle, [2, 3])
     assert "TTB:BadInput, Shape must be a tuple" in str(excinfo)
+
+
+def test_tensor_copy(sample_tensor_2way):
+    (params, tensor_instance) = sample_tensor_2way
+    copy_tensor = tensor_instance.copy()
+    assert copy_tensor.isequal(tensor_instance)
+
+    # make sure it is a deep copy
+    copy_tensor[0] = 0
+    assert copy_tensor[0] != tensor_instance[0]
+
+
+def test_tensor__deepcopy__(sample_tensor_2way):
+    (params, tensor_instance) = sample_tensor_2way
+    copy_tensor = copy.deepcopy(tensor_instance)
+    assert copy_tensor.isequal(tensor_instance)
+
+    # make sure it is a deep copy
+    copy_tensor[0] = 0
+    assert copy_tensor[0] != tensor_instance[0]
 
 
 def test_tensor_find(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):

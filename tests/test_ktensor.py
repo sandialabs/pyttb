@@ -2,6 +2,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import copy
 import numpy as np
 import pytest
 
@@ -230,6 +231,18 @@ def test_ktensor_arrange(sample_ktensor_2way):
 def test_ktensor_copy(sample_ktensor_2way):
     (data, K0) = sample_ktensor_2way
     K1 = K0.copy()
+    assert np.array_equal(K0.weights, K1.weights)
+    assert np.array_equal(K0.factor_matrices[0], K1.factor_matrices[0])
+    assert np.array_equal(K0.factor_matrices[1], K1.factor_matrices[1])
+
+    # make sure it is a deep copy
+    K1.weights[0] = 0
+    assert not (K0.weights[0] == K1.weights[0])
+
+
+def test_ktensor__deepcopy__(sample_ktensor_2way):
+    (data, K0) = sample_ktensor_2way
+    K1 = copy.deepcopy(K0)
     assert np.array_equal(K0.weights, K1.weights)
     assert np.array_equal(K0.factor_matrices[0], K1.factor_matrices[0])
     assert np.array_equal(K0.factor_matrices[1], K1.factor_matrices[1])
