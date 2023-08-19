@@ -2,9 +2,9 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import copy
 import logging
 
-import copy
 import numpy as np
 import pytest
 import scipy.sparse as sparse
@@ -110,7 +110,7 @@ def test_sptensor_initialization_from_function():
     # Random Tensor exception for negative non-zeros
     nz = -1
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.sptensor.from_function(function_handle, shape, nz)
+        ttb.sptensor.from_function(function_handle, shape, nz)
     assert (
         "Requested number of non-zeros must be positive and less than the total size"
         in str(excinfo)
@@ -119,7 +119,7 @@ def test_sptensor_initialization_from_function():
     # Random Tensor exception for negative non-zeros
     nz = np.prod(shape) + 1
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.sptensor.from_function(function_handle, shape, nz)
+        ttb.sptensor.from_function(function_handle, shape, nz)
     assert (
         "Requested number of non-zeros must be positive and less than the total size"
         in str(excinfo)

@@ -3,6 +3,7 @@
 # U.S. Government retains certain rights in this software.
 
 import copy
+
 import numpy as np
 import pytest
 
@@ -104,17 +105,17 @@ def test_ktensor_init(sample_ktensor_2way):
     # Errors
     # Cannot specify weights and not factor_matrices
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(None, np.array([2.0, 1.0]))
+        ttb.ktensor(None, np.array([2.0, 1.0]))
     assert "factor_matrices cannot be None if weights are provided." in str(excinfo)
 
     # 'factor_matrices' must be a list
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(np.ones((2, 2)), np.array([2.0]))
+        ttb.ktensor(np.ones((2, 2)), np.array([2.0]))
     assert "Input 'factor_matrices' must be a list." in str(excinfo)
 
     # each factor matrix should be a np.ndarray
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(
+        ttb.ktensor(
             [np.ones((2, 2)), np.ones((2, 2)).astype(int)], np.array([2.0, 1.0])
         )
     assert (
@@ -124,7 +125,7 @@ def test_ktensor_init(sample_ktensor_2way):
 
     # the number of columns of all factor_matrices must be equal
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor([np.ones((2, 2)), np.ones((2, 1))], np.array([2.0, 1.0]))
+        ttb.ktensor([np.ones((2, 2)), np.ones((2, 1))], np.array([2.0, 1.0]))
     assert (
         "The number of columns each item in 'factor_matrices' must be the same."
         in str(excinfo)
@@ -186,7 +187,7 @@ def test_ktensor_from_vector(sample_ktensor_3way):
     # error if the shape does not match the the number of data elements
     with pytest.raises(AssertionError) as excinfo:
         bad_shape = tuple(dim + 7 for dim in data["shape"])
-        K3 = ttb.ktensor.from_vector(data["vector"].T, bad_shape, False)
+        ttb.ktensor.from_vector(data["vector"].T, bad_shape, False)
     assert "Input parameter 'data' is not the right length." in str(excinfo)
 
 
@@ -1106,7 +1107,7 @@ def test_ktensor__add__(sample_ktensor_2way, sample_ktensor_3way):
 
     # shapes do not match, should raise error
     with pytest.raises(AssertionError) as excinfo:
-        K3 = K0 + K1
+        K0 + K1
     assert "Must be two ktensors of the same shape" in str(excinfo)
 
     # types do not match, should raise error
@@ -1192,7 +1193,7 @@ def test_ktensor__sub__(sample_ktensor_2way, sample_ktensor_3way):
         )
     # shapes do not match, should raise error
     with pytest.raises(AssertionError) as excinfo:
-        K3 = K0 - K1
+        K0 - K1
     assert "Must be two ktensors of the same shape" in str(excinfo)
 
     # types do not match, should raise error
@@ -1218,7 +1219,7 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     for k in range(K1.ndims):
         assert np.array_equal(data0["factor_matrices"][k], K2.factor_matrices[k])
     with pytest.raises(AssertionError) as excinfo:
-        K3 = K0 * K0
+        K0 * K0
     assert (
         "Multiplication by ktensors only allowed for scalars, tensors, or sptensors"
         in str(excinfo)

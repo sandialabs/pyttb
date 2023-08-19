@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-import scipy
 
 import pyttb as ttb
 from pyttb.gcp import fg_setup

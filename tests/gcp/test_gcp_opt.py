@@ -4,9 +4,8 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.gcp import samplers
 from pyttb.gcp.handles import Objectives, gaussian, gaussian_grad
-from pyttb.gcp.optimizers import LBFGSB, SGD, Adagrad, Adam
+from pyttb.gcp.optimizers import LBFGSB, SGD
 
 
 class TestGcpOpt:

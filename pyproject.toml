@@ -69,6 +69,13 @@ ignore = [
     # Numpy legacy random transition is a TODO
     "NPY002",
 ]
+[tool.ruff.per-file-ignores]
+# See  see https://github.com/astral-sh/ruff/issues/3172 for details on this becoming simpler
+
+# Everything but I, F (to catch import mess and potential logic errors)
+"tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF"]
+# Ignore everything for now
+"docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF"]
 
 [tool.mypy]
 warn_unused_configs = true

@@ -296,7 +296,7 @@ def test_calc_partials():
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
-    answer = np.array([[0, 6], [7, 8]])
+    np.array([[0, 6], [7, 8]])
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     # TODO: These are just verifying same functionality as matlab
     phi, ups = calc_partials(
@@ -443,7 +443,7 @@ def test_tt_loglikelihood_row():
     # print(tensorInstance[:, 0])
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
-    loglikelihood = tt_loglikelihood_row(
+    tt_loglikelihood_row(
         False, tensorInstance[1, :].data, tensorInstance[1, :].data, Pi
     )
     # print(loglikelihood)

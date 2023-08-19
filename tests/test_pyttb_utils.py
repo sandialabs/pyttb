@@ -227,7 +227,6 @@ def test_tt_irenumber():
     subs = np.array([[const, const, 0], [const, const, 1]])
     vals = np.array([[0.5], [1.5]])
     shape = (4, 4, 4)
-    data = {"subs": subs, "vals": vals, "shape": shape}
     sptensorInstance = ttb.sptensor(subs, vals, shape)
     slice_tuple = (
         slice(None, None, None),

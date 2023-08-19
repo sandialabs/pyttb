@@ -31,20 +31,20 @@ def test_hosvd_simple_convergence(capsys, sample_tensor):
     (data, T) = sample_tensor
     tol = 1e-4
     result = ttb.hosvd(T, tol)
-    assert (result.full() - T).norm() / T.norm() < tol, f"Failed to converge"
+    assert (result.full() - T).norm() / T.norm() < tol, "Failed to converge"
 
     tol = 1e-4
     result = ttb.hosvd(T, tol, sequential=False)
     assert (
         result.full() - T
-    ).norm() / T.norm() < tol, f"Failed to converge for non-sequential option"
+    ).norm() / T.norm() < tol, "Failed to converge for non-sequential option"
 
     impossible_tol = 1e-20
     with pytest.warns(UserWarning):
         result = ttb.hosvd(T, impossible_tol)
     assert (
         result.full() - T
-    ).norm() / T.norm() > impossible_tol, f"Converged beyond provided precision"
+    ).norm() / T.norm() > impossible_tol, "Converged beyond provided precision"
 
 
 @pytest.mark.indevelopment

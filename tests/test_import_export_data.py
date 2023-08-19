@@ -137,7 +137,7 @@ def test_import_invalid():
     )
 
     with pytest.raises(AssertionError) as excinfo:
-        X = ttb.import_data(data_filename)
+        ttb.import_data(data_filename)
     assert (
         f"File path {os.path.normpath(data_filename)} does not exist."
         in excinfo.value.args[0]
@@ -147,14 +147,14 @@ def test_import_invalid():
     data_filename = os.path.join(os.path.dirname(__file__), "data", "invalid_type.tns")
 
     with pytest.raises(AssertionError) as excinfo:
-        X = ttb.import_data(data_filename)
-    assert f"Invalid data type found: list" in str(excinfo)
+        ttb.import_data(data_filename)
+    assert "Invalid data type found: list" in str(excinfo)
 
     # invalid type
     data_filename = os.path.join(os.path.dirname(__file__), "data", "invalid_dims.tns")
 
     with pytest.raises(AssertionError) as excinfo:
-        X = ttb.import_data(data_filename)
+        ttb.import_data(data_filename)
     assert "Imported dimensions are not of expected size" in str(excinfo)
 
 

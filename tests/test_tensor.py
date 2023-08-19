@@ -3,6 +3,7 @@
 # U.S. Government retains certain rights in this software.
 
 import copy
+
 import numpy as np
 import pytest
 
@@ -52,23 +53,23 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
     assert tensorInstance.shape == params["shape"]
 
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tensor(params["data"], ())
+        ttb.tensor(params["data"], ())
     assert "Empty tensor cannot contain any elements" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tensor(params["data"], (2, 4))
+        ttb.tensor(params["data"], (2, 4))
     assert "TTB:WrongSize, Size of data does not match specified size of tensor" in str(
         excinfo
     )
 
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tensor(params["data"], np.array([2, 3]))
+        ttb.tensor(params["data"], np.array([2, 3]))
     assert "Second argument must be a tuple." in str(excinfo)
 
     # TODO how else to break this logical statement?
     data = np.array([["a", 2, 3], [4, 5, 6]])
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tensor(data, (2, 3))
+        ttb.tensor(data, (2, 3))
     assert "First argument must be a multidimensional array." in str(excinfo)
 
     # 1D tensors
@@ -1447,7 +1448,7 @@ def test_tensor_symmetrize(sample_tensor_2way):
     shape = (2, 2, 2)
     T3 = ttb.tensor(np.arange(1, np.prod(shape) + 1), shape)
     T3sym = T3.symmetrize()
-    print(f"\nT3sym:")
+    print("\nT3sym:")
     print(T3sym)
     data3 = np.array(
         [
