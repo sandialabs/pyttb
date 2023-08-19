@@ -13,7 +13,7 @@ import pyttb as ttb
 @pytest.fixture()
 def sample_tensor():
     # truth data
-    T = ttb.tensor.from_data(np.array(range(1, 28)), (3, 3, 3))
+    T = ttb.tensor(np.array(range(1, 28)), (3, 3, 3))
     return T
 
 

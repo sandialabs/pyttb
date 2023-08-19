@@ -874,7 +874,7 @@ class ktensor:
         <BLANKLINE>
         """
         data = self.weights @ ttb.khatrirao(*self.factor_matrices, reverse=True).T
-        return ttb.tensor.from_data(data, self.shape)
+        return ttb.tensor(data, self.shape, copy=False)
 
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ktensor, ttb.ttensor]
@@ -1047,7 +1047,7 @@ class ktensor:
         Create a mask :class:`pyttb.tensor` and extract the elements of the
         :class:`pyttb.ktensor` using the mask:
 
-        >>> W = ttb.tensor.from_data(np.array([[0, 1], [1, 0]]))
+        >>> W = ttb.tensor(np.array([[0, 1], [1, 0]]))
         >>> print(K.mask(W))
         [[63.]
          [39.]]

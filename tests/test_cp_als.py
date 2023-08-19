@@ -13,7 +13,7 @@ def sample_tensor():
     data = np.array([[29, 39.0], [63.0, 85.0]])
     shape = (2, 2)
     params = {"data": data, "shape": shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 

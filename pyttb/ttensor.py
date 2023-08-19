@@ -69,7 +69,7 @@ class ttensor:
         # Create ttensor with explicit data description
 
         >>> core_values = np.ones((2,2,2))
-        >>> core = ttb.tensor.from_data(core_values)
+        >>> core = ttb.tensor(core_values)
         >>> factors = [np.ones((1,2))] * len(core_values.shape)
         >>> K0 = ttb.ttensor.from_data(core, factors)
         """

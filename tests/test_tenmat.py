@@ -31,7 +31,7 @@ def sample_tensor_3way():
     data = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0])
     shape = (2, 3, 2)
     params = {"data": np.reshape(data, np.array(shape), order="F"), "shape": shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -70,7 +70,7 @@ def sample_tensor_4way():
     data = np.arange(1, 17)
     shape = (2, 2, 2, 2)
     params = {"data": np.reshape(data, np.array(shape), order="F"), "shape": shape}
-    tensorInstance = ttb.tensor.from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -400,7 +400,7 @@ def test_tenmat_norm(sample_ndarray_1way, sample_tenmat_4way):
     assert tenmatInstance.norm() == np.linalg.norm(params["data"].ravel())
 
     # 1D tenmat
-    tensor1 = ttb.tensor.from_data(ndarrayInstance1, shape=(16,))
+    tensor1 = ttb.tensor(ndarrayInstance1, shape=(16,))
     tenmat1 = ttb.tenmat.from_tensor_type(tensor1, cdims=np.array([0]))
     assert tenmat1.norm() == np.linalg.norm(ndarrayInstance1.ravel())
 
@@ -411,7 +411,7 @@ def test_tenmat_norm(sample_ndarray_1way, sample_tenmat_4way):
 @pytest.mark.indevelopment
 def test_tenmat__setitem__():
     ndarrayInstance = np.reshape(np.arange(1, 17), (2, 2, 2, 2), order="F")
-    tensorInstance = ttb.tensor.from_data(ndarrayInstance, shape=(2, 2, 2, 2))
+    tensorInstance = ttb.tensor(ndarrayInstance, shape=(2, 2, 2, 2))
     tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, rdims=np.array([0, 1]))
 
     # single element -> scalar
@@ -435,7 +435,7 @@ def test_tenmat__setitem__():
 @pytest.mark.indevelopment
 def test_tenmat__getitem__():
     ndarrayInstance = np.reshape(np.arange(1, 17), (4, 4), order="F")
-    tensorInstance = ttb.tensor.from_data(ndarrayInstance, shape=(4, 4))
+    tensorInstance = ttb.tensor(ndarrayInstance, shape=(4, 4))
     tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, rdims=np.array([0]))
 
     # single element -> scalar
@@ -488,7 +488,7 @@ def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4
     assert tenmatProd.shape == (2, 2)
 
     # 1D column Tenmat * 1D row Tenmat -> scalar result
-    tensor1 = ttb.tensor.from_data(ndarrayInstance1, shape=(16,))
+    tensor1 = ttb.tensor(ndarrayInstance1, shape=(16,))
     tenmat1 = ttb.tenmat.from_tensor_type(tensor1, cdims=np.array([0]))
     tenmat2 = ttb.tenmat.from_tensor_type(tensor1, rdims=np.array([0]))
     tenmatProd = tenmat1 * tenmat2

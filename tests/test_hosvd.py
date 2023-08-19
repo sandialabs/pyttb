@@ -13,7 +13,7 @@ def sample_tensor():
     data = np.array([[29, 39.0], [63.0, 85.0]])
     shape = (2, 2)
     params = {"data": data, "shape": shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -22,7 +22,7 @@ def sample_tensor_3way():
     shape = (3, 3, 3)
     data = np.array(range(1, 28)).reshape(shape, order="F")
     params = {"data": data, "shape": shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -119,7 +119,7 @@ def test_hosvd_3way(capsys, sample_tensor_3way):
             [-8.359253825873615e-01, -3.668270547267537e-01],
         ]
     )
-    expected = ttb.ttensor.from_data(ttb.tensor.from_data(core), [fm0, fm1, fm2])
+    expected = ttb.ttensor.from_data(ttb.tensor(core), [fm0, fm1, fm2])
     assert np.allclose(M.double(), expected.double())
     assert np.allclose(np.abs(M.core.data), np.abs(core))
     assert np.allclose(np.abs(M.u[0]), np.abs(fm0))

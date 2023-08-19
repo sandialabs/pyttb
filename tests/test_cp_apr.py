@@ -57,9 +57,7 @@ def test_loglikelihood():
     for i in range(n):
         factor_matrices.append(np.abs(np.random.normal(size=(5, n))))
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ttb.tensor.from_data(
-        np.abs(np.random.normal(size=ktensorInstance.shape))
-    )
+    tensorInstance = ttb.tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
 
     vector = ktensorInstance.full().data.ravel()
@@ -112,7 +110,7 @@ def test_calculatePi():
     for i in range(n):
         factor_matrices.append(np.abs(np.random.normal(size=(5, n))))
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ttb.tensor.from_data(np.abs(np.random.normal(size=ktensorInstance.shape)))
+    tensorInstance = ttb.tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
     sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
 
     print(tensorInstance.shape)
@@ -513,7 +511,7 @@ def test_getSearchDirPqnr():
 
 
 def test_cp_apr_negative_tests():
-    dense_tensor = ttb.tensor.from_data(np.ones((2, 2, 2)))
+    dense_tensor = ttb.tensor(np.ones((2, 2, 2)))
     bad_weights = np.array([8.0])
     bad_factors = [np.array([[1.0]])] * 3
     bad_initial_guess_shape = ttb.ktensor(bad_factors, bad_weights)

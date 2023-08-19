@@ -48,7 +48,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     >>> data = np.array([[29, 39.], [63., 85.]])
     >>> tol = 1e-4
     >>> disable_printing = -1
-    >>> tensorInstance = ttb.tensor().from_data(data)
+    >>> tensorInstance = ttb.tensor(data)
     >>> result = hosvd(tensorInstance, tol, verbosity=disable_printing)
     >>> ((result.full() - tensorInstance).norm() / tensorInstance.norm()) < tol
     True

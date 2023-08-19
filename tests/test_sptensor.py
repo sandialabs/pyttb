@@ -58,7 +58,7 @@ def test_sptensor_initialization_from_tensor_type(sample_sptensor):
 
     # Convert Tensor
     inputData = np.array([[1, 2, 3], [4, 5, 6]])
-    tensorInstance = ttb.tensor.from_data(inputData)
+    tensorInstance = ttb.tensor(inputData)
     sptensorFromTensor = ttb.sptensor.from_tensor_type(tensorInstance)
     logging.debug(f"inputData = {inputData}")
     logging.debug(f"tensorInstance = {tensorInstance}")
@@ -748,7 +748,7 @@ def test_sptensor__eq__(sample_sptensor):
     )
     assert eqSptensor.subs.shape[0] == np.prod(sptensorInstance.shape)
 
-    denseTensor = ttb.tensor.from_data(np.ones((5, 5, 5)))
+    denseTensor = ttb.tensor(np.ones((5, 5, 5)))
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance == denseTensor
     assert "Size mismatch in sptensor equality" in str(excinfo)
@@ -792,7 +792,7 @@ def test_sptensor__ne__(sample_sptensor):
     eqSptensor = sptensorInstance != denseTensor
     assert np.array_equal(eqSptensor.subs.squeeze(), np.array([1, 1, 2]))
 
-    denseTensor = ttb.tensor.from_data(np.ones((5, 5, 5)))
+    denseTensor = ttb.tensor(np.ones((5, 5, 5)))
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance != denseTensor
     assert "Size mismatch" in str(excinfo)
@@ -1150,7 +1150,7 @@ def test_sptensor_innerprod(sample_sptensor):
 
     # Wrong shape tensor
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.innerprod(ttb.tensor.from_data(np.array([1])))
+        sptensorInstance.innerprod(ttb.tensor(np.array([1])))
     assert "Sptensor and tensor must be same shape for innerproduct" in str(excinfo)
 
     # Wrong type for innerprod
@@ -1264,9 +1264,7 @@ def test_sptensor_scale(sample_sptensor):
         )
     assert "Size mismatch in scale" in str(excinfo)
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.scale(
-            ttb.tensor.from_data(np.ones((1, 1, 1, 1, 1))), np.arange(0, 3)
-        )
+        sptensorInstance.scale(ttb.tensor(np.ones((1, 1, 1, 1, 1))), np.arange(0, 3))
     assert "Size mismatch in scale" in str(excinfo)
 
     # Scale with non nparray, sptensor or tensor
@@ -1539,7 +1537,7 @@ def test_sptensor_ttv(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
     # Returns single value
-    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor.from_data(np.ones((4, 4))))
+    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor(np.ones((4, 4))))
     vector = np.array([1, 1, 1, 1])
     assert onesSptensor.ttv(np.array([vector, vector])) == 16
 
@@ -1550,14 +1548,12 @@ def test_sptensor_ttv(sample_sptensor):
 
     # Returns vector shaped object
     emptySptensor = ttb.sptensor.from_data(np.array([]), np.array([]), (4, 4))
-    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor.from_data(np.ones((4, 4))))
+    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor(np.ones((4, 4))))
 
     assert emptySptensor.ttv(vector, 0).isequal(
         ttb.sptensor.from_data(np.array([]), np.array([]), (4,))
     )
-    assert onesSptensor.ttv(vector, 0).isequal(
-        ttb.tensor.from_data(np.array([4, 4, 4, 4]))
-    )
+    assert onesSptensor.ttv(vector, 0).isequal(ttb.tensor(np.array([4, 4, 4, 4])))
     emptySptensor[0, 0] = 1
     assert np.array_equal(
         emptySptensor.ttv(vector, 0).full().data, np.array([1, 0, 0, 0])
@@ -1565,15 +1561,11 @@ def test_sptensor_ttv(sample_sptensor):
 
     # Returns tensor shaped object
     emptySptensor = ttb.sptensor.from_data(np.array([]), np.array([]), (4, 4, 4))
-    onesSptensor = ttb.sptensor.from_tensor_type(
-        ttb.tensor.from_data(np.ones((4, 4, 4)))
-    )
+    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor(np.ones((4, 4, 4))))
     assert emptySptensor.ttv(vector, 0).isequal(
         ttb.sptensor.from_data(np.array([]), np.array([]), (4, 4))
     )
-    assert onesSptensor.ttv(vector, 0).isequal(
-        ttb.tensor.from_data(4 * np.ones((4, 4)))
-    )
+    assert onesSptensor.ttv(vector, 0).isequal(ttb.tensor(4 * np.ones((4, 4))))
 
 
 def test_sptensor_mttkrp(sample_sptensor):
@@ -1656,7 +1648,7 @@ def test_sptensor_ttm(sample_sptensor):
     result[:, 1, 3] = 1.5
     result[:, 2, 2] = 2.5
     result[:, 3, 3] = 3.5
-    result = ttb.tensor.from_data(result)
+    result = ttb.tensor(result)
     result = ttb.sptensor.from_tensor_type(result)
     assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=0).isequal(
         result
@@ -1700,7 +1692,7 @@ def test_sptensor_ttm(sample_sptensor):
     # MATLAB is opposite orientation so the mapping from matlab to numpy is
     # {3:0, 2:2, 1:1}
     assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=1).isequal(
-        ttb.tensor.from_data(result)
+        ttb.tensor(result)
     )
 
     result = 2 * np.ones((4, 4, 4))
@@ -1708,7 +1700,7 @@ def test_sptensor_ttm(sample_sptensor):
     result[:, 1, 3] = 3.5
     result[:, 2, 2] = 4.5
     assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=0).isequal(
-        ttb.tensor.from_data(result)
+        ttb.tensor(result)
     )
 
     result = np.zeros((4, 4, 4))
@@ -1717,7 +1709,7 @@ def test_sptensor_ttm(sample_sptensor):
     result[1, 1, :] = 2
     result[2, 2, :] = 2.5
     assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=2).isequal(
-        ttb.tensor.from_data(result)
+        ttb.tensor(result)
     )
 
     # Confirm reshape for non-square matrix

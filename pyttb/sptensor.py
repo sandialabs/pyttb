@@ -463,7 +463,7 @@ class sptensor:
 
         Example
         -------
-        >>> X = ttb.tensor.from_data(np.ones((2,2)))
+        >>> X = ttb.tensor(np.ones((2,2)))
         >>> Y = sptensor.from_tensor_type(X)
         >>> Y.contract(0, 1)
         2.0
@@ -528,7 +528,7 @@ class sptensor:
 
         Example
         -------
-        >>> X = ttb.tensor.from_data(np.ones((2,2)))
+        >>> X = ttb.tensor(np.ones((2,2)))
         >>> Y = sptensor.from_tensor_type(X)
         >>> Z = Y.elemfun(lambda values: values*2)
         >>> Z.isequal(Y*2)
@@ -604,7 +604,7 @@ class sptensor:
             return ttb.tensor()
 
         # Create a dense zero tensor B that is the same shape as A
-        B = ttb.tensor.from_data(np.zeros(shape=self.shape), self.shape)
+        B = ttb.tensor(np.zeros(shape=self.shape), copy=False)
 
         if self.subs.size == 0:
             return B
@@ -1277,7 +1277,7 @@ class sptensor:
                 return ttb.sptensor.from_aggregator(
                     np.arange(0, newsiz)[:, None], c, tuple(newsiz)
                 )
-            return ttb.tensor.from_data(c, tuple(newsiz))
+            return ttb.tensor(c, tuple(newsiz), copy=False)
 
         # Case 2: Result is a multiway array
         c = ttb.sptensor.from_aggregator(newsubs, newvals, tuple(newsiz))

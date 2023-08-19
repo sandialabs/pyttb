@@ -81,7 +81,7 @@ class tenmat:
 
         # data is ndarray and only rdims is specified
         if cdims is None:
-            return ttb.tenmat.from_tensor_type(ttb.tensor.from_data(data), rdims)
+            return ttb.tenmat.from_tensor_type(ttb.tensor(data), rdims)
 
         # use data.shape for tshape if not provided
         if tshape is None:
@@ -104,9 +104,7 @@ class tenmat:
                 False
             ), "data.shape does not match shape specified by rdims, cdims, and tshape."
 
-        return ttb.tenmat.from_tensor_type(
-            ttb.tensor.from_data(data, tshape), rdims, cdims
-        )
+        return ttb.tenmat.from_tensor_type(ttb.tensor(data, tshape), rdims, cdims)
 
     @classmethod
     def from_tensor_type(  # noqa: PLR0912

@@ -373,9 +373,7 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
 
 def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
     (data, K2) = sample_ktensor_2way
-    assert K2.full().isequal(
-        ttb.tensor.from_data(np.array([[29.0, 39.0], [63.0, 85.0]]), (2, 2))
-    )
+    assert K2.full().isequal(ttb.tensor(np.array([[29.0, 39.0], [63.0, 85.0]]), (2, 2)))
     (data, K3) = sample_ktensor_3way
     print(K3.full())
 
@@ -387,7 +385,7 @@ def test_ktensor_innerprod(sample_ktensor_2way):
     # test with tensor
     Tdata = np.array([[1, 2], [3, 4]])
     Tshape = (2, 2)
-    T = ttb.tensor.from_data(Tdata, Tshape)
+    T = ttb.tensor(Tdata, Tshape)
     assert K.innerprod(T) == 636
 
     # test with sptensor
@@ -451,7 +449,7 @@ def test_ktensor_issymetric(sample_ktensor_2way, sample_ktensor_symmetric):
 
 def test_ktensor_mask(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
-    W = ttb.tensor.from_data(np.array([[0, 1], [1, 0]]))
+    W = ttb.tensor(np.array([[0, 1], [1, 0]]))
     assert np.array_equal(K.mask(W), np.array([[63], [39]]))
 
     # Mask too large
@@ -1216,7 +1214,7 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     # test with tensor
     Tdata = np.array([[1, 2], [3, 4]])
     Tshape = (2, 2)
-    T = ttb.tensor.from_data(Tdata, Tshape)
+    T = ttb.tensor(Tdata, Tshape)
     K0T = K0 * T
     assert np.array_equal(K0T.double(), np.array([[29.0, 78.0], [189.0, 340.0]]))
 

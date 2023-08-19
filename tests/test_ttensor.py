@@ -12,7 +12,7 @@ import pyttb as ttb
 @pytest.fixture()
 def sample_ttensor():
     """Simple TTENSOR to verify by hand"""
-    core = ttb.tensor.from_data(np.ones((2, 2, 2)))
+    core = ttb.tensor(np.ones((2, 2, 2)))
     factors = [np.ones((1, 2))] * len(core.shape)
     ttensorInstance = ttb.ttensor().from_data(core, factors)
     return ttensorInstance
@@ -21,7 +21,7 @@ def sample_ttensor():
 @pytest.fixture()
 def random_ttensor():
     """Arbitrary TTENSOR to verify consistency between alternative operations"""
-    core = ttb.tensor.from_data(np.random.random((2, 3, 4)))
+    core = ttb.tensor(np.random.random((2, 3, 4)))
     factors = [
         np.random.random((5, 2)),
         np.random.random((2, 3)),
@@ -164,7 +164,7 @@ def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
     core_dim = ttensorInstance.core.shape[0] + 1
     ndim = ttensorInstance.ndims
     large_core_ttensor = ttb.ttensor.from_data(
-        ttb.tensor.from_data(np.ones((core_dim,) * ndim)),
+        ttb.tensor(np.ones((core_dim,) * ndim)),
         [np.ones((1, core_dim))] * ndim,
     )
     assert large_core_ttensor.innerprod(
@@ -190,7 +190,7 @@ def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
     with pytest.raises(ValueError):
         ttensorInstance.innerprod(ttensor_extra_factors)
 
-    tensor_extra_dim = ttb.tensor.from_data(np.ones(ttensorInstance.shape + (1,)))
+    tensor_extra_dim = ttb.tensor(np.ones(ttensorInstance.shape + (1,)))
     with pytest.raises(ValueError):
         ttensorInstance.innerprod(tensor_extra_dim)
 

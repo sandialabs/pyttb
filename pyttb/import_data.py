@@ -41,7 +41,7 @@ def import_data(
         if data_type == "tensor":
             shape = import_shape(fp)
             data = import_array(fp, np.prod(shape))
-            return ttb.tensor.from_data(data, shape)
+            return ttb.tensor(data, shape, copy=False)
 
         if data_type == "sptensor":
             shape = import_shape(fp)

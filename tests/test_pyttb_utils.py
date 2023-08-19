@@ -38,7 +38,7 @@ def test_sptensor_to_dense_matrix():
 
 @pytest.mark.indevelopment
 def test_sptensor_from_dense_matrix():
-    tensorInstance = ttb.tensor.from_data(np.random.normal(size=(4, 4, 4)))
+    tensorInstance = ttb.tensor(np.random.normal(size=(4, 4, 4)))
     for mode in range(tensorInstance.ndims):
         tensorCopy = ttb.tensor.from_tensor_type(tensorInstance)
         Xnt = ttb_utils.tt_to_dense_matrix(tensorCopy, mode, True)
@@ -121,8 +121,8 @@ def test_tt_dimscheck():
 @pytest.mark.indevelopment
 def test_tt_tenfun():
     data = np.array([[1, 2, 3], [4, 5, 6]])
-    t1 = ttb.tensor.from_data(data)
-    t2 = ttb.tensor.from_data(data)
+    t1 = ttb.tensor(data)
+    t2 = ttb.tensor(data)
 
     # Binary case
     def add(x, y):
@@ -167,7 +167,7 @@ def test_tt_tenfun():
             tensor_max,
             t1,
             t1,
-            ttb.tensor.from_data(np.concatenate((data, np.array([[7, 8, 9]])))),
+            ttb.tensor(np.concatenate((data, np.array([[7, 8, 9]])))),
         )
     assert "Tensor 2 is not the same size as the first tensor input" in str(excinfo)
 
