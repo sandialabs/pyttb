@@ -28,7 +28,7 @@ def test_sptensor_to_dense_matrix():
     ).toarray()
     Ynt = [mode0, mode1, mode2]
 
-    sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
+    sptensorInstance = ttb.sptensor(subs, vals, shape)
     tensorInstance = sptensorInstance.full()
 
     for mode in range(sptensorInstance.ndims):
@@ -228,7 +228,7 @@ def test_tt_irenumber():
     vals = np.array([[0.5], [1.5]])
     shape = (4, 4, 4)
     data = {"subs": subs, "vals": vals, "shape": shape}
-    sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
+    sptensorInstance = ttb.sptensor(subs, vals, shape)
     slice_tuple = (
         slice(None, None, None),
         slice(None, None, None),
@@ -380,7 +380,7 @@ def test_tt_subsubsref_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     vals = np.array([[0], [21], [63]])
     shape = (4, 4, 4)
-    a = ttb.sptensor.from_data(subs, vals, shape)
+    a = ttb.sptensor(subs, vals, shape)
     assert isinstance(ttb_utils.tt_subsubsref(a, [1]), ttb.sptensor)
     # TODO need to understand behavior better
     assert True

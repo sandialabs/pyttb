@@ -116,7 +116,7 @@ def test_tensor_initialization_from_tensor_type(sample_tensor_2way, sample_tenso
     vals = np.array([[1], [2], [3], [4]])
     shape = (2, 3)
     data = np.array([[1, 2, 3], [4, 0, 0]])
-    a = ttb.sptensor.from_data(subs, vals, shape)
+    a = ttb.sptensor(subs, vals, shape)
 
     # Sptensor
     b = ttb.tensor.from_tensor_type(a)
@@ -183,25 +183,19 @@ def test_tensor__deepcopy__(sample_tensor_2way):
 def test_tensor_find(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     (params, tensorInstance) = sample_tensor_2way
     subs, vals = tensorInstance.find()
-    a = ttb.tensor.from_tensor_type(
-        ttb.sptensor.from_data(subs, vals, tensorInstance.shape)
-    )
+    a = ttb.tensor.from_tensor_type(ttb.sptensor(subs, vals, tensorInstance.shape))
     assert np.array_equal(a.data, tensorInstance.data), f"subs: {subs}\nvals: {vals}"
     assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
     (params, tensorInstance) = sample_tensor_3way
     subs, vals = tensorInstance.find()
-    a = ttb.tensor.from_tensor_type(
-        ttb.sptensor.from_data(subs, vals, tensorInstance.shape)
-    )
+    a = ttb.tensor.from_tensor_type(ttb.sptensor(subs, vals, tensorInstance.shape))
     assert np.array_equal(a.data, tensorInstance.data), f"subs: {subs}\nvals: {vals}"
     assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
     (params, tensorInstance) = sample_tensor_4way
     subs, vals = tensorInstance.find()
-    a = ttb.tensor.from_tensor_type(
-        ttb.sptensor.from_data(subs, vals, tensorInstance.shape)
-    )
+    a = ttb.tensor.from_tensor_type(ttb.sptensor(subs, vals, tensorInstance.shape))
     assert np.array_equal(a.data, tensorInstance.data), f"subs: {subs}\nvals: {vals}"
     assert a.shape == tensorInstance.shape, f"subs: {subs}\nvals: {vals}"
 
@@ -801,9 +795,7 @@ def test_tensor_isequal(sample_tensor_2way):
         for i in range(2):
             subs.append([i, j])
             vals.append([params["data"][i, j]])
-    sptensorInstance = ttb.sptensor.from_data(
-        np.array(subs), np.array(vals), params["shape"]
-    )
+    sptensorInstance = ttb.sptensor(np.array(subs), np.array(vals), params["shape"])
 
     assert tensorInstance.isequal(tensorInstance)
     assert tensorInstance.isequal(sptensorInstance)

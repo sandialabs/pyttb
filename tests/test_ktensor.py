@@ -405,7 +405,7 @@ def test_ktensor_innerprod(sample_ktensor_2way):
     Ssubs = np.array([[0, 0], [0, 1], [1, 1]])
     Svals = np.array([[0.5], [1.0], [1.5]])
     Sshape = (2, 2)
-    S = ttb.sptensor.from_data(Ssubs, Svals, Sshape)
+    S = ttb.sptensor(Ssubs, Svals, Sshape)
     assert K.innerprod(S) == 181
 
     # Wrong shape
@@ -1235,7 +1235,7 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     Ssubs = np.array([[0, 0], [0, 1], [1, 1]])
     Svals = np.array([[0.5], [1.0], [1.5]])
     Sshape = (2, 2)
-    S = ttb.sptensor.from_data(Ssubs, Svals, Sshape)
+    S = ttb.sptensor(Ssubs, Svals, Sshape)
     K0S = S * K0
     assert np.array_equal(K0S.double(), np.array([[14.5, 39.0], [0.0, 127.5]]))
 

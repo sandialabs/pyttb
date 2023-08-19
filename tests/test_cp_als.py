@@ -23,7 +23,7 @@ def sample_sptensor():
     vals = np.array([[0.5], [0.5], [0.5]])
     shape = (2, 2)
     data = {"subs": subs, "vals": vals, "shape": shape}
-    sptensorInstance = ttb.sptensor.from_data(subs, vals, shape)
+    sptensorInstance = ttb.sptensor(subs, vals, shape)
     return data, sptensorInstance
 
 

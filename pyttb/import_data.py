@@ -47,7 +47,7 @@ def import_data(
             shape = import_shape(fp)
             nz = import_nnz(fp)
             subs, vals = import_sparse_array(fp, len(shape), nz, index_base)
-            return ttb.sptensor.from_data(subs, vals, shape)
+            return ttb.sptensor(subs, vals, shape)
 
         if data_type == "matrix":
             shape = import_shape(fp)

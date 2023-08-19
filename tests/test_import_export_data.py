@@ -44,7 +44,7 @@ def sample_sptensor():
     )
     vals = np.reshape(np.array(range(1, 19)), (18, 1))
     shape = (5, 4, 3)
-    S = ttb.sptensor().from_data(subs, vals, shape)
+    S = ttb.sptensor(subs, vals, shape)
     return S
 
 
