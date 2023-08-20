@@ -240,7 +240,7 @@ class ttensor:
         -------
         :class:`pyttb.ttensor`, copy of tensor
         """
-
+        # pylint: disable=invalid-unary-operand-type
         return ttensor(-self.core, self.factor_matrices)
 
     def innerprod(self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor]) -> float:
