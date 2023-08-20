@@ -29,8 +29,6 @@ documentation = "https://pyttb.readthedocs.io"
 [project.optional-dependencies]
 dev = [
     "black",
-    "isort",
-    "pylint",
     "mypy",
     "pytest",
     "pytest-cov",
@@ -56,24 +54,6 @@ version = {attr = "pyttb.__version__"}
 [build-system]
 requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[tool.isort]
-profile = "black"
-
-[tool.pylint]
-# Play nice with black
-max-line-length = 88
-disable="fixme,too-many-lines"
-
-[tool.pylint.basic]
-# To match MATLAB Tensortoolbox styles for clarity
-argument-naming-style = "any"
-class-naming-style = "any"
-variable-naming-style = "any"
-
-[tool.pylint.design]
-# MATLAB Tensortoolbox interface
-max-public-methods = 40
 
 [tool.ruff]
 select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF"]

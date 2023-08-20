@@ -11,8 +11,6 @@ import numpy as np
 import pyttb as ttb
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
-# pylint: disable=too-many-statements
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: Union[ttb.tensor, ttb.sptensor],
     rank: int,

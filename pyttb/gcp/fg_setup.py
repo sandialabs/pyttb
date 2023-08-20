@@ -15,7 +15,6 @@ function_type = Callable[[np.ndarray, np.ndarray], np.ndarray]
 fg_return = Tuple[function_type, function_type, float]
 
 
-# pylint: disable=too-many-branches, too-many-statements
 def setup(  # noqa: PLR0912,PLR0915
     objective: Objectives,
     data: Optional[Union[ttb.tensor, ttb.sptensor]] = None,

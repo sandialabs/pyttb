@@ -427,7 +427,6 @@ class tensor:
         return False
 
     # TODO: We should probably always return details and let caller drop them
-    # pylint: disable=too-many-branches, too-many-locals
     def issymmetric(  # noqa: PLR0912
         self,
         grps: Optional[np.ndarray] = None,
@@ -480,7 +479,7 @@ class tensor:
         # Substantially different routines are called depending on whether the user
         # requests the permutation information. If permutation is required
         # (or requested) the algorithm is much slower
-        if version is None:  # pylint:disable=no-else-return
+        if version is None:
             # Use new algorithm
             for thisgrp in grps:
                 # Check tensor dimensions first
@@ -644,7 +643,6 @@ class tensor:
         # Extract those non-zero values
         return self.data[tuple(wsubs.transpose())]
 
-    # pylint: disable=too-many-branches
     def mttkrp(  # noqa: PLR0912
         self, U: Union[ttb.ktensor, List[np.ndarray]], n: int
     ) -> np.ndarray:
@@ -713,7 +711,7 @@ class tensor:
             Ur = ttb.khatrirao(*U[1 : self.ndims], reverse=True)
             Y = np.reshape(self.data, (szn, szr), order="F")
             return Y @ Ur
-        if n == self.ndims - 1:  # pylint: disable=no-else-return
+        if n == self.ndims - 1:
             Ul = ttb.khatrirao(*U[0 : self.ndims - 1], reverse=True)
             Y = np.reshape(self.data, (szl, szn), order="F")
             return Y.T @ Ul
@@ -738,8 +736,6 @@ class tensor:
         if isinstance(U, ttb.ktensor):
             U = U.factor_matrices
         split_idx = min_split(self.shape)
-        # Pylint seems confused here
-        # pylint: disable=unexpected-keyword-arg
         V = [np.empty_like(self.data, shape=())] * self.ndims
         K = ttb.khatrirao(*U[split_idx + 1 :], reverse=True)
         W = np.reshape(self.data, (-1, K.shape[0]), order="F").dot(K)
@@ -921,7 +917,7 @@ class tensor:
 
         """
         shapeArray = np.array(self.shape)
-        if np.all(shapeArray > 1):  # pylint: disable=no-else-return
+        if np.all(shapeArray > 1):
             return ttb.tensor.from_tensor_type(self)
         else:
             idx = np.where(shapeArray > 1)
@@ -931,9 +927,7 @@ class tensor:
 
     def symmetrize(  # noqa: PLR0912,PLR0915
         self, grps: Optional[np.ndarray] = None, version: Optional[Any] = None
-    ) -> (
-        tensor
-    ):  # pylint: disable=too-many-branches, too-many-statements, too-many-locals
+    ) -> tensor:
         """
         Symmetrize a tensor in the specified modes
         Notes
@@ -963,7 +957,7 @@ class tensor:
         data = self.data.copy()
 
         # Use default newer faster version
-        if version is None:  # pylint: disable=no-else-return
+        if version is None:
             ngrps = len(grps)
             for i in range(0, ngrps):
                 # Extract current group
@@ -1286,7 +1280,6 @@ class tensor:
             d = self.ndims
             sz = self.shape[0]  # Sizes of all modes must be the same
 
-            # pylint: disable=invalid-unary-operand-type
             dnew = skip_dim + 1  # Number of modes in result
             drem = d - dnew  # Number of modes multiplied out
 

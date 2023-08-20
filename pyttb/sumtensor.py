@@ -4,7 +4,6 @@
 # U.S. Government retains certain rights in this software.
 
 
-# pylint: disable=too-few-public-methods
 class sumtensor:
     """
     SUMTENSOR Class for implicit sum of other tensors.

@@ -24,7 +24,6 @@ def export_data(
         assert False, f"Invalid data type for export: {type(data)}"
 
     # open file
-    # pylint: disable=unspecified-encoding
     with open(filename, "w") as fp:
         if isinstance(data, ttb.tensor):
             print("tensor", file=fp)
