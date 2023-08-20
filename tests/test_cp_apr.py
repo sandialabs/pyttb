@@ -37,7 +37,7 @@ def test_loglikelihood():
     factor_matrices = [fm0, fm1]
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
 
     # Generate explicit answer
     vector = tensorInstance.data.ravel()
@@ -58,7 +58,7 @@ def test_loglikelihood():
         factor_matrices.append(np.abs(np.random.normal(size=(5, n))))
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ttb.tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
 
     vector = ktensorInstance.full().data.ravel()
     data = tensorInstance.data.ravel()
@@ -84,7 +84,7 @@ def test_calculatePi():
     factor_matrices = [fm0, fm1]
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     answer = np.array([[0, 6], [7, 8]])
     assert np.all(
         np.isclose(
@@ -111,7 +111,7 @@ def test_calculatePi():
         factor_matrices.append(np.abs(np.random.normal(size=(5, n))))
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ttb.tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
 
     print(tensorInstance.shape)
     print(sptensorInstance.shape)
@@ -132,7 +132,7 @@ def test_calculatePhi():
     factor_matrices = [fm0, fm1]
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     answer = np.array([[0, 0], [11.226415094339623, 24.830188679245282]])
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     assert np.isclose(
@@ -187,7 +187,7 @@ def test_cpapr_pdnr(capsys):
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
 
     # Try solve with sptensor
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     np.random.seed(123)
     M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr")
     capsys.readouterr()
@@ -233,7 +233,7 @@ def test_cpapr_pqnr(capsys):
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
 
     # Try solve with sptensor
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     np.random.seed(123)
     M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr")
     capsys.readouterr()
@@ -259,7 +259,7 @@ def test_calculatepi_prowsubprob():
     factor_matrices = [fm0, fm1]
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     answer = np.array([[0, 6], [7, 8]])
     # Reproduce calculate pi with the appropriate inputs
     assert np.all(
@@ -295,7 +295,7 @@ def test_calc_partials():
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     np.array([[0, 6], [7, 8]])
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     # TODO: These are just verifying same functionality as matlab
@@ -360,7 +360,7 @@ def test_getHessian():
     # print(tensorInstance[:, 0])
     free_indices = [0, 1]
     rank = 2
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     Pi = calculate_pi(sptensorInstance, ktensorInstance, rank, 0, tensorInstance.ndims)
     phi, ups = calc_partials(
         False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
@@ -402,7 +402,7 @@ def test_getSearchDirPdnr():
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     data_row = tensorInstance[1, :].data
     model_row = ktensorInstance[0][0, :]
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
@@ -441,7 +441,7 @@ def test_tt_loglikelihood_row():
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     tt_loglikelihood_row(
         False, tensorInstance[1, :].data, tensorInstance[1, :].data, Pi
@@ -459,7 +459,7 @@ def test_tt_linesearch_prowsubprob():
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     phi, ups = calc_partials(
         False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
@@ -496,7 +496,7 @@ def test_getSearchDirPqnr():
     ktensorInstance = ttb.ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
-    sptensorInstance = ttb.sptensor.from_tensor_type(tensorInstance)
+    sptensorInstance = tensorInstance.to_sptensor()
     data_row = tensorInstance[1, :].data
     model_row = ktensorInstance[0][0, :]
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)

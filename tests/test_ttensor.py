@@ -59,9 +59,7 @@ def test_ttensor_initialization_from_data(sample_ttensor):
         sparse.coo_matrix(np.ones(factor.shape))
         for factor in ttensorInstance.factor_matrices
     ]
-    sparse_ttensor = ttb.ttensor(
-        ttb.sptensor.from_tensor_type(ttensorInstance.core), sparse_u
-    )
+    sparse_ttensor = ttb.ttensor(ttensorInstance.core.to_sptensor(), sparse_u)
     assert isinstance(sparse_ttensor, ttb.ttensor)
 
     # Negative Tests
@@ -124,7 +122,7 @@ def test_ttensor_full(sample_ttensor):
     assert tensor.double() == np.prod(ttensorInstance.core.shape)
 
     # Sparse tests
-    sparse_core = ttb.sptensor.from_tensor_type(ttensorInstance.core)
+    sparse_core = ttensorInstance.core.to_sptensor()
     sparse_u = [
         sparse.coo_matrix(np.ones(factor.shape))
         for factor in ttensorInstance.factor_matrices
@@ -407,7 +405,7 @@ def test_ttensor_reconstruct(random_ttensor):
 def test_ttensor_nvecs(random_ttensor):
     ttensorInstance = random_ttensor
 
-    sparse_core = ttb.sptensor.from_tensor_type(ttensorInstance.core)
+    sparse_core = ttensorInstance.core.to_sptensor()
     sparse_core_ttensor = ttb.ttensor(sparse_core, ttensorInstance.factor_matrices)
 
     sparse_u = [sparse.coo_matrix(factor) for factor in ttensorInstance.factor_matrices]

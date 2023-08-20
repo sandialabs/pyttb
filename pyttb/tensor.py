@@ -341,6 +341,17 @@ class tensor:
         vals = self.data[tuple(subs.T)][:, None]
         return subs, vals
 
+    def to_sptensor(self) -> ttb.sptensor:
+        """
+        Contruct an :class:`pyttb.sptensor` from `pyttb.tensor`
+
+        Returns
+        -------
+        Generated Sparse Tensor
+        """
+        subs, vals = self.find()
+        return ttb.sptensor(subs, vals, self.shape, copy=False)
+
     def full(self) -> tensor:
         """
         Convert dense tensor to dense tensor.

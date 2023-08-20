@@ -52,41 +52,6 @@ def test_sptensor_initialization_from_data(sample_sptensor):
         ttb.sptensor(data["subs"], data["vals"])
 
 
-def test_sptensor_initialization_from_tensor_type(sample_sptensor):
-    # Copy constructor
-    (data, sptensorInstance) = sample_sptensor
-    sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
-    assert np.array_equal(sptensorCopy.subs, data["subs"])
-    assert np.array_equal(sptensorCopy.vals, data["vals"])
-    assert sptensorCopy.shape == data["shape"]
-
-    # Convert Tensor
-    inputData = np.array([[1, 2, 3], [4, 5, 6]])
-    tensorInstance = ttb.tensor(inputData)
-    sptensorFromTensor = ttb.sptensor.from_tensor_type(tensorInstance)
-    logging.debug(f"inputData = {inputData}")
-    logging.debug(f"tensorInstance = {tensorInstance}")
-    logging.debug(f"sptensorFromTensor = {sptensorFromTensor}")
-    assert np.array_equal(
-        sptensorFromTensor.subs,
-        ttb.pyttb_utils.tt_ind2sub(inputData.shape, np.arange(0, inputData.size)),
-    )
-    assert np.array_equal(
-        sptensorFromTensor.vals, inputData.reshape((inputData.size, 1), order="F")
-    )
-    assert sptensorFromTensor.shape == inputData.shape
-
-    # From coo sparse matrix
-    inputData = sparse.random(11, 4, 0.2)
-    sptensorFromCOOMatrix = ttb.sptensor.from_tensor_type(sparse.coo_matrix(inputData))
-    assert (sptensorFromCOOMatrix.spmatrix() != sparse.coo_matrix(inputData)).nnz == 0
-
-    # Negative Tests
-    with pytest.raises(AssertionError):
-        invalid_tensor_type = []
-        ttb.sptensor.from_tensor_type(invalid_tensor_type)
-
-
 def test_sptensor_initialization_from_function():
     # Random Tensor Success
     def function_handle(*args):
@@ -553,7 +518,7 @@ class TestSetItem:
 
         # Grow with larger sptensor
         emptyTensor = ttb.sptensor(shape=(4, 4, 4, 4))
-        sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
+        sptensorCopy = sptensorInstance.copy()
         sptensorCopy[:4, :4, :4, :4] = emptyTensor
         assert np.array_equal(sptensorCopy.subs, emptyTensor.subs)
         assert np.array_equal(sptensorCopy.vals, emptyTensor.vals)
@@ -646,7 +611,7 @@ class TestSetItem:
         (1,1,1,1,1,1)     1
         """
         emptyTensor = ttb.sptensor(np.array([]), np.array([]), (1, 1, 1))
-        sptensorCopy = ttb.sptensor.from_tensor_type(emptyTensor)
+        sptensorCopy = emptyTensor.copy()
         sptensorCopy[0, 0, 0] = 1
         emptyTensor[0, 0, 0] = sptensorCopy
         assert sptensorCopy.subs.shape != emptyTensor.subs.shape
@@ -1143,7 +1108,7 @@ def test_sptensor_innerprod(sample_sptensor):
     )
 
     # Sptensor innerproduct, other has more elements
-    sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
+    sptensorCopy = sptensorInstance.copy()
     sptensorCopy[0, 0, 0] = 1
     assert sptensorInstance.innerprod(sptensorCopy) == data["vals"].transpose().dot(
         data["vals"]
@@ -1443,7 +1408,7 @@ def test_sptensor_collapse(sample_sptensor):
     assert np.array_equal(collapseSptensor.vals, data["vals"])
     assert collapseSptensor.shape == (4, 4)
     assert np.array_equal(collapseSptensor.subs, data["subs"][:, 1:3])
-    emptySptensorSmaller = ttb.sptensor.from_tensor_type(emptySptensor)
+    emptySptensorSmaller = emptySptensor.copy()
     emptySptensorSmaller.shape = (4, 4)
     assert emptySptensor.collapse(dims=np.array([0])).isequal(emptySptensorSmaller)
 
@@ -1460,16 +1425,16 @@ def test_sptensor_contract(sample_sptensor):
         emptySptensor.contract(0, 0)
     assert "Must contract along two different dimensions" in str(excinfo)
 
-    contractableSptensor = ttb.sptensor.from_tensor_type(sptensorInstance)
+    contractableSptensor = sptensorInstance.copy()
     contractableSptensor = contractableSptensor.collapse(np.array([0]))
     assert contractableSptensor.contract(0, 1) == 6.5
 
-    contractableSptensor = ttb.sptensor.from_tensor_type(sptensorInstance)
+    contractableSptensor = sptensorInstance.copy()
     assert np.array_equal(
         contractableSptensor.contract(0, 1).data, np.array([0, 0.5, 2.5, 5])
     )
 
-    contractableSptensor = ttb.sptensor.from_tensor_type(sptensorInstance)
+    contractableSptensor = sptensorInstance.copy()
     contractableSptensor[3, 3, 3, 3] = 1
     assert contractableSptensor.contract(0, 1).shape == (4, 4)
 
@@ -1530,7 +1495,7 @@ def test_sptensor_ttv(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
     # Returns single value
-    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor(np.ones((4, 4))))
+    onesSptensor = ttb.tensor(np.ones((4, 4))).to_sptensor()
     vector = np.array([1, 1, 1, 1])
     assert onesSptensor.ttv(np.array([vector, vector])) == 16
 
@@ -1541,7 +1506,7 @@ def test_sptensor_ttv(sample_sptensor):
 
     # Returns vector shaped object
     emptySptensor = ttb.sptensor(np.array([]), np.array([]), (4, 4))
-    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor(np.ones((4, 4))))
+    onesSptensor = ttb.tensor(np.ones((4, 4))).to_sptensor()
 
     assert emptySptensor.ttv(vector, 0).isequal(
         ttb.sptensor(np.array([]), np.array([]), (4,))
@@ -1554,7 +1519,7 @@ def test_sptensor_ttv(sample_sptensor):
 
     # Returns tensor shaped object
     emptySptensor = ttb.sptensor(np.array([]), np.array([]), (4, 4, 4))
-    onesSptensor = ttb.sptensor.from_tensor_type(ttb.tensor(np.ones((4, 4, 4))))
+    onesSptensor = ttb.tensor(np.ones((4, 4, 4))).to_sptensor()
     assert emptySptensor.ttv(vector, 0).isequal(
         ttb.sptensor(np.array([]), np.array([]), (4, 4))
     )
@@ -1642,7 +1607,7 @@ def test_sptensor_ttm(sample_sptensor):
     result[:, 2, 2] = 2.5
     result[:, 3, 3] = 3.5
     result = ttb.tensor(result)
-    result = ttb.sptensor.from_tensor_type(result)
+    result = result.to_sptensor()
     assert sptensorInstance.ttm(sparse.coo_matrix(np.ones((4, 4))), dims=0).isequal(
         result
     )
@@ -1735,13 +1700,13 @@ def test_sptensor_from_sparse_matrix():
     shape = (4, 4, 4)
     sptensorInstance = ttb.sptensor(subs, vals, shape)
     for mode in range(sptensorInstance.ndims):
-        sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
+        sptensorCopy = sptensorInstance.copy()
         Xnt = tt_to_sparse_matrix(sptensorCopy, mode, True)
         Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 0)
         assert sptensorCopy.isequal(Ynt)
 
     for mode in range(sptensorInstance.ndims):
-        sptensorCopy = ttb.sptensor.from_tensor_type(sptensorInstance)
+        sptensorCopy = sptensorInstance.copy()
         Xnt = tt_to_sparse_matrix(sptensorCopy, mode, False)
         Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 1)
         assert sptensorCopy.isequal(Ynt)

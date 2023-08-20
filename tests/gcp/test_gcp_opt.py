@@ -121,7 +121,7 @@ class TestGcpOpt:
 
         # LBFGSB only supports dense
         with pytest.raises(ValueError):
-            sparse_data = ttb.sptensor.from_tensor_type(dense_data)
+            sparse_data = dense_data.to_sptensor()
             ttb.gcp_opt(sparse_data, rank, Objectives.GAUSSIAN, LBFGSB())
 
     def test_general_invalid_options(

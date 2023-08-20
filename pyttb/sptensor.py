@@ -98,7 +98,11 @@ def tt_from_sparse_matrix(
     """
     siz = np.array(shape)
     old = np.setdiff1d(np.arange(len(shape)), mode).astype(int)
-    sptensorInstance = ttb.sptensor.from_tensor_type(sparse.coo_matrix(spmatrix))
+    if not isinstance(spmatrix, sparse.coo_matrix):
+        spmatrix = sparse.coo_matrix(spmatrix)
+    subs = np.vstack((spmatrix.row, spmatrix.col)).transpose()
+    vals = spmatrix.data[:, None]
+    sptensorInstance = ttb.sptensor(subs, vals, spmatrix.shape, copy=False)
 
     # This expands the compressed dimension back to full size
     sptensorInstance = sptensorInstance.reshape(siz[old], idx)
@@ -180,51 +184,6 @@ class sptensor:
         self.vals = vals
         self.shape = shape
         return
-
-    @classmethod
-    def from_tensor_type(
-        cls, source: Union[sptensor, ttb.tensor, sparse.coo_matrix]
-    ) -> sptensor:
-        """
-        Contruct an :class:`pyttb.sptensor` from compatible tensor types
-
-        Parameters
-        ----------
-        source:
-            Source tensor to create sptensor from
-
-        Returns
-        -------
-        Generated Sparse Tensor
-        """
-        # Copy Constructor
-        if isinstance(source, sptensor):
-            return source.copy()
-
-        # Convert SPTENMAT
-        if isinstance(source, ttb.sptenmat):  # pragma: no cover
-            raise NotImplementedError
-
-        # Convert Tensor
-        if isinstance(source, ttb.tensor):
-            subs, vals = source.find()
-            return cls(subs, vals, source.shape, copy=False)
-
-        # Convert SPTENSOR3
-        if isinstance(source, ttb.sptensor3):  # pragma: no cover
-            raise NotImplementedError
-
-        # Convert Matrix
-        # TODO how to handle sparse matrices in general
-        if isinstance(source, scipy.sparse.coo_matrix):
-            subs = np.vstack((source.row, source.col)).transpose()
-            vals = source.data[:, None]
-            return ttb.sptensor(subs, vals, source.shape, copy=False)
-
-        # Convert MDA
-        # TODO what is an MDA?
-
-        assert False, "Invalid Tensor Type To initialize Sptensor"
 
     @classmethod
     def from_function(
@@ -495,7 +454,7 @@ class sptensor:
         Example
         -------
         >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = sptensor.from_tensor_type(X)
+        >>> Y = X.to_sptensor()
         >>> Y.contract(0, 1)
         2.0
         """
@@ -560,7 +519,7 @@ class sptensor:
         Example
         -------
         >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = sptensor.from_tensor_type(X)
+        >>> Y = X.to_sptensor()
         >>> Z = Y.elemfun(lambda values: values*2)
         >>> Z.isequal(Y*2)
         True

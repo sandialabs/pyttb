@@ -711,7 +711,7 @@ def test_tensor__mul__(sample_tensor_2way):
     assert np.array_equal((tensorInstance * 2).data, (params["data"] * 2))
     # Tensor * Sptensor
     assert np.array_equal(
-        (tensorInstance * ttb.sptensor.from_tensor_type(tensorInstance)).data,
+        (tensorInstance * tensorInstance.to_sptensor()).data,
         (params["data"] * params["data"]),
     )
 
@@ -774,7 +774,7 @@ def test_tensor__truediv__(sample_tensor_2way):
 
     # Tensor / Sptensor
     assert np.array_equal(
-        (tensorInstance / ttb.sptensor.from_tensor_type(tensorInstance)).data,
+        (tensorInstance / tensorInstance.to_sptensor()).data,
         (params["data"] / params["data"]),
     )
 
@@ -1044,9 +1044,9 @@ def test_tensor_innerprod(sample_tensor_2way, sample_tensor_3way, sample_tensor_
     )
 
     # Sptensor innerproduct
-    assert tensorInstance.innerprod(
-        ttb.sptensor.from_tensor_type(tensorInstance)
-    ) == np.arange(1, 7).dot(np.arange(1, 7))
+    assert tensorInstance.innerprod(tensorInstance.to_sptensor()) == np.arange(
+        1, 7
+    ).dot(np.arange(1, 7))
 
     # Wrong size innerproduct
     with pytest.raises(AssertionError) as excinfo:
