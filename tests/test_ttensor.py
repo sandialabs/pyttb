@@ -143,6 +143,11 @@ def test_ttensor_full(sample_ttensor):
     assert sparse_ttensor.full().double().item() == 0
 
 
+def test_ttensor_to_tensor(sample_ttensor):
+    ttensorInstance = sample_ttensor
+    assert ttensorInstance.full().isequal(ttensorInstance.to_tensor())
+
+
 @pytest.mark.indevelopment
 def test_ttensor_double(sample_ttensor):
     ttensorInstance = sample_ttensor

@@ -167,6 +167,12 @@ class ttensor:
 
     __str__ = __repr__
 
+    def to_tensor(self) -> ttb.tensor:
+        """Convenience method to convert to tensor.
+        Same as :meth:`pyttb.ttensor.full`
+        """
+        return self.full()
+
     def full(self) -> ttb.tensor:
         """Convert a ttensor to a (dense) tensor."""
         recomposed_tensor = self.core.ttm(self.factor_matrices)
