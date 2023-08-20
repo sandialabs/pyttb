@@ -110,7 +110,7 @@ class ttensor:
         """
         return ttb.ttensor(self.core, self.factor_matrices, copy=True)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memo):
         return self.copy()
 
     def _validate_ttensor(self):

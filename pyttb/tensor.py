@@ -161,7 +161,7 @@ class tensor:
         """
         return ttb.tensor(self.data, self.shape, copy=True)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memo):
         return self.copy()
 
     def collapse(
@@ -1006,7 +1006,7 @@ class tensor:
                 nelems = len(combos[i])
 
                 perm_idx = 0
-                for j in range(0, ntimes):
+                for _ in range(0, ntimes):
                     for k in range(0, nelems):
                         for _ in range(0, ncopies):
                             # TODO: Does this do anything? Matches MATLAB

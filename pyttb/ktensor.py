@@ -591,7 +591,7 @@ class ktensor:
         """
         return ttb.ktensor(self.factor_matrices, self.weights, copy=True)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memo):
         return self.copy()
 
     def double(self) -> np.ndarray:

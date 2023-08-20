@@ -385,7 +385,7 @@ class sptensor:
         """
         return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memo):
         return self.copy()
 
     # TODO decide if property
