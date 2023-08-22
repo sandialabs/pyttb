@@ -194,5 +194,5 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 # Autodoc settings
-autoclass_content = "class"
+autoclass_content = "both"
 autodoc_member_order = "bysource"

@@ -48,7 +48,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     >>> data = np.array([[29, 39.], [63., 85.]])
     >>> tol = 1e-4
     >>> disable_printing = -1
-    >>> tensorInstance = ttb.tensor().from_data(data)
+    >>> tensorInstance = ttb.tensor(data)
     >>> result = hosvd(tensorInstance, tol, verbosity=disable_printing)
     >>> ((result.full() - tensorInstance).norm() / tensorInstance.norm()) < tol
     True
@@ -94,7 +94,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     # Main Loop
     factor_matrices = [np.empty(1)] * d
     # Copy input tensor, shrinks every step for sequential
-    Y = ttb.tensor.from_tensor_type(input_tensor)
+    Y = input_tensor.copy()
 
     for k in dimorder:
         # Compute Gram matrix
@@ -133,7 +133,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     else:
         G = Y.ttm(factor_matrices, transpose=True)
 
-    result = ttb.ttensor.from_data(G, factor_matrices)
+    result = ttb.ttensor(G, factor_matrices, copy=False)
 
     if verbosity > 0:
         diffnormsqr = ((input_tensor - result.full()) ** 2).collapse()

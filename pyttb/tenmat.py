@@ -17,6 +17,8 @@ class tenmat:
 
     """
 
+    __slots__ = ("tshape", "rindices", "cindices", "data")
+
     def __init__(self):
         """
         Create empty tenmat.
@@ -81,7 +83,7 @@ class tenmat:
 
         # data is ndarray and only rdims is specified
         if cdims is None:
-            return ttb.tenmat.from_tensor_type(ttb.tensor.from_data(data), rdims)
+            return ttb.tenmat.from_tensor_type(ttb.tensor(data), rdims)
 
         # use data.shape for tshape if not provided
         if tshape is None:
@@ -104,9 +106,7 @@ class tenmat:
                 False
             ), "data.shape does not match shape specified by rdims, cdims, and tshape."
 
-        return ttb.tenmat.from_tensor_type(
-            ttb.tensor.from_data(data, tshape), rdims, cdims
-        )
+        return ttb.tenmat.from_tensor_type(ttb.tensor(data, tshape), rdims, cdims)
 
     @classmethod
     def from_tensor_type(  # noqa: PLR0912
@@ -212,6 +212,19 @@ class tenmat:
         raise ValueError(
             f"Can only create tenmat from tensor or tenmat but recieved {type(source)}"
         )
+
+    def to_tensor(self) -> ttb.tensor:
+        """Return copy of tenmat data as a tensor"""
+        # RESHAPE TENSOR-AS-MATRIX
+        # Here we just reverse what was done in the tenmat constructor.
+        # First we reshape the data to be an MDA, then we un-permute
+        # it using ipermute.
+        shape = self.tshape
+        order = np.hstack([self.rindices, self.cindices])
+        data = np.reshape(self.data.copy(), np.array(shape)[order], order="F")
+        if order.size > 1:
+            data = np.transpose(data, np.argsort(order))
+        return ttb.tensor(data, shape, copy=False)
 
     def ctranspose(self) -> tenmat:
         """

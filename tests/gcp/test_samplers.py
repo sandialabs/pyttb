@@ -113,7 +113,7 @@ def test_gcp_sampler():
     assert np.issubdtype(sampler.crng.dtype, np.integer)
 
     # Sparse data defaults
-    sparse_data = ttb.sptensor.from_tensor_type(dense_data)
+    sparse_data = dense_data.to_sptensor()
     sampler = samplers.GCPSampler(sparse_data)
     subs, vals, wgts = sampler.function_sample(sparse_data)
     check_sample_output(subs, vals, wgts, num_zeros, num_nonzeros)

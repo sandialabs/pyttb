@@ -28,7 +28,7 @@ def test_sptensor_to_dense_matrix():
     ).toarray()
     Ynt = [mode0, mode1, mode2]
 
-    sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
+    sptensorInstance = ttb.sptensor(subs, vals, shape)
     tensorInstance = sptensorInstance.full()
 
     for mode in range(sptensorInstance.ndims):
@@ -38,15 +38,15 @@ def test_sptensor_to_dense_matrix():
 
 @pytest.mark.indevelopment
 def test_sptensor_from_dense_matrix():
-    tensorInstance = ttb.tensor.from_data(np.random.normal(size=(4, 4, 4)))
+    tensorInstance = ttb.tensor(np.random.normal(size=(4, 4, 4)))
     for mode in range(tensorInstance.ndims):
-        tensorCopy = ttb.tensor.from_tensor_type(tensorInstance)
+        tensorCopy = tensorInstance.copy()
         Xnt = ttb_utils.tt_to_dense_matrix(tensorCopy, mode, True)
         Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 0)
         assert tensorCopy.isequal(Ynt)
 
     for mode in range(tensorInstance.ndims):
-        tensorCopy = ttb.tensor.from_tensor_type(tensorInstance)
+        tensorCopy = tensorInstance.copy()
         Xnt = ttb_utils.tt_to_dense_matrix(tensorCopy, mode, False)
         Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 1)
         assert tensorCopy.isequal(Ynt)
@@ -121,8 +121,8 @@ def test_tt_dimscheck():
 @pytest.mark.indevelopment
 def test_tt_tenfun():
     data = np.array([[1, 2, 3], [4, 5, 6]])
-    t1 = ttb.tensor.from_data(data)
-    t2 = ttb.tensor.from_data(data)
+    t1 = ttb.tensor(data)
+    t2 = ttb.tensor(data)
 
     # Binary case
     def add(x, y):
@@ -167,7 +167,7 @@ def test_tt_tenfun():
             tensor_max,
             t1,
             t1,
-            ttb.tensor.from_data(np.concatenate((data, np.array([[7, 8, 9]])))),
+            ttb.tensor(np.concatenate((data, np.array([[7, 8, 9]])))),
         )
     assert "Tensor 2 is not the same size as the first tensor input" in str(excinfo)
 
@@ -227,8 +227,7 @@ def test_tt_irenumber():
     subs = np.array([[const, const, 0], [const, const, 1]])
     vals = np.array([[0.5], [1.5]])
     shape = (4, 4, 4)
-    data = {"subs": subs, "vals": vals, "shape": shape}
-    sptensorInstance = ttb.sptensor().from_data(subs, vals, shape)
+    sptensorInstance = ttb.sptensor(subs, vals, shape)
     slice_tuple = (
         slice(None, None, None),
         slice(None, None, None),
@@ -380,7 +379,7 @@ def test_tt_subsubsref_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     vals = np.array([[0], [21], [63]])
     shape = (4, 4, 4)
-    a = ttb.sptensor.from_data(subs, vals, shape)
+    a = ttb.sptensor(subs, vals, shape)
     assert isinstance(ttb_utils.tt_subsubsref(a, [1]), ttb.sptensor)
     # TODO need to understand behavior better
     assert True

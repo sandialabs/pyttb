@@ -28,4 +28,4 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     if not config.option.packaging:
-        setattr(config.option, "markexpr", "not packaging")
+        config.option.markexpr = "not packaging"

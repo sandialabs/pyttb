@@ -41,13 +41,13 @@ def import_data(
         if data_type == "tensor":
             shape = import_shape(fp)
             data = import_array(fp, np.prod(shape))
-            return ttb.tensor.from_data(data, shape)
+            return ttb.tensor(data, shape, copy=False)
 
         if data_type == "sptensor":
             shape = import_shape(fp)
             nz = import_nnz(fp)
             subs, vals = import_sparse_array(fp, len(shape), nz, index_base)
-            return ttb.sptensor.from_data(subs, vals, shape)
+            return ttb.sptensor(subs, vals, shape)
 
         if data_type == "matrix":
             shape = import_shape(fp)

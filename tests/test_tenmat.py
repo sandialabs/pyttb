@@ -31,7 +31,7 @@ def sample_tensor_3way():
     data = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0])
     shape = (2, 3, 2)
     params = {"data": np.reshape(data, np.array(shape), order="F"), "shape": shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -70,7 +70,7 @@ def sample_tensor_4way():
     data = np.arange(1, 17)
     shape = (2, 2, 2, 2)
     params = {"data": np.reshape(data, np.array(shape), order="F"), "shape": shape}
-    tensorInstance = ttb.tensor.from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -95,7 +95,7 @@ def test_tenmat_initialization_from_data(
     tshape = params["tshape"]
     rdims = params["rdims"]
     cdims = params["cdims"]
-    data = params["data"]
+    params["data"]
     (_, ndarrayInstance1) = sample_ndarray_1way
     (_, ndarrayInstance2) = sample_ndarray_2way
     (_, ndarrayInstance4) = sample_ndarray_4way
@@ -157,40 +157,40 @@ def test_tenmat_initialization_from_data(
     ## data is not numpy.ndarray
     exc = "First argument must be a numeric numpy.ndarray."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data([7], rdims, cdims, tshape)
+        ttb.tenmat.from_data([7], rdims, cdims, tshape)
     assert exc in str(excinfo)
 
     ## data is numpy.ndarray but not numeric
     exc = "First argument must be a numeric numpy.ndarray."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(ndarrayInstance2 > 0, rdims, cdims, tshape)
+        ttb.tenmat.from_data(ndarrayInstance2 > 0, rdims, cdims, tshape)
     assert exc in str(excinfo)
 
     # data is empty numpy.ndarray, but other params are not
     exc = "When data is empty, rdims, cdims, and tshape must also be empty."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(np.array([]), rdims, np.array([]), ())
+        ttb.tenmat.from_data(np.array([]), rdims, np.array([]), ())
     assert exc in str(excinfo)
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(np.array([]), np.array([]), cdims, ())
+        ttb.tenmat.from_data(np.array([]), np.array([]), cdims, ())
     assert exc in str(excinfo)
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(np.array([]), np.array([]), np.array([]), tshape)
+        ttb.tenmat.from_data(np.array([]), np.array([]), np.array([]), tshape)
     assert exc in str(excinfo)
 
     ## data is 1D numpy.ndarray
     exc = "tshape must be specified when data is 1d array."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(ndarrayInstance1, rdims, cdims)
+        ttb.tenmat.from_data(ndarrayInstance1, rdims, cdims)
     assert exc in str(excinfo)
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(ndarrayInstance1, rdims, cdims, None)
+        ttb.tenmat.from_data(ndarrayInstance1, rdims, cdims, None)
     assert exc in str(excinfo)
 
     # tshape is not a tuple
     exc = "tshape must be a tuple."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, list(tshape))
+        ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, list(tshape))
     assert exc in str(excinfo)
 
     # products of tshape and data.shape do not match
@@ -198,7 +198,7 @@ def test_tenmat_initialization_from_data(
         "Incorrect dimensions specified: products of data.shape and tuple do not match"
     )
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_data(
+        ttb.tenmat.from_data(
             ndarrayInstance2, rdims, cdims, tuple(np.array(tshape) + 1)
         )
     assert exc in str(excinfo)
@@ -217,7 +217,7 @@ def test_tenmat_initialization_from_data(
     # D.append([np.array([0,1,1]), np.array([3])])
     for d in D:
         with pytest.raises(AssertionError) as excinfo:
-            a = ttb.tenmat.from_data(ndarrayInstance2, d[0], d[1], tshape)
+            ttb.tenmat.from_data(ndarrayInstance2, d[0], d[1], tshape)
         assert exc in str(excinfo)
 
 
@@ -312,19 +312,19 @@ def test_tenmat_initialization_from_tensor_type(
     # cdims_cyclic has incorrect value
     exc = 'Unrecognized value for cdims_cyclic pattern, must be "fc" or "bc".'
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_tensor_type(tensorInstance, rdims=rdimsBC, cdims_cyclic="c")
+        ttb.tenmat.from_tensor_type(tensorInstance, rdims=rdimsBC, cdims_cyclic="c")
     assert exc in str(excinfo)
 
     # rdims and cdims cannot both be None
     exc = "Either rdims or cdims or both must be specified."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_tensor_type(tensorInstance, rdims=None, cdims=None)
+        ttb.tenmat.from_tensor_type(tensorInstance, rdims=None, cdims=None)
     assert exc in str(excinfo)
 
     # rdims must be valid dimensions
     exc = "Values in rdims must be in [0, source.ndims]."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_tensor_type(
+        ttb.tenmat.from_tensor_type(
             tensorInstance, rdims=np.array([0, 1, 4]), cdims=cdims
         )
     assert exc in str(excinfo)
@@ -332,7 +332,7 @@ def test_tenmat_initialization_from_tensor_type(
     # cdims must be valid dimensions
     exc = "Values in cdims must be in [0, source.ndims]."
     with pytest.raises(AssertionError) as excinfo:
-        a = ttb.tenmat.from_tensor_type(
+        ttb.tenmat.from_tensor_type(
             tensorInstance, rdims=rdims, cdims=np.array([2, 3, 4])
         )
     assert exc in str(excinfo)
@@ -347,12 +347,32 @@ def test_tenmat_initialization_from_tensor_type(
     D.append([np.array([0, 1, 1]), np.array([3])])
     for d in D:
         with pytest.raises(AssertionError) as excinfo:
-            a = ttb.tenmat.from_tensor_type(tensorInstance, d[0], d[1], tshape)
+            ttb.tenmat.from_tensor_type(tensorInstance, d[0], d[1], tshape)
         assert exc in str(excinfo)
 
     # Incorrect source type
     with pytest.raises(ValueError):
         ttb.tenmat.from_tensor_type("not a tensor")
+
+
+def test_tenmat_to_tensor():
+    tensorInstance = ttb.tenrand((4, 3))
+    tensorInstance4 = ttb.tenrand((4, 3, 2, 2))
+    # tenmat
+    tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, np.array([0]))
+    tensorTenmatInstance = tenmatInstance.to_tensor()
+    assert tensorInstance.isequal(tensorTenmatInstance)
+
+    # 1D 1-element tenmat
+    tensorInstance1 = ttb.tensor(np.array([3]))
+    tenmatInstance1 = ttb.tenmat.from_tensor_type(tensorInstance1, np.array([0]))
+    tensorTenmatInstance1 = tenmatInstance1.to_tensor()
+    assert tensorInstance1.isequal(tensorTenmatInstance1)
+
+    # 4D tenmat
+    tenmatInstance4 = ttb.tenmat.from_tensor_type(tensorInstance4, np.array([3, 0]))
+    tensorTenmatInstance4 = tenmatInstance4.to_tensor()
+    assert tensorInstance4.isequal(tensorTenmatInstance4)
 
 
 @pytest.mark.indevelopment
@@ -390,17 +410,17 @@ def test_tenmat_ndims(sample_tenmat_4way):
 @pytest.mark.indevelopment
 def test_tenmat_norm(sample_ndarray_1way, sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
-    tshape = params["tshape"]
-    rdims = params["rdims"]
-    cdims = params["cdims"]
-    data = params["data"]
+    params["tshape"]
+    params["rdims"]
+    params["cdims"]
+    params["data"]
     (_, ndarrayInstance1) = sample_ndarray_1way
 
     # tenmat of 4-way tensor
     assert tenmatInstance.norm() == np.linalg.norm(params["data"].ravel())
 
     # 1D tenmat
-    tensor1 = ttb.tensor.from_data(ndarrayInstance1, shape=(16,))
+    tensor1 = ttb.tensor(ndarrayInstance1, shape=(16,))
     tenmat1 = ttb.tenmat.from_tensor_type(tensor1, cdims=np.array([0]))
     assert tenmat1.norm() == np.linalg.norm(ndarrayInstance1.ravel())
 
@@ -411,7 +431,7 @@ def test_tenmat_norm(sample_ndarray_1way, sample_tenmat_4way):
 @pytest.mark.indevelopment
 def test_tenmat__setitem__():
     ndarrayInstance = np.reshape(np.arange(1, 17), (2, 2, 2, 2), order="F")
-    tensorInstance = ttb.tensor.from_data(ndarrayInstance, shape=(2, 2, 2, 2))
+    tensorInstance = ttb.tensor(ndarrayInstance, shape=(2, 2, 2, 2))
     tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, rdims=np.array([0, 1]))
 
     # single element -> scalar
@@ -435,7 +455,7 @@ def test_tenmat__setitem__():
 @pytest.mark.indevelopment
 def test_tenmat__getitem__():
     ndarrayInstance = np.reshape(np.arange(1, 17), (4, 4), order="F")
-    tensorInstance = ttb.tensor.from_data(ndarrayInstance, shape=(4, 4))
+    tensorInstance = ttb.tensor(ndarrayInstance, shape=(4, 4))
     tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, rdims=np.array([0]))
 
     # single element -> scalar
@@ -488,7 +508,7 @@ def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4
     assert tenmatProd.shape == (2, 2)
 
     # 1D column Tenmat * 1D row Tenmat -> scalar result
-    tensor1 = ttb.tensor.from_data(ndarrayInstance1, shape=(16,))
+    tensor1 = ttb.tensor(ndarrayInstance1, shape=(16,))
     tenmat1 = ttb.tenmat.from_tensor_type(tensor1, cdims=np.array([0]))
     tenmat2 = ttb.tenmat.from_tensor_type(tensor1, rdims=np.array([0]))
     tenmatProd = tenmat1 * tenmat2
@@ -506,14 +526,14 @@ def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4
         ndarrayInstance4, rdims=np.array([0, 1, 2]), cdims=np.array([3])
     )
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmat1 * tenmat2
+        tenmat1 * tenmat2
     assert exc in str(excinfo)
 
     # type mismatch
     exc = "tenmat multiplication only valid with scalar or tenmat objects."
     tenmatNdarray4 = ttb.tenmat.from_data(ndarrayInstance4, rdims, cdims, tshape)
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatInstance * tenmatNdarray4.data
+        tenmatInstance * tenmatNdarray4.data
     assert exc in str(excinfo)
 
 
@@ -523,7 +543,7 @@ def test_tenmat__add__(sample_ndarray_2way, sample_tenmat_4way):
     tshape = params["tshape"]
     rdims = params["rdims"]
     cdims = params["cdims"]
-    data = params["data"]
+    params["data"]
     (_, ndarrayInstance2) = sample_ndarray_2way
 
     # Tenmat + scalar
@@ -545,17 +565,17 @@ def test_tenmat__add__(sample_ndarray_2way, sample_tenmat_4way):
     exc = "tenmat shape mismatch."
     tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, (1, 1, 1, 16))
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatInstance + tenmatNdarray2
+        tenmatInstance + tenmatNdarray2
     assert exc in str(excinfo)
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatNdarray2 + tenmatInstance
+        tenmatNdarray2 + tenmatInstance
     assert exc in str(excinfo)
 
     # type mismatch
     exc = "tenmat addition only valid with scalar or tenmat objects."
     tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, tshape)
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatInstance + tenmatNdarray2.data
+        tenmatInstance + tenmatNdarray2.data
     assert exc in str(excinfo)
 
 
@@ -565,7 +585,7 @@ def test_tenmat__sub__(sample_ndarray_2way, sample_tenmat_4way):
     tshape = params["tshape"]
     rdims = params["rdims"]
     cdims = params["cdims"]
-    data = params["data"]
+    params["data"]
     (_, ndarrayInstance2) = sample_ndarray_2way
 
     # Tenmat + scalar
@@ -587,14 +607,14 @@ def test_tenmat__sub__(sample_ndarray_2way, sample_tenmat_4way):
     exc = "tenmat shape mismatch."
     tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, (1, 1, 1, 16))
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatInstance - tenmatNdarray2
+        tenmatInstance - tenmatNdarray2
     assert exc in str(excinfo)
 
     # type mismatch
     exc = "tenmat subtraction only valid with scalar or tenmat objects."
     tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, tshape)
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatInstance - tenmatNdarray2.data
+        tenmatInstance - tenmatNdarray2.data
     assert exc in str(excinfo)
 
 
@@ -604,7 +624,7 @@ def test_tenmat__rsub__(sample_ndarray_2way, sample_tenmat_4way):
     tshape = params["tshape"]
     rdims = params["rdims"]
     cdims = params["cdims"]
-    data = params["data"]
+    params["data"]
     (_, ndarrayInstance2) = sample_ndarray_2way
 
     # Tenmat + scalar
@@ -624,21 +644,21 @@ def test_tenmat__rsub__(sample_ndarray_2way, sample_tenmat_4way):
     exc = "tenmat shape mismatch."
     tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, (1, 1, 1, 16))
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatInstance.__rsub__(tenmatNdarray2)
+        tenmatInstance.__rsub__(tenmatNdarray2)
     assert exc in str(excinfo)
 
     # type mismatch
     exc = "tenmat subtraction only valid with scalar or tenmat objects."
     tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, tshape)
     with pytest.raises(AssertionError) as excinfo:
-        a = tenmatInstance.__rsub__(tenmatNdarray2.data)
+        tenmatInstance.__rsub__(tenmatNdarray2.data)
     assert exc in str(excinfo)
 
 
 @pytest.mark.indevelopment
 def test_tenmat__pos__(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
-    data = params["data"]
+    params["data"]
 
     # +Tenmat yields no change
     assert ((+tenmatInstance).data == params["data"]).all()
@@ -647,7 +667,7 @@ def test_tenmat__pos__(sample_tenmat_4way):
 @pytest.mark.indevelopment
 def test_tenmat__neg__(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
-    data = params["data"]
+    params["data"]
 
     # +Tenmat yields no change
     assert ((-tenmatInstance).data == -params["data"]).all()
@@ -661,7 +681,7 @@ def test_tenmat__str__(
     tshape = params["tshape"]
     rdims = params["rdims"]
     cdims = params["cdims"]
-    data = params["data"]
+    params["data"]
     (_, ndarrayInstance1) = sample_ndarray_1way
     (_, ndarrayInstance2) = sample_ndarray_2way
     (_, ndarrayInstance4) = sample_ndarray_4way

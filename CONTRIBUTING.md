@@ -25,7 +25,7 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
 1. Formatters and linting
    1. Run autoformatters and linting from root of project (they will change your code)
        ```commandline
-       ruff check pyttb/ --fix
+       ruff check . --fix
        black .
        ```
       1. Ruff's `--fix` won't necessarily address everything and may point out issues that need manual attention

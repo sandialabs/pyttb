@@ -2,6 +2,8 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import copy
+
 import numpy as np
 import pytest
 
@@ -103,17 +105,17 @@ def test_ktensor_init(sample_ktensor_2way):
     # Errors
     # Cannot specify weights and not factor_matrices
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(None, np.array([2.0, 1.0]))
+        ttb.ktensor(None, np.array([2.0, 1.0]))
     assert "factor_matrices cannot be None if weights are provided." in str(excinfo)
 
     # 'factor_matrices' must be a list
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(np.ones((2, 2)), np.array([2.0]))
+        ttb.ktensor(np.ones((2, 2)), np.array([2.0]))
     assert "Input 'factor_matrices' must be a list." in str(excinfo)
 
     # each factor matrix should be a np.ndarray
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor(
+        ttb.ktensor(
             [np.ones((2, 2)), np.ones((2, 2)).astype(int)], np.array([2.0, 1.0])
         )
     assert (
@@ -123,7 +125,7 @@ def test_ktensor_init(sample_ktensor_2way):
 
     # the number of columns of all factor_matrices must be equal
     with pytest.raises(AssertionError) as excinfo:
-        KE = ttb.ktensor([np.ones((2, 2)), np.ones((2, 1))], np.array([2.0, 1.0]))
+        ttb.ktensor([np.ones((2, 2)), np.ones((2, 1))], np.array([2.0, 1.0]))
     assert (
         "The number of columns each item in 'factor_matrices' must be the same."
         in str(excinfo)
@@ -185,7 +187,7 @@ def test_ktensor_from_vector(sample_ktensor_3way):
     # error if the shape does not match the the number of data elements
     with pytest.raises(AssertionError) as excinfo:
         bad_shape = tuple(dim + 7 for dim in data["shape"])
-        K3 = ttb.ktensor.from_vector(data["vector"].T, bad_shape, False)
+        ttb.ktensor.from_vector(data["vector"].T, bad_shape, False)
     assert "Input parameter 'data' is not the right length." in str(excinfo)
 
 
@@ -230,6 +232,18 @@ def test_ktensor_arrange(sample_ktensor_2way):
 def test_ktensor_copy(sample_ktensor_2way):
     (data, K0) = sample_ktensor_2way
     K1 = K0.copy()
+    assert np.array_equal(K0.weights, K1.weights)
+    assert np.array_equal(K0.factor_matrices[0], K1.factor_matrices[0])
+    assert np.array_equal(K0.factor_matrices[1], K1.factor_matrices[1])
+
+    # make sure it is a deep copy
+    K1.weights[0] = 0
+    assert not (K0.weights[0] == K1.weights[0])
+
+
+def test_ktensor__deepcopy__(sample_ktensor_2way):
+    (data, K0) = sample_ktensor_2way
+    K1 = copy.deepcopy(K0)
     assert np.array_equal(K0.weights, K1.weights)
     assert np.array_equal(K0.factor_matrices[0], K1.factor_matrices[0])
     assert np.array_equal(K0.factor_matrices[1], K1.factor_matrices[1])
@@ -373,8 +387,15 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
 
 def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
     (data, K2) = sample_ktensor_2way
-    assert K2.full().isequal(
-        ttb.tensor.from_data(np.array([[29.0, 39.0], [63.0, 85.0]]), (2, 2))
+    assert K2.full().isequal(ttb.tensor(np.array([[29.0, 39.0], [63.0, 85.0]]), (2, 2)))
+    (data, K3) = sample_ktensor_3way
+    print(K3.full())
+
+
+def test_ktensor_to_tensor(sample_ktensor_2way, sample_ktensor_3way):
+    (data, K2) = sample_ktensor_2way
+    assert K2.to_tensor().isequal(
+        ttb.tensor(np.array([[29.0, 39.0], [63.0, 85.0]]), (2, 2))
     )
     (data, K3) = sample_ktensor_3way
     print(K3.full())
@@ -387,14 +408,14 @@ def test_ktensor_innerprod(sample_ktensor_2way):
     # test with tensor
     Tdata = np.array([[1, 2], [3, 4]])
     Tshape = (2, 2)
-    T = ttb.tensor.from_data(Tdata, Tshape)
+    T = ttb.tensor(Tdata, Tshape)
     assert K.innerprod(T) == 636
 
     # test with sptensor
     Ssubs = np.array([[0, 0], [0, 1], [1, 1]])
     Svals = np.array([[0.5], [1.0], [1.5]])
     Sshape = (2, 2)
-    S = ttb.sptensor.from_data(Ssubs, Svals, Sshape)
+    S = ttb.sptensor(Ssubs, Svals, Sshape)
     assert K.innerprod(S) == 181
 
     # Wrong shape
@@ -451,7 +472,7 @@ def test_ktensor_issymetric(sample_ktensor_2way, sample_ktensor_symmetric):
 
 def test_ktensor_mask(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
-    W = ttb.tensor.from_data(np.array([[0, 1], [1, 0]]))
+    W = ttb.tensor(np.array([[0, 1], [1, 0]]))
     assert np.array_equal(K.mask(W), np.array([[63], [39]]))
 
     # Mask too large
@@ -1095,7 +1116,7 @@ def test_ktensor__add__(sample_ktensor_2way, sample_ktensor_3way):
 
     # shapes do not match, should raise error
     with pytest.raises(AssertionError) as excinfo:
-        K3 = K0 + K1
+        K0 + K1
     assert "Must be two ktensors of the same shape" in str(excinfo)
 
     # types do not match, should raise error
@@ -1181,7 +1202,7 @@ def test_ktensor__sub__(sample_ktensor_2way, sample_ktensor_3way):
         )
     # shapes do not match, should raise error
     with pytest.raises(AssertionError) as excinfo:
-        K3 = K0 - K1
+        K0 - K1
     assert "Must be two ktensors of the same shape" in str(excinfo)
 
     # types do not match, should raise error
@@ -1207,7 +1228,7 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     for k in range(K1.ndims):
         assert np.array_equal(data0["factor_matrices"][k], K2.factor_matrices[k])
     with pytest.raises(AssertionError) as excinfo:
-        K3 = K0 * K0
+        K0 * K0
     assert (
         "Multiplication by ktensors only allowed for scalars, tensors, or sptensors"
         in str(excinfo)
@@ -1216,7 +1237,7 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     # test with tensor
     Tdata = np.array([[1, 2], [3, 4]])
     Tshape = (2, 2)
-    T = ttb.tensor.from_data(Tdata, Tshape)
+    T = ttb.tensor(Tdata, Tshape)
     K0T = K0 * T
     assert np.array_equal(K0T.double(), np.array([[29.0, 78.0], [189.0, 340.0]]))
 
@@ -1224,7 +1245,7 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
     Ssubs = np.array([[0, 0], [0, 1], [1, 1]])
     Svals = np.array([[0.5], [1.0], [1.5]])
     Sshape = (2, 2)
-    S = ttb.sptensor.from_data(Ssubs, Svals, Sshape)
+    S = ttb.sptensor(Ssubs, Svals, Sshape)
     K0S = S * K0
     assert np.array_equal(K0S.double(), np.array([[14.5, 39.0], [0.0, 127.5]]))
 

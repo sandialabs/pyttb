@@ -98,7 +98,11 @@ def tt_from_sparse_matrix(
     """
     siz = np.array(shape)
     old = np.setdiff1d(np.arange(len(shape)), mode).astype(int)
-    sptensorInstance = ttb.sptensor.from_tensor_type(sparse.coo_matrix(spmatrix))
+    if not isinstance(spmatrix, sparse.coo_matrix):
+        spmatrix = sparse.coo_matrix(spmatrix)
+    subs = np.vstack((spmatrix.row, spmatrix.col)).transpose()
+    vals = spmatrix.data[:, None]
+    sptensorInstance = ttb.sptensor(subs, vals, spmatrix.shape, copy=False)
 
     # This expands the compressed dimension back to full size
     sptensorInstance = sptensorInstance.reshape(siz[old], idx)
@@ -117,27 +121,15 @@ class sptensor:
     SPTENSOR Class for sparse tensors.
     """
 
-    def __init__(self, shape: Optional[Tuple[int, ...]] = None):
-        """
-        Create an empty sparse tensor
+    __slots__ = ("subs", "vals", "shape")
 
-        Returns
-        -------
-        :class:`pyttb.sptensor`
-        """
-        # Empty constructor
-        self.subs = np.array([], ndmin=2, dtype=int)
-        self.vals = np.array([], ndmin=2)
-        self.shape: Union[Tuple[()], Tuple[int, ...]] = ()
-        if shape is not None:
-            if not tt_sizecheck(shape):
-                raise ValueError(f"Invalid shape provided: {shape}")
-            self.shape = tuple(shape)
-
-    @classmethod
-    def from_data(
-        cls, subs: np.ndarray, vals: np.ndarray, shape: Tuple[int, ...]
-    ) -> sptensor:
+    def __init__(
+        self,
+        subs: Optional[np.ndarray] = None,
+        vals: Optional[np.ndarray] = None,
+        shape: Optional[Tuple[int, ...]] = None,
+        copy=True,
+    ):
         """
         Construct an sptensor from fully defined SUB, VAL and SIZE matrices.
         This does no validation to optimize for speed when components are known.
@@ -152,6 +144,8 @@ class sptensor:
             Values for non-zero entries
         shape:
             Shape of sparse tensor
+        copy:
+            Whether to make a copy of provided data or just reference it
 
         Examples
         --------
@@ -166,58 +160,34 @@ class sptensor:
         >>> subs = np.array([[1, 2], [1, 3]])
         >>> vals = np.array([[6], [7]])
         >>> shape = (4, 4, 4)
-        >>> K0 = ttb.sptensor.from_data(subs,vals, shape)
+        >>> K0 = ttb.sptensor(subs,vals, shape)
+        >>> empty_sptensor = ttb.sptensor(shape=shape)
         """
-        sptensorInstance = cls()
-        sptensorInstance.subs = subs
-        sptensorInstance.vals = vals
-        sptensorInstance.shape = shape
-        return sptensorInstance
 
-    @classmethod
-    def from_tensor_type(
-        cls, source: Union[sptensor, ttb.tensor, sparse.coo_matrix]
-    ) -> sptensor:
-        """
-        Contruct an :class:`pyttb.sptensor` from compatible tensor types
+        if subs is None and vals is None:
+            # Empty constructor
+            self.subs = np.array([], ndmin=2, dtype=int)
+            self.vals = np.array([], ndmin=2)
+            self.shape: Union[Tuple[()], Tuple[int, ...]] = ()
+            if shape is not None:
+                if not tt_sizecheck(shape):
+                    raise ValueError(f"Invalid shape provided: {shape}")
+                self.shape = tuple(shape)
+            return
+        if subs is None or vals is None or shape is None:
+            raise ValueError(
+                "For non-empty sptensors subs, vals, and shape must be provided"
+            )
 
-        Parameters
-        ----------
-        source:
-            Source tensor to create sptensor from
-
-        Returns
-        -------
-        Generated Sparse Tensor
-        """
-        # Copy Constructor
-        if isinstance(source, sptensor):
-            return cls().from_data(source.subs.copy(), source.vals.copy(), source.shape)
-
-        # Convert SPTENMAT
-        if isinstance(source, ttb.sptenmat):  # pragma: no cover
-            raise NotImplementedError
-
-        # Convert Tensor
-        if isinstance(source, ttb.tensor):
-            subs, vals = source.find()
-            return cls().from_data(subs.copy(), vals.copy(), source.shape)
-
-        # Convert SPTENSOR3
-        if isinstance(source, ttb.sptensor3):  # pragma: no cover
-            raise NotImplementedError
-
-        # Convert Matrix
-        # TODO how to handle sparse matrices in general
-        if isinstance(source, scipy.sparse.coo_matrix):
-            subs = np.vstack((source.row, source.col)).transpose()
-            vals = source.data[:, None]
-            return ttb.sptensor.from_data(subs, vals, source.shape)
-
-        # Convert MDA
-        # TODO what is an MDA?
-
-        assert False, "Invalid Tensor Type To initialize Sptensor"
+        if copy:
+            self.subs = subs.copy()
+            self.vals = vals.copy()
+            self.shape = shape
+            return
+        self.subs = subs
+        self.vals = vals
+        self.shape = shape
+        return
 
     @classmethod
     def from_function(
@@ -273,7 +243,7 @@ class sptensor:
         vals = function_handle((nonzeros, 1))
 
         # Store everything
-        return cls().from_data(subs, vals, shape)
+        return cls(subs, vals, shape, copy=False)
 
     @classmethod
     def from_aggregator(
@@ -355,7 +325,31 @@ class sptensor:
             newvals = newvals[:, None]
 
         # Store everything
-        return cls().from_data(newsubs, newvals, shape)
+        return cls(newsubs, newvals, shape, copy=False)
+
+    def copy(self) -> sptensor:
+        """Make a deep copy of a :class:`pyttb.sptensor`.
+
+        Returns
+        -------
+        Copy of original sptensor.
+
+        Examples
+        --------
+        >>> first = ttb.sptensor(shape=(2,2))
+        >>> first[0,0] = 1
+        >>> second = first
+        >>> third = second.copy()
+        >>> first[0,0] = 3
+        >>> first[0,0] == second[0,0]
+        True
+        >>> first[0,0] == third[0,0]
+        False
+        """
+        return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
+
+    def __deepcopy__(self, memo):
+        return self.copy()
 
     # TODO decide if property
     def allsubs(self) -> np.ndarray:
@@ -409,7 +403,7 @@ class sptensor:
         >>> subs = np.array([[1, 2], [1, 3]])
         >>> vals = np.array([[1], [1]])
         >>> shape = np.array([4, 4])
-        >>> X = ttb.sptensor.from_data(subs, vals, shape)
+        >>> X = ttb.sptensor(subs, vals, shape)
         >>> X.collapse()
         2
         >>> X.collapse(np.arange(X.ndims), sum)
@@ -444,7 +438,7 @@ class sptensor:
             return ttb.sptensor.from_aggregator(
                 self.subs[:, remdims], self.vals, tuple(newsize), fun
             )
-        return ttb.sptensor.from_data(np.array([]), np.array([]), tuple(newsize))
+        return ttb.sptensor(np.array([]), np.array([]), tuple(newsize), copy=False)
 
     def contract(self, i: int, j: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
         """
@@ -463,8 +457,8 @@ class sptensor:
 
         Example
         -------
-        >>> X = ttb.tensor.from_data(np.ones((2,2)))
-        >>> Y = sptensor.from_tensor_type(X)
+        >>> X = ttb.tensor(np.ones((2,2)))
+        >>> Y = X.to_sptensor()
         >>> Y.contract(0, 1)
         2.0
         """
@@ -501,7 +495,7 @@ class sptensor:
         # Check if result should be dense
         if y.nnz > 0.5 * np.prod(y.shape):
             # Final result is a dense tensor
-            return ttb.tensor.from_tensor_type(y)
+            return y.to_tensor()
         return y
 
     def double(self) -> np.ndarray:
@@ -528,8 +522,8 @@ class sptensor:
 
         Example
         -------
-        >>> X = ttb.tensor.from_data(np.ones((2,2)))
-        >>> Y = sptensor.from_tensor_type(X)
+        >>> X = ttb.tensor(np.ones((2,2)))
+        >>> Y = X.to_sptensor()
         >>> Z = Y.elemfun(lambda values: values*2)
         >>> Z.isequal(Y*2)
         True
@@ -538,8 +532,8 @@ class sptensor:
         vals = function_handle(self.vals)
         idx = np.where(vals > 0)[0]
         if idx.size == 0:
-            return ttb.sptensor.from_data(np.array([]), np.array([]), self.shape)
-        return ttb.sptensor.from_data(self.subs[idx, :], vals[idx], self.shape)
+            return ttb.sptensor(np.array([]), np.array([]), self.shape, copy=False)
+        return ttb.sptensor(self.subs[idx, :], vals[idx], self.shape, copy=False)
 
     def extract(self, searchsubs: np.ndarray) -> np.ndarray:
         """
@@ -595,6 +589,12 @@ class sptensor:
         """
         return self.subs, self.vals
 
+    def to_tensor(self) -> ttb.tensor:
+        """Convenience method to convert to tensor.
+        Same as :meth:`pyttb.sptensor.full`
+        """
+        return self.full()
+
     def full(self) -> ttb.tensor:
         """
         FULL Convert a sparse tensor to a (dense) tensor.
@@ -604,7 +604,7 @@ class sptensor:
             return ttb.tensor()
 
         # Create a dense zero tensor B that is the same shape as A
-        B = ttb.tensor.from_data(np.zeros(shape=self.shape), self.shape)
+        B = ttb.tensor(np.zeros(shape=self.shape), copy=False)
 
         if self.subs.size == 0:
             return B
@@ -692,10 +692,10 @@ class sptensor:
         # Case 1: One argument is a scalar
         if isinstance(B, (int, float)):
             if B == 0:
-                C = sptensor.from_data(np.array([]), np.array([]), self.shape)
+                C = sptensor(shape=self.shape)
             else:
                 newvals = self.vals == B
-                C = sptensor.from_data(self.subs, newvals, self.shape)
+                C = sptensor(self.subs, newvals, self.shape)
             return C
         # Case 2: Argument is a tensor of some sort
         if isinstance(B, sptensor):
@@ -713,7 +713,7 @@ class sptensor:
             return C
 
         if isinstance(B, ttb.tensor):
-            BB = sptensor.from_data(self.subs, B[self.subs][:, None], self.shape)
+            BB = sptensor(self.subs, B[self.subs][:, None], self.shape)
             C = self.logical_and(BB)
             return C
 
@@ -733,7 +733,7 @@ class sptensor:
         subsIdx = tt_setdiff_rows(allsubs, self.subs)
         subs = allsubs[subsIdx]
         trueVector = np.ones(shape=(subs.shape[0], 1), dtype=bool)
-        return sptensor.from_data(subs, trueVector, self.shape)
+        return sptensor(subs, trueVector, self.shape)
 
     @overload
     def logical_or(self, B: Union[float, ttb.tensor]) -> ttb.tensor:
@@ -863,7 +863,7 @@ class sptensor:
         >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
-        >>> sptensorInstance = sptensor.from_data(subs, vals, shape)
+        >>> sptensorInstance = sptensor(subs, vals, shape)
         >>> sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0)
         array([[0. , 0. , 0. , 0. ],
                [2. , 2. , 2. , 2. ],
@@ -949,9 +949,7 @@ class sptensor:
         old = np.setdiff1d(np.arange(self.ndims), n).astype(int)
         # tnt calculation is a workaround for missing sptenmat
         mutatable_sptensor = (
-            sptensor.from_tensor_type(self)
-            .reshape((np.prod(np.array(self.shape)[old]), 1), old)
-            .squeeze()
+            self.copy().reshape((np.prod(np.array(self.shape)[old]), 1), old).squeeze()
         )
         if isinstance(mutatable_sptensor, (int, float, np.generic)):
             raise ValueError(
@@ -983,7 +981,7 @@ class sptensor:
         """
         oneVals = self.vals.copy()
         oneVals.fill(1)
-        return ttb.sptensor.from_data(self.subs, oneVals, self.shape)
+        return ttb.sptensor(self.subs, oneVals, self.shape)
 
     def permute(self, order: np.ndarray) -> sptensor:
         """
@@ -1002,12 +1000,10 @@ class sptensor:
 
         # Do the permutation
         if not self.subs.size == 0:
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 self.subs[:, order], self.vals, tuple(np.array(self.shape)[order])
             )
-        return ttb.sptensor.from_data(
-            self.subs, self.vals, tuple(np.array(self.shape)[order])
-        )
+        return ttb.sptensor(self.subs, self.vals, tuple(np.array(self.shape)[order]))
 
     def reshape(
         self,
@@ -1041,10 +1037,11 @@ class sptensor:
             assert False, "Reshape must maintain tensor size"
 
         if self.subs.size == 0:
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 np.array([]),
                 np.array([]),
                 tuple(np.concatenate((keep_shape, new_shape))),
+                copy=False,
             )
         if np.isscalar(old_shape):
             old_shape = (old_shape,)
@@ -1052,7 +1049,7 @@ class sptensor:
         else:
             inds = tt_sub2ind(old_shape, self.subs[:, old_modes])
         new_subs = tt_ind2sub(new_shape, inds)
-        return ttb.sptensor.from_data(
+        return ttb.sptensor(
             np.concatenate((self.subs[:, keep_modes], new_subs), axis=1),
             self.vals,
             tuple(np.concatenate((keep_shape, new_shape))),
@@ -1079,7 +1076,7 @@ class sptensor:
             shapeArray = np.array(self.shape)
             if not np.array_equal(factor.shape, shapeArray[dims]):
                 assert False, "Size mismatch in scale"
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 self.subs,
                 self.vals * factor[self.subs[:, dims]][:, None],
                 self.shape,
@@ -1088,14 +1085,14 @@ class sptensor:
             shapeArray = np.array(self.shape)
             if not np.array_equal(factor.shape, shapeArray[dims]):
                 assert False, "Size mismatch in scale"
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 self.subs, self.vals * factor.extract(self.subs[:, dims]), self.shape
             )
         if isinstance(factor, np.ndarray):
             shapeArray = np.array(self.shape)
             if factor.shape[0] != shapeArray[dims]:
                 assert False, "Size mismatch in scale"
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 self.subs,
                 self.vals * factor[self.subs[:, dims].transpose()[0]][:, None],
                 self.shape,
@@ -1128,14 +1125,14 @@ class sptensor:
 
         # No singleton dimensions
         if np.all(shapeArray > 1):
-            return ttb.sptensor.from_tensor_type(self)
+            return self.copy()
         idx = np.where(shapeArray > 1)[0]
         if idx.size == 0:
             return self.vals[0].copy()
         siz = tuple(shapeArray[idx])
         if self.vals.size == 0:
-            return ttb.sptensor.from_data(np.array([]), np.array([]), siz)
-        return ttb.sptensor.from_data(self.subs[:, idx], self.vals, siz)
+            return ttb.sptensor(np.array([]), np.array([]), siz, copy=False)
+        return ttb.sptensor(self.subs[:, idx], self.vals, siz)
 
     def subdims(self, region: Sequence[Union[int, np.ndarray, slice]]) -> np.ndarray:
         """
@@ -1156,7 +1153,7 @@ class sptensor:
         >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
-        >>> sp = sptensor.from_data(subs,vals,shape)
+        >>> sp = sptensor(subs,vals,shape)
         >>> region = [np.array([1]), np.array([1]), np.array([1,3])]
         >>> loc = sp.subdims(region)
         >>> print(loc)
@@ -1269,7 +1266,7 @@ class sptensor:
         # Case 1: Result is a vector
         if remdims.size == 1:
             if newvals.size == 0:
-                return ttb.sptensor.from_data(np.array([]), np.array([]), tuple(newsiz))
+                return ttb.sptensor(shape=tuple(newsiz))
             c = accumarray(
                 newsubs.transpose()[0], newvals.transpose()[0], size=newsiz[0]
             )
@@ -1277,14 +1274,14 @@ class sptensor:
                 return ttb.sptensor.from_aggregator(
                     np.arange(0, newsiz)[:, None], c, tuple(newsiz)
                 )
-            return ttb.tensor.from_data(c, tuple(newsiz))
+            return ttb.tensor(c, tuple(newsiz), copy=False)
 
         # Case 2: Result is a multiway array
         c = ttb.sptensor.from_aggregator(newsubs, newvals, tuple(newsiz))
 
         # Convert to a dense tensor if more than 50% of the result is nonzero.
         if c.nnz > 0.5 * np.prod(newsiz):
-            c = ttb.tensor.from_tensor_type(c)
+            c = c.to_tensor()
 
         return c
 
@@ -1325,7 +1322,7 @@ class sptensor:
         >>> subs = np.array([[3,3,3],[1,1,0],[1,2,1]])
         >>> vals = np.array([3,5,1])
         >>> shape = (4,4,4)
-        >>> X = sptensor.from_data(subs,vals,shape)
+        >>> X = sptensor(subs,vals,shape)
         >>> print(X[0,1,0])
         0
         >>> print(X[3,3,3])
@@ -1393,13 +1390,9 @@ class sptensor:
             # Assemble the resulting sparse tensor
             # TODO clean up tuple array cast below
             if subs.size == 0:
-                a = sptensor.from_data(
-                    np.array([]), np.array([]), tuple(np.array(shape)[kpdims])
-                )
+                a = sptensor(shape=tuple(np.array(shape)[kpdims]))
             else:
-                a = sptensor.from_data(
-                    subs[:, kpdims], vals, tuple(np.array(shape)[kpdims])
-                )
+                a = sptensor(subs[:, kpdims], vals, tuple(np.array(shape)[kpdims]))
             return a
 
         # Case 2:
@@ -1459,7 +1452,7 @@ class sptensor:
 
         Examples
         --------
-        >>> X = sptensor((30, 40, 20)) # <-- Create an empty 30 x 40 x 20 sptensor
+        >>> X = sptensor(shape=(30, 40, 20)) # <-- Create an empty 30 x 40 x 20 sptensor
         >>> X[29, 39, 19] = 7 # <-- Assign a single element to be 7
         >>> X[np.array([[1,1,1], [2,2,2]])] = 1 # <-- Assign a list of elements
         >>> X[11:20,11:20,11:20] = ttb.sptenrand((10,10,10),nonzeros=10)
@@ -1468,7 +1461,7 @@ class sptensor:
         >>> X[111:120,111:120,111:120] = ttb.sptenrand((10,10,10),nonzeros=10)
         >>> X[1,1,1,1] = 4 # <-- increases the number of dimensions from 3 to 4
 
-        >>> X = ttb.sptensor((30,)) # <-- empty one-dimensional tensor
+        >>> X = ttb.sptensor(shape=(30,)) # <-- empty one-dimensional tensor
         >>> X[4:6] = 1 # <-- set subtensor to ones (does not increase dimension)
         >>> X[np.array([[10], [12], [14]])] = np.array([[5], [6], [7]])
         >>> X[31] = 7 # <-- grow the ONLY dimension
@@ -1818,7 +1811,7 @@ class sptensor:
             if other == 0:
                 return self.logical_not()
             idx = self.vals == other
-            return sptensor.from_data(
+            return sptensor(
                 self.subs[idx.transpose()[0]],
                 True * np.ones((self.subs.shape[0], 1)).astype(bool),
                 self.shape,
@@ -1850,7 +1843,7 @@ class sptensor:
                 (self.vals[nzsubsIdx] == other.vals[iother]).transpose()[0], :
             ]
 
-            return sptensor.from_data(
+            return sptensor(
                 np.vstack((zzerosubs, znzsubs)),
                 True
                 * np.ones((zzerosubs.shape[0] + znzsubs.shape[0])).astype(bool)[
@@ -1871,7 +1864,7 @@ class sptensor:
             othervals = other[self.subs]
             znzsubs = self.subs[(othervals[:, None] == self.vals).transpose()[0], :]
 
-            return sptensor.from_data(
+            return sptensor(
                 np.vstack((zzerosubs, znzsubs)),
                 True * np.ones((zzerosubs.shape[0] + znzsubs.shape[0])).astype(bool),
                 self.shape,
@@ -1895,13 +1888,13 @@ class sptensor:
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
             if other == 0:
-                return ttb.sptensor.from_data(
+                return ttb.sptensor(
                     self.subs, True * np.ones((self.subs.shape[0], 1)), self.shape
                 )
             subs1 = self.subs[self.vals.transpose()[0] != other, :]
             subs2Idx = tt_setdiff_rows(self.allsubs(), self.subs)
             subs2 = self.allsubs()[subs2Idx, :]
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 np.vstack((subs1, subs2)),
                 True * np.ones((self.subs.shape[0], 1)).astype(bool),
                 self.shape,
@@ -1931,7 +1924,7 @@ class sptensor:
             ).transpose()[0]
             subs2 = self.subs[subs_pad, :]
             # put it all together
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 np.vstack((subs1, subs2)),
                 True * np.ones((subs1.shape[0] + subs2.shape[0], 1)).astype(bool),
                 self.shape,
@@ -1953,7 +1946,7 @@ class sptensor:
             if subs2.size == 0:
                 subs2 = np.empty((0, self.subs.shape[1]))
             # put it all together
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 np.vstack((subs1, subs2)),
                 True * np.ones((subs1.shape[0] + subs2.shape[0], 1)).astype(bool),
                 self.shape,
@@ -2019,7 +2012,7 @@ class sptensor:
         :class:`pyttb.sptensor`, copy of tensor
         """
 
-        return ttb.sptensor.from_tensor_type(self)
+        return self.copy()
 
     def __neg__(self):
         """
@@ -2030,7 +2023,7 @@ class sptensor:
         :class:`pyttb.sptensor`, copy of tensor
         """
 
-        return ttb.sptensor.from_data(self.subs, -1 * self.vals, self.shape)
+        return ttb.sptensor(self.subs, -1 * self.vals, self.shape)
 
     def __mul__(self, other):
         """
@@ -2045,7 +2038,7 @@ class sptensor:
         :class:`pyttb.sptensor`
         """
         if isinstance(other, (float, int, np.number)):
-            return ttb.sptensor.from_data(self.subs, self.vals * other, self.shape)
+            return ttb.sptensor(self.subs, self.vals * other, self.shape)
 
         if (
             isinstance(other, (ttb.sptensor, ttb.tensor, ttb.ktensor))
@@ -2056,7 +2049,7 @@ class sptensor:
         if isinstance(other, ttb.sptensor):
             idxSelf = tt_intersect_rows(self.subs, other.subs)
             idxOther = tt_intersect_rows(other.subs, self.subs)
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 self.subs[idxSelf],
                 self.vals[idxSelf] * other.vals[idxOther],
                 self.shape,
@@ -2064,7 +2057,7 @@ class sptensor:
         if isinstance(other, ttb.tensor):
             csubs = self.subs
             cvals = self.vals * other[csubs][:, None]
-            return ttb.sptensor.from_data(csubs, cvals, self.shape)
+            return ttb.sptensor(csubs, cvals, self.shape)
         if isinstance(other, ttb.ktensor):
             csubs = self.subs
             cvals = np.zeros(self.vals.shape)
@@ -2078,7 +2071,7 @@ class sptensor:
                     v = other[n][:, r][:, None]
                     tvals = tvals * v[csubs[:, n]]
                 cvals += tvals
-            return ttb.sptensor.from_data(csubs, cvals, self.shape)
+            return ttb.sptensor(csubs, cvals, self.shape)
         assert False, "Sptensor cannot be multiplied by that type of object"
 
     def __rmul__(self, other):
@@ -2119,9 +2112,7 @@ class sptensor:
                 subs = np.vstack((subs1, subs2))
             else:
                 subs = subs1
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2: Both x and y are tensors of some sort
         # Check that the sizes match
@@ -2166,9 +2157,7 @@ class sptensor:
 
             # assemble
             subs = np.vstack((subs1, subs2, subs3, subs4))
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2b: One dense tensor
         if isinstance(other, ttb.tensor):
@@ -2181,9 +2170,7 @@ class sptensor:
 
             # assemble
             subs = np.vstack((subs1, subs2))
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Otherwise
         assert False, "Cannot compare sptensor with that type"
@@ -2208,9 +2195,7 @@ class sptensor:
                 subs = np.vstack((subs1, subs2))
             else:
                 subs = subs1
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2: Both x and y are tensors of some sort
         # Check that the sizes match
@@ -2250,9 +2235,7 @@ class sptensor:
 
             # assemble
             subs = np.vstack((subs1, subs2, subs3))
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2b: One dense tensor
         if isinstance(other, ttb.tensor):
@@ -2265,9 +2248,7 @@ class sptensor:
 
             # assemble
             subs = np.vstack((subs1, subs2))
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Otherwise
         assert False, "Cannot compare sptensor with that type"
@@ -2292,9 +2273,7 @@ class sptensor:
                 subs = np.vstack((subs1, self.allsubs()[subs2]))
             else:
                 subs = subs1
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2: Both x and y are tensors of some sort
         # Check that the sizes match
@@ -2321,7 +2300,7 @@ class sptensor:
             ]
 
             # assemble
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 np.vstack((subs1, subs2)),
                 True * np.ones((len(subs1) + len(subs2), 1)),
                 self.shape,
@@ -2350,9 +2329,7 @@ class sptensor:
                 subs = np.vstack((subs1, self.allsubs()[subs2]))
             else:
                 subs = subs1
-            return ttb.sptensor.from_data(
-                subs, True * np.ones((len(subs), 1)), self.shape
-            )
+            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2: Both x and y are tensors of some sort
         # Check that the sizes match
@@ -2380,7 +2357,7 @@ class sptensor:
             ]
 
             # assemble
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 np.vstack((subs1, subs2)),
                 True * np.ones((len(subs1) + len(subs2), 1)),
                 self.shape,
@@ -2415,7 +2392,7 @@ class sptensor:
                 nansubs = self.allsubs()[nansubsidx]
                 newsubs = np.vstack((newsubs, nansubs))
                 newvals = np.vstack((newvals, np.nan * np.ones((nansubs.shape[0], 1))))
-            return ttb.sptensor.from_data(newsubs, newvals, self.shape)
+            return ttb.sptensor(newsubs, newvals, self.shape)
 
         # Tensor divided by a tensor
         if (
@@ -2474,12 +2451,12 @@ class sptensor:
                 newsubs = np.vstack((newsubs, SelfZeroSubs[moresubs, :]))
                 newvals = np.vstack((newvals, morevals))
 
-            return ttb.sptensor.from_data(newsubs, newvals, self.shape)
+            return ttb.sptensor(newsubs, newvals, self.shape)
 
         if isinstance(other, ttb.tensor):
             csubs = self.subs
             cvals = self.vals / other[csubs][:, None]
-            return ttb.sptensor.from_data(csubs, cvals, self.shape)
+            return ttb.sptensor(csubs, cvals, self.shape)
         if isinstance(other, ttb.ktensor):
             # TODO consider removing epsilon and generating nans consistent with above
             epsilon = np.finfo(float).eps
@@ -2493,7 +2470,7 @@ class sptensor:
                     v = other[n][:, r][:, None]
                     tvals = tvals * v[subs[:, n]]
                 vals += tvals
-            return ttb.sptensor.from_data(
+            return ttb.sptensor(
                 self.subs, self.vals / np.maximum(epsilon, vals), self.shape
             )
         assert False, "Invalid arguments for sptensor division"
@@ -2643,7 +2620,7 @@ class sptensor:
             return Ynt
         # TODO evaluate performance loss by casting into sptensor then tensor.
         #  I assume minimal since we are already using spare matrix representation
-        return ttb.tensor.from_tensor_type(Ynt)
+        return Ynt.to_tensor()
 
     @overload
     def squash(self, return_inverse: Literal[False]) -> sptensor:
@@ -2685,7 +2662,7 @@ class sptensor:
             subs[:, n] = inverse
             shape.append(len(subs))
             idx_map[n] = unique_subs
-        squashed_tensor = sptensor.from_data(subs, self.vals, tuple(shape))
+        squashed_tensor = sptensor(subs, self.vals, tuple(shape))
         if return_inverse:
             return squashed_tensor, idx_map
         return squashed_tensor

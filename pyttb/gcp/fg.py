@@ -93,8 +93,7 @@ def evaluate(
         Y = gradient_handle(data.data, full_model.data)
         if weights is not None:
             Y *= weights
-        # TODO take this without a copy when #187 completed
-        G = ttb.tensor.from_data(Y).mttkrps(model.factor_matrices)
+        G = ttb.tensor(Y, copy=False).mttkrps(model.factor_matrices)
 
     if F is not None and G is not None:
         return F, G
