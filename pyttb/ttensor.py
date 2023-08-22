@@ -24,8 +24,9 @@ ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/spte
 class ttensor:
     """
     TTENSOR Class for Tucker tensors (decomposed).
-
     """
+
+    __slots__ = ("core", "factor_matrices")
 
     def __init__(
         self,

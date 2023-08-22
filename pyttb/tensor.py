@@ -33,8 +33,7 @@ class tensor:
     TENSOR Class for dense tensors.
     """
 
-    data: np.ndarray
-    shape: Tuple
+    __slots__ = ("data", "shape")
 
     def __init__(
         self,
@@ -67,8 +66,8 @@ class tensor:
         """
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
-            self.data = np.array([])
-            self.shape = ()
+            self.data: np.ndarray = np.array([])
+            self.shape: Tuple = ()
             return
         # CONVERT A MULTIDIMENSIONAL ARRAY
         if not issubclass(data.dtype.type, np.number) and not issubclass(

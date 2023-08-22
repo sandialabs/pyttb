@@ -17,6 +17,8 @@ class tenmat:
 
     """
 
+    __slots__ = ("tshape", "rindices", "cindices", "data")
+
     def __init__(self):
         """
         Create empty tenmat.

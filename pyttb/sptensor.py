@@ -121,6 +121,8 @@ class sptensor:
     SPTENSOR Class for sparse tensors.
     """
 
+    __slots__ = ("subs", "vals", "shape")
+
     def __init__(
         self,
         subs: Optional[np.ndarray] = None,
