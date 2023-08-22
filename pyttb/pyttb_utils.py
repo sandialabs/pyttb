@@ -104,7 +104,7 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     --------
     >>> a = np.array([[1,2],[3,4]])
     >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>> ttb.tt_union_rows(a,b)
+    >>> tt_union_rows(a,b)
     array([[0, 0],
            [1, 2],
            [3, 4]])
@@ -227,7 +227,7 @@ def tt_dimscheck(
     return sdims, vidx
 
 
-def tt_tenfun(function_handle, *inputs):  # pylint:disable=too-many-branches
+def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
     """
     Apply a function to each element in a tensor
 
@@ -376,12 +376,12 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     --------
     >>> a = np.array([[1,2],[3,4]])
     >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>> ttb.tt_intersect_rows(a,b)
+    >>> tt_intersect_rows(a,b)
     array([0, 1])
-    >>> ttb.tt_intersect_rows(b,a)
+    >>> tt_intersect_rows(b,a)
     array([1, 2])
     """
-    # TODO ismember and uniqe are very similar in function
+    # TODO ismember and unique are very similar in function
     if MatrixA.size > 0:
         MatrixAUnique, idxA = np.unique(MatrixA, axis=0, return_index=True)
     else:
@@ -429,7 +429,7 @@ def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.nd
             newsubs = np.insert(newsubs, obj=i, values=r, axis=1)
         else:
             if isinstance(r, list):
-                r = np.array(r)
+                r = np.array(r)  # noqa: PLW2901
             newsubs[:, i] = r[newsubs[:, i]]
     return newsubs
 
@@ -462,7 +462,7 @@ def tt_renumber(
     """
     newshape = np.array(shape)
     newsubs = subs
-    for i in range(0, len(shape)):  # pylint: disable=consider-using-enumerate
+    for i in range(0, len(shape)):
         if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
@@ -517,7 +517,6 @@ def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]
 
 # TODO make more efficient, decide if we want to support the multiple response
 #  matlab does
-# pylint: disable=line-too-long
 # https://stackoverflow.com/questions/22699756/python-version-of-ismember-with-rows-and-index
 # For thoughts on how to speed this up
 def tt_ismember_rows(search: np.ndarray, source: np.ndarray) -> np.ndarray:
@@ -574,7 +573,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     return np.array(np.unravel_index(idx, shape, order="F")).transpose()
 
 
-def tt_subsubsref(obj, s):  # pylint: disable=unused-argument
+def tt_subsubsref(obj, s):
     """
     Helper function for tensor toolbox subsref.
 
@@ -810,7 +809,8 @@ def islogical(a: np.ndarray) -> bool:
     return isinstance(a, bool)
 
 
-# Adding all sorts of index support here, might consider splitting out to more specific file later
+# Adding all sorts of index support here, might consider splitting out to
+# more specific file later
 
 
 class IndexVariant(Enum):

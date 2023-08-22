@@ -13,8 +13,7 @@ from pyttb.gcp.optimizers import LBFGSB, StochasticSolver
 from pyttb.gcp.samplers import GCPSampler
 
 
-# pylint: disable=too-many-arguments, too-many-locals, too-many-branches
-def gcp_opt(
+def gcp_opt(  # noqa:  PLR0912,PLR0913
     data: Union[ttb.tensor, ttb.sptensor],
     rank: int,
     objective: Union[Objectives, Tuple[function_type, function_type, float]],

@@ -12,6 +12,7 @@ from typing import Callable, Optional, Tuple, Union, cast
 import numpy as np
 
 import pyttb as ttb
+from pyttb.pyttb_utils import tt_sub2ind
 from pyttb.sptensor import sptensor
 from pyttb.tensor import tensor
 
@@ -38,8 +39,7 @@ class Samplers(Enum):
 class GCPSampler:
     """Contains Gradient and Function Sampling Details"""
 
-    # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         data: Union[ttb.tensor, ttb.sptensor],
         function_sampler: Optional[Samplers] = None,
@@ -104,8 +104,7 @@ class GCPSampler:
             max_iters,
         )
 
-    # pylint: disable=too-many-arguments
-    def _prepare_function_sampler(
+    def _prepare_function_sampler(  # noqa: PLR0913
         self,
         data: Union[ttb.tensor, ttb.sptensor],
         function_sampler: Samplers,
@@ -134,7 +133,7 @@ class GCPSampler:
                     "Function samples should be an int or StratifiedCount but "
                     f" received: {function_samples}"
                 )
-            xnzidx = np.sort(ttb.tt_sub2ind(data.shape, data.subs))
+            xnzidx = np.sort(tt_sub2ind(data.shape, data.subs))
             self._fsampler = partial(
                 stratified,
                 nz_idx=xnzidx,
@@ -159,8 +158,7 @@ class GCPSampler:
         else:
             raise ValueError("Invalid choice for function_sampler")
 
-    # pylint: disable=too-many-arguments, too-many-branches
-    def _prepare_gradient_sampler(
+    def _prepare_gradient_sampler(  # noqa: PLR0912,PLR0913
         self,
         data: Union[ttb.tensor, ttb.sptensor],
         gradient_sampler: Samplers,
@@ -199,7 +197,7 @@ class GCPSampler:
                         "Stratified sampling is only supported for sptensor data."
                     )
                 # TODO store value if computed to avoid duplicate work
-                xnzidx = np.sort(ttb.tt_sub2ind(data.shape, data.subs))
+                xnzidx = np.sort(tt_sub2ind(data.shape, data.subs))
                 self._gsampler = partial(
                     stratified,
                     nz_idx=xnzidx,
@@ -220,7 +218,7 @@ class GCPSampler:
             if isinstance(data, ttb.sptensor):
                 exp_nonzeros = gradient_samples * num_nonzeros / tensor_size
                 exp_zeros = gradient_samples * num_zeros / tensor_size
-                xnzidx = np.sort(ttb.tt_sub2ind(data.shape, data.subs))
+                xnzidx = np.sort(tt_sub2ind(data.shape, data.subs))
                 # NOTE: Must use lambda over partial because we need late binding,
                 # every draw should first uniquely sample num_nonzeros
                 self._gsampler = lambda data: stratified(
@@ -352,7 +350,7 @@ def zeros(
         tmpsubs = np.unique(tmpsubs, axis=0)
 
     # Select out just the zeros
-    tmpidx = ttb.tt_sub2ind(data.shape, tmpsubs)
+    tmpidx = tt_sub2ind(data.shape, tmpsubs)
     iszero = np.logical_not(np.in1d(tmpidx, nz_idx))
     tmpsubs = tmpsubs[iszero, :]
 

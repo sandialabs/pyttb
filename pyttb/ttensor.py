@@ -37,7 +37,6 @@ class ttensor:
         # Empty constructor
         # TODO explore replacing with typing protocol
         self.core: Union[ttb.tensor, ttb.sptensor] = ttb.tensor()
-        # pylint: disable=invalid-name
         self.u: List[np.ndarray] = []
         # TODO consider factor_matrices to match ktensor
 
@@ -500,8 +499,7 @@ class ttensor:
 
         return ttensor.from_data(self.core, new_u)
 
-    # pylint: disable=too-many-branches
-    def reconstruct(
+    def reconstruct(  # noqa: PLR0912
         self,
         samples: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
         modes: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
@@ -573,8 +571,9 @@ class ttensor:
 
         return ttensor.from_data(self.core, new_u).full()
 
-    # pylint: disable=too-many-branches,too-many-locals
-    def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
+    def nvecs(  # noqa: PLR0912
+        self, n: int, r: int, flipsign: bool = True
+    ) -> np.ndarray:
         """
         Compute the leading mode-n vectors for a ttensor.
 

@@ -24,7 +24,7 @@ import scipy.sparse.linalg
 from typing_extensions import Self
 
 import pyttb as ttb
-from pyttb.pyttb_utils import isrow, isvector, tt_ind2sub
+from pyttb.pyttb_utils import isrow, isvector, tt_dimscheck, tt_ind2sub
 
 
 class ktensor:
@@ -697,8 +697,7 @@ class ktensor:
         else:
             assert False, "Input parameter must be an int, tuple, list or numpy.ndarray"
 
-    # pylint: disable=too-many-locals,too-many-branches
-    def fixsigns(self, other: Optional[ktensor] = None) -> Self:
+    def fixsigns(self, other: Optional[ktensor] = None) -> Self:  # noqa: PLR0912
         """
         Change the elements of a :class:`pyttb.ktensor` in place so that the
         largest magnitude entries for each column vector in each factor
@@ -1453,7 +1452,6 @@ class ktensor:
         """
         return tuple(f.shape[0] for f in self.factor_matrices)
 
-    # pylint: disable=unused-argument,too-many-locals
     def score(
         self,
         other: ktensor,
@@ -1600,7 +1598,6 @@ class ktensor:
             flag = True
 
             # Rearrange the components of A according to the best matching
-            # pylint: disable=disallowed-name
             foo = np.arange(RA)
             tf = np.in1d(foo, best_perm)
             best_perm[RB : RA + 1] = foo[~tf]
@@ -1947,7 +1944,7 @@ class ktensor:
             return self.ttv([vector], dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
+        dims, vidx = tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):
@@ -2330,7 +2327,7 @@ class ktensor:
         str:
         """
         s = f"ktensor of shape {self.shape}\n"
-        s += f"weights={str(self.weights)}"
+        s += f"weights={self.weights}"
         if len(self.shape) == 0:
             s += "\nfactor_matrices=[]"
         else:

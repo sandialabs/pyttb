@@ -17,7 +17,15 @@ from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
-from pyttb.pyttb_utils import tt_dimscheck, tt_ind2sub
+from pyttb.pyttb_utils import (
+    IndexVariant,
+    get_index_variant,
+    tt_dimscheck,
+    tt_ind2sub,
+    tt_sub2ind,
+    tt_subsubsref,
+    tt_tenfun,
+)
 
 
 class tensor:
@@ -71,9 +79,8 @@ class tensor:
         # Create or check second argument
         if shape is None:
             shape = data.shape
-        else:
-            if not isinstance(shape, tuple):
-                assert False, "Second argument must be a tuple."
+        elif not isinstance(shape, tuple):
+            assert False, "Second argument must be a tuple."
 
         # Make sure the number of elements matches what's been specified
         if len(shape) == 0:
@@ -357,7 +364,7 @@ class tensor:
         Subscripts and values for non-zero entries
         """
         idx = np.nonzero(np.ravel(self.data, order="F"))[0]
-        subs = ttb.tt_ind2sub(self.shape, idx)
+        subs = tt_ind2sub(self.shape, idx)
         vals = self.data[tuple(subs.T)][:, None]
         return subs, vals
 
@@ -420,8 +427,7 @@ class tensor:
         return False
 
     # TODO: We should probably always return details and let caller drop them
-    # pylint: disable=too-many-branches, too-many-locals
-    def issymmetric(
+    def issymmetric(  # noqa: PLR0912
         self,
         grps: Optional[np.ndarray] = None,
         version: Optional[Any] = None,
@@ -473,7 +479,7 @@ class tensor:
         # Substantially different routines are called depending on whether the user
         # requests the permutation information. If permutation is required
         # (or requested) the algorithm is much slower
-        if version is None:  # pylint:disable=no-else-return
+        if version is None:
             # Use new algorithm
             for thisgrp in grps:
                 # Check tensor dimensions first
@@ -547,7 +553,7 @@ class tensor:
         def logical_and(x, y):
             return np.logical_and(x, y)
 
-        return ttb.tt_tenfun(logical_and, self, B)
+        return tt_tenfun(logical_and, self, B)
 
     def logical_not(self) -> tensor:
         """
@@ -584,7 +590,7 @@ class tensor:
         def tensor_or(x, y):
             return np.logical_or(x, y)
 
-        return ttb.tt_tenfun(tensor_or, self, other)
+        return tt_tenfun(tensor_or, self, other)
 
     def logical_xor(self, other: Union[float, tensor]) -> tensor:
         """
@@ -605,7 +611,7 @@ class tensor:
         def tensor_xor(x, y):
             return np.logical_xor(x, y)
 
-        return ttb.tt_tenfun(tensor_xor, self, other)
+        return tt_tenfun(tensor_xor, self, other)
 
     def mask(self, W: tensor) -> np.ndarray:
         """
@@ -637,8 +643,9 @@ class tensor:
         # Extract those non-zero values
         return self.data[tuple(wsubs.transpose())]
 
-    # pylint: disable=too-many-branches
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(  # noqa: PLR0912
+        self, U: Union[ttb.ktensor, List[np.ndarray]], n: int
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product
 
@@ -704,7 +711,7 @@ class tensor:
             Ur = ttb.khatrirao(*U[1 : self.ndims], reverse=True)
             Y = np.reshape(self.data, (szn, szr), order="F")
             return Y @ Ur
-        if n == self.ndims - 1:  # pylint: disable=no-else-return
+        if n == self.ndims - 1:
             Ul = ttb.khatrirao(*U[0 : self.ndims - 1], reverse=True)
             Y = np.reshape(self.data, (szl, szn), order="F")
             return Y.T @ Ul
@@ -729,8 +736,6 @@ class tensor:
         if isinstance(U, ttb.ktensor):
             U = U.factor_matrices
         split_idx = min_split(self.shape)
-        # Pylint seems confused here
-        # pylint: disable=unexpected-keyword-arg
         V = [np.empty_like(self.data, shape=())] * self.ndims
         K = ttb.khatrirao(*U[split_idx + 1 :], reverse=True)
         W = np.reshape(self.data, (-1, K.shape[0]), order="F").dot(K)
@@ -912,7 +917,7 @@ class tensor:
 
         """
         shapeArray = np.array(self.shape)
-        if np.all(shapeArray > 1):  # pylint: disable=no-else-return
+        if np.all(shapeArray > 1):
             return ttb.tensor.from_tensor_type(self)
         else:
             idx = np.where(shapeArray > 1)
@@ -920,11 +925,9 @@ class tensor:
                 return np.squeeze(self.data)[()]
             return ttb.tensor.from_data(np.squeeze(self.data))
 
-    def symmetrize(
+    def symmetrize(  # noqa: PLR0912,PLR0915
         self, grps: Optional[np.ndarray] = None, version: Optional[Any] = None
-    ) -> (
-        tensor
-    ):  # pylint: disable=too-many-branches, too-many-statements, too-many-locals
+    ) -> tensor:
         """
         Symmetrize a tensor in the specified modes
         Notes
@@ -954,7 +957,7 @@ class tensor:
         data = self.data.copy()
 
         # Use default newer faster version
-        if version is None:  # pylint: disable=no-else-return
+        if version is None:
             ngrps = len(grps)
             for i in range(0, ngrps):
                 # Extract current group
@@ -971,7 +974,7 @@ class tensor:
 
                 # Construct matrix ind where each row is the multi-index for one
                 # element of tensor
-                idx = ttb.tt_ind2sub(self.shape, np.arange(0, data.size))
+                idx = tt_ind2sub(self.shape, np.arange(0, data.size))
 
                 # Find reference index for every element in the tensor - this
                 # is to its index in the symmetrized tensor. This puts every
@@ -980,7 +983,7 @@ class tensor:
 
                 classidx = idx
                 classidx[:, thisgrp] = np.sort(idx[:, thisgrp], axis=1)
-                linclassidx = ttb.tt_sub2ind(self.shape, classidx)
+                linclassidx = tt_sub2ind(self.shape, classidx)
 
                 # Compare each element to its class exemplar
                 if np.all(data.ravel() == data[tuple(classidx.transpose())]):
@@ -1088,7 +1091,7 @@ class tensor:
 
         if isinstance(matrix, list):
             # Check that the dimensions are valid
-            dims, vidx = ttb.tt_dimscheck(self.ndims, len(matrix), dims, exclude_dims)
+            dims, vidx = tt_dimscheck(self.ndims, len(matrix), dims, exclude_dims)
 
             # Calculate individual products
             Y = self.ttm(matrix[vidx[0]], dims[0], transpose=transpose)
@@ -1099,7 +1102,7 @@ class tensor:
         if not isinstance(matrix, (np.ndarray, sparse.spmatrix)):
             assert False, f"matrix must be of type numpy.ndarray but got:\n{matrix}"
 
-        dims, _ = ttb.tt_dimscheck(self.ndims, dims=dims, exclude_dims=exclude_dims)
+        dims, _ = tt_dimscheck(self.ndims, dims=dims, exclude_dims=exclude_dims)
 
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
             assert False, "dims must contain values in [0,self.dims)"
@@ -1107,7 +1110,7 @@ class tensor:
         # old version (ver=0)
         shape = np.array(self.shape, dtype=int)
         n = dims[0]
-        order = np.array([n] + list(range(0, n)) + list(range(n + 1, self.ndims)))
+        order = np.array([n, *list(range(0, n)), *list(range(n + 1, self.ndims))])
         newdata = self.permute(order).data
         ids = np.array(list(range(0, n)) + list(range(n + 1, self.ndims)))
         second_dim = 1
@@ -1122,7 +1125,7 @@ class tensor:
             p = matrix.shape[0]
 
         newshape = np.array(
-            [p] + list(shape[range(0, n)]) + list(shape[range(n + 1, self.ndims)])
+            [p, *list(shape[range(0, n)]), *list(shape[range(n + 1, self.ndims)])]
         )
         Y_data = np.reshape(newdata, newshape, order="F")
         Y_data = np.transpose(Y_data, np.argsort(order))
@@ -1212,7 +1215,7 @@ class tensor:
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands
-        dims, vidx = ttb.tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
+        dims, vidx = tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):
@@ -1277,7 +1280,6 @@ class tensor:
             d = self.ndims
             sz = self.shape[0]  # Sizes of all modes must be the same
 
-            # pylint: disable=invalid-unary-operand-type
             dnew = skip_dim + 1  # Number of modes in result
             drem = d - dnew  # Number of modes multiplied out
 
@@ -1327,18 +1329,18 @@ class tensor:
         >>> X[1,1,2:3] = 1
         >>> X[1,1,4] = 1
         """
-        access_type = ttb.get_index_variant(key)
+        access_type = get_index_variant(key)
 
         # Case 1: Rectangular Subtensor
-        if access_type == ttb.IndexVariant.SUBTENSOR:
+        if access_type == IndexVariant.SUBTENSOR:
             return self._set_subtensor(key, value)
 
         # Case 2a: Subscript indexing
-        if access_type == ttb.IndexVariant.SUBSCRIPTS:
+        if access_type == IndexVariant.SUBSCRIPTS:
             return self._set_subscripts(key, value)
 
         # Case 2b: Linear Indexing
-        if access_type == ttb.IndexVariant.LINEAR:
+        if access_type == IndexVariant.LINEAR:
             if isinstance(key, list):
                 key = np.array(key)
             return self._set_linear(key, value)
@@ -1362,7 +1364,7 @@ class tensor:
             actualIdx = tuple(idx.transpose())
             self.data[actualIdx] = value
 
-    def _set_subtensor(self, key, value):
+    def _set_subtensor(self, key, value):  # noqa: PLR0912
         # Extract array of subscripts
         subs = key
         # Will the size change? If so we first need to resize x
@@ -1437,7 +1439,7 @@ class tensor:
         else:
             self.data[tuple(key.transpose())] = value
 
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # noqa: PLR0912
         """
         SUBSREF Subscripted reference for tensors.
 
@@ -1495,11 +1497,9 @@ class tensor:
                 idx = np.array(item)
             elif isinstance(item, slice):
                 idx = np.array(range(np.prod(self.shape))[item])
-            a = np.squeeze(
-                self.data[tuple(ttb.tt_ind2sub(self.shape, idx).transpose())]
-            )
+            a = np.squeeze(self.data[tuple(tt_ind2sub(self.shape, idx).transpose())])
             # Todo if row make column?
-            return ttb.tt_subsubsref(a, idx)
+            return tt_subsubsref(a, idx)
         # Case 1: Rectangular Subtensor
         if isinstance(item, tuple) and len(item) == self.ndims:
             # Copy the subscripts
@@ -1547,7 +1547,7 @@ class tensor:
             subs = np.array(item)
             a = np.squeeze(self.data[tuple(subs.transpose())])
             # TODO if is row make column?
-            return ttb.tt_subsubsref(a, subs)
+            return tt_subsubsref(a, subs)
 
         # Case 2b: Linear Indexing
         if isinstance(item, tuple) and len(item) >= 2:
@@ -1558,11 +1558,9 @@ class tensor:
             and all(isinstance(element, (int, np.integer)) for element in item)
         ):
             idx = np.array(item)
-            a = np.squeeze(
-                self.data[tuple(ttb.tt_ind2sub(self.shape, idx).transpose())]
-            )
+            a = np.squeeze(self.data[tuple(tt_ind2sub(self.shape, idx).transpose())])
             # Todo if row make column?
-            return ttb.tt_subsubsref(a, idx)
+            return tt_subsubsref(a, idx)
 
         assert False, "Invalid use of tensor getitem"
 
@@ -1582,7 +1580,7 @@ class tensor:
         def tensor_equality(x, y):
             return x == y
 
-        return ttb.tt_tenfun(tensor_equality, self, other)
+        return tt_tenfun(tensor_equality, self, other)
 
     def __ne__(self, other):
         """
@@ -1600,7 +1598,7 @@ class tensor:
         def tensor_not_equal(x, y):
             return x != y
 
-        return ttb.tt_tenfun(tensor_not_equal, self, other)
+        return tt_tenfun(tensor_not_equal, self, other)
 
     def __ge__(self, other):
         """
@@ -1618,7 +1616,7 @@ class tensor:
         def greater_or_equal(x, y):
             return x >= y
 
-        return ttb.tt_tenfun(greater_or_equal, self, other)
+        return tt_tenfun(greater_or_equal, self, other)
 
     def __le__(self, other):
         """
@@ -1636,7 +1634,7 @@ class tensor:
         def less_or_equal(x, y):
             return x <= y
 
-        return ttb.tt_tenfun(less_or_equal, self, other)
+        return tt_tenfun(less_or_equal, self, other)
 
     def __gt__(self, other):
         """
@@ -1654,7 +1652,7 @@ class tensor:
         def greater(x, y):
             return x > y
 
-        return ttb.tt_tenfun(greater, self, other)
+        return tt_tenfun(greater, self, other)
 
     def __lt__(self, other):
         """
@@ -1672,7 +1670,7 @@ class tensor:
         def less(x, y):
             return x < y
 
-        return ttb.tt_tenfun(less, self, other)
+        return tt_tenfun(less, self, other)
 
     def __sub__(self, other):
         """
@@ -1690,7 +1688,7 @@ class tensor:
         def minus(x, y):
             return x - y
 
-        return ttb.tt_tenfun(minus, self, other)
+        return tt_tenfun(minus, self, other)
 
     def __add__(self, other):
         """
@@ -1712,7 +1710,7 @@ class tensor:
         def tensor_add(x, y):
             return x + y
 
-        return ttb.tt_tenfun(tensor_add, self, other)
+        return tt_tenfun(tensor_add, self, other)
 
     def __radd__(self, other):
         """
@@ -1745,7 +1743,7 @@ class tensor:
         def tensor_pow(x, y):
             return x**y
 
-        return ttb.tt_tenfun(tensor_pow, self, power)
+        return tt_tenfun(tensor_pow, self, power)
 
     def __mul__(self, other):
         """
@@ -1766,7 +1764,7 @@ class tensor:
         if isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):
             other = other.full()
 
-        return ttb.tt_tenfun(mul, self, other)
+        return tt_tenfun(mul, self, other)
 
     def __rmul__(self, other):
         """
@@ -1801,7 +1799,7 @@ class tensor:
             with np.errstate(divide="ignore", invalid="ignore"):
                 return x / y
 
-        return ttb.tt_tenfun(div, self, other)
+        return tt_tenfun(div, self, other)
 
     def __rtruediv__(self, other):
         """
@@ -1822,7 +1820,7 @@ class tensor:
             with np.errstate(divide="ignore", invalid="ignore"):
                 return x / y
 
-        return ttb.tt_tenfun(div, other, self)
+        return tt_tenfun(div, other, self)
 
     def __pos__(self):
         """
@@ -1885,7 +1883,7 @@ class tensor:
                 s += str(self.data)
                 s += "\n"
             elif self.ndims > 2:
-                idx = ttb.tt_ind2sub(self.shape[:-2], np.array([i]))
+                idx = tt_ind2sub(self.shape[:-2], np.array([i]))
                 s += str(idx[0].tolist())[0:-1]
                 s += ", :, :]"
                 s += " = \n"

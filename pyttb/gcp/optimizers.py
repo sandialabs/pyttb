@@ -17,12 +17,10 @@ from pyttb.gcp.fg_setup import function_type
 from pyttb.gcp.samplers import GCPSampler
 
 
-# pylint: disable=too-many-instance-attributes
 class StochasticSolver(ABC):
     """Interface for Stochastic GCP Solvers"""
 
-    # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         rate: float = 1e-3,
         decay: float = 0.1,
@@ -88,8 +86,7 @@ class StochasticSolver(ABC):
     def set_failed_epoch(self):
         """Set internal state on failed epoch"""
 
-    # pylint: disable=too-many-locals
-    def solve(
+    def solve(  # noqa: PLR0913
         self,
         initial_model: ttb.ktensor,
         data: Union[ttb.tensor, ttb.sptensor],
@@ -259,8 +256,7 @@ class SGD(StochasticSolver):
 class Adam(StochasticSolver):
     """Adam Optimizer"""
 
-    # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         rate: float = 1e-3,
         decay: float = 0.1,
@@ -364,8 +360,7 @@ class Adam(StochasticSolver):
 class Adagrad(StochasticSolver):
     """Adagrad Optimizer"""
 
-    # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         rate: float = 1e-3,
         decay: float = 0.1,
@@ -404,7 +399,6 @@ class Adagrad(StochasticSolver):
 
 
 # If we use more scipy optimizers in the future we should generalize this
-# pylint: disable=too-few-public-methods
 class LBFGSB:
     """Simple wrapper around scipy lbfgsb
 
@@ -412,8 +406,7 @@ class LBFGSB:
     for the implementation.
     """
 
-    # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         m: Optional[int] = None,
         factr: float = 1e7,
@@ -450,7 +443,7 @@ class LBFGSB:
             if value is not None
         }
 
-    def solve(
+    def solve(  # noqa: PLR0913
         self,
         initial_model: ttb.ktensor,
         data: ttb.tensor,

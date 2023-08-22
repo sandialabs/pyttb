@@ -14,8 +14,7 @@ import scipy
 import pyttb as ttb
 
 
-# pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-def hosvd(
+def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: ttb.tensor,
     tol: float,
     verbosity: float = 1,
