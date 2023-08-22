@@ -144,6 +144,8 @@ class sptensor:
             Values for non-zero entries
         shape:
             Shape of sparse tensor
+        copy:
+            Whether to make a copy of provided data or just reference it
 
         Examples
         --------

@@ -43,6 +43,8 @@ class ttensor:
             Core of tucker tensor.
         factors:
             Factor matrices.
+        copy:
+            Whether to make a copy of provided data or just reference it.
 
         Returns
         -------
