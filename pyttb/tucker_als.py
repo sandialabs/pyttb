@@ -168,7 +168,7 @@ def tucker_als(  # noqa: PLR0912,PLR0913,PLR0915
         if fitchange < stoptol:
             break
 
-    solution = ttensor.from_data(core, U)
+    solution = ttensor(core, U, copy=False)
 
     output = {
         "params": (stoptol, maxiters, printitn, dimorder),

@@ -13,7 +13,7 @@ def sample_tensor():
     data = np.array([[29, 39.0], [63.0, 85.0]])
     shape = (2, 2)
     params = {"data": data, "shape": shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -22,7 +22,7 @@ def sample_tensor_3way():
     shape = (3, 3, 3)
     data = np.array(range(1, 28)).reshape(shape, order="F")
     params = {"data": data, "shape": shape}
-    tensorInstance = ttb.tensor().from_data(data, shape)
+    tensorInstance = ttb.tensor(data, shape)
     return params, tensorInstance
 
 
@@ -31,20 +31,20 @@ def test_hosvd_simple_convergence(capsys, sample_tensor):
     (data, T) = sample_tensor
     tol = 1e-4
     result = ttb.hosvd(T, tol)
-    assert (result.full() - T).norm() / T.norm() < tol, f"Failed to converge"
+    assert (result.full() - T).norm() / T.norm() < tol, "Failed to converge"
 
     tol = 1e-4
     result = ttb.hosvd(T, tol, sequential=False)
     assert (
         result.full() - T
-    ).norm() / T.norm() < tol, f"Failed to converge for non-sequential option"
+    ).norm() / T.norm() < tol, "Failed to converge for non-sequential option"
 
     impossible_tol = 1e-20
     with pytest.warns(UserWarning):
         result = ttb.hosvd(T, impossible_tol)
     assert (
         result.full() - T
-    ).norm() / T.norm() > impossible_tol, f"Converged beyond provided precision"
+    ).norm() / T.norm() > impossible_tol, "Converged beyond provided precision"
 
 
 @pytest.mark.indevelopment
@@ -119,9 +119,9 @@ def test_hosvd_3way(capsys, sample_tensor_3way):
             [-8.359253825873615e-01, -3.668270547267537e-01],
         ]
     )
-    expected = ttb.ttensor.from_data(ttb.tensor.from_data(core), [fm0, fm1, fm2])
+    expected = ttb.ttensor(ttb.tensor(core), [fm0, fm1, fm2])
     assert np.allclose(M.double(), expected.double())
     assert np.allclose(np.abs(M.core.data), np.abs(core))
-    assert np.allclose(np.abs(M.u[0]), np.abs(fm0))
-    assert np.allclose(np.abs(M.u[1]), np.abs(fm1))
-    assert np.allclose(np.abs(M.u[2]), np.abs(fm2))
+    assert np.allclose(np.abs(M.factor_matrices[0]), np.abs(fm0))
+    assert np.allclose(np.abs(M.factor_matrices[1]), np.abs(fm1))
+    assert np.allclose(np.abs(M.factor_matrices[2]), np.abs(fm2))

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import textwrap
+from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -23,27 +24,16 @@ ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/spte
 class ttensor:
     """
     TTENSOR Class for Tucker tensors (decomposed).
-
     """
 
-    def __init__(self) -> None:
-        """
-        Create an empty decomposed tucker tensor
+    __slots__ = ("core", "factor_matrices")
 
-        Returns
-        -------
-        Empty ttensor.
-        """
-        # Empty constructor
-        # TODO explore replacing with typing protocol
-        self.core: Union[ttb.tensor, ttb.sptensor] = ttb.tensor()
-        self.u: List[np.ndarray] = []
-        # TODO consider factor_matrices to match ktensor
-
-    @classmethod
-    def from_data(
-        cls, core: Union[ttb.tensor, ttb.sptensor], factors: List[np.ndarray]
-    ) -> ttensor:
+    def __init__(
+        self,
+        core: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
+        factors: Optional[List[np.ndarray]] = None,
+        copy: bool = True,
+    ) -> None:
         """
         Construct an ttensor from fully defined core tensor and factor matrices.
 
@@ -53,10 +43,12 @@ class ttensor:
             Core of tucker tensor.
         factors:
             Factor matrices.
+        copy:
+            Whether to make a copy of provided data or just reference it.
 
         Returns
         -------
-        Constructed tucket tensor.
+        Constructed tucker tensor.
 
         Examples
         --------
@@ -69,45 +61,65 @@ class ttensor:
         # Create ttensor with explicit data description
 
         >>> core_values = np.ones((2,2,2))
-        >>> core = ttb.tensor.from_data(core_values)
+        >>> core = ttb.tensor(core_values)
         >>> factors = [np.ones((1,2))] * len(core_values.shape)
-        >>> K0 = ttb.ttensor.from_data(core, factors)
+        >>> K0 = ttb.ttensor(core, factors)
         """
-        ttensorInstance = ttensor()
+        if core is None and factors is None:
+            # Empty constructor
+            # TODO explore replacing with typing protocol
+            self.core: Union[ttb.tensor, ttb.sptensor] = ttb.tensor()
+            self.factor_matrices: List[np.ndarray] = []
+            return
+
+        if core is None or factors is None:
+            raise ValueError(
+                "For non-empty ttensor both core and factors must be provided"
+            )
+
         if isinstance(core, (ttb.tensor, ttb.sptensor)):
-            ttensorInstance.core = core.from_tensor_type(core)
-            ttensorInstance.u = factors.copy()
+            if copy:
+                self.core = core.copy()
+                self.factor_matrices = deepcopy(factors)
+            else:
+                self.core = core
+                self.factor_matrices = factors
         else:
             # TODO support any tensor type with supported ops
             raise ValueError(ALT_CORE_ERROR)
-        ttensorInstance._validate_ttensor()
-        return ttensorInstance
+        self._validate_ttensor()
+        return
 
-    @classmethod
-    def from_tensor_type(cls, source: ttensor) -> ttensor:
-        """
-        Converts other tensor types into a ttensor
-
-        Parameters
-        ----------
-        source:
-            Source tensor to create a new ttensor from.
+    def copy(self) -> ttensor:
+        """Make a deep copy of a :class:`pyttb.ttensor`.
 
         Returns
         -------
-        :class:`pyttb.ttensor`
+        Copy of original ttensor.
+
+        Examples
+        --------
+        >>> core_values = np.ones((2,2,2))
+        >>> core = ttb.tensor(core_values)
+        >>> factors = [np.ones((1,2))] * len(core_values.shape)
+        >>> first = ttb.ttensor(core, factors)
+        >>> second = first
+        >>> third = second.copy()
+        >>> first.factor_matrices[0][0,0] = 2
+        >>> first.factor_matrices[0][0,0] == second.factor_matrices[0][0,0]
+        True
+        >>> first.factor_matrices[0][0,0] == third.factor_matrices[0][0,0]
+        False
         """
-        # Copy Constructor
-        if isinstance(source, ttensor):
-            return cls.from_data(source.core, source.u)
-        raise ValueError(
-            f"Can only cast ttensor to ttensor but received {type(source)}"
-        )
+        return ttb.ttensor(self.core, self.factor_matrices, copy=True)
+
+    def __deepcopy__(self, memo):
+        return self.copy()
 
     def _validate_ttensor(self):
         """Verifies the validity of constructed ttensor"""
         # Confirm all factors are matrices
-        for factor_idx, factor in enumerate(self.u):
+        for factor_idx, factor in enumerate(self.factor_matrices):
             if not isinstance(factor, (np.ndarray, sparse.coo_matrix)):
                 raise ValueError(
                     f"Factor matrices must be numpy arrays but factor {factor_idx} "
@@ -121,12 +133,12 @@ class ttensor:
 
         # Verify size consistency
         core_order = len(self.core.shape)
-        num_matrices = len(self.u)
+        num_matrices = len(self.factor_matrices)
         if core_order != num_matrices:
             raise ValueError(
                 f"CORE has order {core_order} but there are {num_matrices} factors"
             )
-        for factor_idx, factor in enumerate(self.u):
+        for factor_idx, factor in enumerate(self.factor_matrices):
             if factor.shape[-1] != self.core.shape[factor_idx]:
                 raise ValueError(
                     f"Factor matrix {factor_idx} does not have "
@@ -136,7 +148,7 @@ class ttensor:
     @property
     def shape(self) -> Tuple[int, ...]:
         """Shape of the tensor this deconstruction represents."""
-        return tuple(factor.shape[0] for factor in self.u)
+        return tuple(factor.shape[0] for factor in self.factor_matrices)
 
     def __repr__(self):  # pragma: no cover
         """
@@ -150,7 +162,7 @@ class ttensor:
         display_string = f"Tensor of shape: {self.shape}\n" f"\tCore is a\n"
         display_string += textwrap.indent(str(self.core), "\t")
 
-        for factor_idx, factor in enumerate(self.u):
+        for factor_idx, factor in enumerate(self.factor_matrices):
             display_string += f"\tU[{factor_idx}] = \n"
             display_string += textwrap.indent(str(factor), "\t\t")
             display_string += "\n"
@@ -158,13 +170,19 @@ class ttensor:
 
     __str__ = __repr__
 
+    def to_tensor(self) -> ttb.tensor:
+        """Convenience method to convert to tensor.
+        Same as :meth:`pyttb.ttensor.full`
+        """
+        return self.full()
+
     def full(self) -> ttb.tensor:
         """Convert a ttensor to a (dense) tensor."""
-        recomposed_tensor = self.core.ttm(self.u)
+        recomposed_tensor = self.core.ttm(self.factor_matrices)
 
         # There is a small chance tensor could be sparse so cast that to dense.
         if not isinstance(recomposed_tensor, ttb.tensor):
-            recomposed_tensor = ttb.tensor.from_tensor_type(recomposed_tensor)
+            recomposed_tensor = recomposed_tensor.to_tensor()
         return recomposed_tensor
 
     def double(self) -> np.ndarray:
@@ -186,7 +204,7 @@ class ttensor:
         -------
         Number of dimensions of ttensor
         """
-        return len(self.u)
+        return len(self.factor_matrices)
 
     def isequal(self, other: ttensor) -> bool:
         """
@@ -207,7 +225,9 @@ class ttensor:
             return False
         return self.core.isequal(other.core) and all(
             np.array_equal(this_factor, other_factor)
-            for this_factor, other_factor in zip(self.u, other.u)
+            for this_factor, other_factor in zip(
+                self.factor_matrices, other.factor_matrices
+            )
         )
 
     def __pos__(self):
@@ -219,7 +239,7 @@ class ttensor:
         :class:`pyttb.ttensor`, copy of tensor
         """
 
-        return ttensor.from_tensor_type(self)
+        return self.copy()
 
     def __neg__(self):
         """
@@ -229,8 +249,7 @@ class ttensor:
         -------
         :class:`pyttb.ttensor`, copy of tensor
         """
-
-        return ttensor.from_data(-self.core, self.u)
+        return ttensor(-self.core, self.factor_matrices)
 
     def innerprod(self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor]) -> float:
         """
@@ -256,7 +275,9 @@ class ttensor:
                 # Reverse arguments so the ttensor with the smaller core comes first.
                 return other.innerprod(self)
             W = []
-            for this_factor, other_factor in zip(self.u, other.u):
+            for this_factor, other_factor in zip(
+                self.factor_matrices, other.factor_matrices
+            ):
                 W.append(this_factor.transpose().dot(other_factor))
             J = other.core.ttm(W)
             return self.core.innerprod(J)
@@ -270,7 +291,7 @@ class ttensor:
             if np.prod(self.shape) < np.prod(self.core.shape):
                 Z: Union[ttb.tensor, ttb.sptensor] = self.full()
                 return Z.innerprod(other)
-            Z = other.ttm(self.u, transpose=True)
+            Z = other.ttm(self.factor_matrices, transpose=True)
             return Z.innerprod(self.core)
         if isinstance(other, ttb.ktensor):
             # Call ktensor implementation
@@ -292,7 +313,7 @@ class ttensor:
         :class:`pyttb.ttensor`
         """
         if isinstance(other, (float, int, np.number)):
-            return ttensor.from_data(self.core * other, self.u)
+            return ttensor(self.core * other, self.factor_matrices)
         raise ValueError(
             "This object cannot be multiplied by ttensor. Convert to full if trying to "
             "multiply ttensor by another tensor."
@@ -365,7 +386,7 @@ class ttensor:
         W = [np.empty(())] * self.ndims
         for i in range(dims.size):
             dim_idx = dims[i]
-            W[dim_idx] = self.u[dim_idx].transpose().dot(vector[vidx[i]])
+            W[dim_idx] = self.factor_matrices[dim_idx].transpose().dot(vector[vidx[i]])
 
         # Create new core
         newcore = self.core.ttv(W, dims)
@@ -374,7 +395,7 @@ class ttensor:
         if remdims.size == 0:
             assert not isinstance(newcore, (ttb.tensor, ttb.sptensor))
             return float(newcore)
-        return ttensor.from_data(newcore, [self.u[dim] for dim in remdims])
+        return ttensor(newcore, [self.factor_matrices[dim] for dim in remdims])
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
@@ -397,12 +418,12 @@ class ttensor:
         for i in range(0, self.ndims):
             if i == n:
                 continue
-            W[i] = self.u[i].transpose().dot(U[i])
+            W[i] = self.factor_matrices[i].transpose().dot(U[i])
 
         Y = self.core.mttkrp(W, n)
 
         # Find each column of answer by multiplying by weights
-        return self.u[n].dot(Y)
+        return self.factor_matrices[n].dot(Y)
 
     def norm(self) -> float:
         """
@@ -413,7 +434,7 @@ class ttensor:
         """
         if np.prod(self.shape) > np.prod(self.core.shape):
             V = []
-            for factor in self.u:
+            for factor in self.factor_matrices:
                 V.append(factor.transpose().dot(factor))
             Y = self.core.ttm(V)
             tmp = Y.innerprod(self.core)
@@ -441,8 +462,8 @@ class ttensor:
         if not np.array_equal(np.arange(0, self.ndims), np.sort(order)):
             raise ValueError("Invalid permutation")
         new_core = self.core.permute(order)
-        new_u = [self.u[idx] for idx in order]
-        return ttensor.from_data(new_core, new_u)
+        new_u = [self.factor_matrices[idx] for idx in order]
+        return ttensor(new_core, new_u)
 
     def ttm(
         self,
@@ -490,14 +511,14 @@ class ttensor:
                 raise ValueError(f"Multiplicand {i} is wrong size")
 
         # Do the actual multiplications in the specified modes.
-        new_u = self.u.copy()
+        new_u = self.factor_matrices.copy()
         for i, dim in enumerate(dims):
             if transpose:
                 new_u[dim] = matrix[vidx[i]].transpose().dot(new_u[dim])
             else:
                 new_u[dim] = matrix[vidx[i]].dot(new_u[dim])
 
-        return ttensor.from_data(self.core, new_u)
+        return ttensor(self.core, new_u)
 
     def reconstruct(  # noqa: PLR0912
         self,
@@ -559,17 +580,17 @@ class ttensor:
         for k in range(self.ndims):
             if len(full_samples[k]) == 0:
                 # Skip empty samples
-                new_u.append(self.u[k])
+                new_u.append(self.factor_matrices[k])
                 continue
             if (
                 len(full_samples[k].shape) == 2
                 and full_samples[k].shape[-1] == shape[k]
             ):
-                new_u.append(full_samples[k].dot(self.u[k]))
+                new_u.append(full_samples[k].dot(self.factor_matrices[k]))
             else:
-                new_u.append(self.u[k][full_samples[k], :])
+                new_u.append(self.factor_matrices[k][full_samples[k], :])
 
-        return ttensor.from_data(self.core, new_u).full()
+        return ttensor(self.core, new_u).full()
 
     def nvecs(  # noqa: PLR0912
         self, n: int, r: int, flipsign: bool = True
@@ -592,7 +613,7 @@ class ttensor:
         """
         # Compute inner product of all n-1 factors
         V = []
-        for factor_idx, factor in enumerate(self.u):
+        for factor_idx, factor in enumerate(self.factor_matrices):
             if factor_idx == n:
                 V.append(factor)
             else:
@@ -613,10 +634,10 @@ class ttensor:
 
         # Compute Xn * Xn'
         # Big hack because if RHS is sparse wrong dot product is used
-        if sparse.issparse(self.u[n]):
-            XnT = sparse.coo_matrix.dot(GnT, self.u[n].transpose())
+        if sparse.issparse(self.factor_matrices[n]):
+            XnT = sparse.coo_matrix.dot(GnT, self.factor_matrices[n].transpose())
         else:
-            XnT = GnT.dot(self.u[n].transpose())
+            XnT = GnT.dot(self.factor_matrices[n].transpose())
         if sparse.issparse(XnT):
             Y = sparse.coo_matrix.dot(HnT.transpose(), XnT)
         else:

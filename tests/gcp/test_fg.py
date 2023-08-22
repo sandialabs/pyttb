@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-import scipy
 
 import pyttb as ttb
 from pyttb.gcp import fg_setup
@@ -102,7 +101,7 @@ def test_evaluate_sptensor():
             [1],
         ]
     )
-    data = ttb.sptensor.from_data(subs=subs, vals=vals, shape=shape)
+    data = ttb.sptensor(subs=subs, vals=vals, shape=shape)
 
     #  Create a :class:`pyttb.ktensor` from weights and a list of factor matrices:
     weights = np.array([33.0, 17.0, 8.0])

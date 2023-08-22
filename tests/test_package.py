@@ -22,7 +22,7 @@ def test_linting():
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
     subprocess.run(
-        f"ruff check {os.path.join(root_dir, 'pyttb')} --config {toml_file}",
+        f"ruff check {root_dir} --config {toml_file}",
         check=True,
         shell=True,
     )

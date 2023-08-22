@@ -10,5 +10,5 @@ import pyttb as ttb
 @pytest.mark.indevelopment
 def test_sptenmat_initialization_empty():
     with pytest.raises(AssertionError) as excinfo:
-        empty_tensor = ttb.sptenmat()
+        ttb.sptenmat()
     assert "SPTENMAT class not yet implemented" in str(excinfo)

@@ -10,5 +10,5 @@ import pyttb as ttb
 @pytest.mark.indevelopment
 def test_symktensor_initialization_empty():
     with pytest.raises(AssertionError) as excinfo:
-        empty_tensor = ttb.symktensor()
+        ttb.symktensor()
     assert "SYMKTENSOR class not yet implemented" in str(excinfo)

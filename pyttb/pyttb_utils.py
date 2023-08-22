@@ -72,7 +72,7 @@ def tt_from_dense_matrix(
     -------
     Dense tensor.
     """
-    tensorInstance = ttb.tensor.from_data(matrix)
+    tensorInstance = ttb.tensor(matrix)
     if idx == 0:
         tensorInstance = tensorInstance.permute(np.array([1, 0]))
     tensorInstance = tensorInstance.reshape(shape)
@@ -255,7 +255,7 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
         if isinstance(an_input, (ttb.tensor, float, int)):
             continue
         if isinstance(an_input, np.ndarray):
-            inputs[i] = ttb.tensor.from_data(an_input)
+            inputs[i] = ttb.tensor(an_input)
         elif isinstance(
             an_input,
             (
@@ -267,7 +267,7 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
                 ttb.symktensor,
             ),
         ):
-            inputs[i] = ttb.tensor.from_tensor_type(an_input)
+            inputs[i] = an_input.to_tensor()
         else:
             assert False, "Invalid input to ten fun"
 
@@ -309,7 +309,7 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
             Y = Y.data
 
         data = function_handle(X, Y)
-        Z = ttb.tensor.from_data(data)
+        Z = ttb.tensor(data, copy=False)
         return Z
 
     # Case II: Expects input to be matrix and applies operation on each columns
@@ -322,7 +322,7 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
             X[i, :] = np.reshape(an_input.data, (np.prod(sz)))
     data = function_handle(X)
     data = np.reshape(data, sz)
-    Z = ttb.tensor.from_data(data)
+    Z = ttb.tensor(data, copy=False)
     return Z
 
 

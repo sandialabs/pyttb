@@ -591,6 +591,9 @@ class ktensor:
         """
         return ttb.ktensor(self.factor_matrices, self.weights, copy=True)
 
+    def __deepcopy__(self, memo):
+        return self.copy()
+
     def double(self) -> np.ndarray:
         """
         Convert :class:`pyttb.ktensor` to :class:`numpy.ndarray`.
@@ -843,6 +846,12 @@ class ktensor:
 
         return self
 
+    def to_tensor(self) -> ttb.tensor:
+        """Convenience method to convert to tensor.
+        Same as :meth:`pyttb.ktensor.full`
+        """
+        return self.full()
+
     def full(self) -> ttb.tensor:
         """
         Convert a :class:`pyttb.ktensor` to a :class:`pyttb.tensor`.
@@ -874,7 +883,7 @@ class ktensor:
         <BLANKLINE>
         """
         data = self.weights @ ttb.khatrirao(*self.factor_matrices, reverse=True).T
-        return ttb.tensor.from_data(data, self.shape)
+        return ttb.tensor(data, self.shape, copy=False)
 
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ktensor, ttb.ttensor]
@@ -1047,7 +1056,7 @@ class ktensor:
         Create a mask :class:`pyttb.tensor` and extract the elements of the
         :class:`pyttb.ktensor` using the mask:
 
-        >>> W = ttb.tensor.from_data(np.array([[0, 1], [1, 0]]))
+        >>> W = ttb.tensor(np.array([[0, 1], [1, 0]]))
         >>> print(K.mask(W))
         [[63.]
          [39.]]

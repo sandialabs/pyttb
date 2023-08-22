@@ -91,7 +91,7 @@ def test_valid_binary():
     assert not fg_setup.valid_binary(arbitrary_dense)
 
     binary_sparse = ttb.sptenrand((2, 2), nonzeros=3)
-    binary_sparse.vals = 1
+    binary_sparse.vals[:] = 1
     assert fg_setup.valid_binary(binary_sparse)
 
     arbitrary_sparse = 5 * binary_sparse
@@ -106,7 +106,7 @@ def test_valid_natural():
     assert not fg_setup.valid_natural(arbitrary_dense)
 
     natural_sparse = ttb.sptenrand((2, 2), nonzeros=3)
-    natural_sparse.vals = 2
+    natural_sparse.vals[:] = 2
     assert fg_setup.valid_natural(natural_sparse)
 
     arbitrary_sparse = 1.1 * natural_sparse
