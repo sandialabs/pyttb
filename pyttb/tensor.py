@@ -192,13 +192,13 @@ class tensor:
 
         Examples
         --------
-        >>> first = ttb.tensor(np.ones((3,2)))
-        >>> second = first
-        >>> third = second.copy()
-        >>> first[0,0] = 3
-        >>> first[0,0] == second[0,0]
+        >>> T1 = ttb.tensor(np.ones((3,2)))
+        >>> T2 = T1
+        >>> T3 = T2.copy()
+        >>> T1[0,0] = 3
+        >>> T2[0,0] == T2[0,0]
         True
-        >>> first[0,0] == third[0,0]
+        >>> T1[0,0] == T3[0,0]
         False
         """
         return ttb.tensor(self.data, self.shape, copy=True)
@@ -217,21 +217,27 @@ class tensor:
         Parameters
         ----------
         dims:
-            Dimensions to collapse
+            Dimensions to collapse.
         fun:
-            Method used to collapse dimensions
+            Method used to collapse dimensions.
 
         Returns
         -------
-        Collapsed value
+        Collapsed value.
 
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> X.collapse()
+        Examples
+        --------
+        >>> T = ttb.tensor(np.ones((2,2)))
+        >>> T.collapse()
         4.0
-        >>> X.collapse(np.arange(X.ndims), sum)
+        >>> T.collapse(np.array([0]))
+        tensor of shape (2,)
+        data[:] =
+        [2. 2.]
+        >>> T.collapse(np.arange(T.ndims), sum)
         4.0
+        >>> T.collapse(np.arange(T.ndims), np.prod)
+        1.0
         """
         if self.data.size == 0:
             return np.array([])
@@ -278,11 +284,32 @@ class tensor:
         -------
         Contracted tensor
 
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> X.contract(0, 1)
+        Examples
+        --------
+        >>> T = ttb.tensor(np.ones((2,2)))
+        >>> T.contract(0, 1)
         2.0
+        >>> T = ttb.tensor(np.array([[[1,2],[3,4]],[[5,6],[7,8]]]))
+        >>> print(T)
+        tensor of shape (2, 2, 2)
+        data[0, :, :] =
+        [[1 2]
+         [3 4]]
+        data[1, :, :] =
+        [[5 6]
+         [7 8]]
+        >>> T.contract(0,1)
+        tensor of shape (2,)
+        data[:] =
+        [ 8. 10.]
+        >>> T.contract(0,2)
+        tensor of shape (2,)
+        data[:] =
+        [ 7. 11.]
+        >>> T.contract(1,2)
+        tensor of shape (2,)
+        data[:] =
+        [ 5. 13.]
         """
         if self.shape[i] != self.shape[j]:
             assert False, "Must contract along equally sized dimensions"
@@ -325,14 +352,14 @@ class tensor:
 
     def double(self) -> np.ndarray:
         """
-        Convert tensor to an array of doubles
+        Convert tensor to an array of doubles.
 
         Returns
         -------
-        Copy of tensor data
+        Copy of tensor data.
 
-        Example
-        -------
+        Examples
+        --------
         >>> X = ttb.tensor(np.ones((2,2)))
         >>> X.double()
         array([[1., 1.],
