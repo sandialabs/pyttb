@@ -43,9 +43,8 @@ class ktensor:
     dimension i and r is the rank of the tensor (as well as the length of the
     weights vector).
 
-    Although the constructor `__init__()` can be used to create an empty
-    :class:`pyttb.ktensor`, there are several class methods that can be used
-    to create an instance of this class:
+    Instances of :class:`pyttb.ktensor` can be created using `__init__()` or
+    one of the following methods:
 
       * :meth:`from_function`
       * :meth:`from_vector`

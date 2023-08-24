@@ -31,6 +31,23 @@ from pyttb.pyttb_utils import (
 class tensor:
     """
     TENSOR Class for dense tensors.
+
+    Contains the following data members:
+
+    ``data``: :class:`numpy.ndarray` dense array containing the data elements
+    of the tensor.
+
+    Instances of :class:`pyttb.tensor` can be created using `__init__()` or
+    the following method:
+
+      * :meth:`from_function`
+
+    Examples
+    --------
+    For all examples listed below, the following module imports are assumed:
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
     """
 
     __slots__ = ("data", "shape")
@@ -42,8 +59,8 @@ class tensor:
         copy: bool = True,
     ):
         """
-        Creates a :class:`pyttb.ktensor` from a :class:`numpy.ndarray` 
-        Note that 1D tensors (i.e., when len(shape)==1) contains a data 
+        Creates a :class:`pyttb.ktensor` from a :class:`numpy.ndarray`
+        Note that 1D tensors (i.e., when len(shape)==1) contains a data
         array that follow the Numpy convention of being a row vector.
 
         Parameters
@@ -68,16 +85,16 @@ class tensor:
         >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
         >>> print(T)
         tensor of shape (2, 2)
-        data[:, :] = 
+        data[:, :] =
         [[1 2]
          [3 4]]
-        <BLANKLINE>
         """
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
             self.data: np.ndarray = np.array([])
             self.shape: Tuple = ()
             return
+
         # CONVERT A MULTIDIMENSIONAL ARRAY
         if not issubclass(data.dtype.type, np.number) and not issubclass(
             data.dtype.type, np.bool_
@@ -120,25 +137,42 @@ class tensor:
         shape: Tuple[int, ...],
     ) -> tensor:
         """
-        Creates a tensor from a function handle and size
+        Construct a :class:`pyttb.tensor` whose data entries are set using
+        a function.
 
         Parameters
         ----------
-        function_handle:
-            Function to generate data to construct tensor
+        fun: function, required
+            A function that can accept a shape (i.e., :class:`tuple` of
+            dimension sizes) and return a :class:`numpy.ndarray` of that shape.
+            Example functions include `numpy.random.random_sample`,
+            `numpy,zeros`, `numpy.ones`.
         shape:
-            Shape of resulting tensor
+            Shape of the resulting tensor.
 
         Returns
         -------
-        Constructed tensor
+        Constructed tensor.
 
-        Example
-        -------
-        >>> X = ttb.tensor.from_function(lambda a_shape: np.ones(a_shape), (2,2))
+        Examples
+        --------
+        Create a :class:`pyttb.ktensor` with entries taken from a uniform
+        random distribution:
+
+        Create a :class:`pyttb.tensor` with entries equal to 1:
+
+        >>> T = ttb.tensor.from_function(np.ones, (2, 3, 4))
+        >>> print(T)
+        tensor of shape (2, 3, 4)
+        data[0, :, :] =
+        [[1. 1. 1. 1.]
+         [1. 1. 1. 1.]
+         [1. 1. 1. 1.]]
+        data[1, :, :] =
+        [[1. 1. 1. 1.]
+         [1. 1. 1. 1.]
+         [1. 1. 1. 1.]]
         """
-        # FUNCTION HANDLE AND SIZE
-
         # Check size
         if not isinstance(shape, tuple):
             assert False, "TTB:BadInput, Shape must be a tuple"
@@ -1852,34 +1886,30 @@ class tensor:
             s = ""
             s += "empty tensor of shape "
             s += str(self.shape)
-            s += "\n"
-            s += "data = []"
+            s += "\ndata = []"
             return s
 
         s = ""
         s += f"tensor of shape {self.shape}"
-        s += "\n"
 
         if self.ndims == 1:
-            s += "data"
+            s += "\ndata"
             if self.ndims == 1:
                 s += "[:]"
-                s += " = \n"
+                s += " =\n"
                 s += str(self.data)
-                s += "\n"
                 return s
         for i in np.arange(np.prod(self.shape[:-2])):
-            s += "data"
+            s += "\ndata"
             if self.ndims == 2:
                 s += "[:, :]"
-                s += " = \n"
+                s += " =\n"
                 s += str(self.data)
-                s += "\n"
             elif self.ndims > 2:
                 idx = tt_ind2sub(self.shape[:-2], np.array([i]))
                 s += str(idx[0].tolist())[0:-1]
                 s += ", :, :]"
-                s += " = \n"
+                s += " =\n"
                 s += str(
                     self.data[
                         tuple(
@@ -1889,7 +1919,6 @@ class tensor:
                         )
                     ]
                 )
-                s += "\n"
         # s += '\n'
         return s
 
