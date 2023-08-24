@@ -269,20 +269,20 @@ class tensor:
         ## Form and return the final result
         return ttb.tensor(B, newshape, copy=False)
 
-    def contract(self, i: int, j: int) -> Union[np.ndarray, tensor]:
+    def contract(self, i1: int, i2: int) -> Union[np.ndarray, tensor]:
         """
         Contract tensor along two dimensions (array trace).
 
         Parameters
         ----------
-        i:
+        i1:
             First dimension
-        j:
+        i2:
             Second dimension
 
         Returns
         -------
-        Contracted tensor
+        Contracted tensor.
 
         Examples
         --------
@@ -311,10 +311,10 @@ class tensor:
         data[:] =
         [ 5. 13.]
         """
-        if self.shape[i] != self.shape[j]:
+        if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
 
-        if i == j:
+        if i1 == i2:
             assert False, "Must contract along two different dimensions"
 
         # Easy case - returns a scalar
@@ -322,7 +322,7 @@ class tensor:
             return np.trace(self.data)
 
         # Remaining dimensions after trace
-        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i, j])).astype(int)
+        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i1, i2])).astype(int)
 
         # Size for return
         newsize = tuple(np.array(self.shape)[remdims])
@@ -331,10 +331,10 @@ class tensor:
         m = np.prod(newsize)
 
         # Number of items to add for trace
-        n = self.shape[i]
+        n = self.shape[i1]
 
         # Permute trace dimensions to the end
-        x = self.permute(np.concatenate((remdims, np.array([i, j]))))
+        x = self.permute(np.concatenate((remdims, np.array([i1, i2]))))
 
         # Reshape data to be 3D
         data = np.reshape(x.data, (m, n, n), order="F")
@@ -352,7 +352,7 @@ class tensor:
 
     def double(self) -> np.ndarray:
         """
-        Convert tensor to an array of doubles.
+        Convert tensor to an :array of doubles.
 
         Returns
         -------
@@ -360,8 +360,8 @@ class tensor:
 
         Examples
         --------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> X.double()
+        >>> T = ttb.tensor(np.ones((2,2)))
+        >>> T.double()
         array([[1., 1.],
                [1., 1.]])
         """
@@ -369,16 +369,17 @@ class tensor:
 
     def exp(self) -> tensor:
         """
-        Exponential of the elements of tensor
+        Exponential of the elements of tensor.
 
         Returns
         -------
-        Copy of tensor data element-wise raised to exponential
+        Copy of tensor data wtih the exponential function applied to data
+        element-wise.
 
         Examples
         --------
-        >>> tensor1 = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> tensor1.exp().data  # doctest: +ELLIPSIS
+        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> T.exp().data  # doctest: +ELLIPSIS
         array([[ 2.7182...,  7.3890... ],
                [20.0855..., 54.5981...]])
         """
@@ -386,24 +387,29 @@ class tensor:
 
     def find(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        FIND Find subscripts of nonzero elements in a tensor.
-
-        S, V = FIND(X) returns the subscripts of the nonzero values in X and a column
-        vector of the values.
-
-        Examples
-        --------
-        >>> X = ttb.tensor(np.zeros((3,4,2)))
-        >>> larger_entries = X > 0.5
-        >>> subs, vals = larger_entries.find()
-
-        See Also
-        --------
-        TENSOR/SUBSREF, TENSOR/SUBSASGN
+        Find subscripts of nonzero elements in a tensor.
 
         Returns
         -------
-        Subscripts and values for non-zero entries
+        Array of subscripts of the nonzero values in the tensor and a column
+        vector of the corresponding values.
+
+        Examples
+        --------
+        >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
+        >>> print(T)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[1 2]
+         [3 4]]
+        >>> T_threshold = T > 2
+        >>> subs, vals = T_threshold.find()
+        >>> subs
+        array([[1, 0],
+               [1, 1]])
+        >>> vals
+        array([[ True],
+               [ True]])
         """
         idx = np.nonzero(np.ravel(self.data, order="F"))[0]
         subs = tt_ind2sub(self.shape, idx)
@@ -412,11 +418,25 @@ class tensor:
 
     def to_sptensor(self) -> ttb.sptensor:
         """
-        Contruct an :class:`pyttb.sptensor` from `pyttb.tensor`
+        Contruct a :class:`pyttb.sptensor` from `pyttb.tensor`
 
         Returns
         -------
         Generated Sparse Tensor
+
+        Examples
+        --------
+        >>> T = ttb.tensor(np.array([[0,2],[3,0]]))
+        >>> print(T)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[0 2]
+         [3 0]]
+        >>> S = T.to_sptensor()
+        >>> print(S)
+        Sparse tensor of shape (2, 2) with 2 nonzeros
+        [1, 0] = 3
+        [0, 1] = 2
         """
         subs, vals = self.find()
         return ttb.sptensor(subs, vals, self.shape, copy=False)
@@ -433,17 +453,18 @@ class tensor:
 
     def innerprod(self, other: Union[tensor, ttb.sptensor, ttb.ktensor]) -> float:
         """
-        Efficient inner product with a tensor
+        Efficient inner product between a tensor and other `pyttb` tensor
+        (`sptensor` or `ktensor`).
 
         Parameters
         ----------
         other:
-            Tensor type to take an innerproduct with
+            Tensor to take an innerproduct with.
 
         Examples
         --------
-        >>> tensor1 = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> tensor1.innerprod(tensor1)
+        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> T.innerprod(T)
         30
         """
         if isinstance(other, ttb.tensor):
