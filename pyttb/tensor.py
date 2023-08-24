@@ -1,4 +1,4 @@
-"""Dense Tensor Implementation"""
+"""Classes and functions for working with dense tensors."""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -42,27 +42,36 @@ class tensor:
         copy: bool = True,
     ):
         """
-        Creates a tensor from explicit description. Note that 1D tensors (i.e.,
-        when len(shape)==1) contains a data array that follow the Numpy convention
-        of being a row vector, which is different than in the Matlab Tensor Toolbox.
+        Creates a :class:`pyttb.ktensor` from a :class:`numpy.ndarray` 
+        Note that 1D tensors (i.e., when len(shape)==1) contains a data 
+        array that follow the Numpy convention of being a row vector.
 
         Parameters
         ----------
         data:
-            Tensor source data
+            Tensor source data.
         shape:
-            Shape of resulting tensor if not the same as data shape
+            Shape of resulting tensor if not the same as data shape.
         copy:
-            Whether to make a copy of provided data or just reference it
+            Whether to make a copy of provided data or just reference it.
 
-        Returns
+        Examples
         -------
-        Constructed tensor
+        Create an empty :class:`pyttb.tensor`:
 
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = ttb.tensor(np.ones((2,2)), shape=(4,1))
+        >>> T = ttb.tensor()
+        >>> print(T)
+        empty tensor of shape ()
+        data = []
+
+        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
+        >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
+        >>> print(T)
+        tensor of shape (2, 2)
+        data[:, :] = 
+        [[1 2]
+         [3 4]]
+        <BLANKLINE>
         """
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
