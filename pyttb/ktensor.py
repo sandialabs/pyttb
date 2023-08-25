@@ -1278,11 +1278,11 @@ class ktensor:
 
     def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
-        Compute the leading mode-n vectors for a :class:`pyttb.ktensor`.
+        Compute the leading mode-n vectors of the ktensor.
 
         Computes the `r` leading eigenvectors of Xn*Xn.T (where Xn is the
         mode-`n` matricization/unfolding of self), which provides information
-        about the mode-N fibers. In two-dimensions, the `r` leading mode-1
+        about the mode-n fibers. In two-dimensions, the `r` leading mode-1
         vectors are the same as the `r` left singular vectors and the `r`
         leading mode-2 vectors are the same as the `r` right singular
         vectors. By default, this method computes the top `r` eigenvectors
