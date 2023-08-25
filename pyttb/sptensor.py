@@ -644,14 +644,14 @@ class sptensor:
             else:
                 [subsOther, valsOther] = other.find()
                 valsSelf = self.extract(subsOther)
-            return valsOther.transpose().dot(valsSelf)
+            return valsOther.transpose().dot(valsSelf).item()
 
         if isinstance(other, ttb.tensor):
             if self.shape != other.shape:
                 assert False, "Sptensor and tensor must be same shape for innerproduct"
             [subsSelf, valsSelf] = self.find()
             valsOther = other[subsSelf]
-            return valsOther.transpose().dot(valsSelf)
+            return valsOther.transpose().dot(valsSelf).item()
 
         if isinstance(other, (ttb.ktensor, ttb.ttensor)):  # pragma: no cover
             # Reverse arguments to call ktensor/ttensor implementation
