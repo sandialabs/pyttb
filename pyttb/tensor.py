@@ -1571,7 +1571,7 @@ class tensor:
 
         Case 1: `T[R1,R2,...,Rn] = Y`, in which case we replace the
         rectangular subtensor (or single element) specified by the ranges
-        `R1`,...,`Rn` with `Y`. The right-hand-side can be a scalar, a tensor, 
+        `R1`,...,`Rn` with `Y`. The right-hand-side can be a scalar, a tensor,
         or a :class:`numpy.ndarray`.
 
         Case 2a: `T[S] = V`, where `S` is a `p` x `n` array of subscripts and `V` is
@@ -1836,7 +1836,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor` of `bool`.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -1851,6 +1851,7 @@ class tensor:
         [[ True False]
          [False False]]
         """
+
         def tensor_equality(x, y):
             return x == y
 
@@ -1867,7 +1868,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor` of `bool`.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -1882,6 +1883,7 @@ class tensor:
         [[False  True]
          [ True  True]]
         """
+
         def tensor_not_equal(x, y):
             return x != y
 
@@ -1898,7 +1900,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor` of `bool`.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -1913,6 +1915,7 @@ class tensor:
         [[ True  True]
          [ True  True]]
         """
+
         def greater_or_equal(x, y):
             return x >= y
 
@@ -1929,7 +1932,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor` of `bool`.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -1944,6 +1947,7 @@ class tensor:
         [[ True False]
          [False False]]
         """
+
         def less_or_equal(x, y):
             return x <= y
 
@@ -1960,7 +1964,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor` of `bool`.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -1975,6 +1979,7 @@ class tensor:
         [[False  True]
          [ True  True]]
         """
+
         def greater(x, y):
             return x > y
 
@@ -1991,7 +1996,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor` of `bool`.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -2006,6 +2011,7 @@ class tensor:
         [[False False]
          [False False]]
         """
+
         def less(x, y):
             return x < y
 
@@ -2037,6 +2043,7 @@ class tensor:
         [[0 1]
          [2 3]]
         """
+
         def minus(x, y):
             return x - y
 
@@ -2121,6 +2128,7 @@ class tensor:
         [[ 1  4]
          [ 9 16]]
         """
+
         def tensor_pow(x, y):
             return x**y
 
@@ -2137,7 +2145,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor`
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -2152,6 +2160,7 @@ class tensor:
         [[2 4]
          [6 8]]
         """
+
         def mul(x, y):
             return x * y
 
@@ -2171,7 +2180,7 @@ class tensor:
         Returns
         -------
         :class:`pyttb.tensor`
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -2209,6 +2218,7 @@ class tensor:
         [[0.5 1. ]
          [1.5 2. ]]
         """
+
         def div(x, y):
             # We ignore the divide by zero errors because np.inf/np.nan is an
             # appropriate representation
@@ -2239,6 +2249,7 @@ class tensor:
         [[2.         1.        ]
          [0.66666667 0.5       ]]
         """
+
         def div(x, y):
             # We ignore the divide by zero errors because np.inf/np.nan is an
             # appropriate representation
@@ -2273,7 +2284,7 @@ class tensor:
         Returns
         -------
         Copy of negated tensor.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -2293,7 +2304,7 @@ class tensor:
         Returns
         -------
         String displaying shape and data as strings on different lines.
-        
+
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
@@ -2345,6 +2356,7 @@ class tensor:
 
     __str__ = __repr__
 
+
 def tenones(shape: Tuple[int, ...]) -> tensor:
     """
     Creates a tensor of all ones.
@@ -2374,6 +2386,7 @@ def tenones(shape: Tuple[int, ...]) -> tensor:
      [1. 1. 1.]]
     """
     return tensor.from_function(np.ones, shape)
+
 
 def tenzeros(shape: Tuple[int, ...]) -> tensor:
     """
@@ -2405,9 +2418,10 @@ def tenzeros(shape: Tuple[int, ...]) -> tensor:
     """
     return tensor.from_function(np.zeros, shape)
 
+
 def tenrand(shape: Tuple[int, ...]) -> tensor:
     """
-    Creates a tensor with entries drawn from a uniform 
+    Creates a tensor with entries drawn from a uniform
     distribution on the unit interval.
 
     Parameters
@@ -2429,6 +2443,7 @@ def tenrand(shape: Tuple[int, ...]) -> tensor:
     data[:] =
     [4.17022005e-01 7.20324493e-01 1.14374817e-04]
     """
+
     # Typing doesn't play nice with partial
     # mypy issue: 1484
     def unit_uniform(pass_through_shape: Tuple[int, ...]) -> np.ndarray:
@@ -2436,9 +2451,10 @@ def tenrand(shape: Tuple[int, ...]) -> tensor:
 
     return tensor.from_function(unit_uniform, shape)
 
+
 def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> tensor:
     """
-    Creates a tensor with elements along super diagonal. If provided shape is too 
+    Creates a tensor with elements along super diagonal. If provided shape is too
     small the tensor will be enlarged to accomodate.
 
     Parameters
@@ -2472,6 +2488,7 @@ def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> te
     subs = np.tile(np.arange(0, N)[:, None], (len(constructed_shape),))
     X[subs] = elements
     return X
+
 
 def mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
     """
