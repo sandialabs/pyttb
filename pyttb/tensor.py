@@ -75,7 +75,6 @@ class tensor:
         Examples
         -------
         Create an empty :class:`pyttb.tensor`:
-
         >>> T = ttb.tensor()
         >>> print(T)
         empty tensor of shape ()
@@ -434,7 +433,7 @@ class tensor:
          [3 0]]
         >>> S = T.to_sptensor()
         >>> print(S)
-        Sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros
         [1, 0] = 3
         [0, 1] = 2
         """

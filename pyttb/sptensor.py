@@ -1,4 +1,4 @@
-"""Sparse Tensor Implementation"""
+"""Classes and functions for working with sparse tensors."""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -119,6 +119,32 @@ def tt_from_sparse_matrix(
 class sptensor:
     """
     SPTENSOR Class for sparse tensors.
+
+    Contains the following data members:
+
+    ``subs``: `p` x `n` array (:class:`numpy.ndarray`) specifying the
+    subscripts of the non-zero values in the sptensor. Row `k` specifies the indices
+    of the `k`-th value in `vals`.
+
+    ``vals``: `p` vector (:class:`numpy.ndarray`) containing the data elements
+    of the sptensor.
+
+    ``shape``: :class:`tuple` specifying the sizes of the dimensions of the sptensor.
+    Note that since the sptensor is sparse, `shape` cannot be derived from `subs` and
+    must be explicit defined.
+
+    Instances of :class:`pyttb.sptensor` can be created using `__init__()` or
+    the following method:
+
+      * :meth:`from_function`
+      * :meth:`from_aggregator`
+
+    Examples
+    --------
+    For all examples listed below, the following module imports are assumed:
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
     """
 
     __slots__ = ("subs", "vals", "shape")
@@ -131,37 +157,39 @@ class sptensor:
         copy=True,
     ):
         """
-        Construct an sptensor from fully defined SUB, VAL and SIZE matrices.
-        This does no validation to optimize for speed when components are known.
-        For default initializer with error checking see
-        :func:`~pyttb.sptensor.sptensor.from_aggregator`.
+        Creates an :class:`pyttb.sptensor` from a set of `subs` (indices),
+        `vals` (values), and `shape`. This does no validation to optimize
+        for speed when components are known. For default initializer with
+        error checking see :func:`pyttb.sptensor.from_aggregator`.
 
         Parameters
         ----------
         subs:
-            Location of non-zero entries
+            Indices of non-zero entries.
         vals:
-            Values for non-zero entries
+            Values for non-zero entries.
         shape:
-            Shape of sparse tensor
+            Shape of sparse tensor.
         copy:
-            Whether to make a copy of provided data or just reference it
+            Whether to make a copy of provided data or just reference it.
 
         Examples
         --------
-        Import required modules:
+        Create an empty :class:`pyttb.sptensor`:
 
-        >>> import pyttb as ttb
-        >>> import numpy as np
+        >>> shape = (4, 4, 4)
+        >>> S = ttb.sptensor(shape=shape)
+        >>> S
+        empty sparse tensor of shape (4, 4, 4)
 
-        Set up input data
-        # Create sptensor with explicit data description
-
+        Create a :class:`pyttb.sptensor` from indices and values:
         >>> subs = np.array([[1, 2], [1, 3]])
         >>> vals = np.array([[6], [7]])
-        >>> shape = (4, 4, 4)
-        >>> K0 = ttb.sptensor(subs,vals, shape)
-        >>> empty_sptensor = ttb.sptensor(shape=shape)
+        >>> S = ttb.sptensor(subs,vals, shape)
+        >>> S
+        sparse tensor of shape (4, 4, 4) with 2 nonzeros
+        [1, 2] = 6
+        [1, 3] = 7
         """
 
         if subs is None and vals is None:
@@ -2503,14 +2531,10 @@ class sptensor:
         """
         nz = self.nnz
         if nz == 0:
-            s = "All-zero sparse tensor of shape "
-            if self.ndims == 0:
-                s += str(self.shape)
-                return s
-            s += (" x ").join([str(int(d)) for d in self.shape])
+            s = f"empty sparse tensor of shape {self.shape!r}"
             return s
 
-        s = f"Sparse tensor of shape {self.shape}"
+        s = f"sparse tensor of shape {self.shape!r}"
         s += f" with {nz} nonzeros\n"
 
         # Stop insane printouts
