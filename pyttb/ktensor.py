@@ -43,9 +43,8 @@ class ktensor:
     dimension i and r is the rank of the tensor (as well as the length of the
     weights vector).
 
-    Although the constructor `__init__()` can be used to create an empty
-    :class:`pyttb.ktensor`, there are several class methods that can be used
-    to create an instance of this class:
+    Instances of :class:`pyttb.ktensor` can be created using `__init__()` or
+    one of the following methods:
 
       * :meth:`from_function`
       * :meth:`from_vector`
@@ -1279,11 +1278,11 @@ class ktensor:
 
     def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
-        Compute the leading mode-n vectors for a :class:`pyttb.ktensor`.
+        Compute the leading mode-n vectors of the ktensor.
 
         Computes the `r` leading eigenvectors of Xn*Xn.T (where Xn is the
         mode-`n` matricization/unfolding of self), which provides information
-        about the mode-N fibers. In two-dimensions, the `r` leading mode-1
+        about the mode-n fibers. In two-dimensions, the `r` leading mode-1
         vectors are the same as the `r` left singular vectors and the `r`
         leading mode-2 vectors are the same as the `r` right singular
         vectors. By default, this method computes the top `r` eigenvectors
