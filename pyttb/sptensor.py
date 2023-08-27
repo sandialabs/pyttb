@@ -2096,7 +2096,7 @@ class sptensor:
                 for n in range(N):
                     # Note other[n][:, r] extracts 1-D instead of column vector,
                     # which necessitates [:, None]
-                    v = other[n][:, r][:, None]
+                    v = other.factor_matrices[n][:, r][:, None]
                     tvals = tvals * v[csubs[:, n]]
                 cvals += tvals
             return ttb.sptensor(csubs, cvals, self.shape)
@@ -2495,7 +2495,7 @@ class sptensor:
             for r in range(R):
                 tvals = np.ones(((vals).size, 1)).dot(other.weights[r])
                 for n in range(N):
-                    v = other[n][:, r][:, None]
+                    v = other.factor_matrices[n][:, r][:, None]
                     tvals = tvals * v[subs[:, n]]
                 vals += tvals
             return ttb.sptensor(

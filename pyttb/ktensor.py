@@ -2143,64 +2143,6 @@ class ktensor:
             )
         return ttb.ktensor(factor_matrices, weights)
 
-    def __getitem__(self, item):
-        """
-        Subscripted reference for a :class:`pyttb.ktensor`.
-
-        Subscripted reference is used to query the components of a
-        :class:`pyttb.ktensor`.
-
-        Parameters
-        ----------
-        item: tuple(int) or int, required
-
-        Examples
-        --------
-        >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> K.weights
-        array([1., 1.])
-        >>> K.factor_matrices
-        [array([[1., 1.],
-               [1., 1.]]), array([[1., 1.],
-               [1., 1.],
-               [1., 1.]]), array([[1., 1.],
-               [1., 1.],
-               [1., 1.],
-               [1., 1.]])]
-        >>> K.factor_matrices[0]
-        array([[1., 1.],
-               [1., 1.]])
-        >>> K[0]
-        array([[1., 1.],
-               [1., 1.]])
-        >>> K[1, 2, 0]
-        2.0
-        >>> K[0][:, [0]]
-        array([[1.],
-               [1.]])
-        """
-        if isinstance(item, tuple):
-            if len(item) == self.ndims:
-                # Extract single element
-                a = 0
-                for k in range(self.ncomponents):
-                    b = self.weights[k]
-                    for i in range(self.ndims):
-                        b = b * self.factor_matrices[i][item[i], k]
-                    a = a + b
-                return a
-            assert (
-                False
-            ), f"ktensor.__getitem__ requires tuples with {self.ndims} elements"
-        elif isinstance(item, (int, np.int_)) and item in range(self.ndims):
-            # Extract factor matrix
-            return self.factor_matrices[item].copy()
-        else:
-            assert False, (
-                "ktensor.__getitem__() can only extract single elements (tuple of "
-                "indices) or factor matrices (single index)"
-            )
-
     def __neg__(self):
         """
         Unary minus (negative) for :class:`pyttb.ktensor` instances.
@@ -2220,49 +2162,6 @@ class ktensor:
         :class:`pyttb.ktensor`
         """
         return self.copy()
-
-    def __setitem__(self, key, value):
-        """
-        Subscripted assignment for :class:`pyttb.ktensor`.
-
-        Subscripted assignment cannot be used to update individual elements of
-        a :class:`pyttb.ktensor`. You can update the weights vector or the
-        factor matrices of a :class:`pyttb.ktensor`.
-
-        Example
-        -------
-        >>> random = np.random.random
-        >>> factors = [random((2,4)), random((3,4)), random((4,4))]
-        >>> weights = np.ones((4,))
-        >>> K = ttb.ktensor(factors, weights)
-        >>> K.weights = 2 * np.ones((4,1))
-        >>> K.factor_matrices[0] = np.zeros((2, 4))
-        >>> K.factor_matrices = [np.zeros((2, 4)), np.zeros((3, 4)), np.zeros((4, 4))]
-        >>> print(K)
-        ktensor of shape (2, 3, 4)
-        weights=[[2.]
-         [2.]
-         [2.]
-         [2.]]
-        factor_matrices[0] =
-        [[0. 0. 0. 0.]
-         [0. 0. 0. 0.]]
-        factor_matrices[1] =
-        [[0. 0. 0. 0.]
-         [0. 0. 0. 0.]
-         [0. 0. 0. 0.]]
-        factor_matrices[2] =
-        [[0. 0. 0. 0.]
-         [0. 0. 0. 0.]
-         [0. 0. 0. 0.]
-         [0. 0. 0. 0.]]
-        """
-        assert False, (
-            "Subscripted assignment cannot be used to update individual elements of a "
-            "ktensor. However, you can update the weights vector or the factor "
-            "matrices of a ktensor. The entire factor matrix or weight vector must be "
-            "provided."
-        )
 
     def __sub__(self, other):
         """
