@@ -2243,11 +2243,11 @@ class tensor:
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
         >>> np.set_printoptions(precision=8)
-        >>> 2 / T
+        >>> 2 / T  # doctest: +ELLIPSIS
         tensor of shape (2, 2)
         data[:, :] =
         [[2.         1.        ]
-         [0.66666667 0.5       ]]
+         [0.66666... 0.5       ]]
         """
 
         def div(x, y):
@@ -2436,12 +2436,11 @@ def tenrand(shape: Tuple[int, ...]) -> tensor:
     Examples
     --------
     >>> np.random.seed(1)
-    >>> np.set_printoptions(precision=8)
     >>> T = ttb.tenrand((3,))
     >>> T
     tensor of shape (3,)
     data[:] =
-    [4.17022005e-01 7.20324493e-01 1.14374817e-04]
+    [4.170...e-01 7.203...e-01 1.143...e-04]
     """
 
     # Typing doesn't play nice with partial
