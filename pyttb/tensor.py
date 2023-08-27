@@ -59,36 +59,36 @@ class tensor:
         copy: bool = True,
     ):
         """
-        Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
-        Note that 1D tensors (i.e., when len(shape)==1) contains a data
-        array that follow the Numpy convention of being a row vector.
+                Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
+                Note that 1D tensors (i.e., when len(shape)==1) contains a data
+                array that follow the Numpy convention of being a row vector.
 
-        Parameters
-        ----------
-        data:
-            Tensor source data.
-        shape:
-            Shape of resulting tensor if not the same as data shape.
-        copy:
-            Whether to make a copy of provided data or just reference it.
+                Parameters
+                ----------
+                data:
+                    Tensor source data.
+                shape:
+                    Shape of resulting tensor if not the same as data shape.
+                copy:
+                    Whether to make a copy of provided data or just reference it.
 
-        Examples
-        -------
-        Create an empty :class:`pyttb.tensor`:
+                Examples
+                -------
+                Create an empty :class:`pyttb.tensor`:
 
-        >>> T = ttb.tensor()
-        >>> print(T)
-        empty tensor of shape ()
-        data = []
+                >>> T = ttb.tensor()
+                >>> print(T)
+                empty tensor of shape ()
+                data = []
 
-        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
-s
-        >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
-        >>> print(T)
-        tensor of shape (2, 2)
-        data[:, :] =
-        [[1 2]
-         [3 4]]
+                Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
+        s
+                >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
+                >>> print(T)
+                tensor of shape (2, 2)
+                data[:, :] =
+                [[1 2]
+                 [3 4]]
         """
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
