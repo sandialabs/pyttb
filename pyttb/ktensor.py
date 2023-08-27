@@ -184,7 +184,7 @@ class ktensor:
     @classmethod
     def from_function(
         cls,
-        fun: Callable[[Tuple[int, ...]], np.ndarray],
+        function_handle: Callable[[Tuple[int, ...]], np.ndarray],
         shape: Tuple[int, ...],
         num_components: int,
     ):
@@ -195,11 +195,11 @@ class ktensor:
 
         Parameters
         ----------
-        fun: function, required
+        function_handle:
             A function that can accept a shape (i.e., :class:`tuple` of
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
             Example functions include `numpy.random.random_sample`,
-            `numpy,zeros`, `numpy.ones`.
+            `numpy.zeros`, `numpy.ones`.
         shape:
             Shape of the resulting tensor.
         num_components:
@@ -271,7 +271,7 @@ class ktensor:
          [0. 0.]]
         """
         # CONSTRUCTOR FROM FUNCTION HANDLE
-        assert callable(fun), "Input parameter 'fun' must be a function."
+        assert callable(function_handle), "Input parameter 'fun' must be a function."
         assert isinstance(shape, tuple), "Input parameter 'shape' must be a tuple."
         assert isinstance(
             num_components, int
@@ -280,7 +280,7 @@ class ktensor:
         weights = np.ones(num_components)
         factor_matrices = []
         for i in range(nd):
-            factor_matrices.append(fun((shape[i], num_components)))
+            factor_matrices.append(function_handle((shape[i], num_components)))
         return cls(factor_matrices, weights, copy=False)
 
     @classmethod
