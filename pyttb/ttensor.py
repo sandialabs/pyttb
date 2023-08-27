@@ -415,6 +415,8 @@ class ttensor:
         # NOTE: MATLAB version calculates an unused R here
 
         W = [np.empty(())] * self.ndims
+        if isinstance(U, ttb.ktensor):
+            U = U.factor_matrices
         for i in range(0, self.ndims):
             if i == n:
                 continue
