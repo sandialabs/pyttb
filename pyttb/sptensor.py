@@ -644,14 +644,14 @@ class sptensor:
             else:
                 [subsOther, valsOther] = other.find()
                 valsSelf = self.extract(subsOther)
-            return valsOther.transpose().dot(valsSelf)
+            return valsOther.transpose().dot(valsSelf).item()
 
         if isinstance(other, ttb.tensor):
             if self.shape != other.shape:
                 assert False, "Sptensor and tensor must be same shape for innerproduct"
             [subsSelf, valsSelf] = self.find()
             valsOther = other[subsSelf]
-            return valsOther.transpose().dot(valsSelf)
+            return valsOther.transpose().dot(valsSelf).item()
 
         if isinstance(other, (ttb.ktensor, ttb.ttensor)):  # pragma: no cover
             # Reverse arguments to call ktensor/ttensor implementation
@@ -2511,7 +2511,7 @@ class sptensor:
             return s
 
         s = f"Sparse tensor of shape {self.shape}"
-        s += f" with {nz} nonzeros \n"
+        s += f" with {nz} nonzeros\n"
 
         # Stop insane printouts
         if nz > 10000:
@@ -2519,7 +2519,6 @@ class sptensor:
             if r.upper() != "Y":
                 return s
         for i in range(0, self.subs.shape[0]):
-            s += "\t"
             s += "["
             idx = self.subs[i, :]
             s += str(idx.tolist())[1:]

@@ -1103,15 +1103,17 @@ def test_sptensor_innerprod(sample_sptensor):
     assert emptySptensor.innerprod(sptensorInstance) == 0
 
     # Sptensor innerproduct
-    assert sptensorInstance.innerprod(sptensorInstance) == data["vals"].transpose().dot(
-        data["vals"]
+    assert np.array_equal(
+        sptensorInstance.innerprod(sptensorInstance),
+        data["vals"].squeeze().dot(data["vals"].squeeze()),
     )
 
     # Sptensor innerproduct, other has more elements
     sptensorCopy = sptensorInstance.copy()
     sptensorCopy[0, 0, 0] = 1
-    assert sptensorInstance.innerprod(sptensorCopy) == data["vals"].transpose().dot(
-        data["vals"]
+    assert np.array_equal(
+        sptensorInstance.innerprod(sptensorCopy),
+        data["vals"].squeeze().dot(data["vals"].squeeze()),
     )
 
     # Wrong shape sptensor
@@ -1121,9 +1123,10 @@ def test_sptensor_innerprod(sample_sptensor):
     assert "Sptensors must be same shape for innerproduct" in str(excinfo)
 
     # Tensor innerproduct
-    assert sptensorInstance.innerprod(sptensorInstance.to_tensor()) == data[
-        "vals"
-    ].transpose().dot(data["vals"])
+    assert np.array_equal(
+        sptensorInstance.innerprod(sptensorInstance.to_tensor()),
+        data["vals"].squeeze().dot(data["vals"].squeeze()),
+    )
 
     # Wrong shape tensor
     with pytest.raises(AssertionError) as excinfo:

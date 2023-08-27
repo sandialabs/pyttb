@@ -1469,11 +1469,9 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape}"
-    s += "\n"
-    s += "data"
-    s += "[:] = \n"
+    s += "\ndata"
+    s += "[:] =\n"
     s += data.__str__()
-    s += "\n"
     assert s == tensorInstance.__str__()
 
     # Test 2D
@@ -1481,11 +1479,9 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape}"
-    s += "\n"
-    s += "data"
-    s += "[:, :] = \n"
+    s += "\ndata"
+    s += "[:, :] =\n"
     s += data.__str__()
-    s += "\n"
     assert s == tensorInstance.__str__()
 
     # Test 3D,shape in decreasing and increasing order
@@ -1493,24 +1489,20 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape}"
-    s += "\n"
     for i in range(data.shape[0]):
-        s += "data"
-        s += "[{}, :, :] = \n".format(i)
+        s += "\ndata"
+        s += "[{}, :, :] =\n".format(i)
         s += data[i, :, :].__str__()
-        s += "\n"
     assert s == tensorInstance.__str__()
 
     data = np.random.normal(size=(2, 3, 4))
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape}"
-    s += "\n"
     for i in range(data.shape[0]):
-        s += "data"
-        s += "[{}, :, :] = \n".format(i)
+        s += "\ndata"
+        s += "[{}, :, :] =\n".format(i)
         s += data[i, :, :].__str__()
-        s += "\n"
     assert s == tensorInstance.__str__()
 
     # Test 4D
@@ -1518,13 +1510,11 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape}"
-    s += "\n"
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
-            s += "data"
-            s += "[{}, {}, :, :] = \n".format(j, i)
+            s += "\ndata"
+            s += "[{}, {}, :, :] =\n".format(j, i)
             s += data[j, i, :, :].__str__()
-            s += "\n"
     assert s == tensorInstance.__str__()
 
     # Test 5D
@@ -1532,14 +1522,12 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape}"
-    s += "\n"
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
             for k in range(data.shape[2]):
-                s += "data"
-                s += "[{}, {}, {}, :, :] = \n".format(k, j, i)
+                s += "\ndata"
+                s += "[{}, {}, {}, :, :] =\n".format(k, j, i)
                 s += data[k, j, i, :, :].__str__()
-                s += "\n"
     assert s == tensorInstance.__str__()
 
 
