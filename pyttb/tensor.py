@@ -59,7 +59,7 @@ class tensor:
         copy: bool = True,
     ):
         """
-        Creates a :class:`pyttb.ktensor` from a :class:`numpy.ndarray`
+        Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
         Note that 1D tensors (i.e., when len(shape)==1) contains a data
         array that follow the Numpy convention of being a row vector.
 
