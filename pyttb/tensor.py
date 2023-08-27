@@ -370,8 +370,8 @@ class tensor:
 
         Returns
         -------
-        Copy of tensor data wtih the exponential function applied to data
-        element-wise.
+        Copy of tensor data with the exponential function applied to data\
+            element-wise.
 
         Examples
         --------
@@ -388,8 +388,8 @@ class tensor:
 
         Returns
         -------
-        Array of subscripts of the nonzero values in the tensor and a column
-        vector of the corresponding values.
+        Array of subscripts of the nonzero values in the tensor and a column\
+            vector of the corresponding values.
 
         Examples
         --------
@@ -2543,7 +2543,7 @@ def mttv_mid(W_in: np.ndarray, U_mid: List[np.ndarray]) -> np.ndarray:
 
 
 def min_split(shape: Tuple[int, ...]) -> int:
-    """Scan for optimal splitting iwth minimal memory footprint.
+    """Scan for optimal splitting with minimal memory footprint.
 
     Parameters
     ----------
