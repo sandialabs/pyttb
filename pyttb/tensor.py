@@ -82,6 +82,7 @@ class tensor:
         data = []
 
         Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
+        
         >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
         >>> print(T)
         tensor of shape (2, 2)
@@ -142,11 +143,10 @@ class tensor:
 
         Parameters
         ----------
-        fun: function, required
+        function_handle: function
             A function that can accept a shape (i.e., :class:`tuple` of
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
-            Example functions include `numpy.random.random_sample`,
-            `numpy,zeros`, `numpy.ones`.
+            `numpy.zeros`, `numpy.ones`.
         shape:
             Shape of the resulting tensor.
 
@@ -352,8 +352,8 @@ class tensor:
 
     def double(self) -> np.ndarray:
         """
-        Convert tensor to an :array of doubles.
-
+        Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
+        
         Returns
         -------
         Copy of tensor data.
@@ -418,7 +418,7 @@ class tensor:
 
     def to_sptensor(self) -> ttb.sptensor:
         """
-        Contruct a :class:`pyttb.sptensor` from `pyttb.tensor`
+        Contruct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`
 
         Returns
         -------
@@ -456,7 +456,7 @@ class tensor:
         self, other: Union[tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
         """
-        Efficient inner product between a tensor and other `pyttb` tensor
+        Efficient inner product between a tensor and other `pyttb` tensors
         (`tensor`, `sptensor`, `ktensor`, or `ttensor`).
 
         Parameters
@@ -2371,7 +2371,7 @@ def tenones(shape: Tuple[int, ...]) -> tensor:
     Constructed tensor.
 
     Examples
-    -------
+    --------
     >>> T = ttb.tenones((3,))
     >>> T
     tensor of shape (3,)
