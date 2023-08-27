@@ -82,7 +82,7 @@ class tensor:
         data = []
 
         Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
-        
+s
         >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
         >>> print(T)
         tensor of shape (2, 2)
@@ -353,7 +353,7 @@ class tensor:
     def double(self) -> np.ndarray:
         """
         Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
-        
+
         Returns
         -------
         Copy of tensor data.
