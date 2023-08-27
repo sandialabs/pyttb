@@ -59,7 +59,8 @@ class tensor:
         copy: bool = True,
     ):
         """
-        Creates a :class:`pyttb.ktensor` from a :class:`numpy.ndarray`
+        Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
+
         Note that 1D tensors (i.e., when len(shape)==1) contains a data
         array that follow the Numpy convention of being a row vector.
 
@@ -75,12 +76,14 @@ class tensor:
         Examples
         -------
         Create an empty :class:`pyttb.tensor`:
+
         >>> T = ttb.tensor()
         >>> print(T)
         empty tensor of shape ()
         data = []
 
         Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
+
         >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
         >>> print(T)
         tensor of shape (2, 2)
@@ -141,11 +144,10 @@ class tensor:
 
         Parameters
         ----------
-        fun: function, required
+        function_handle:
             A function that can accept a shape (i.e., :class:`tuple` of
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
-            Example functions include `numpy.random.random_sample`,
-            `numpy,zeros`, `numpy.ones`.
+            `numpy.zeros`, `numpy.ones`.
         shape:
             Shape of the resulting tensor.
 
@@ -155,9 +157,6 @@ class tensor:
 
         Examples
         --------
-        Create a :class:`pyttb.ktensor` with entries taken from a uniform
-        random distribution:
-
         Create a :class:`pyttb.tensor` with entries equal to 1:
 
         >>> T = ttb.tensor.from_function(np.ones, (2, 3, 4))
@@ -351,7 +350,7 @@ class tensor:
 
     def double(self) -> np.ndarray:
         """
-        Convert tensor to an :array of doubles.
+        Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
 
         Returns
         -------
@@ -372,8 +371,8 @@ class tensor:
 
         Returns
         -------
-        Copy of tensor data wtih the exponential function applied to data
-        element-wise.
+        Copy of tensor data with the exponential function applied to data\
+            element-wise.
 
         Examples
         --------
@@ -390,8 +389,8 @@ class tensor:
 
         Returns
         -------
-        Array of subscripts of the nonzero values in the tensor and a column
-        vector of the corresponding values.
+        Array of subscripts of the nonzero values in the tensor and a column\
+            vector of the corresponding values.
 
         Examples
         --------
@@ -417,7 +416,7 @@ class tensor:
 
     def to_sptensor(self) -> ttb.sptensor:
         """
-        Contruct a :class:`pyttb.sptensor` from `pyttb.tensor`
+        Contruct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`
 
         Returns
         -------
@@ -455,7 +454,7 @@ class tensor:
         self, other: Union[tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
         """
-        Efficient inner product between a tensor and other `pyttb` tensor
+        Efficient inner product between a tensor and other `pyttb` tensors
         (`tensor`, `sptensor`, `ktensor`, or `ttensor`).
 
         Parameters
@@ -2242,11 +2241,11 @@ class tensor:
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
         >>> np.set_printoptions(precision=8)
-        >>> 2 / T
+        >>> 2 / T  # doctest: +ELLIPSIS
         tensor of shape (2, 2)
         data[:, :] =
         [[2.         1.        ]
-         [0.66666667 0.5       ]]
+         [0.66666... 0.5       ]]
         """
 
         def div(x, y):
@@ -2370,7 +2369,7 @@ def tenones(shape: Tuple[int, ...]) -> tensor:
     Constructed tensor.
 
     Examples
-    -------
+    --------
     >>> T = ttb.tenones((3,))
     >>> T
     tensor of shape (3,)
@@ -2435,12 +2434,11 @@ def tenrand(shape: Tuple[int, ...]) -> tensor:
     Examples
     --------
     >>> np.random.seed(1)
-    >>> np.set_printoptions(precision=8)
     >>> T = ttb.tenrand((3,))
     >>> T
     tensor of shape (3,)
     data[:] =
-    [4.17022005e-01 7.20324493e-01 1.14374817e-04]
+    [4.170...e-01 7.203...e-01 1.143...e-04]
     """
 
     # Typing doesn't play nice with partial
@@ -2546,7 +2544,7 @@ def mttv_mid(W_in: np.ndarray, U_mid: List[np.ndarray]) -> np.ndarray:
 
 
 def min_split(shape: Tuple[int, ...]) -> int:
-    """Scan for optimal splitting iwth minimal memory footprint.
+    """Scan for optimal splitting with minimal memory footprint.
 
     Parameters
     ----------
