@@ -300,19 +300,27 @@ def test_calc_partials():
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     # TODO: These are just verifying same functionality as matlab
     phi, ups = calc_partials(
-        False, Pi, 1e-12, tensorInstance[0, :].data, ktensorInstance[0][0, :]
+        False,
+        Pi,
+        1e-12,
+        tensorInstance[0, :].data,
+        ktensorInstance.factor_matrices[0][0, :],
     )
     assert np.isclose(phi, np.array([0, 0])).all()
     assert np.isclose(ups, np.array([0, 0])).all()
 
     phi, ups = calc_partials(
-        False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
+        False,
+        Pi,
+        1e-12,
+        tensorInstance[1, :].data,
+        ktensorInstance.factor_matrices[0][0, :],
     )
     assert np.isclose(phi, 1e14 * np.array([5.95, 9.68])).all()
     assert np.isclose(ups, 1e13 * np.array([4.8, 8.5])).all()
 
     phi, ups = calc_partials(
-        True, Pi, 1e-12, sptensorInstance.vals, ktensorInstance[0][0, :]
+        True, Pi, 1e-12, sptensorInstance.vals, ktensorInstance.factor_matrices[0][0, :]
     )
     assert np.isclose(phi, 1e14 * np.array([5.95, 9.68])).all()
     assert np.isclose(ups, 1e13 * np.array([4.8, 8.5])).all()
@@ -363,7 +371,11 @@ def test_getHessian():
     sptensorInstance = tensorInstance.to_sptensor()
     Pi = calculate_pi(sptensorInstance, ktensorInstance, rank, 0, tensorInstance.ndims)
     phi, ups = calc_partials(
-        False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
+        False,
+        Pi,
+        1e-12,
+        tensorInstance[1, :].data,
+        ktensorInstance.factor_matrices[0][0, :],
     )
     Hessian = get_hessian(ups, Pi, free_indices)
     assert np.allclose(Hessian, Hessian.transpose())
@@ -404,7 +416,7 @@ def test_getSearchDirPdnr():
     # print(tensorInstance[:, 0])
     sptensorInstance = tensorInstance.to_sptensor()
     data_row = tensorInstance[1, :].data
-    model_row = ktensorInstance[0][0, :]
+    model_row = ktensorInstance.factor_matrices[0][0, :]
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     phi, ups = calc_partials(False, Pi, 1e-12, data_row, model_row)
     search, pred = get_search_dir_pdnr(Pi, ups, 2, phi, model_row, 0.1, 1e-6)
@@ -462,7 +474,11 @@ def test_tt_linesearch_prowsubprob():
     sptensorInstance = tensorInstance.to_sptensor()
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     phi, ups = calc_partials(
-        False, Pi, 1e-12, tensorInstance[1, :].data, ktensorInstance[0][0, :]
+        False,
+        Pi,
+        1e-12,
+        tensorInstance[1, :].data,
+        ktensorInstance.factor_matrices[0][0, :],
     )
     search, pred = get_search_dir_pdnr(
         Pi, ups, 2, phi, tensorInstance[1, :].data, 0.1, 1e-6
@@ -498,7 +514,7 @@ def test_getSearchDirPqnr():
     # print(tensorInstance[:, 0])
     sptensorInstance = tensorInstance.to_sptensor()
     data_row = tensorInstance[1, :].data
-    model_row = ktensorInstance[0][0, :]
+    model_row = ktensorInstance.factor_matrices[0][0, :]
     Pi = calculate_pi(sptensorInstance, ktensorInstance, 2, 0, tensorInstance.ndims)
     phi, ups = calc_partials(False, Pi, 1e-12, data_row, model_row)
     delta_model = np.random.normal(size=(2, model_row.shape[0]))
