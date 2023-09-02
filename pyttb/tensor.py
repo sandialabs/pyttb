@@ -401,7 +401,7 @@ class tensor:
          [3 4]]
         >>> T_threshold = T > 2
         >>> subs, vals = T_threshold.find()
-        >>> subs
+        >>> subs.astype(int)
         array([[1, 0],
                [1, 1]])
         >>> vals
@@ -1018,6 +1018,73 @@ class tensor:
             assert False, "Reshaping a tensor cannot change number of elements"
 
         return ttb.tensor(np.reshape(self.data, shape, order="F"), shape)
+
+    def scale(
+        self,
+        factor: Union[np.ndarray, ttb.tensor],
+        dims: Union[float, np.ndarray],
+    ) -> tensor:
+        """
+        Scale along specified dimensions for tensors.
+
+        Parameters
+        ----------
+        factor: Scaling factor
+        dims: Dimensions to scale
+
+        Returns
+        -------
+        Scaled Tensor.
+
+        Examples
+        --------
+        >>> T = ttb.tenones((3, 4, 5))
+        >>> S = np.arange(5)
+        >>> Y = T.scale(S, 2)
+        >>> Y.data[0, 0, :]
+        array([0., 1., 2., 3., 4.])
+        >>> S = ttb.tensor(np.arange(5))
+        >>> Y = T.scale(S, 2)
+        >>> Y.data[0, 0, :]
+        array([0., 1., 2., 3., 4.])
+        >>> S = ttb.tensor(np.arange(12), shape=(3, 4))
+        >>> Y = T.scale(S, [0, 1])
+        >>> Y.data[:, :, 0]
+        array([[ 0.,  3.,  6.,  9.],
+               [ 1.,  4.,  7., 10.],
+               [ 2.,  5.,  8., 11.]])
+        """
+        if isinstance(dims, list):
+            dims = np.array(dims)
+        elif isinstance(dims, (float, int, np.generic)):
+            dims = np.array([dims])
+
+        # TODO example tt_dimscheck overload so I don't need explicit
+        #   Nones to appease mypy
+        dims, _ = tt_dimscheck(self.ndims, None, dims, None)
+        remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
+
+        if not np.array_equal(factor.shape, np.array(self.shape)[dims]):
+            raise ValueError(
+                f"Scaling factor has shape {factor.shape}, but dimensions "
+                f"to scale had shape {np.array(self.shape)[dims]}"
+            )
+        if isinstance(factor, np.ndarray):
+            if len(factor.shape) == 1:
+                factor = factor[:, None]
+            factor = ttb.tensor(factor, copy=False)
+        # TODO this should probably be doable directly as a numpy view
+        #   where I think this is currently a copy
+        vector_factor = ttb.tenmat.from_tensor_type(
+            factor, np.arange(factor.ndims)
+        ).double()
+        vector_self = ttb.tenmat.from_tensor_type(self, dims, remdims).double()
+        # Numpy broadcasting should be equivalent to bsxfun
+        result = vector_self * vector_factor
+        # TODO why do we need this transpose for things to work?
+        if len(dims) == 1:
+            result = result.transpose()
+        return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
 
     def squeeze(self) -> Union[tensor, np.ndarray, float]:
         """
