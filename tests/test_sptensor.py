@@ -57,7 +57,7 @@ def test_sptensor_initialization_from_data(sample_sptensor):
         vals = np.array([[1], [22], [3]])
         ttb.sptensor(invalid_subs, vals, shape)
     with pytest.raises(AssertionError):
-        shape = (3,3)
+        shape = (3, 3)
         invalid_subs = np.array([[1], [2], [3]])
         vals = np.array([[1], [22], [3]])
         ttb.sptensor(invalid_subs, vals, shape)

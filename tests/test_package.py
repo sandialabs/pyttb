@@ -28,6 +28,17 @@ def test_linting():
     )
 
 
+def test_formatting():
+    """Confirm file format of the project is enforced"""
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+    toml_file = os.path.join(root_dir, "pyproject.toml")
+    subprocess.run(
+        f"black --check {root_dir} --config {toml_file}",
+        check=True,
+        shell=True,
+    )
+
+
 def test_typing():
     """Run type checker on package"""
     root_dir = os.path.dirname(os.path.dirname(__file__))
