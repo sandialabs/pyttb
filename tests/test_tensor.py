@@ -1108,6 +1108,11 @@ def test_tensor_scale():
     Y = T.scale(S, [0, 1, 2])
     assert np.array_equal(Y.data, S.data)
 
+    # Negative test
+    with pytest.raises(ValueError):
+        S = ttb.tensor(np.arange(60, dtype=float), shape=(3, 4, 5))
+        Y = T.scale(S, 0)
+
 
 def test_tensor_squeeze(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
