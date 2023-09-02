@@ -1059,7 +1059,7 @@ class tensor:
         elif isinstance(dims, (float, int, np.generic)):
             dims = np.array([dims])
 
-        # TODO example tt_dimscheck overload so I don't need explicit
+        # TODO update tt_dimscheck overload so I don't need explicit
         #   Nones to appease mypy
         dims, _ = tt_dimscheck(self.ndims, None, dims, None)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
