@@ -401,7 +401,7 @@ class tensor:
          [3 4]]
         >>> T_threshold = T > 2
         >>> subs, vals = T_threshold.find()
-        >>> subs
+        >>> subs.astype(int)
         array([[1, 0],
                [1, 1]])
         >>> vals
