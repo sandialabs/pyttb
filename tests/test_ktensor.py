@@ -793,8 +793,8 @@ def test_ktensor_permute(sample_ktensor_3way):
 def test_ktensor_redistribute(sample_ktensor_2way):
     (data, K) = sample_ktensor_2way
     K.redistribute(0)
-    assert np.array_equal(np.array([[1, 4], [3, 8]]), K[0])
-    assert np.array_equal(np.array([[5, 6], [7, 8]]), K[1])
+    assert np.array_equal(np.array([[1, 4], [3, 8]]), K.factor_matrices[0])
+    assert np.array_equal(np.array([[5, 6], [7, 8]]), K.factor_matrices[1])
     assert np.array_equal(np.array([1, 1]), K.weights)
 
 
@@ -1131,28 +1131,6 @@ def test_ktensor__add__(sample_ktensor_2way, sample_ktensor_3way):
     assert "Cannot add instance of this type to a ktensor" in str(excinfo)
 
 
-def test_ktensor__getitem__(sample_ktensor_2way):
-    (data, K) = sample_ktensor_2way
-    # adding ktensor to itself
-    assert K[0, 0] == 29
-    assert K[0, 1] == 39
-    assert K[1, 0] == 63
-    assert K[1, 1] == 85
-    assert np.array_equal(data["factor_matrices"][0], K[0])
-    assert np.array_equal(data["factor_matrices"][1], K[1])
-    # to return a 2D ndarray, the columns must be defined by a slice
-    assert np.array_equal(data["factor_matrices"][0][:, [0]], K[0][:, [0]])
-    with pytest.raises(AssertionError) as excinfo:
-        K[0, 0, 0]
-    assert "ktensor.__getitem__ requires tuples with 2 elements" in str(excinfo)
-    with pytest.raises(AssertionError) as excinfo:
-        K[5]
-    assert (
-        "ktensor.__getitem__() can only extract single elements (tuple of indices) or factor matrices (single index)"
-        in str(excinfo)
-    )
-
-
 def test_ktensor__neg__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
     # adding ktensor to itself
@@ -1172,17 +1150,6 @@ def test_ktensor__pos__(sample_ktensor_2way):
     for k in range(K1.ndims):
         assert np.array_equal(data0["factor_matrices"][k], K1.factor_matrices[k])
     assert K1.isequal(K0)
-
-
-def test_ktensor__setitem__(sample_ktensor_2way):
-    (data, K) = sample_ktensor_2way
-    # adding ktensor to itself
-    with pytest.raises(AssertionError) as excinfo:
-        K[0, 0] = 1
-    assert (
-        "Subscripted assignment cannot be used to update individual elements of a ktensor."
-        in str(excinfo)
-    )
 
 
 def test_ktensor__sub__(sample_ktensor_2way, sample_ktensor_3way):

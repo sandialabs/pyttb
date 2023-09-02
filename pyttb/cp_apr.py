@@ -256,7 +256,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     Phi = []  # np.zeros((N,))#cell(N,1)
     for n in range(N):
         # TODO prepopulation Phi instead of appen should be faster
-        Phi.append(np.zeros(M[n].shape))
+        Phi.append(np.zeros(M.factor_matrices[n].shape))
     kktModeViolations = np.zeros((N,))
 
     if printitn > 0:
@@ -277,7 +277,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
             # slackness conditions.
             # TODO both these zeros were 1 in matlab
             if iteration > 0:
-                V = (Phi[n] > 0) & (M[n] < kappatol)
+                V = (Phi[n] > 0) & (M.factor_matrices[n] < kappatol)
                 if np.any(V):
                     nViolations[iteration] += 1
                     M.factor_matrices[n][V > 0] += kappa
@@ -457,10 +457,10 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     # subproblem is not taking log(0). Values will be restored to zero later if the
     # unfolded X for the row has no zeros.
     for n in range(N):
-        rowsum = np.sum(init[n], axis=1)
+        rowsum = np.sum(init.factor_matrices[n], axis=1)
         tmpIdx = np.where(rowsum == 0)[0]
         if tmpIdx.size != 0:
-            init[n][tmpIdx, 0] = 1e-8
+            init.factor_matrices[n][tmpIdx, 0] = 1e-8
 
     # Start with the initial guess, normalized using the vector L1 norm
     M = init.copy()
@@ -492,7 +492,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
             print("\tPrecomuting sparse index sets...")
         sparseIx = []
         for n in range(N):
-            num_rows = M[n].shape[0]
+            num_rows = M.factor_matrices[n].shape[0]
             row_indices = []
             for jj in range(num_rows):
                 row_indices.append(np.where(input_tensor.subs[:, n] == jj)[0])
@@ -522,7 +522,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
                 X_mat = tt_to_dense_matrix(input_tensor, n)
 
-            num_rows = M[n].shape[0]
+            num_rows = M.factor_matrices[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
 
             # Loop over the row subproblems in mode n.
@@ -554,7 +554,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
                     x_row = X_mat[jj, :]
 
                 # Get current values of the row subproblem variables.
-                m_row = M[n][jj, :]
+                m_row = M.factor_matrices[n][jj, :]
 
                 # Iteratively solve the row subproblem with projected Newton steps.
                 if inexact and iteration == 1:
@@ -663,7 +663,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
         # Save output items for the outer iteration.
         num_zero = 0
         for n in range(N):
-            num_zero += np.count_nonzero(M[n] == 0)  # [0].size
+            num_zero += np.count_nonzero(M.factor_matrices[n] == 0)  # [0].size
 
         nzeros[iteration] = num_zero
         kktViolations[iteration] = np.max(kktModeViolations)
@@ -816,10 +816,10 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
     # subproblem is not taking log(0). Values will be restored to zero later if the
     # unfolded X for the row has no zeros.
     for n in range(N):
-        rowsum = np.sum(init[n], axis=1)
+        rowsum = np.sum(init.factor_matrices[n], axis=1)
         tmpIdx = np.where(rowsum == 0)[0]
         if tmpIdx.size != 0:
-            init[n][tmpIdx, 0] = 1e-8
+            init.factor_matrices[n][tmpIdx, 0] = 1e-8
 
     # Start with the initial guess, normalized using the vector L1 norm
     M = init.copy()
@@ -851,7 +851,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
             print("\tPrecomuting sparse index sets...")
         sparseIx = []
         for n in range(N):
-            num_rows = M[n].shape[0]
+            num_rows = M.factor_matrices[n].shape[0]
             row_indices = []
             for jj in range(num_rows):
                 row_indices.append(np.where(input_tensor.subs[:, n] == jj)[0])
@@ -877,7 +877,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
                 X_mat = tt_to_dense_matrix(input_tensor, n)
 
-            num_rows = M[n].shape[0]
+            num_rows = M.factor_matrices[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
 
             # Loop over the row subproblems in mode n.
@@ -906,7 +906,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                     x_row = X_mat[jj, :]
 
                 # Get current values of the row subproblem variables.
-                m_row = M[n][jj, :]
+                m_row = M.factor_matrices[n][jj, :]
 
                 # Initialize L-BFGS storage for the row subproblem.
                 delm = np.zeros((rank, lbfgsMem))
@@ -1062,7 +1062,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
         # Save output items for the outer iteration.
         num_zero = 0
         for n in range(N):
-            num_zero += np.count_nonzero(M[n] == 0)  # [0].size
+            num_zero += np.count_nonzero(M.factor_matrices[n] == 0)  # [0].size
 
         nzeros[iteration] = num_zero
         kktViolations[iteration] = np.max(kktModeViolations)
@@ -1206,7 +1206,7 @@ def tt_calcpi_prowsubprob(  # noqa: PLR0913
 
         Pi = np.ones((num_row_nnz, rank))
         for i in np.setdiff1d(np.arange(ndims), factorIndex).astype(int):
-            Pi *= Model[i][Data.subs[sparse_indices, i], :]
+            Pi *= Model.factor_matrices[i][Data.subs[sparse_indices, i], :]
     else:
         Pi = ttb.khatrirao(
             *(
@@ -1735,7 +1735,7 @@ def calculate_pi(
     if isinstance(Data, ttb.sptensor):
         Pi = np.ones((Data.nnz, rank))
         for i in np.setdiff1d(np.arange(ndims), factorIndex).astype(int):
-            Pi *= Model[i][Data.subs[:, i], :]
+            Pi *= Model.factor_matrices[i][Data.subs[:, i], :]
     else:
         Pi = ttb.khatrirao(
             *(
