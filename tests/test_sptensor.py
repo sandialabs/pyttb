@@ -51,6 +51,17 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     with pytest.raises(ValueError):
         ttb.sptensor(data["subs"], data["vals"])
 
+    with pytest.raises(AssertionError):
+        shape = (3, 3, 1)
+        invalid_subs = np.array([[1, 1, 1], [1, 3, 2], [2, 2, 2]])
+        vals = np.array([[1], [22], [3]])
+        ttb.sptensor(invalid_subs, vals, shape)
+    with pytest.raises(AssertionError):
+        shape = (3,3)
+        invalid_subs = np.array([[1], [2], [3]])
+        vals = np.array([[1], [22], [3]])
+        ttb.sptensor(invalid_subs, vals, shape)
+
 
 def test_sptensor_initialization_from_function():
     # Random Tensor Success
