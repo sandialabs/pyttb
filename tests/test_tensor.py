@@ -1692,10 +1692,7 @@ def test_teneye():
     T = ttb.teneye(order, size)
     x = np.random.random((size,))
     x = x / np.linalg.norm(x)
-    np.testing.assert_almost_equal(
-        T.ttsv(x, 0),
-        x
-    )
+    np.testing.assert_almost_equal(T.ttsv(x, 0), x)
 
 
 def test_mttv_left():

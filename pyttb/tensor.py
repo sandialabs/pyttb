@@ -2487,7 +2487,7 @@ def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> te
 
 
 def teneye(order: int, size: int) -> tensor:
-    """ Create identity tensor of specified shape.
+    """Create identity tensor of specified shape.
 
     T is an "identity tensor if T.ttsv(x, skip_dim=0) = x for all x such that
     norm(x) == 1.
@@ -2522,13 +2522,13 @@ def teneye(order: int, size: int) -> tensor:
     if order % 2 != 0:
         raise ValueError(f"Order must be even but received {order}")
     idx_iterator = combinations_with_replacement(range(size), order)
-    A = tenzeros((size,)*order)
+    A = tenzeros((size,) * order)
     s = np.zeros((factorial(order), order // 2))
     for _i, indices in enumerate(idx_iterator):
         p = np.array(list(permutations(indices)))
-        for j in range(order//2):
-            s[:, j] = p[:, 2*j-1] == p[:, 2*j]
-        v = np.sum(np.sum(s, axis=1) == order//2)
+        for j in range(order // 2):
+            s[:, j] = p[:, 2 * j - 1] == p[:, 2 * j]
+        v = np.sum(np.sum(s, axis=1) == order // 2)
         A[tuple(zip(*p))] = v / factorial(order)
     return A
 
