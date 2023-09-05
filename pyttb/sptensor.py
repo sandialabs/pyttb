@@ -1055,14 +1055,18 @@ class sptensor:
             tuple(np.concatenate((keep_shape, new_shape))),
         )
 
-    def scale(self, factor: np.ndarray, dims: Union[float, np.ndarray]) -> sptensor:
+    def scale(
+        self,
+        factor: Union[np.ndarray, ttb.tensor, ttb.sptensor],
+        dims: Union[float, np.ndarray],
+    ) -> sptensor:
         """
         Scale along specified dimensions for sparse tensors
 
         Parameters
         ----------
-        factor:
-        dims:
+        factor: Scaling factor
+        dims: Dimensions to scale
 
         Returns
         -------

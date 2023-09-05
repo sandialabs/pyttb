@@ -27,12 +27,37 @@ def sample_sptensor():
     return data, sptensorInstance
 
 
+@pytest.fixture()
+def sample_ttensor():
+    """Simple TTENSOR to verify by hand"""
+    core = ttb.tensor(np.ones((2, 3)))
+    factors = [
+        np.ones((5, 2)),
+        np.ones((2, 3)),
+    ]
+    ttensorInstance = ttb.ttensor(core, factors)
+    return ttensorInstance
+
+
+@pytest.fixture()
+def random_ttensor():
+    """Arbitrary TTENSOR to verify consistency between alternative operations"""
+    core = ttb.tensor(np.random.random((2, 3, 4)))
+    factors = [
+        np.random.random((5, 2)),
+        np.random.random((2, 3)),
+        np.random.random((4, 4)),
+    ]
+    ttensorInstance = ttb.ttensor(core, factors)
+    return ttensorInstance
+
+
 @pytest.mark.indevelopment
 def test_cp_als_tensor_default_init(capsys, sample_tensor):
     (data, T) = sample_tensor
     (M, Minit, output) = ttb.cp_als(T, 2)
     capsys.readouterr()
-    assert pytest.approx(output["fit"], 1) == 0
+    assert pytest.approx(output["fit"]) == 1
 
 
 @pytest.mark.indevelopment
@@ -49,7 +74,7 @@ def test_cp_als_tensor_ktensor_init(capsys, sample_tensor):
     KInit = ttb.ktensor.from_function(np.random.random_sample, T.shape, 2)
     (M, Minit, output) = ttb.cp_als(T, 2, init=KInit)
     capsys.readouterr()
-    assert pytest.approx(output["fit"], 1) == 0
+    assert pytest.approx(output["fit"]) == 1
 
 
 @pytest.mark.indevelopment
@@ -76,7 +101,7 @@ def test_cp_als_sptensor_default_init(capsys, sample_sptensor):
     (data, T) = sample_sptensor
     (M, Minit, output) = ttb.cp_als(T, 2)
     capsys.readouterr()
-    assert pytest.approx(output["fit"], 1) == 0
+    assert pytest.approx(output["fit"]) == 1
 
 
 @pytest.mark.indevelopment
@@ -93,7 +118,26 @@ def test_cp_als_sptensor_ktensor_init(capsys, sample_sptensor):
     KInit = ttb.ktensor.from_function(np.random.random_sample, T.shape, 2)
     (M, Minit, output) = ttb.cp_als(T, 2, init=KInit)
     capsys.readouterr()
-    assert pytest.approx(output["fit"], 1) == 0
+    assert pytest.approx(output["fit"]) == 1
+
+
+@pytest.mark.indevelopment
+def test_cp_als_ttensor_default_init(capsys, sample_ttensor):
+    T = sample_ttensor
+    (M, Minit, output) = ttb.cp_als(T, 1)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1
+
+
+@pytest.mark.indevelopment
+def test_cp_als_ttensor_default_init_consistency(capsys, random_ttensor):
+    T = random_ttensor
+    KInit = ttb.ktensor.from_function(np.random.random_sample, T.shape, 2)
+    _, _, output = ttb.cp_als(T, 2, init=KInit)
+    capsys.readouterr()
+    _, _, dense_output = ttb.cp_als(T.full(), 2, init=KInit)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == dense_output["fit"]
 
 
 @pytest.mark.indevelopment
@@ -102,19 +146,15 @@ def test_cp_als_tensor_dimorder(capsys, sample_tensor):
 
     # default dimorder
     dimorder = [i for i in range(T.ndims)]
-    print(dimorder)
-    print(dimorder.__class__)
     (M, Minit, output) = ttb.cp_als(T, 2, dimorder=dimorder)
     capsys.readouterr()
-    assert pytest.approx(output["fit"], 1) == 0
+    assert pytest.approx(output["fit"]) == 1
 
     # reverse should work
     dimorder = [T.ndims - i - 1 for i in range(T.ndims)]
-    print(dimorder)
-    print(dimorder.__class__)
     (M, Minit, output) = ttb.cp_als(T, 2, dimorder=dimorder)
     capsys.readouterr()
-    assert pytest.approx(output["fit"], 1) == 0
+    assert pytest.approx(output["fit"]) == 1
 
     # dimorder not a list
     with pytest.raises(AssertionError) as excinfo:
