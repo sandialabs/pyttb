@@ -1708,6 +1708,17 @@ def test_tendiag():
         assert X[diag_index] == i
 
 
+def test_teneye():
+    with pytest.raises(ValueError):
+        ttb.teneye(1, 0)
+    size = 5
+    order = 4
+    T = ttb.teneye(order, size)
+    x = np.random.random((size,))
+    x = x / np.linalg.norm(x)
+    np.testing.assert_almost_equal(T.ttsv(x, 0), x)
+
+
 def test_mttv_left():
     m1 = 2
     mi = [range(1, 4)]
