@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
-from itertools import permutations
+from itertools import combinations_with_replacement, permutations
 from math import factorial
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -402,7 +402,7 @@ class tensor:
          [3 4]]
         >>> T_threshold = T > 2
         >>> subs, vals = T_threshold.find()
-        >>> subs
+        >>> subs.astype(int)
         array([[1, 0],
                [1, 1]])
         >>> vals
@@ -1019,6 +1019,73 @@ class tensor:
             assert False, "Reshaping a tensor cannot change number of elements"
 
         return ttb.tensor(np.reshape(self.data, shape, order="F"), shape)
+
+    def scale(
+        self,
+        factor: Union[np.ndarray, ttb.tensor],
+        dims: Union[float, np.ndarray],
+    ) -> tensor:
+        """
+        Scale along specified dimensions for tensors.
+
+        Parameters
+        ----------
+        factor: Scaling factor
+        dims: Dimensions to scale
+
+        Returns
+        -------
+        Scaled Tensor.
+
+        Examples
+        --------
+        >>> T = ttb.tenones((3, 4, 5))
+        >>> S = np.arange(5)
+        >>> Y = T.scale(S, 2)
+        >>> Y.data[0, 0, :]
+        array([0., 1., 2., 3., 4.])
+        >>> S = ttb.tensor(np.arange(5))
+        >>> Y = T.scale(S, 2)
+        >>> Y.data[0, 0, :]
+        array([0., 1., 2., 3., 4.])
+        >>> S = ttb.tensor(np.arange(12), shape=(3, 4))
+        >>> Y = T.scale(S, [0, 1])
+        >>> Y.data[:, :, 0]
+        array([[ 0.,  3.,  6.,  9.],
+               [ 1.,  4.,  7., 10.],
+               [ 2.,  5.,  8., 11.]])
+        """
+        if isinstance(dims, list):
+            dims = np.array(dims)
+        elif isinstance(dims, (float, int, np.generic)):
+            dims = np.array([dims])
+
+        # TODO update tt_dimscheck overload so I don't need explicit
+        #   Nones to appease mypy
+        dims, _ = tt_dimscheck(self.ndims, None, dims, None)
+        remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
+
+        if not np.array_equal(factor.shape, np.array(self.shape)[dims]):
+            raise ValueError(
+                f"Scaling factor has shape {factor.shape}, but dimensions "
+                f"to scale had shape {np.array(self.shape)[dims]}"
+            )
+        if isinstance(factor, np.ndarray):
+            if len(factor.shape) == 1:
+                factor = factor[:, None]
+            factor = ttb.tensor(factor, copy=False)
+        # TODO this should probably be doable directly as a numpy view
+        #   where I think this is currently a copy
+        vector_factor = ttb.tenmat.from_tensor_type(
+            factor, np.arange(factor.ndims)
+        ).double()
+        vector_self = ttb.tenmat.from_tensor_type(self, dims, remdims).double()
+        # Numpy broadcasting should be equivalent to bsxfun
+        result = vector_self * vector_factor
+        # TODO why do we need this transpose for things to work?
+        if len(dims) == 1:
+            result = result.transpose()
+        return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
 
     def squeeze(self) -> Union[tensor, np.ndarray, float]:
         """
@@ -2485,6 +2552,53 @@ def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> te
     subs = np.tile(np.arange(0, N)[:, None], (len(constructed_shape),))
     X[subs] = elements
     return X
+
+
+def teneye(order: int, size: int) -> tensor:
+    """Create identity tensor of specified shape.
+
+    T is an "identity tensor if T.ttsv(x, skip_dim=0) = x for all x such that
+    norm(x) == 1.
+
+    An identity tensor only exists if order is even.
+    This method is resource intensive
+    for even moderate orders or sizes (>=6).
+
+    Parameters
+    ----------
+    order: Number of dimensions of tensor.
+    size: Number of elements in any dimension of the tensor.
+
+    Examples
+    --------
+    >>> ttb.teneye(2, 3)
+    tensor of shape (3, 3)
+    data[:, :] =
+    [[1. 0. 0.]
+     [0. 1. 0.]
+     [0. 0. 1.]]
+    >>> x = np.ones((5,))
+    >>> x /= np.linalg.norm(x)
+    >>> T = ttb.teneye(4, 5)
+    >>> np.allclose(T.ttsv(x, 0), x)
+    True
+
+    Returns
+    -------
+    Identity tensor.
+    """
+    if order % 2 != 0:
+        raise ValueError(f"Order must be even but received {order}")
+    idx_iterator = combinations_with_replacement(range(size), order)
+    A = tenzeros((size,) * order)
+    s = np.zeros((factorial(order), order // 2))
+    for _i, indices in enumerate(idx_iterator):
+        p = np.array(list(permutations(indices)))
+        for j in range(order // 2):
+            s[:, j] = p[:, 2 * j - 1] == p[:, 2 * j]
+        v = np.sum(np.sum(s, axis=1) == order // 2)
+        A[tuple(zip(*p))] = v / factorial(order)
+    return A
 
 
 def mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
