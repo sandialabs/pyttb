@@ -12,7 +12,7 @@ import pyttb as ttb
 
 
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: Union[ttb.tensor, ttb.sptensor],
+    input_tensor: Union[ttb.tensor, ttb.sptensor, ttb.ttensor],
     rank: int,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
