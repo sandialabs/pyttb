@@ -1090,6 +1090,30 @@ def test_tensor_mask(sample_tensor_2way):
     assert "Mask cannot be bigger than the data tensor" in str(excinfo)
 
 
+def test_tensor_scale():
+    T = ttb.tenones((3, 4, 5))
+    S = np.arange(5, dtype=float)
+    Y = T.scale(S, 2)
+    assert np.array_equal(Y.data[0, 0, :], S)
+
+    S = ttb.tensor(np.arange(5, dtype=float))
+    Y = T.scale(S, 2)
+    assert np.array_equal(Y.data[0, 0, :], S.data)
+
+    S = ttb.tensor(np.arange(12, dtype=float), shape=(3, 4))
+    Y = T.scale(S, [0, 1])
+    assert np.array_equal(Y.data[:, :, 0], S.data)
+
+    S = ttb.tensor(np.arange(60, dtype=float), shape=(3, 4, 5))
+    Y = T.scale(S, [0, 1, 2])
+    assert np.array_equal(Y.data, S.data)
+
+    # Negative test
+    with pytest.raises(ValueError):
+        S = ttb.tensor(np.arange(60, dtype=float), shape=(3, 4, 5))
+        Y = T.scale(S, 0)
+
+
 def test_tensor_squeeze(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
@@ -1682,6 +1706,17 @@ def test_tendiag():
     for i in range(N):
         diag_index = (i,) * N
         assert X[diag_index] == i
+
+
+def test_teneye():
+    with pytest.raises(ValueError):
+        ttb.teneye(1, 0)
+    size = 5
+    order = 4
+    T = ttb.teneye(order, size)
+    x = np.random.random((size,))
+    x = x / np.linalg.norm(x)
+    np.testing.assert_almost_equal(T.ttsv(x, 0), x)
 
 
 def test_mttv_left():

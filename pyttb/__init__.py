@@ -24,7 +24,7 @@ from pyttb.sumtensor import sumtensor
 from pyttb.symktensor import symktensor
 from pyttb.symtensor import symtensor
 from pyttb.tenmat import tenmat
-from pyttb.tensor import tendiag, tenones, tenrand, tensor, tenzeros
+from pyttb.tensor import tendiag, teneye, tenones, tenrand, tensor, tenzeros
 from pyttb.ttensor import ttensor
 from pyttb.tucker_als import tucker_als
 
@@ -57,6 +57,7 @@ __all__ = [  # noqa: PLE0604
     sumtensor.__name__,
     symktensor.__name__,
     symtensor.__name__,
+    teneye.__name__,
     tenmat.__name__,
     tendiag.__name__,
     tenones.__name__,
