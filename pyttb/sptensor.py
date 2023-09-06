@@ -157,7 +157,7 @@ class sptensor:
         Set up input data
         # Create sptensor with explicit data description
 
-        >>> subs = np.array([[1, 2], [1, 3]])
+        >>> subs = np.array([[1, 2, 1], [1, 3, 1]])
         >>> vals = np.array([[6], [7]])
         >>> shape = (4, 4, 4)
         >>> K0 = ttb.sptensor(subs,vals, shape)
@@ -177,6 +177,15 @@ class sptensor:
         if subs is None or vals is None or shape is None:
             raise ValueError(
                 "For non-empty sptensors subs, vals, and shape must be provided"
+            )
+
+        if subs.size > 0:
+            assert subs.shape[1] == len(shape) and np.all(
+                (np.max(subs, axis=0) + 1) <= shape
+            ), (
+                f"Shape provided was an incorrect to fit all subs:"
+                f"\tShape: {shape} shape required for subscripts: "
+                f"{np.max(subs, axis=0) + 1}"
             )
 
         if copy:
