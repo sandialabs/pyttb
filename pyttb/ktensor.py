@@ -1182,7 +1182,8 @@ class ktensor:
     ) -> Self:
         """
         Normalize the columns of the factor matrices of a
-        :class:`pyttb.ktensor` in place.
+        :class:`pyttb.ktensor` in place, then optionally
+        absorb the weights into desired normalized factors.
 
         Parameters
         ----------
@@ -1483,6 +1484,7 @@ class ktensor:
         where the penalty is defined by the weights such that
 
             max_weights = max(self.weights, other.weights)
+
             penalty = 1 - abs(self.weights - other.weights) / max_weights.
 
         The score of multi-component :class:`pyttb.ktensor` instances is a
@@ -1769,7 +1771,8 @@ class ktensor:
     def tovec(self, include_weights: bool = True) -> np.ndarray:
         """
         Convert :class:`pyttb.ktensor` to column vector. Optionally include
-        or exclude the weights.
+        or exclude the weights. The output of this method can be consumed by
+        :meth:`from_vector`.
 
         Parameters
         ----------
@@ -1856,7 +1859,7 @@ class ktensor:
         Computes the product of a :class:`pyttb.ktensor` with a vector (i.e.,
         np.array).  If `dims` is an integer, it specifies the dimension in the
         :class:`pyttb.ktensor` along which the vector is multiplied.
-        If the shape of the vector is = (I,1), then the length of dimension
+        If the shape of the vector is = (I,), then the length of dimension
         `dims` of the :class:`pyttb.ktensor` must be  I.  Note that the number
         of dimensions of the returned :class:`pyttb.ktensor` is 1 less than
         the dimension of the :class:`pyttb.ktensor` used in the
@@ -1882,8 +1885,10 @@ class ktensor:
             Vector to multiply by.
         dims:
             Dimension(s) along which to multiply.
+                Exclusively provide dims or exclude_dims.
         exclude_dims:
             Multiply by all but excluded dimension(s).
+                Exclusively provide dims or exclude_dims.
 
         Returns
         -------
@@ -1951,17 +1956,21 @@ class ktensor:
         if (
             len(vector) > 0
             and isinstance(vector, np.ndarray)
-            and isinstance(vector[0], (int, float, np.int_, np.float_))
+            and isinstance(vector.squeeze()[0], (int, float, np.int_, np.float_))
         ):
-            return self.ttv([vector], dims)
+            return self.ttv([vector], dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands
         dims, vidx = tt_dimscheck(self.ndims, len(vector), dims, exclude_dims)
 
         # Check that each multiplicand is the right size.
         for i in range(dims.size):
-            if vector[vidx[i]].shape != (self.shape[dims[i]],):
-                assert False, "Multiplicand is wrong size"
+            if vector[vidx[i]].squeeze().shape != (self.shape[dims[i]],):
+                assert False, (
+                    f"Multiplicand is wrong size. Vector[{i}] was "
+                    f"{vector[vidx[i]].squeeze().shape}"
+                    f", but expected {(self.shape[dims[i]],)}."
+                )
 
         # Figure out which dimensions will be left when we're done
         remdims = np.setdiff1d(range(self.ndims), dims)
@@ -1969,7 +1978,9 @@ class ktensor:
         # Collapse dimensions that are being multiplied out
         new_weights = self.weights.copy()
         for i, dim in enumerate(dims):
-            new_weights = new_weights * (self.factor_matrices[dim].T @ vector[vidx[i]])
+            new_weights = new_weights * (
+                self.factor_matrices[dim].T @ vector[vidx[i]].squeeze()
+            )
 
         # Create final result
         if len(remdims) == 0:

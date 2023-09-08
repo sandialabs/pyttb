@@ -989,13 +989,21 @@ def test_ktensor_tovec(sample_ktensor_3way):
 
 def test_ktensor_ttv(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
-    K0 = K.ttv(np.array([1, 1, 1]), dims=1)
+    vector = np.array([1, 1, 1])
+    K0 = K.ttv(vector, dims=1)
     weights = np.array([36.0, 54.0])
     fm0 = np.array([[1.0, 3.0], [2.0, 4.0]])
     fm1 = np.array([[11.0, 15.0], [12.0, 16.0], [13.0, 17.0], [14.0, 18.0]])
     factor_matrices = [fm0, fm1]
     K1 = ttb.ktensor(factor_matrices, weights)
     assert K0.isequal(K1)
+
+    # Ensure ttv supports the different flavors of vector
+    # Implicit row (I,), row (1, I), column (I, 1)
+    K0_row = K.ttv(vector[None, :], dims=1)
+    assert K0.isequal(K0_row)
+    K0_column = K.ttv(vector[:, None], dims=1)
+    assert K0.isequal(K0_column)
 
     # Empty dims requires that # vectors == # dimensions
     vec2 = np.array([1, 1])
