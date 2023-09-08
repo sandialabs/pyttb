@@ -301,6 +301,11 @@ def test_ttensor_mttkrp(random_ttensor):
         f"TTensor value is: \n{final_value}\n\n" f"Full value is: \n{full_value}"
     )
 
+    final_value = ttensorInstance.mttkrp(ttb.ktensor(vectors), 2)
+    assert np.allclose(final_value, full_value), (
+        f"TTensor value is: \n{final_value}\n\n" f"Full value is: \n{full_value}"
+    )
+
 
 @pytest.mark.indevelopment
 def test_ttensor_norm(sample_ttensor, random_ttensor):
