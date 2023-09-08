@@ -435,7 +435,7 @@ class sptensor:
         >>> S1 = ttb.sptensor(shape=(2,2))
         >>> S1[0,0] = 1
         >>> S2 = S1
-        >>> S3 = S2.copy()
+        >>> S3 = S1.copy()
         >>> S1[0,0] = 3
         >>> S1[0,0] == S2[0,0]
         True
