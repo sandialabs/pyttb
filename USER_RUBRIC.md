@@ -37,7 +37,7 @@ Refer to our [Issues tab](https://github.com/sandialabs/pyttb/issues) for known 
 
 ## Sample Code / Tutorials
 
- The [tutorial](https://github.com/sandialabs/pyttb/tree/main/tutorial) section contains step-by-step tutorials with Jupyter notebooks demonstrating various pyttb features.
+ The [tutorial](https://github.com/sandialabs/pyttb/tree/main/docs/source/tutorial) section contains step-by-step tutorials with Jupyter notebooks demonstrating various pyttb features.
 
 
 
