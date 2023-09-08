@@ -420,7 +420,8 @@ class sptensor:
         return cls(newsubs, newvals, shape, copy=False)
 
     def copy(self) -> sptensor:
-        """Make a deep copy of a :class:`pyttb.sptensor`.
+        """
+        Make a deep copy of an :class:`pyttb.sptensor`.
 
         Returns
         -------
@@ -428,14 +429,17 @@ class sptensor:
 
         Examples
         --------
-        >>> first = ttb.sptensor(shape=(2,2))
-        >>> first[0,0] = 1
-        >>> second = first
-        >>> third = second.copy()
-        >>> first[0,0] = 3
-        >>> first[0,0] == second[0,0]
+        Create an :class:`pyttb.sptensor` (S1) and make a deep copy. Verify
+        the deep copy (S3) is not just a reference (like S2) to the original.
+
+        >>> S1 = ttb.sptensor(shape=(2,2))
+        >>> S1[0,0] = 1
+        >>> S2 = S1
+        >>> S3 = S2.copy()
+        >>> S1[0,0] = 3
+        >>> S1[0,0] == S2[0,0]
         True
-        >>> first[0,0] == third[0,0]
+        >>> S1[0,0] == S3[0,0]
         False
         """
         return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
