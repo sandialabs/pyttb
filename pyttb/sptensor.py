@@ -157,7 +157,7 @@ class sptensor:
         copy=True,
     ):
         """
-        Creates an :class:`pyttb.sptensor` from a set of `subs` (indices),
+        Construct an :class:`pyttb.sptensor` from a set of `subs` (indices),
         `vals` (values), and `shape`. This does no validation to optimize
         for speed when components are known. For default initializer with
         error checking see :func:`pyttb.sptensor.from_aggregator`.
@@ -183,13 +183,13 @@ class sptensor:
         empty sparse tensor of shape (4, 4, 4)
 
         Create a :class:`pyttb.sptensor` from indices and values:
-        >>> subs = np.array([[1, 2], [1, 3]])
+        >>> subs = np.array([[1, 2, 1], [1, 3, 1]])
         >>> vals = np.array([[6], [7]])
         >>> S = ttb.sptensor(subs,vals, shape)
         >>> S
         sparse tensor of shape (4, 4, 4) with 2 nonzeros
-        [1, 2] = 6
-        [1, 3] = 7
+        [1, 2, 1] = 6
+        [1, 3, 1] = 7
         """
 
         if subs is None and vals is None:
@@ -225,24 +225,54 @@ class sptensor:
         nonzeros: float,
     ) -> sptensor:
         """
-        Creates a sparse tensor of the specified shape with NZ nonzeros created from
-        the specified function handle
+        Construct an :class:`pyttb.sptensor` whose nonzeros are set using a
+        function. The indices of the nonzero elements of the sparse tensor 
+        are generated randomly using `numpy`, so calling `numpy.random.seed()`
+        before using this method will provide reproducible index sets.
 
         Parameters
         ----------
         function_handle:
-            Function that accepts 2 arguments and generates
-            :class:`numpy.ndarray` of length nonzeros
+            A function that can accept a shape (i.e., :class:`tuple` of
+            dimension sizes) and return a :class:`numpy.ndarray` of that shape.
+            Example functions include `numpy.random.random_sample`,
+            `numpy.zeros`, `numpy.ones`.
         shape:
-            Shape of generated tensor
+            Shape of generated sparse tensor
         nonzeros:
-            Number of nonzeros in generated tensor
+            Number of nonzeros in generated sparse tensor
 
         Returns
         -------
-        Generated Sparse Tensor
+        Generated sptensor.
+
+        Examples
+        --------
+        Create an :class:`pyttb.sptensor` with entries of the factor matrices
+        taken from a uniform random distribution:
+
+        >>> np.random.seed(1)
+        >>> S = ttb.sptensor.from_function(np.random.random_sample, (2, 3, 4), 5)
+        >>> print(S)  # doctest: +ELLIPSIS
+        sparse tensor of shape (2, 3, 4) with 5 nonzeros
+        [0, 1, 3] = 0.4478...
+        [0, 2, 0] = 0.9085...
+        [1, 2, 0] = 0.2936...
+        [1, 2, 1] = 0.2877...
+        [1, 2, 2] = 0.1300...
+        
+        Create an :class:`pyttb.sptensor` with entries equal to 1:
+
+        >>> np.random.seed(1)
+        >>> S = ttb.sptensor.from_function(np.ones, (2, 3, 4), 5)
+        >>> print(S)
+        sparse tensor of shape (2, 3, 4) with 5 nonzeros
+        [0, 1, 3] = 1.0
+        [0, 2, 0] = 1.0
+        [1, 2, 0] = 1.0
+        [1, 2, 1] = 1.0
+        [1, 2, 2] = 1.0
         """
-        # Random Tensor
         assert callable(function_handle), "function_handle must be callable"
 
         if (nonzeros < 0) or (nonzeros >= np.prod(shape)):
@@ -282,34 +312,58 @@ class sptensor:
         function_handle: Union[str, Callable[[Any], Union[float, np.ndarray]]] = "sum",
     ) -> sptensor:
         """
-        Construct an sptensor from fully defined SUB, VAL and shape matrices,
-        after an aggregation is applied
+        Construct an :class:`pyttb.sptensor` from a set of `subs` (indices),
+        `vals` (values), and `shape` after an aggregation function is applied
+        to the values.
 
         Parameters
         ----------
         subs:
-            Location of non-zero entries
+            Indices of non-zero entries.
         vals:
-            Values for non-zero entries
+            Values for non-zero entries.
         shape:
-            Shape of sparse tensor
+            Shape of sparse tensor.
         function_handle:
             Aggregation function, or name of supported
-            aggregation function from numpy_groupies
+            aggregation function from `numpy_groupies`.
 
         Returns
         -------
-        Generated Sparse Tensor
+        Generated sptensor.
 
         Examples
         --------
-        >>> subs = np.array([[1, 2], [1, 3]])
-        >>> vals = np.array([[6], [7]])
-        >>> shape = np.array([4, 4])
-        >>> K0 = ttb.sptensor.from_aggregator(subs,vals)
-        >>> K1 = ttb.sptensor.from_aggregator(subs,vals,shape)
-        >>> function_handle = sum
-        >>> K2 = ttb.sptensor.from_aggregator(subs,vals,shape,function_handle)
+        Create an :class:`pyttb.sptensor` with some duplicate indices so the 
+        aggregator function is used. The default aggregator is `sum`. The 
+        shape of the sparse tensor is inferred from the indices.
+        
+        >>> subs = np.array([[1, 2], [1, 3], [1, 3]])
+        >>> vals = np.array([[6], [7], [8]])
+        >>> shape = (4, 4)
+        >>> S = ttb.sptensor.from_aggregator(subs,vals) 
+        >>> print(S)
+        sparse tensor of shape (2, 4) with 2 nonzeros
+        [1, 2] = 6
+        [1, 3] = 15
+
+        Create another :class:`pyttb.sptensor` but specify the shape 
+        explicitly.
+        
+        >>> S = ttb.sptensor.from_aggregator(subs,vals,shape) 
+        >>> print(S)
+        sparse tensor of shape (4, 4) with 2 nonzeros
+        [1, 2] = 6
+        [1, 3] = 15
+
+        Create another :class:`pyttb.sptensor` but aggregate using the mean of
+        values corresponding to duplicate indices.
+        
+        >>> S3 = ttb.sptensor.from_aggregator(subs,vals,shape,function_handle=np.mean)
+        >>> print(S3)
+        sparse tensor of shape (4, 4) with 2 nonzeros
+        [1, 2] = 6.0
+        [1, 3] = 7.5
         """
 
         tt_subscheck(subs)
