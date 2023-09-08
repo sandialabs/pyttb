@@ -226,7 +226,7 @@ class sptensor:
     ) -> sptensor:
         """
         Construct an :class:`pyttb.sptensor` whose nonzeros are set using a
-        function. The indices of the nonzero elements of the sparse tensor 
+        function. The indices of the nonzero elements of the sparse tensor
         are generated randomly using `numpy`, so calling `numpy.random.seed()`
         before using this method will provide reproducible index sets.
 
@@ -260,7 +260,7 @@ class sptensor:
         [1, 2, 0] = 0.2936...
         [1, 2, 1] = 0.2877...
         [1, 2, 2] = 0.1300...
-        
+
         Create an :class:`pyttb.sptensor` with entries equal to 1:
 
         >>> np.random.seed(1)
@@ -334,23 +334,23 @@ class sptensor:
 
         Examples
         --------
-        Create an :class:`pyttb.sptensor` with some duplicate indices so the 
-        aggregator function is used. The default aggregator is `sum`. The 
+        Create an :class:`pyttb.sptensor` with some duplicate indices so the
+        aggregator function is used. The default aggregator is `sum`. The
         shape of the sparse tensor is inferred from the indices.
-        
+
         >>> subs = np.array([[1, 2], [1, 3], [1, 3]])
         >>> vals = np.array([[6], [7], [8]])
         >>> shape = (4, 4)
-        >>> S = ttb.sptensor.from_aggregator(subs,vals) 
+        >>> S = ttb.sptensor.from_aggregator(subs,vals)
         >>> print(S)
         sparse tensor of shape (2, 4) with 2 nonzeros
         [1, 2] = 6
         [1, 3] = 15
 
-        Create another :class:`pyttb.sptensor` but specify the shape 
+        Create another :class:`pyttb.sptensor` but specify the shape
         explicitly.
-        
-        >>> S = ttb.sptensor.from_aggregator(subs,vals,shape) 
+
+        >>> S = ttb.sptensor.from_aggregator(subs,vals,shape)
         >>> print(S)
         sparse tensor of shape (4, 4) with 2 nonzeros
         [1, 2] = 6
@@ -358,7 +358,7 @@ class sptensor:
 
         Create another :class:`pyttb.sptensor` but aggregate using the mean of
         values corresponding to duplicate indices.
-        
+
         >>> S3 = ttb.sptensor.from_aggregator(subs,vals,shape,function_handle=np.mean)
         >>> print(S3)
         sparse tensor of shape (4, 4) with 2 nonzeros
