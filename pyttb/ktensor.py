@@ -1465,7 +1465,7 @@ class ktensor:
         self,
         other: ktensor,
         weight_penalty: bool = True,
-        threshold: float = 0.99,
+        threshold: Optional[float] = None,
         greedy: bool = True,
     ) -> Tuple[float, ktensor, bool, np.ndarray]:
         """
@@ -1501,6 +1501,7 @@ class ktensor:
             calculations.
         threshold:
             Threshold specified in the formula above for determining a match.
+            (defaults to: 0.99**self.ndims)
         greedy:
             Flag indicating whether or not to consider all possible matchings
             (exponentially expensive) or just do a greedy matching.
@@ -1544,16 +1545,18 @@ class ktensor:
         [0 1 2]
         """
 
-        if not greedy:
-            assert (
-                False
-            ), "Not yet implemented. Only greedy method is implemented currently."
+        assert (
+            greedy
+        ), "Not yet implemented. Only greedy method is implemented currently."
 
-        if not isinstance(other, ktensor):
-            assert False, "The first input should be a ktensor"
+        assert isinstance(other, ktensor), "The first input should be a ktensor"
 
-        if self.shape != other.shape:
-            assert False, "Size mismatch"
+        assert self.shape == other.shape, "Size mismatch"
+
+        if threshold is None:
+            threshold = 0.99**self.ndims
+
+        assert 0.0 <= threshold <= 1.0, "Threshold must be in range [0.0, 1.0]"
 
         # Set-up
         N = self.ndims
@@ -1609,7 +1612,7 @@ class ktensor:
                 C[:, ij[1]] = -10
                 best_perm[ij[1]] = ij[0]
             best_score = best_score / RB
-            flag = True
+            flag = best_score <= threshold
 
             # Rearrange the components of A according to the best matching
             foo = np.arange(RA)

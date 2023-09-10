@@ -811,14 +811,14 @@ def test_ktensor_score():
     score, Aperm, flag, best_perm = A.score(B)
     assert score == 0.875
     assert np.allclose(Aperm.weights, np.array([15.49193338, 23.23790008, 7.74596669]))
-    assert flag == 1
+    assert flag
     assert np.array_equal(best_perm, np.array([0, 2, 1]))
 
     # compare just factor matrices (i.e., do not use weights)
     score, Aperm, flag, best_perm = A.score(B, weight_penalty=False)
     assert score == 1.0
     assert np.allclose(Aperm.weights, np.array([15.49193338, 7.74596669, 23.23790008]))
-    assert flag == 1
+    assert not flag
     assert np.array_equal(best_perm, np.array([0, 1, 2]))
 
     # zero lambda values lead to equal components
