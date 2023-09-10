@@ -382,7 +382,8 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
     K2.factor_matrices[0][:, 0] = -1
     K2.factor_matrices[1][:, 1] = -1
     K2.factor_matrices[2][:, 2] = -1
-    K = K.fixsigns(K2)
+    with pytest.warns():
+        K.fixsigns(K2)
 
 
 def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
