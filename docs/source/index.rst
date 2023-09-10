@@ -6,6 +6,7 @@ Tensors (also known as multidimensional arrays or N-way arrays) are used
 in a variety of applications ranging from chemometrics to network
 analysis.
 
+-  Install the latest release from pypi (``pip install pyttb``).
 -  This is open source software. Please see `LICENSE`_ for the
    terms of the license (2-clause BSD).
 -  For more information or for feedback on this project, please `contact us`_.
