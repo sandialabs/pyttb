@@ -31,7 +31,7 @@ documentation = "https://pyttb.readthedocs.io"
 
 [project.optional-dependencies]
 dev = [
-    "black",
+    "black[jupyter]",
     "mypy",
     "pytest",
     "pytest-cov",
