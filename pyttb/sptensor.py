@@ -212,9 +212,9 @@ class sptensor:
             assert subs.shape[1] == len(shape) and np.all(
                 (np.max(subs, axis=0) + 1) <= shape
             ), (
-                f"Shape provided was an incorrect to fit all subs:"
-                f"\tShape: {self.shape} shape required for subscripts: "
-                f"{np.max(subs, axis=0) + 1}"
+                f"Shape provided was incorrect to fit all indices; "
+                f"max indices are "
+                f"{tuple(np.max(subs, axis=0) + 1)}"
             )
 
         if copy:
