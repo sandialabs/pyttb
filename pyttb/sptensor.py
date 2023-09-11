@@ -213,7 +213,7 @@ class sptensor:
                 (np.max(subs, axis=0) + 1) <= shape
             ), (
                 f"Shape provided was an incorrect to fit all subs:"
-                f"\tShape: {shape} shape required for subscripts: "
+                f"\tShape: {self.shape} shape required for subscripts: "
                 f"{np.max(subs, axis=0) + 1}"
             )
 
@@ -447,18 +447,25 @@ class sptensor:
     def __deepcopy__(self, memo):
         return self.copy()
 
-    # TODO decide if property
     def allsubs(self) -> np.ndarray:
         """
-        Generate all possible subscripts for sparse tensor
+        Generate all possible subscripts for sparse tensor.
 
         Returns
         -------
-        s: All possible subscripts for sptensor
+        Array of indices.
+
+        Examples
+        --------
+        Create an empty sparse tensor and generate all indices:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S.allsubs()
+        array([[0, 0],
+               [0, 1],
+               [1, 0],
+               [1, 1]])
         """
-
-        # Generate all possible indices
-
         # Preallocate (discover any memory issues here!)
         s = np.zeros(shape=(np.prod(self.shape), self.ndims))
 
@@ -478,7 +485,7 @@ class sptensor:
     def collapse(
         self,
         dims: Optional[np.ndarray] = None,
-        fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
+        function_handle: Callable[[np.ndarray], Union[float, np.ndarray]] = sum,
     ) -> Union[float, np.ndarray, sptensor]:
         """
         Collapse sparse tensor along specified dimensions.
@@ -486,16 +493,16 @@ class sptensor:
         Parameters
         ----------
         dims:
-            Dimensions to collapse
-        fun:
-            Method used to collapse dimensions
+            Dimensions to collapse.
+        function_handle:
+            Method used to collapse dimensions (default is `sum`).
 
         Returns
         -------
-        Collapsed value
+        Collapsed sparse tensor as scalar, array, or sptensor.
 
-        Example
-        -------
+        Examples
+        --------
         >>> subs = np.array([[1, 2], [1, 3]])
         >>> vals = np.array([[1], [1]])
         >>> shape = np.array([4, 4])
@@ -513,7 +520,7 @@ class sptensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            return fun(self.vals.transpose()[0])
+            return function_handle(self.vals.transpose()[0])
 
         # Calculate the size of the result
         newsize = np.array(self.shape)[remdims]
@@ -525,14 +532,14 @@ class sptensor:
                     self.subs[:, remdims].transpose()[0],
                     self.vals.transpose()[0],
                     size=newsize[0],
-                    func=fun,
+                    func=function_handle,
                 )
             return np.zeros((newsize[0],))
 
         # Create Result
         if self.subs.size > 0:
             return ttb.sptensor.from_aggregator(
-                self.subs[:, remdims], self.vals, tuple(newsize), fun
+                self.subs[:, remdims], self.vals, tuple(newsize), function_handle
             )
         return ttb.sptensor(np.array([]), np.array([]), tuple(newsize), copy=False)
 
