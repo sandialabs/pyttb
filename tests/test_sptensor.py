@@ -1407,7 +1407,7 @@ def test_sptensor_collapse(sample_sptensor):
     assert sptensorInstance.collapse() == np.sum(data["vals"])
 
     # Test with custom function
-    assert sptensorInstance.collapse(fun=sum) == np.sum(data["vals"])
+    assert sptensorInstance.collapse(function_handle=sum) == np.sum(data["vals"])
 
     # Test partial collapse, output vector
     assert np.array_equal(

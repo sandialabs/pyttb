@@ -495,7 +495,7 @@ class sptensor:
         dims:
             Dimensions to collapse.
         function_handle:
-            Method used to collapse dimensions (default is `sum`).
+            Function used to collapse dimensions (default is `sum`).
 
         Returns
         -------
@@ -503,14 +503,30 @@ class sptensor:
 
         Examples
         --------
-        >>> subs = np.array([[1, 2], [1, 3]])
-        >>> vals = np.array([[1], [1]])
-        >>> shape = np.array([4, 4])
-        >>> X = ttb.sptensor(subs, vals, shape)
-        >>> X.collapse()
-        2
-        >>> X.collapse(np.arange(X.ndims), sum)
-        2
+        Create a 3-way sparse array with two elements:
+
+        >>> subs = np.array([[0, 0, 0], [0, 1, 0]])
+        >>> vals = np.array([[6], [7]])
+        >>> shape = (1, 2, 1)
+        >>> S = ttb.sptensor(subs, vals, shape)
+
+        Collapse across all dimensions, resulting in a scalar value:
+
+        >>> S.collapse()
+        13
+
+        Collapse across a single dimension, resulting in an sptensor:
+
+        >>> S.collapse(dims=np.array([0]))
+        sparse tensor of shape (2, 1) with 2 nonzeros
+        [0, 0] = 6
+        [1, 0] = 7
+
+        Collapse across all but one dimension, resulting in dense vector
+        (array):
+
+        >>> S.collapse(dims=np.array([0,2]))
+        array([6, 7])
         """
         if dims is None:
             dims = np.arange(0, self.ndims)
