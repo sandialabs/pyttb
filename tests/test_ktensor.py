@@ -382,7 +382,8 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
     K2.factor_matrices[0][:, 0] = -1
     K2.factor_matrices[1][:, 1] = -1
     K2.factor_matrices[2][:, 2] = -1
-    K = K.fixsigns(K2)
+    with pytest.warns():
+        K.fixsigns(K2)
 
 
 def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
@@ -810,14 +811,14 @@ def test_ktensor_score():
     score, Aperm, flag, best_perm = A.score(B)
     assert score == 0.875
     assert np.allclose(Aperm.weights, np.array([15.49193338, 23.23790008, 7.74596669]))
-    assert flag == 1
+    assert flag
     assert np.array_equal(best_perm, np.array([0, 2, 1]))
 
     # compare just factor matrices (i.e., do not use weights)
     score, Aperm, flag, best_perm = A.score(B, weight_penalty=False)
     assert score == 1.0
     assert np.allclose(Aperm.weights, np.array([15.49193338, 7.74596669, 23.23790008]))
-    assert flag == 1
+    assert not flag
     assert np.array_equal(best_perm, np.array([0, 1, 2]))
 
     # zero lambda values lead to equal components
@@ -989,13 +990,21 @@ def test_ktensor_tovec(sample_ktensor_3way):
 
 def test_ktensor_ttv(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
-    K0 = K.ttv(np.array([1, 1, 1]), dims=1)
+    vector = np.array([1, 1, 1])
+    K0 = K.ttv(vector, dims=1)
     weights = np.array([36.0, 54.0])
     fm0 = np.array([[1.0, 3.0], [2.0, 4.0]])
     fm1 = np.array([[11.0, 15.0], [12.0, 16.0], [13.0, 17.0], [14.0, 18.0]])
     factor_matrices = [fm0, fm1]
     K1 = ttb.ktensor(factor_matrices, weights)
     assert K0.isequal(K1)
+
+    # Ensure ttv supports the different flavors of vector
+    # Implicit row (I,), row (1, I), column (I, 1)
+    K0_row = K.ttv(vector[None, :], dims=1)
+    assert K0.isequal(K0_row)
+    K0_column = K.ttv(vector[:, None], dims=1)
+    assert K0.isequal(K0_column)
 
     # Empty dims requires that # vectors == # dimensions
     vec2 = np.array([1, 1])

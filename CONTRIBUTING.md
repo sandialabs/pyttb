@@ -5,18 +5,25 @@ If you are looking to get started or want to propose a change please start by ch
 current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
 
 ## Working on PYTTB locally
-1. clone your fork and enter the directory
+1. Clone your fork and enter the directory
     ```
     git clone git@github.com:<your username>/pyttb.git
     cd pyttb
     ```
-    1. setup your desired python environment as appropriate
+    1. Setup your desired python environment as appropriate
 
-1. install dependencies
-    ```
+1. Install dependencies
+   
+   Most changes only require dev options
+    ```commandline
     pip install -e ".[dev]"
-    make install_dev # shorthand for above
     ```
+
+   But if you are making larger interface changes or updating tutorials/documentation
+   you can also add the required packages for documentation.
+   ```commandline
+   pip install -e ".[dev,doc]"
+   ```
 
 1. Checkout a branch and make your changes
     ```
@@ -48,6 +55,13 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
         ```commandline
         pytest . --cov=pyttb --cov-report=term-missing
         ```
+
+1. (Optionally) Building documentation and tutorials
+
+   From project root
+   ```commandline
+   sphinx-build ./docs/source ./docs/build
+   ```
 
 ## GitHub Workflow
 
