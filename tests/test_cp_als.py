@@ -206,3 +206,28 @@ def test_cp_als_sptensor_zeros(capsys):
     capsys.readouterr()
     assert pytest.approx(output3["fit"], 1) == 0
     assert output3["normresidual"] == 0
+
+
+@pytest.mark.indevelopment
+def test_cp_als_tensor_printitn(capsys, sample_tensor):
+    (data, T) = sample_tensor
+
+    # default printitn
+    (M, Minit, output) = ttb.cp_als(T, 2, printitn=1)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1
+
+    # zero printitn
+    (M, Minit, output) = ttb.cp_als(T, 2, printitn=0)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1
+
+    # negative printitn
+    (M, Minit, output) = ttb.cp_als(T, 2, printitn=-1)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1
+
+    # float printitn
+    (M, Minit, output) = ttb.cp_als(T, 2, printitn=1.5)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1
