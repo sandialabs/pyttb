@@ -206,3 +206,23 @@ def test_cp_als_sptensor_zeros(capsys):
     capsys.readouterr()
     assert pytest.approx(output3["fit"], 1) == 0
     assert output3["normresidual"] == 0
+
+
+@pytest.mark.indevelopment
+def test_cp_als_tensor_pass_params(capsys, sample_tensor):
+    (data, T) = sample_tensor
+    KInit = ttb.ktensor.from_function(np.random.random_sample, T.shape, 2)
+
+    (M, Minit, output) = ttb.cp_als(T, 2, init=KInit)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1
+
+    # passing the same parameters back to the method will yield the exact same results
+    (M, Minit, output) = ttb.cp_als(T, 2, init=KInit, **output["params"])
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1
+
+    # changing the order should also work
+    (M, Minit, output) = ttb.cp_als(T, 2, **output["params"], init=KInit)
+    capsys.readouterr()
+    assert pytest.approx(output["fit"]) == 1

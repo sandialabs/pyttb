@@ -103,7 +103,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     [[0.1467... 0.0923...]
      [0.1862... 0.3455...]]
     >>> print(output)
-    {'params': (0.0001, 1000, 1, [0, 1]), 'iters': 1, 'normresidual': ..., 'fit': ...}
+    {'params': {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1], 'printitn': 1, 'fixsigns': True}, 'iters': 1, 'normresidual': ..., 'fit': ...}
 
     Example using "nvecs" initialization:
 
@@ -265,7 +265,13 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         print(f" Final f = {fit:e}")
 
     output = {
-        "params": (stoptol, maxiters, printitn, dimorder),
+        "params": {
+            "stoptol": stoptol,
+            "maxiters": maxiters,
+            "dimorder": dimorder,
+            "printitn": printitn,
+            "fixsigns": fixsigns,
+        },
         "iters": iteration,
         "normresidual": normresidual,
         "fit": fit,
