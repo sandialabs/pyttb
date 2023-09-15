@@ -210,7 +210,7 @@ def test_cp_als_sptensor_zeros(capsys):
 
 @pytest.mark.indevelopment
 def test_cp_als_tensor_printitn(capsys, sample_tensor):
-    (data, T) = sample_tensor
+    _, T = sample_tensor
 
     # default printitn
     (M, Minit, output) = ttb.cp_als(T, 2, printitn=1)
