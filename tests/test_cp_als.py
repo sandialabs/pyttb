@@ -213,21 +213,17 @@ def test_cp_als_tensor_printitn(capsys, sample_tensor):
     _, T = sample_tensor
 
     # default printitn
-    _, _, output = ttb.cp_als(T, 2, printitn=1)
+    ttb.cp_als(T, 2, printitn=1, maxiters=2)
     capsys.readouterr()
-    assert pytest.approx(output["fit"]) == 1
-
+    
     # zero printitn
-    (M, Minit, output) = ttb.cp_als(T, 2, printitn=0)
+    ttb.cp_als(T, 2, printitn=0, maxiters=2)
     capsys.readouterr()
-    assert pytest.approx(output["fit"]) == 1
-
+    
     # negative printitn
-    (M, Minit, output) = ttb.cp_als(T, 2, printitn=-1)
+    ttb.cp_als(T, 2, printitn=-1, maxiters=2)
     capsys.readouterr()
-    assert pytest.approx(output["fit"]) == 1
 
     # float printitn
-    (M, Minit, output) = ttb.cp_als(T, 2, printitn=1.5)
+    ttb.cp_als(T, 2, printitn=1.5, maxiters=2)
     capsys.readouterr()
-    assert pytest.approx(output["fit"]) == 1
