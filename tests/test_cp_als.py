@@ -225,3 +225,23 @@ def test_cp_als_tensor_pass_params(capsys, sample_tensor):
     
     assert output['params'] == output1['params']
     assert output['params'] == output2['params']
+
+
+def test_cp_als_tensor_printitn(capsys, sample_tensor):
+    _, T = sample_tensor
+
+    # default printitn
+    ttb.cp_als(T, 2, printitn=1, maxiters=2)
+    capsys.readouterr()
+
+    # zero printitn
+    ttb.cp_als(T, 2, printitn=0, maxiters=2)
+    capsys.readouterr()
+
+    # negative printitn
+    ttb.cp_als(T, 2, printitn=-1, maxiters=2)
+    capsys.readouterr()
+
+    # float printitn
+    ttb.cp_als(T, 2, printitn=1.5, maxiters=2)
+    capsys.readouterr()
