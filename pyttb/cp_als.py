@@ -238,7 +238,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         else:
             flag = 1
 
-        if (divmod(iteration, printitn)[1] == 0) or (printitn > 0 and flag == 0):
+        if (printitn > 0) and ((divmod(iteration, printitn)[1] == 0) or (flag == 0)):
             print(f" Iter {iteration}: f = {fit:e} f-delta = {fitchange:7.1e}")
 
         # Check for convergence
