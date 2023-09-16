@@ -222,9 +222,9 @@ def test_cp_als_tensor_pass_params(capsys, sample_tensor):
     # changing the order should also work
     _, _, output2 = ttb.cp_als(T, 2, **output["params"], init=KInit)
     capsys.readouterr()
-    
-    assert output['params'] == output1['params']
-    assert output['params'] == output2['params']
+
+    assert output["params"] == output1["params"]
+    assert output["params"] == output2["params"]
 
 
 def test_cp_als_tensor_printitn(capsys, sample_tensor):

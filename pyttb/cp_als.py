@@ -102,8 +102,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     factor_matrices[1] =
     [[0.1467... 0.0923...]
      [0.1862... 0.3455...]]
-    >>> print(output)
-    {'params': {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1], 'printitn': 1, 'fixsigns': True}, 'iters': 1, 'normresidual': ..., 'fit': ...}
+    >>> print(output["params"]) # doctest: +NORMALIZE_WHITESPACE
+    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1], 'printitn': 1,\
+     'fixsigns': True}
 
     Example using "nvecs" initialization:
 
