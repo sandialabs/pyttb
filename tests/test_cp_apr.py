@@ -162,6 +162,13 @@ def test_cpapr_mu(capsys):
     capsys.readouterr()
     assert output["nTotalIters"] == 2
 
+    # Assert that params from previous run can be provided as input
+    M, _, output2 = ttb.cp_apr(
+        tensorInstance, 2, init=ktensorInstance, **output["params"]
+    )
+    capsys.readouterr()
+    assert output["params"] == output2["params"]
+
     # Edge cases
     # Confirm timeout works
     non_correct_answer = ktensorInstance * 2
@@ -192,9 +199,14 @@ def test_cpapr_pdnr(capsys):
     M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr")
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
-    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr", precompinds=False)
+    M, _, output = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr", precompinds=False)
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
+
+    # Assert that params from previous run can be provided as input
+    M, _, output2 = ttb.cp_apr(tensorInstance, 2, **output["params"])
+    capsys.readouterr()
+    assert output["params"] == output2["params"]
 
     # Edge cases
     # Confirm timeout works
@@ -238,12 +250,18 @@ def test_cpapr_pqnr(capsys):
     M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr")
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
-    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr", precompinds=False)
+    M, _, output = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr", precompinds=False)
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
 
+    # Assert that params from previous run can be provided as input
+    M, _, output2 = ttb.cp_apr(sptensorInstance, 2, **output["params"])
+    capsys.readouterr()
+    assert output["params"] == output2["params"]
+
     # Edge cases
     # Confirm timeout works
+    np.random.seed(123)
     _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr", stoptime=-1)
     out, _ = capsys.readouterr()
     assert "time limit exceeded" in out
