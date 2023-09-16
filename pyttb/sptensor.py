@@ -559,32 +559,43 @@ class sptensor:
             )
         return ttb.sptensor(np.array([]), np.array([]), tuple(newsize), copy=False)
 
-    def contract(self, i: int, j: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
+    def contract(self, i1: int, i2: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
         """
         Contract tensor along two dimensions (array trace).
 
         Parameters
         ----------
-        i:
-            First dimension
-        j:
-            Second dimension
+        i1:
+            First dimension.
+        i2:
+            Second dimension.
 
         Returns
         -------
         Contracted sptensor, converted to tensor if sufficiently dense
 
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = X.to_sptensor()
-        >>> Y.contract(0, 1)
-        2.0
+        Examples
+        --------
+        Create a sparse tensor from a dense tensor and contract, resulting in
+        a dense tensor since the result is dense:
+
+        >>> T = ttb.tensor(np.ones((2, 2, 2)))
+        >>> S = T.to_sptensor()
+        >>> S.contract(0, 1)
+        tensor of shape (2,)
+        data[:] =
+        [2. 2.]
+
+        Create a sparse tensor contract, resulting in
+        a sparse tensor since the result is sparse:
+
+        >>> S = ttb.sptensor(shape=(4, 4, 4))
+        
         """
-        if self.shape[i] != self.shape[j]:
+        if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
 
-        if i == j:
+        if i1 == i2:
             assert False, "Must contract along two different dimensions"
 
         # Easy case - returns a scalar
@@ -593,13 +604,13 @@ class sptensor:
             return sum(self.vals[tfidx].transpose()[0])
 
         # Remaining dimensions after contract
-        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i, j])).astype(int)
+        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i1, i2])).astype(int)
 
         # Size for return
         newsize = tuple(np.array(self.shape)[remdims])
 
         # Find index of values on diagonal
-        indx = np.where(self.subs[:, i] == self.subs[:, j])[0]
+        indx = np.where(self.subs[:, i1] == self.subs[:, i2])[0]
 
         # Let constructor sum entries
         if remdims.size == 1:
