@@ -208,7 +208,6 @@ def test_cp_als_sptensor_zeros(capsys):
     assert output3["normresidual"] == 0
 
 
-@pytest.mark.indevelopment
 def test_cp_als_tensor_printitn(capsys, sample_tensor):
     _, T = sample_tensor
 
