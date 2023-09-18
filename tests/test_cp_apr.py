@@ -21,6 +21,47 @@ from pyttb.cp_apr import (
 )
 
 
+@pytest.fixture()
+def sample_tensor1():
+    weights = np.array([1.0, 2.0])
+    fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
+    fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
+    factor_matrices = [fm0, fm1]
+    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    tensorInstance = ktensorInstance.full()
+    return tensorInstance, ktensorInstance
+
+
+@pytest.fixture()
+def sample_tensor2():
+    weights = np.array([1.0, 2.0])
+    fm0 = np.array([[1.0, 1.0], [3.0, 4.0]])
+    fm1 = np.array([[1.0, 6.0], [7.0, 8.0]])
+    factor_matrices = [fm0, fm1]
+    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    tensorInstance = ktensorInstance.full()
+    return tensorInstance, ktensorInstance
+
+
+@pytest.fixture()
+def default_init_ktensor():
+    weights = np.array([1.0, 1.0])
+    fm0 = np.array([[1.0, 1.0], [1.0, 1.0]])
+    fm1 = np.array([[1.0, 1.0], [1.0, 1.0]])
+    factor_matrices = [fm0, fm1]
+    ktensorInstance = ttb.ktensor(factor_matrices=factor_matrices, weights=weights)
+    return ktensorInstance
+
+
+@pytest.fixture()
+def rand_ktensor():
+    fm0 = np.array([[0.69646919, 0.28613933], [0.22685145, 0.55131477]])
+    fm1 = np.array([[0.71946897, 0.42310646], [0.9807642, 0.68482974]])
+    factor_matrices = [fm0, fm1]
+    ktensorInstance = ttb.ktensor(factor_matrices=factor_matrices)
+    return ktensorInstance
+
+
 @pytest.mark.indevelopment
 def test_vectorizeForMu():
     matrix = np.array([[1, 2], [3, 4]])
@@ -144,125 +185,181 @@ def test_calculatePhi():
 
 
 @pytest.mark.indevelopment
-def test_cpapr_mu(capsys):
+def test_cpapr_mu(capsys, sample_tensor1, default_init_ktensor):
     # Test simple case
-    weights = np.array([1.0, 2.0])
-    fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
-    fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
-    factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ktensorInstance.full()
-    np.random.seed(123)
-    M, _, _ = ttb.cp_apr(tensorInstance, 2, printinneritn=1)
+    tensorInstance, ktensorSolnInstance = sample_tensor1
+    ktensorInitInstance = default_init_ktensor
+    M, _, _ = ttb.cp_apr(
+        input_tensor=tensorInstance, rank=2, init=ktensorInitInstance, printinneritn=1
+    )
+
     # Consume the cp_apr diagnostic printing
     capsys.readouterr()
-    assert np.isclose(M.full().data, ktensorInstance.full().data).all()
+    assert np.isclose(M.full().data, ktensorSolnInstance.full().data).all()
+
     # Assert given an inital guess of the final answer yields immediate convergence
-    M, _, output = ttb.cp_apr(tensorInstance, 2, init=ktensorInstance)
+    M, _, output = ttb.cp_apr(
+        input_tensor=tensorInstance, rank=2, init=ktensorSolnInstance
+    )
     capsys.readouterr()
     assert output["nTotalIters"] == 2
 
     # Assert that params from previous run can be provided as input
     M, _, output2 = ttb.cp_apr(
-        tensorInstance, 2, init=ktensorInstance, **output["params"]
+        input_tensor=tensorInstance,
+        rank=2,
+        init=ktensorSolnInstance,
+        **output["params"],
     )
     capsys.readouterr()
     assert output["params"] == output2["params"]
 
     # Edge cases
     # Confirm timeout works
-    non_correct_answer = ktensorInstance * 2
-    _ = ttb.cp_apr(tensorInstance, 2, init=non_correct_answer, stoptime=-1)
+    _ = ttb.cp_apr(
+        input_tensor=tensorInstance, rank=2, init=ktensorInitInstance, stoptime=-1
+    )
     out, _ = capsys.readouterr()
     assert "time limit exceeded" in out
 
 
 @pytest.mark.indevelopment
-def test_cpapr_pdnr(capsys):
+@pytest.mark.filterwarnings(
+    "ignore::UserWarning"
+)  # Ignores UserWarning "CP_APR: Line search failed, using multiplicative update step"
+def test_cpapr_pdnr(capsys, sample_tensor1, default_init_ktensor):
     # Test simple case
-    weights = np.array([1.0, 2.0])
-    fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
-    fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
-    factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ktensorInstance.full()
-    np.random.seed(123)
+    tensorInstance, ktensorSolnInstance = sample_tensor1
+    ktensorInitInstance = default_init_ktensor
     M, _, _ = ttb.cp_apr(
-        tensorInstance, 2, algorithm="pdnr", printinneritn=1, inexact=False
+        input_tensor=tensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        algorithm="pdnr",
+        printinneritn=1,
+        inexact=False,
     )
+
+    # Consume the cp_apr diagnostic printing
     capsys.readouterr()
-    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
+    assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-04).all()
 
     # Try solve with sptensor
     sptensorInstance = tensorInstance.to_sptensor()
-    np.random.seed(123)
-    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr")
+    M, _, _ = ttb.cp_apr(
+        input_tensor=tensorInstance, rank=2, init=ktensorInitInstance, algorithm="pdnr"
+    )
     capsys.readouterr()
-    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
-    M, _, output = ttb.cp_apr(sptensorInstance, 2, algorithm="pdnr", precompinds=False)
+    assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-04).all()
+
+    # Do not precompute indices
+    M, _, output = ttb.cp_apr(
+        input_tensor=sptensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        algorithm="pdnr",
+        precompinds=False,
+    )
     capsys.readouterr()
-    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-04).all()
+    assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-04).all()
 
     # Assert that params from previous run can be provided as input
-    M, _, output2 = ttb.cp_apr(tensorInstance, 2, **output["params"])
+    M, _, output2 = ttb.cp_apr(input_tensor=tensorInstance, rank=2, **output["params"])
     capsys.readouterr()
     assert output["params"] == output2["params"]
 
     # Edge cases
     # Confirm timeout works
-    non_correct_answer = ktensorInstance * 2
     _ = ttb.cp_apr(
-        tensorInstance, 2, init=non_correct_answer, algorithm="pdnr", stoptime=-1
+        input_tensor=tensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        algorithm="pdnr",
+        stoptime=-1,
     )
     out, _ = capsys.readouterr()
     assert "time limit exceeded" in out
 
 
 @pytest.mark.indevelopment
-def test_cpapr_pqnr(capsys):
-    # Test simple case
-    weights = np.array([1.0, 2.0])
-    fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
-    fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
-    factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ktensorInstance.full()
-    np.random.seed(123)
+@pytest.mark.filterwarnings(
+    "ignore::UserWarning"
+)  # Ignores UserWarning "CP_APR: Line search failed, using multiplicative update step"
+def test_cpapr_pqnr(
+    capsys,
+    sample_tensor1,
+    sample_tensor2,
+    default_init_ktensor,
+    rand_ktensor,
+):
+    # Test case known to fail
+    tensorInstance, ktensorSolnInstance = sample_tensor1
+    ktensorInitInstance = default_init_ktensor
+
     with pytest.raises(AssertionError) as excinfo:
-        M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr")
+        M, _, _ = ttb.cp_apr(
+            input_tensor=tensorInstance,
+            rank=2,
+            init=ktensorInitInstance,
+            algorithm="pqnr",
+        )
     assert "ERROR: L-BFGS first iterate is bad" in str(excinfo)
     capsys.readouterr()
 
-    weights = np.array([1.0, 2.0])
-    fm0 = np.array([[1.0, 1.0], [3.0, 4.0]])
-    fm1 = np.array([[1.0, 6.0], [7.0, 8.0]])
-    factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ktensorInstance.full()
-    np.random.seed(123)
-    M, _, _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr", printinneritn=1)
+    # Test simple case
+    tensorInstance, ktensorSolnInstance = sample_tensor2
+    ktensorInitInstance = rand_ktensor
+    M, _, _ = ttb.cp_apr(
+        input_tensor=tensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        algorithm="pqnr",
+        printinneritn=1,
+    )
     capsys.readouterr()
-    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
+    assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-01).all()
 
     # Try solve with sptensor
     sptensorInstance = tensorInstance.to_sptensor()
-    np.random.seed(123)
-    M, _, _ = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr")
+    M, _, _ = ttb.cp_apr(
+        input_tensor=sptensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        algorithm="pqnr",
+    )
     capsys.readouterr()
-    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
-    M, _, output = ttb.cp_apr(sptensorInstance, 2, algorithm="pqnr", precompinds=False)
+    assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-01).all()
+
+    # Do not precompute indices
+    M, _, output = ttb.cp_apr(
+        input_tensor=sptensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        algorithm="pqnr",
+        precompinds=False,
+    )
     capsys.readouterr()
-    assert np.isclose(M.full().data, ktensorInstance.full().data, rtol=1e-01).all()
+    assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-01).all()
 
     # Assert that params from previous run can be provided as input
-    M, _, output2 = ttb.cp_apr(sptensorInstance, 2, **output["params"])
+    M, _, output2 = ttb.cp_apr(
+        input_tensor=sptensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        **output["params"],
+    )
     capsys.readouterr()
     assert output["params"] == output2["params"]
 
     # Edge cases
     # Confirm timeout works
-    np.random.seed(123)
-    _ = ttb.cp_apr(tensorInstance, 2, algorithm="pqnr", stoptime=-1)
+    _ = ttb.cp_apr(
+        input_tensor=tensorInstance,
+        rank=2,
+        init=ktensorInitInstance,
+        algorithm="pqnr",
+        stoptime=-1,
+    )
     out, _ = capsys.readouterr()
     assert "time limit exceeded" in out
 
