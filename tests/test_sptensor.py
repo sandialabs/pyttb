@@ -52,6 +52,12 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     another_sptensor = ttb.sptensor(data["subs"], data["vals"])
     assert another_sptensor.isequal(sptensorInstance)
 
+    # Subs XOR vals
+    with pytest.raises(ValueError):
+        ttb.sptensor(subs=data["subs"])
+    with pytest.raises(ValueError):
+        ttb.sptensor(vals=data["vals"])
+
     with pytest.raises(AssertionError):
         shape = (3, 3, 1)
         invalid_subs = np.array([[1, 1, 1], [1, 3, 2], [2, 2, 2]])
