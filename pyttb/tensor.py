@@ -9,7 +9,7 @@ import logging
 from collections.abc import Iterable
 from itertools import combinations_with_replacement, permutations
 from math import factorial
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union, overload
 
 import numpy as np
 import scipy.sparse.linalg
@@ -507,6 +507,24 @@ class tensor:
             return bool(np.all(self.data == other.full().data))
         return False
 
+    @overload
+    def issymmetric(
+        self,
+        grps: Optional[np.ndarray],
+        version: Optional[Any],
+        return_details: Literal[False],
+    ) -> bool:
+        ...  # pragma: no cover see coveragepy/issues/970
+
+    @overload
+    def issymmetric(
+        self,
+        grps: Optional[np.ndarray],
+        version: Optional[Any],
+        return_details: Literal[True],
+    ) -> Tuple[bool, np.ndarray, np.ndarray]:
+        ...  # pragma: no cover see coveragepy/issues/970
+
     # TODO: We should probably always return details and let caller drop them
     def issymmetric(  # noqa: PLR0912
         self,
@@ -560,7 +578,7 @@ class tensor:
         # Substantially different routines are called depending on whether the user
         # requests the permutation information. If permutation is required
         # (or requested) the algorithm is much slower
-        if version is None:
+        if version is None and not return_details:
             # Use new algorithm
             for thisgrp in grps:
                 # Check tensor dimensions first
