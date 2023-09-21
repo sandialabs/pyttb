@@ -166,15 +166,7 @@ class StochasticSolver(ABC):
                 )
 
                 # Check for inf
-                infflag = False
-                try:
-                    infflag = np.any(np.isinf(g_est))
-                except ValueError:
-                    try:
-                        infflag = np.any([np.isinf(np.any(i)) for i in g_est])
-                    except:
-                        raise RuntimeError                    
-                if infflag:
+                if any(np.any(np.isinf(g_est_i)) for g_est_i in g_est):
                     raise ValueError(
                         f"Infinite gradient encountered! (epoch = {n_epoch}, "
                         f"iter = {iteration}"
@@ -206,6 +198,7 @@ class StochasticSolver(ABC):
                         f", nfails = {self._nfails} (resetting to solution from "
                         "last epoch)"
                     )
+                logging.info(msg)
 
             if failed_epoch:
                 # Reset to best solution so far
