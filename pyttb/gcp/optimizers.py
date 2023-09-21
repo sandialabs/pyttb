@@ -198,6 +198,7 @@ class StochasticSolver(ABC):
                         f", nfails = {self._nfails} (resetting to solution from "
                         "last epoch)"
                     )
+                logging.info(msg)
 
             if failed_epoch:
                 # Reset to best solution so far
