@@ -174,10 +174,11 @@ class sptensor:
                     raise ValueError(f"Invalid shape provided: {shape}")
                 self.shape = tuple(shape)
             return
-        if subs is None or vals is None or shape is None:
-            raise ValueError(
-                "For non-empty sptensors subs, vals, and shape must be provided"
-            )
+        if subs is None or vals is None:
+            raise ValueError("If subs or vals are provided they must both be provided.")
+
+        if shape is None:
+            shape = tuple(np.max(subs, axis=0) + 1)
 
         if subs.size > 0:
             assert subs.shape[1] == len(shape) and np.all(

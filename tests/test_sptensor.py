@@ -48,8 +48,15 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     assert np.array_equal(sptensorInstance.vals, data["vals"])
     assert sptensorInstance.shape == data["shape"]
 
+    # Infer shape from data
+    another_sptensor = ttb.sptensor(data["subs"], data["vals"])
+    assert another_sptensor.isequal(sptensorInstance)
+
+    # Subs XOR vals
     with pytest.raises(ValueError):
-        ttb.sptensor(data["subs"], data["vals"])
+        ttb.sptensor(subs=data["subs"])
+    with pytest.raises(ValueError):
+        ttb.sptensor(vals=data["vals"])
 
     with pytest.raises(AssertionError):
         shape = (3, 3, 1)
