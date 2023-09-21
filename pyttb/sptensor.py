@@ -175,9 +175,7 @@ class sptensor:
                 self.shape = tuple(shape)
             return
         if subs is None or vals is None:
-            raise ValueError(
-                "For non-empty sptensors subs, vals, and shape must be provided"
-            )
+            raise ValueError("If subs or vals are provided they must both be provided.")
 
         if shape is None:
             shape = tuple(np.max(subs, axis=0) + 1)
