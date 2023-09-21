@@ -166,7 +166,7 @@ class StochasticSolver(ABC):
                 )
 
                 # Check for inf
-                if np.any(np.isinf(g_est)):
+                if any(np.any(np.isinf(g_est_i)) for g_est_i in g_est):
                     raise ValueError(
                         f"Infinite gradient encountered! (epoch = {n_epoch}, "
                         f"iter = {iteration}"
