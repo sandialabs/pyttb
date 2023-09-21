@@ -503,7 +503,7 @@ class sptensor:
 
         Examples
         --------
-        Create a 3-way sparse array with two elements:
+        Create a 3-way sparse tensor with two elements:
 
         >>> subs = np.array([[0, 0, 0], [0, 1, 0]])
         >>> vals = np.array([[6], [7]])
@@ -586,11 +586,17 @@ class sptensor:
         data[:] =
         [2. 2.]
 
-        Create a sparse tensor contract, resulting in
+        Create a sparse tensor and contract, resulting in
         a sparse tensor since the result is sparse:
 
-        >>> S = ttb.sptensor(shape=(4, 4, 4))
-        
+        >>> subs = np.array([[1, 1, 1]])
+        >>> vals = np.array([[0.5]])
+        >>> shape=(4, 4, 4)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S.contract(1,2)
+        sparse tensor of shape (4,) with 1 nonzeros
+        [1] = 0.5
+
         """
         if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
@@ -630,7 +636,24 @@ class sptensor:
 
     def double(self) -> np.ndarray:
         """
-        Convert sptensor to dense multidimensional array
+        Convert sparse tensor to dense multidimensional array.
+
+        Returns
+        -------
+        Dense array representation of sparse tensor.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor with two elements and convert it to a
+        dense array:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,1] = 1.5
+        >>> S
+        sparse tensor of shape (1, 2) with 1 nonzeros
+        [0, 1] = 1.5
+        >>> S.double()
+        array([[0. , 1.5]])
         """
         a = np.zeros(self.shape)
         if self.nnz > 0:
@@ -639,26 +662,29 @@ class sptensor:
 
     def elemfun(self, function_handle: Callable[[np.ndarray], np.ndarray]) -> sptensor:
         """
-        Manipulate the non-zero elements of a sparse tensor
+        Apply a function to the non-zero elements of a sparse tensor.
 
         Parameters
         ----------
         function_handle:
-            Function that updates all values.
+            Function to apply to all values.
 
         Returns
         -------
-        Updated sptensor
+        New sparse tensor with updated values.
 
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = X.to_sptensor()
-        >>> Z = Y.elemfun(lambda values: values*2)
-        >>> Z.isequal(Y*2)
-        True
+        Examples
+        --------
+
+        Create a 2-way sparse tensor and multiply each non-zero element by 2:
+
+        >>> S1 = ttb.sptensor()
+        >>> S1[2,2,2] = 1.5
+        >>> S2 = S1.elemfun(lambda values: values*2)
+        >>> S2
+        sparse tensor of shape (3, 3, 3) with 1 nonzeros
+        [2, 2, 2] = 3.0
         """
-
         vals = function_handle(self.vals)
         idx = np.where(vals > 0)[0]
         if idx.size == 0:
