@@ -8,19 +8,19 @@ U.S. Government retains certain rights in this software.
 
 ## Contributors
 
-**Primary POC:** [Danny Dunlavy](@dmdunla)
+**Primary POC:** [Danny Dunlavy](https://github.com/dmdunla)
 
 **Main Developers:**
 
-- [Danny Dunlavy](@dmdunla) - original author, `sptensor`, `ktensor`, `tensor`, `tenmat`, `cp_als`, `cp_apr`, 
+- [Danny Dunlavy](https://github.com/dmdunla) - original author, `sptensor`, `ktensor`, `tensor`, `tenmat`, `cp_als`, `cp_apr`, 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=dmdunla) 
-- [Nick Johnson](@ntjohnson1) - original author, `sptensor`, `ktensor`, `tensor`, `ttensor`, `cp_als`, `cp_apr`, 
+- [Nick Johnson](https://github.com/ntjohnson1) - original author, `sptensor`, `ktensor`, `tensor`, `ttensor`, `cp_als`, `cp_apr`, 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=ntjohnson1)
-- [Jordan Medina](@DeepBlockDeepak) - documentation, tutorials,
-[PRs](https://github.com/sandialabs/pyttb/commits?author=@DeepBlockDeepak)
+- [Jordan Medina](https://github.com/DeepBlockDeepak) - documentation, tutorials,
+[PRs](https://github.com/sandialabs/pyttb/commits?author=DeepBlockDeepak)
 
 **Other Contributors:**
-- [Brian Kelley](@brian_kelley) - `numpy` compatability, 
+- [Brian Kelley](https://github.com/brian-kelley) - `numpy` compatability, 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=brian-kelley)
-- [Derek Tucker](@jdtuck)[#1] - `tensor`, 
+- [Derek Tucker](https://github.com/jdtuck)[#1] - `tensor`, 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=jdtuck)

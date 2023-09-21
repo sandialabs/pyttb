@@ -1394,6 +1394,10 @@ def test_tensor_issymmetric(sample_tensor_2way):
     answer, diffs, perms = symmetricTensor.issymmetric(version=1, return_details=True)
     assert answer is True
     assert np.all(diffs == 0)
+    # Ensure we return details even if old version not requested
+    answer, diffs, perms = symmetricTensor.issymmetric(return_details=True)
+    assert answer is True
+    assert np.all(diffs == 0)
 
     symmetricData[3, 1, 0] = 3
     symmetricTensor = ttb.tensor(symmetricData)
