@@ -1195,7 +1195,7 @@ class sptensor:
         >>> S.mask(W)
         array([[1.],
                [2.]])
-               
+
         Create mask sparse tensor and extract some non-zero and some zero
         values:
 
@@ -1320,14 +1320,33 @@ class sptensor:
     @property
     def ndims(self) -> int:
         """
-        NDIMS Number of dimensions of a sparse tensor.
+        Number of dimensions of the sparse tensor.
+
+        Examples
+        --------
+        Create a 6-way sparse tensor and return the number of dimensions:
+
+        >>> S = ttb.sptensor(shape=(1,2,3,4,5,6))
+        >>> S
+        empty sparse tensor of shape (1, 2, 3, 4, 5, 6)
+        >>> S.ndims
+        6
         """
         return len(self.shape)
 
     @property
     def nnz(self) -> int:
         """
-        Number of nonzeros in sparse tensor
+        Number of non-zeros values in the sparse tensor.
+
+        Examples
+        --------
+        Create a sparse tensor from a dense tensor from the 10x10 diagonal
+        identity matrix and return the number of non-zeros:
+
+        >>> S = ttb.tensor(np.eye(10)).to_sptensor()
+        >>> S.nnz
+        10
         """
         if self.subs.size == 0:
             return 0
@@ -1335,7 +1354,23 @@ class sptensor:
 
     def norm(self) -> np.floating:
         """
-        Compute the Frobenius norm of a sparse tensor.
+        Compute the norm (i.e., Frobenius norm, or square root of the sum of
+        squares of entries) of a sparse tensor.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor from a diagonal matrix and compute the
+        norm:
+
+        >>> S = ttb.tensor(np.diag([1,2,3,4])).to_sptensor()
+        >>> S
+        sparse tensor of shape (4, 4) with 4 nonzeros
+        [0, 0] = 1
+        [1, 1] = 2
+        [2, 2] = 3
+        [3, 3] = 4
+        >>> S.norm() # doctest: +ELLIPSIS
+        5.47722557...
         """
         return np.linalg.norm(self.vals)
 
