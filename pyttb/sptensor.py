@@ -924,16 +924,43 @@ class sptensor:
 
     def logical_and(self, B: Union[float, sptensor, ttb.tensor]) -> sptensor:
         """
-        Logical and with self and another object
+        Logical AND with a scalar or another sparse or dense tensor.
 
         Parameters
         ----------
-        B:
-            Other value to compare with
+        Other tensor to compare against.
 
         Returns
         ----------
-        Indicator tensor
+        Indicator sparse tensor (values if 1.0 for True).
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Compute logical AND with dense tensor that has the same non-zero
+        pattern but different values:
+
+        >>> T = S.to_tensor()
+        >>> T[0,0] = T[0,0] + 1
+        >>> S.logical_and(T)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 1.0
+
+        Compute logical AND with scalar value:
+
+        >>> S.logical_and(1.0)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = True
+        [1, 1] = False
         """
         # Case 1: One argument is a scalar
         if isinstance(B, (int, float)):
