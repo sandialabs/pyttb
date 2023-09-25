@@ -1188,13 +1188,22 @@ class sptensor:
         [0, 0] = 1.0
         [1, 1] = 2.0
 
-        Create mask sparse tensor and extract values:
+        Create mask sparse tensor and extract non-zero values:
 
         >>> W = ttb.sptensor()
         >>> W[0,0] = 1; W[1,1] = 1;
         >>> S.mask(W)
         array([[1.],
                [2.]])
+               
+        Create mask sparse tensor and extract some non-zero and some zero
+        values:
+
+        >>> W = ttb.sptensor()
+        >>> W[0,0] = 1; W[1,0] = 1;
+        >>> S.mask(W)
+        array([[1.],
+               [0.]])
         """
         # Error check
         if len(W.shape) != len(self.shape) or np.any(
