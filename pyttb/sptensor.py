@@ -737,24 +737,59 @@ class sptensor:
 
     def find(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        FIND Find subscripts of nonzero elements in a sparse tensor.
+        Find subscripts of nonzero elements in a sparse tensor.
 
         Returns
         -------
-        subs: Subscripts of nonzero elements
-        vals: Values at corresponding subscripts
+        Tuple of arrays of subscripts and values.
+
+        Examples
+        --------
+        >>> S = ttb.sptensor()
+        >>> S[0,1] = 1
+        >>> S.find()
+        (array([[0, 1]]), array([[1.]]))
         """
         return self.subs, self.vals
 
     def to_tensor(self) -> ttb.tensor:
-        """Convenience method to convert to tensor.
+        """
+        Convenience method to convert to tensor.
         Same as :meth:`pyttb.sptensor.full`
+
+        Returns
+        -------
+        Dense tensor.
+
+        Examples
+        --------
+        >>> S = ttb.sptensor()
+        >>> S[1,1] = 1
+        >>> S.to_tensor()
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[0. 0.]
+         [0. 1.]]
         """
         return self.full()
 
     def full(self) -> ttb.tensor:
         """
-        FULL Convert a sparse tensor to a (dense) tensor.
+        Convert a sparse tensor to a dense tensor.
+
+        Returns
+        -------
+        Dense tensor.
+
+        Examples
+        --------
+        >>> S = ttb.sptensor()
+        >>> S[1,1] = 1
+        >>> S.full()
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[0. 0.]
+         [0. 1.]]
         """
         # Handle the completely empty (no shape) case
         if len(self.shape) == 0:
@@ -777,12 +812,42 @@ class sptensor:
         self, other: Union[sptensor, ttb.tensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
         """
-        Efficient inner product with a sparse tensor
+        Efficient inner product with a sparse tensor.
 
         Parameters
         ----------
         other:
-            Other tensor to take innerproduct with
+            Other tensor to take innerproduct with.
+
+        Returns
+        -------
+        Innerproduct between sptensor and other tensor.
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Inner product with dense tensor of all ones that is same shape as
+        sparse tensor:
+
+        >>> T = ttb.tenones(S.shape)
+        >>> S.innerprod(T)
+        3.0
+
+        Inner product with rank-1 Kruskal tensor of all ones that is same
+        shape as sparse tensor:
+
+        >>> factor_matrices = [np.ones((s,1)) for s in S.shape]
+        >>> K = ttb.ktensor(factor_matrices)
+        >>> S.innerprod(K)
+        3.0
         """
         # If all entries are zero innerproduct must be 0
         if self.nnz == 0:
@@ -818,12 +883,36 @@ class sptensor:
 
     def isequal(self, other: Union[sptensor, ttb.tensor]) -> bool:
         """
-        Exact equality for sptensors
+        Exact equality for sparse tensors, where all elements are exactly the
+        same in both tensors. Can be compared to another sparse tensor or
+        dense tensor.
 
         Parameters
         ----------
-        other:
-            Other tensor to compare against
+        Other tensor to compare against.
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Test with a tensor that should be equal:
+
+        >>> T = S.to_tensor()
+        >>> S.isequal(T)
+        True
+
+        Test with a tensor that should not be equal:
+
+        >>> T[0,0] = T[0,0] + 1
+        >>> S.isequal(T)
+        False
         """
         if self.shape != other.shape:
             return False
