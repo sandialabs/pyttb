@@ -1041,7 +1041,7 @@ class ktensor:
 
         Returns
         -------
-        Extracted values in a column vector (array).    
+        Extracted values in a column vector (array).
 
         Examples
         --------
