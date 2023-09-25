@@ -845,11 +845,12 @@ class sptensor:
 
         # Find which values in the mask match nonzeros in X
         idx = tt_ismember_rows(wsubs, self.subs)
+        matching_indices = idx[np.where(idx >= 0)[0]]
 
         # Assemble return array
         nvals = wsubs.shape[0]
         vals = np.zeros((nvals, 1))
-        vals[idx] = self.vals[idx]
+        vals[matching_indices] = self.vals[matching_indices]
         return vals
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
