@@ -1282,6 +1282,15 @@ def test_sptensor_mask(sample_sptensor):
     # Mask captures all non-zero entries
     assert np.array_equal(sptensorInstance.mask(sptensorInstance), data["vals"])
 
+    # Mask correctly skips zeros
+    S = ttb.sptensor()
+    S[0, 0] = 1
+    S[1, 1] = 2
+    W = ttb.sptensor()
+    W[0, 0] = 1
+    W[1, 0] = 1
+    assert np.array_equal(S.mask(W), np.array([[S[0, 0]], [S[1, 0]]]))
+
     # Mask too large
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.mask(ttb.sptensor(np.array([]), np.array([]), (3, 3, 5)))
