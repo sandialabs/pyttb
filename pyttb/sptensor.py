@@ -928,7 +928,7 @@ class sptensor:
 
         Parameters
         ----------
-        Other tensor to compare against.
+        Scalar (float) value or other tensor to compare against.
 
         Returns
         ----------
@@ -995,12 +995,27 @@ class sptensor:
 
     def logical_not(self) -> sptensor:
         """
-        Logical NOT for sptensors
+        Logical NOT for sparse tensors.
 
         Returns
         -------
-        Sparse tensor with all zero-values marked from original
-        sparse tensor
+        Sparse tensor with True set to all zero values from original sparse
+        tensor.
+
+        Examples
+        --------
+        Create a sparse tensor and compute logical NOT:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+        >>> S.logical_not()
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 1] = True
+        [1, 0] = True
         """
         allsubs = self.allsubs()
         subsIdx = tt_setdiff_rows(allsubs, self.subs)
@@ -1020,11 +1035,45 @@ class sptensor:
         self, B: Union[float, ttb.tensor, sptensor]
     ) -> Union[ttb.tensor, sptensor]:
         """
-        Logical OR for sptensor and another value
+        Logical OR for sptensor and a scalar or another sparse or dense tensor.
+
+        Parameters
+        ----------
+        Scalar (float) value or other tensor to compare against.
 
         Returns
-        -------
-        Indicator tensor
+        ----------
+        Dense indicator tensor if input is scalar or dense tensor,\
+            sparse indicator tensor otherwise.
+
+        Examples
+        --------
+        Create a sparse tensor and compute logical OR with itself:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S.logical_or(S)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 1.0
+
+        Compute logical OR with dense tensor that has the same non-zero
+        pattern:
+
+        >>> T = S.to_tensor()
+        >>> S.logical_or(T)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[ True False]
+         [False  True]]
+
+        Compute logical OR with scalar value:
+
+        >>> S.logical_or(1)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[ True  True]
+         [ True  True]]
         """
         # Case 1: Argument is a scalar or tensor
         if isinstance(B, (float, int, ttb.tensor)):
@@ -1056,16 +1105,44 @@ class sptensor:
         self, other: Union[float, ttb.tensor, sptensor]
     ) -> Union[ttb.tensor, sptensor]:
         """
-        Logical XOR for sptensors
+        Logical XOR with a scalar or another sparse or dense tensor.
 
         Parameters
         ----------
-        other:
-            Other value to xor against
+        Scalar (float) value or other tensor to compare against.
 
         Returns
-        -------
-        Indicator tensor
+        ----------
+        Dense indicator tensor if input is scalar or dense tensor,\
+            sparse indicator tensor otherwise.
+
+        Examples
+        --------
+        Create a sparse tensor and compute logical XOR with itself:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S.logical_xor(S)
+        empty sparse tensor of shape (2, 2)
+
+        Compute logical XOR with dense tensor that has a different non-zero
+        pattern:
+
+        >>> T = S.to_tensor()
+        >>> T[1,0] = 1.0
+        >>> S.logical_xor(T)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[False False]
+         [ True False]]
+
+        Compute logical XOR with scalar value:
+
+        >>> S.logical_xor(1)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[False  True]
+         [ True False]]
         """
         # Case 1: Argument is a scalar or dense tensor
         if isinstance(other, (float, int, ttb.tensor)):
@@ -1086,16 +1163,39 @@ class sptensor:
 
     def mask(self, W: sptensor) -> np.ndarray:
         """
-        Extract values as specified by a mask tensor
+        Extract :class:`pyttb.sptensor` values as specified by `W`, a
+        :class:`pyttb.sptensor` containing only non-zero values that are
+        ones (1). The values in the :class:`pyttb.sptensor` corresponding
+        to the indices of the ones (1) in `W` will be returned as a column
+        vector.
 
         Parameters
         ----------
         W:
-            Mask tensor
+            Mask tensor to apply to ktensor.
 
         Returns
         -------
-        Extracted values
+        Extracted values in a column vector (array).
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Create mask sparse tensor and extract values:
+
+        >>> W = ttb.sptensor()
+        >>> W[0,0] = 1; W[1,1] = 1;
+        >>> S.mask(W)
+        array([[1.],
+               [2.]])
         """
         # Error check
         if len(W.shape) != len(self.shape) or np.any(
@@ -1117,32 +1217,56 @@ class sptensor:
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
-        Matricized tensor times Khatri-Rao product for sparse tensor.
+        Matricized tensor times Khatri-Rao product for sparse tensor. This is
+        an efficient form of the matrix product that avoids explicitly
+        computing the matricized sparse tensor and the large intermediate
+        Khatri-Rao product arrays.
+
+        If the input includes a list of 2-D arrays (factor_matrices), this
+        computes a matrix product of the mode-`n` matricization of the sparse
+        tensor the with Khatri-Rao product of all arrays in the list except
+        the `n`th. The length of the list of arrays must equal the number of
+        dimensions of the sparse tensor. The shapes of each array must have
+        leading dimensions equal to the dimensions of the sparse tensor and
+        the same second dimension.
+
+        If the input is a :class:`pyttb.ktensor`, this
+        computes a matrix product of the mode-`n` matricization of the sparse
+        tensor the with Khatri-Rao product formed by the `factor_matrices` and
+        `weights` from the ktensor, excluding the `n`th factor matrix and
+        corresponding weight. The shape of the ktensor must be compatible with
+        the shape of the sparse tensor.
 
         Parameters
         ----------
         U:
-            Matrices to create the Khatri-Rao product
+            List of 2-D arrays or ktensor.
         n:
-            Mode to matricize sptensor in
+            Mode used to matricize sparse tensor.
 
         Returns
         -------
-        Matrix product
+        Matrix product as array.
 
         Examples
         --------
-        >>> matrix = np.ones((4, 4))
+        Create list of arrays:
+
+        >>> A = np.ones((4, 4))
+        >>> U = [A, A, A]
+
+        Create sparse array and compute matricized tensor times Khatri-Rao
+        product:
+
         >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
-        >>> sptensorInstance = sptensor(subs, vals, shape)
-        >>> sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S.mttkrp(U, 0)
         array([[0. , 0. , 0. , 0. ],
                [2. , 2. , 2. , 2. ],
                [2.5, 2.5, 2.5, 2.5],
                [3.5, 3.5, 3.5, 3.5]])
-
         """
         # In the sparse case, it is most efficient to do a series of TTV operations
         # rather than forming the Khatri-Rao product.
