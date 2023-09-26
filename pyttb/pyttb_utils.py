@@ -120,7 +120,7 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     else:
         MatrixB = MatrixBUnique = np.empty(shape=MatrixA.shape)
         idxB = np.array([], dtype=int)
-    location = tt_ismember_rows(
+    _, location = tt_ismember_rows(
         MatrixBUnique[np.argsort(idxB)], MatrixAUnique[np.argsort(idxA)]
     )
     union = np.vstack(
@@ -350,10 +350,10 @@ def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
         MatrixBUnique, idxB = np.unique(MatrixB, axis=0, return_index=True)
     else:
         MatrixBUnique = idxB = np.array([], dtype=int)
-    location = tt_ismember_rows(
+    valid, location = tt_ismember_rows(
         MatrixBUnique[np.argsort(idxB)], MatrixAUnique[np.argsort(idxA)]
     )
-    return np.setdiff1d(idxA, location[np.where(location >= 0)])
+    return np.setdiff1d(idxA, location[valid])
 
 
 def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
@@ -390,10 +390,10 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
         MatrixBUnique, idxB = np.unique(MatrixB, axis=0, return_index=True)
     else:
         MatrixBUnique = idxB = np.array([], dtype=int)
-    location = tt_ismember_rows(
+    valid, location = tt_ismember_rows(
         MatrixBUnique[np.argsort(idxB)], MatrixAUnique[np.argsort(idxA)]
     )
-    return location[np.where(location >= 0)]
+    return location[valid]
 
 
 def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.ndarray:
@@ -515,21 +515,26 @@ def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]
     return newidx, newshape
 
 
-# TODO make more efficient, decide if we want to support the multiple response
-#  matlab does
+# TODO make more efficient
 # https://stackoverflow.com/questions/22699756/python-version-of-ismember-with-rows-and-index
 # For thoughts on how to speed this up
-def tt_ismember_rows(search: np.ndarray, source: np.ndarray) -> np.ndarray:
+def tt_ismember_rows(
+    search: np.ndarray, source: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Find location of search rows in source array
 
     Parameters
     ----------
     search:
+        Array to match to source array.
     source:
+        Array to be matched against.
 
     Returns
     -------
+    matched:
+        len(results)==len(matched) Boolean for indexing matched results.
     results:
         search.size==results.size,
         if search[0,:] == source[3,:], then results[0] = 3
@@ -539,19 +544,23 @@ def tt_ismember_rows(search: np.ndarray, source: np.ndarray) -> np.ndarray:
     --------
     >>> a = np.array([[4, 6], [1, 9], [2, 6]])
     >>> b = np.array([[2, 6],[2, 1],[2, 4],[4, 6],[4, 7],[5, 9],[5, 2],[5, 1]])
-    >>> results = tt_ismember_rows(a,b)
+    >>> matched, results = tt_ismember_rows(a,b)
     >>> print(results)
     [ 3 -1  0]
+    >>> print(matched)
+    [ True False  True]
 
     """
+    matched = np.zeros(shape=search.shape[0], dtype=bool)
     results = np.ones(shape=search.shape[0]) * -1
     if search.size == 0:
-        return results.astype(int)
+        return matched, results.astype(int)
     if source.size == 0:
-        return results.astype(int)
+        return matched, results.astype(int)
     (row_idx, col_idx) = np.nonzero(np.all(source == search[:, np.newaxis], axis=2))
     results[row_idx] = col_idx
-    return results.astype(int)
+    matched[row_idx] = True
+    return matched, results.astype(int)
 
 
 def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
