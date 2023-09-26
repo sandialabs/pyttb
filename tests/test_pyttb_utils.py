@@ -212,11 +212,17 @@ def test_tt_ismember_rows():
     b = np.array(
         [[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]]
     )
-    assert np.array_equal(ttb_utils.tt_ismember_rows(a, b), np.array([5, -1, 2]))
+    valid, result = ttb_utils.tt_ismember_rows(a, b)
+    assert np.array_equal(result, np.array([5, -1, 2]))
+    assert np.all(result[valid] >= 0)
+    assert np.all(result[~valid] < 0)
+    valid, result = ttb_utils.tt_ismember_rows(b, a)
     assert np.array_equal(
-        ttb_utils.tt_ismember_rows(b, a),
+        result,
         np.array([-1, -1, 2, -1, -1, 0, -1, -1, -1, -1]),
     )
+    assert np.all(result[valid] >= 0)
+    assert np.all(result[~valid] < 0)
 
 
 @pytest.mark.indevelopment
