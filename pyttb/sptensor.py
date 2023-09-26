@@ -1362,13 +1362,13 @@ class sptensor:
         Create a 2-way sparse tensor from a diagonal matrix and compute the
         norm:
 
-        >>> S = ttb.tensor(np.diag([1,2,3,4])).to_sptensor()
+        >>> S = ttb.tensor(np.diag([1.,2.,3.,4.])).to_sptensor()
         >>> S
         sparse tensor of shape (4, 4) with 4 nonzeros
-        [0, 0] = 1
-        [1, 1] = 2
-        [2, 2] = 3
-        [3, 3] = 4
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+        [2, 2] = 3.0
+        [3, 3] = 4.0
         >>> S.norm() # doctest: +ELLIPSIS
         5.47722557...
         """
@@ -1376,16 +1376,53 @@ class sptensor:
 
     def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
-        Compute the leading mode-n vectors for a sparse tensor.
+        Compute the leading mode-n vectors of the sparse tensor.
+
+        Computes the `r` leading eigenvectors of Sn*Sn.T (where Sn is the
+        mode-`n` matricization/unfolding of self), which provides information
+        about the mode-n fibers. In two-dimensions, the `r` leading mode-1
+        vectors are the same as the `r` left singular vectors and the `r`
+        leading mode-2 vectors are the same as the `r` right singular
+        vectors. By default, this method computes the top `r` eigenvectors
+        of Sn*Sn.T. The output product for sparse tensors is not formed,
+        making this operation very efficient when the tensor is very sparse.
 
         Parameters
         ----------
         n:
-            Mode to unfold
+            Mode for tensor matricization.
         r:
-            Number of eigenvectors to compute
+            Number of eigenvectors to compute and use.
         flipsign:
-            Make each eigenvector's largest element positive
+            If True, make each column's largest element positive.
+
+        Returns
+        -------
+        Computed eigenvectors.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor:
+
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        
+        Compute two mode-0 leading eigenvectors, making sign of largest element
+        of each eigenvector positive (i.e., `flipsign=True, which is the
+        default behavior). 
+        
+        >>> S.nvecs(0, 2) # doctest: +ELLIPSIS
+        array([[-0.4718...,  0.8816...],
+               [ 0.8816...,  0.4718...]])
+        
+        Compute the same `nvecs`, but do not adjust the sign of the largest
+        element of each eigenvector. 
+        
+        >>> S.nvecs(0, 2, flipsign=False) # doctest: +ELLIPSIS
+        array([[ 0.4718..., -0.8816...],
+               [-0.8816..., -0.4718...]])
         """
         old = np.setdiff1d(np.arange(self.ndims), n).astype(int)
         # tnt calculation is a workaround for missing sptenmat
@@ -1418,7 +1455,28 @@ class sptensor:
 
     def ones(self) -> sptensor:
         """
-        Replace nonzero elements of sparse tensor with ones
+        Replace nonzero elements of sparse tensor with ones (1).
+
+        Returns
+        -------
+        Sparse tensor.
+
+        Examples
+        --------
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 2.0
+        [1, 0] = 3.0
+        >>> S.ones()
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 1.0
+        [1, 0] = 1.0
         """
         oneVals = self.vals.copy()
         oneVals.fill(1)
@@ -1426,12 +1484,36 @@ class sptensor:
 
     def permute(self, order: np.ndarray) -> sptensor:
         """
-        Rearrange the dimensions of a sparse tensor
+        Permute sparse tensor dimensions. The result is a tensor that has
+        the same values, but the order of the subscripts needed to access
+        any particular element are rearranged as specified by `order`.
 
         Parameters
         ----------
         order:
-            Updated order of dimensions
+            New order of tensor dimensions.
+
+        Returns
+        -------
+        New tensor with permuted dimensions.
+
+        Examples
+        --------
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 2.0
+        [1, 0] = 3.0
+        >>> S1 = S.permute(np.array((1,0)))
+        >>> S1
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [1, 0] = 2.0
+        [0, 1] = 3.0
         """
         # Error check
         if self.ndims != order.size or np.any(
@@ -1452,16 +1534,65 @@ class sptensor:
         old_modes: Optional[Union[np.ndarray, int]] = None,
     ) -> sptensor:
         """
-        Reshape specified modes of sparse tensor
+        Reshape the sparse tenso to the have shape specified in `new_shape`.
+        If `old_modes` is specified, reshape only those modes, moving newly
+        reshape modes to the end of the indices. The product of the new shape
+        must equal the product of the old shape, in both the default case and
+        when using `old_modes`.
 
         Parameters
         ----------
-        new_shape:
+        shape:
+            New shape
         old_modes:
+            modes used for reshaping (default is all modes)
 
-        Returns
-        -------
-        :class:`pyttb.sptensor`
+        Examples
+        --------
+        Create a 3-way sparse tensor from a dense tensor:
+       
+        >>> S = ttb.tensor(np.arange(9)+1, shape=(1, 3, 3)).to_sptensor()
+        >>> S
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [0, 0, 1] = 4
+        [0, 1, 1] = 5
+        [0, 2, 1] = 6
+        [0, 0, 2] = 7
+        [0, 1, 2] = 8
+        [0, 2, 2] = 9
+
+        Reshape to a 2-way sparse tensor:
+
+        >>> S.reshape((1,9))
+        sparse tensor of shape (1, 9) with 9 nonzeros
+        [0, 0] = 1
+        [0, 1] = 2
+        [0, 2] = 3
+        [0, 3] = 4
+        [0, 4] = 5
+        [0, 5] = 6
+        [0, 6] = 7
+        [0, 7] = 8
+        [0, 8] = 9
+        
+        Reshape the first two dimensions and move to the end of the indices. 
+        The first two indices are reshaped from (1,3) to (3,1) and moved
+        after the remaining index (i.e., corresponding to mode 2).
+
+        >>> S.reshape(new_shape=(3,1),old_modes=np.array((1,0)))
+        sparse tensor of shape (3, 3, 1) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [1, 0, 0] = 4
+        [1, 1, 0] = 5
+        [1, 2, 0] = 6
+        [2, 0, 0] = 7
+        [2, 1, 0] = 8
+        [2, 2, 0] = 9
         """
 
         if old_modes is None:
