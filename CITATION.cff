@@ -3,8 +3,8 @@ message: "If you use this software, please cite it as below."
 preferred-citation:
   type: misc
   authors:
-  - family-names: "Daniel M."
-    given-names: "Dunlavy"
+  - family-names: "Dunlavy"
+    given-names: "Daniel M."
   - family-names: "Johnson"
     given-names: "Nicholas T."
   - family-names: "Myers"
