@@ -142,6 +142,7 @@ def cp_apr(  # noqa: PLR0913
             kappatol,
         )
         output["algorithm"] = "mu"
+        output["params"]["algorithm"] = "mu"
     elif algorithm.lower() == "pdnr":
         M, output = tt_cp_apr_pdnr(
             input_tensor,
@@ -160,6 +161,7 @@ def cp_apr(  # noqa: PLR0913
             inexact,
         )
         output["algorithm"] = "pdnr"
+        output["params"]["algorithm"] = "pdnr"
     elif algorithm.lower() == "pqnr":
         M, output = tt_cp_apr_pqnr(
             input_tensor,
@@ -177,6 +179,7 @@ def cp_apr(  # noqa: PLR0913
             precompinds,
         )
         output["algorithm"] = "pqnr"
+        output["params"]["algorithm"] = "pqnr"
     else:
         assert False, "{algorithm} is not a supported cp_als algorithm"
 
@@ -362,17 +365,17 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
         print(f" Total execution time = {t_stop} secs")
 
     output = {
-        "params": (
-            stoptol,
-            stoptime,
-            maxiters,
-            maxinneriters,
-            epsDivZero,
-            printitn,
-            printinneritn,
-            kappa,
-            kappatol,
-        ),
+        "params": {
+            "stoptol": stoptol,
+            "stoptime": stoptime,
+            "maxiters": maxiters,
+            "maxinneriters": maxinneriters,
+            "epsDivZero": epsDivZero,
+            "printitn": printitn,
+            "printinneritn": printinneritn,
+            "kappa": kappa,
+            "kappatol": kappatol,
+        },
         "kktViolations": kktViolations[: iteration + 1],
         "nInnerIters": nInnerIters[: iteration + 1],
         "nViolations": nViolations[: iteration + 1],
@@ -712,19 +715,19 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
         print(f" Total execution time = {t_stop} secs")
 
     output = {
-        "params": (
-            stoptol,
-            stoptime,
-            maxiters,
-            maxinneriters,
-            epsDivZero,
-            printitn,
-            printinneritn,
-            epsActive,
-            mu0,
-            precompinds,
-            inexact,
-        ),
+        "params": {
+            "stoptol": stoptol,
+            "stoptime": stoptime,
+            "maxiters": maxiters,
+            "maxinneriters": maxinneriters,
+            "epsDivZero": epsDivZero,
+            "printitn": printitn,
+            "printinneritn": printinneritn,
+            "epsActive": epsActive,
+            "mu0": mu0,
+            "precompinds": precompinds,
+            "inexact": inexact,
+        },
         "kktViolations": kktViolations[: iteration + 1],
         "obj": obj,
         "fnEvals": fnEvals[: iteration + 1],
@@ -1105,18 +1108,18 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
         print(f" Total execution time = {t_stop} secs")
 
     output = {
-        "params": (
-            stoptol,
-            stoptime,
-            maxiters,
-            maxinneriters,
-            epsDivZero,
-            printitn,
-            printinneritn,
-            epsActive,
-            lbfgsMem,
-            precompinds,
-        ),
+        "params": {
+            "stoptol": stoptol,
+            "stoptime": stoptime,
+            "maxiters": maxiters,
+            "maxinneriters": maxinneriters,
+            "epsDivZero": epsDivZero,
+            "printitn": printitn,
+            "printinneritn": printinneritn,
+            "epsActive": epsActive,
+            "lbfgsMem": lbfgsMem,
+            "precompinds": precompinds,
+        },
         "kktViolations": kktViolations[: iteration + 1],
         "obj": obj,
         "fnEvals": fnEvals[: iteration + 1],
