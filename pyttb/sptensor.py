@@ -703,8 +703,8 @@ class sptensor:
             if B == 0:
                 C = sptensor(shape=self.shape)
             else:
-                newvals = self.vals == B
-                C = sptensor(self.subs, newvals.astype(self.vals.dtype), self.shape)
+                newvals = np.ones_like(self.vals)
+                C = sptensor(self.subs, newvals, self.shape)
             return C
         # Case 2: Argument is a tensor of some sort
         if isinstance(B, sptensor):

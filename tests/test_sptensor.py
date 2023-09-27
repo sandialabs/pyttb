@@ -176,9 +176,10 @@ def test_sptensor_and_scalar(sample_sptensor):
     assert b.shape == data["shape"]
     assert b.vals.dtype == sptensorInstance.vals.dtype
 
+    # Sparsity pattern check not exact value equality
     b = sptensorInstance.logical_and(0.5)
     assert np.array_equal(b.subs, data["subs"])
-    assert np.array_equal(b.vals, np.array([[True], [False], [False], [False]]))
+    assert np.array_equal(b.vals, np.array([[True], [True], [True], [True]]))
     assert b.shape == data["shape"]
     assert b.vals.dtype == sptensorInstance.vals.dtype
 
