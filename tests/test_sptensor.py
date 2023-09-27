@@ -48,8 +48,15 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     assert np.array_equal(sptensorInstance.vals, data["vals"])
     assert sptensorInstance.shape == data["shape"]
 
+    # Infer shape from data
+    another_sptensor = ttb.sptensor(data["subs"], data["vals"])
+    assert another_sptensor.isequal(sptensorInstance)
+
+    # Subs XOR vals
     with pytest.raises(ValueError):
-        ttb.sptensor(data["subs"], data["vals"])
+        ttb.sptensor(subs=data["subs"])
+    with pytest.raises(ValueError):
+        ttb.sptensor(vals=data["vals"])
 
     with pytest.raises(AssertionError):
         shape = (3, 3, 1)
@@ -1274,6 +1281,15 @@ def test_sptensor_mask(sample_sptensor):
 
     # Mask captures all non-zero entries
     assert np.array_equal(sptensorInstance.mask(sptensorInstance), data["vals"])
+
+    # Mask correctly skips zeros
+    S = ttb.sptensor()
+    S[0, 0] = 1
+    S[1, 1] = 2
+    W = ttb.sptensor()
+    W[0, 0] = 1
+    W[1, 0] = 1
+    assert np.array_equal(S.mask(W), np.array([[S[0, 0]], [S[1, 0]]]))
 
     # Mask too large
     with pytest.raises(AssertionError) as excinfo:
