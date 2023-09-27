@@ -704,7 +704,7 @@ class sptensor:
                 C = sptensor(shape=self.shape)
             else:
                 newvals = self.vals == B
-                C = sptensor(self.subs, newvals, self.shape)
+                C = sptensor(self.subs, newvals.astype(self.vals.dtype), self.shape)
             return C
         # Case 2: Argument is a tensor of some sort
         if isinstance(B, sptensor):
@@ -718,6 +718,7 @@ class sptensor:
                 self.shape,
                 lambda x: len(x) == 2,
             )
+            C.vals = C.vals.astype(self.vals.dtype)
 
             return C
 
@@ -741,7 +742,7 @@ class sptensor:
         allsubs = self.allsubs()
         subsIdx = tt_setdiff_rows(allsubs, self.subs)
         subs = allsubs[subsIdx]
-        trueVector = np.ones(shape=(subs.shape[0], 1), dtype=bool)
+        trueVector = np.ones(shape=(subs.shape[0], 1), dtype=self.vals.dtype)
         return sptensor(subs, trueVector, self.shape)
 
     @overload
@@ -771,12 +772,14 @@ class sptensor:
             assert False, "Logical Or requires tensors of the same size"
 
         if isinstance(B, ttb.sptensor):
-            return sptensor.from_aggregator(
+            C = sptensor.from_aggregator(
                 np.vstack((self.subs, B.subs)),
                 np.ones((self.subs.shape[0] + B.subs.shape[0], 1)),
                 self.shape,
                 lambda x: len(x) >= 1,
             )
+            C.vals = C.vals.astype(self.vals.dtype)
+            return C
 
         assert False, "Sptensor Logical Or argument must be scalar or sptensor"
 
@@ -814,9 +817,11 @@ class sptensor:
                 assert False, "Logical XOR requires tensors of the same size"
 
             subs = np.vstack((self.subs, other.subs))
-            return ttb.sptensor.from_aggregator(
+            result = ttb.sptensor.from_aggregator(
                 subs, np.ones((len(subs), 1)), self.shape, lambda x: len(x) == 1
             )
+            result.vals = result.vals.astype(self.vals.dtype)
+            return result
 
         assert False, "The argument must be an sptensor, tensor or scalar"
 
