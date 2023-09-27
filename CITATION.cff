@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Daniel M."
+  given-names: "Dunlavy"
+- family-names: "Johnson"
+  given-names: "Nicholas T."
+- family-names: "Myers"
+  given-names: "Jeremy M."
+- family-names: "Medina"
+  given-names: "Jordan S."
+title: "pyttb: Python Tensor Toolbox"
+version: 1.6.2
+date-released: 2023-06-08
+url: "https://github.com/sandialab/pyttb"
