@@ -175,9 +175,7 @@ class sptensor:
                 self.shape = tuple(shape)
             return
         if subs is None or vals is None:
-            raise ValueError(
-                "For non-empty sptensors subs, vals, and shape must be provided"
-            )
+            raise ValueError("If subs or vals are provided they must both be provided.")
 
         if shape is None:
             shape = tuple(np.max(subs, axis=0) + 1)
@@ -582,12 +580,11 @@ class sptensor:
         a = np.zeros(shape=(p, 1), dtype=self.vals.dtype)
 
         # Find which indices already exist and their locations
-        loc = tt_ismember_rows(searchsubs, self.subs)
+        valid, loc = tt_ismember_rows(searchsubs, self.subs)
         # Fill in the non-zero elements in the answer
-        nzsubs = np.where(loc >= 0)
-        non_zeros = self.vals[loc[nzsubs]]
-        if non_zeros.size > 0:
-            a[nzsubs] = non_zeros
+        non_zeros = self.vals[loc[valid]]
+        if np.sum(valid) > 0:
+            a[valid] = non_zeros
         return a
 
     def find(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -846,12 +843,13 @@ class sptensor:
         wsubs, _ = W.find()
 
         # Find which values in the mask match nonzeros in X
-        idx = tt_ismember_rows(wsubs, self.subs)
+        valid, idx = tt_ismember_rows(wsubs, self.subs)
+        matching_indices = idx[valid]
 
         # Assemble return array
         nvals = wsubs.shape[0]
         vals = np.zeros((nvals, 1))
-        vals[idx] = self.vals[idx]
+        vals[matching_indices] = self.vals[matching_indices]
         return vals
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
@@ -1582,7 +1580,7 @@ class sptensor:
         newvals = newvals[idx]
 
         # Find which subscripts already exist and their locations
-        tf = tt_ismember_rows(newsubs, self.subs)
+        _, tf = tt_ismember_rows(newsubs, self.subs)
         loc = np.where(tf >= 0)[0].astype(int)
 
         # Split into three groups for processing:
