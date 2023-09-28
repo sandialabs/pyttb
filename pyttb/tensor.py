@@ -643,13 +643,13 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2), dtype=bool))
+        >>> T = ttb.tenones((2,2))
         >>> T.logical_and(T).collapse()  # All true
-        4
+        4.0
         """
 
         def logical_and(x, y):
-            return np.logical_and(x, y)
+            return np.logical_and(x, y).astype(dtype=x.dtype)
 
         return tt_tenfun(logical_and, self, other)
 
@@ -659,11 +659,12 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2), dtype=bool))
+        >>> T = ttb.tenones((2,2))
         >>> T.logical_not().collapse()  # All false
-        0
+        0.0
         """
-        return ttb.tensor(np.logical_not(self.data), copy=False)
+        # Np logical not dtype argument seems to not work here
+        return ttb.tensor(np.logical_not(self.data).astype(self.data.dtype), copy=False)
 
     def logical_or(self, other: Union[float, tensor]) -> tensor:
         """
@@ -676,13 +677,13 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2), dtype=bool))
+        >>> T = ttb.tenones((2,2))
         >>> T.logical_or(T.logical_not()).collapse()  # All true
-        4
+        4.0
         """
 
         def tensor_or(x, y):
-            return np.logical_or(x, y)
+            return np.logical_or(x, y).astype(x.dtype)
 
         return tt_tenfun(tensor_or, self, other)
 
@@ -697,13 +698,13 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2), dtype=bool))
+        >>> T = ttb.tenones((2,2))
         >>> T.logical_xor(T.logical_not()).collapse()  # All true
-        4
+        4.0
         """
 
         def tensor_xor(x, y):
-            return np.logical_xor(x, y)
+            return np.logical_xor(x, y).astype(dtype=x.dtype)
 
         return tt_tenfun(tensor_xor, self, other)
 
@@ -723,7 +724,7 @@ class tensor:
         Examples
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> W = ttb.tensor(np.ones((2,2)))
+        >>> W = ttb.tenones((2,2))
         >>> T.mask(W)
         array([1, 3, 2, 4])
         """
@@ -758,7 +759,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2,2)))
+        >>> T = ttb.tenones((2,2,2))
         >>> U = [np.ones((2,2))] * 3
         >>> T.mttkrp(U, 2)
         array([[4., 4.],
@@ -841,7 +842,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2,2)))
+        >>> T = ttb.tenones((2,2,2))
         >>> U = [np.ones((2,2))] * 3
         >>> T.mttkrps(U)
         [array([[4., 4.],
@@ -876,7 +877,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2)))
+        >>> T = ttb.tenones((2,2))
         >>> T.ndims
         2
         """
@@ -891,7 +892,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2,2)))
+        >>> T = ttb.tenones((2,2,2))
         >>> T.nnz
         8
         """
@@ -904,7 +905,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2,2,2)))
+        >>> T = ttb.tenones((2,2,2,2))
         >>> T.norm()
         4.0
         """
@@ -1025,7 +1026,7 @@ class tensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.ones((2,2)))
+        >>> T1 = ttb.tenones((2,2))
         >>> T1.shape
         (2, 2)
         >>> T2 = T1.reshape((4,1))
@@ -1152,7 +1153,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2,2)))
+        >>> T = ttb.tenones((2,2,2))
         >>> T.symmetrize(np.array([0,2]))
         tensor of shape (2, 2, 2)
         data[0, :, :] =
@@ -1317,7 +1318,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2,2,2,2)))
+        >>> T = ttb.tenones((2,2,2,2))
         >>> A = 2*np.ones((2,1))
         >>> T.ttm([A,A], dims=[0,1], transpose=True)
         tensor of shape (1, 1, 2, 2)
@@ -1665,7 +1666,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = tensor(np.ones((3,4,2)))
+        >>> T = tenones((3,4,2))
         >>> # replaces subtensor
         >>> T[0:2,0:2,0] = np.ones((2,2))
         >>> # replaces two elements
@@ -1810,7 +1811,7 @@ class tensor:
 
         Examples
         --------
-        >>> T = tensor(np.ones((3,4,2,1)))
+        >>> T = tenones((3,4,2,1))
         >>> T[0,0,0,0] # produces a scalar
         1.0
         >>> # produces a tensor of order 1 and size 1

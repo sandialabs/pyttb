@@ -162,7 +162,7 @@ def tucker_als(  # noqa: PLR0912,PLR0913,PLR0915
         fitchange = abs(fitold - fit)
 
         if iteration % printitn == 0:
-            print(f" Iter {iteration}: fit = {fit:e} fitdelta = {fitchange:7.1e}\n")
+            print(f" Iter {iteration}: fit = {fit:e} fitdelta = {fitchange:7.1e}")
 
         # Check for convergence
         if fitchange < stoptol:
