@@ -1408,18 +1408,18 @@ class sptensor:
         >>> vals = np.array([[1.0], [2.0], [3.0]])
         >>> shape = (2, 2)
         >>> S = ttb.sptensor(subs, vals, shape)
-        
+
         Compute two mode-0 leading eigenvectors, making sign of largest element
         of each eigenvector positive (i.e., `flipsign=True, which is the
-        default behavior). 
-        
+        default behavior).
+
         >>> S.nvecs(0, 2) # doctest: +ELLIPSIS
         array([[-0.4718...,  0.8816...],
                [ 0.8816...,  0.4718...]])
-        
+
         Compute the same `nvecs`, but do not adjust the sign of the largest
-        element of each eigenvector. 
-        
+        element of each eigenvector.
+
         >>> S.nvecs(0, 2, flipsign=False) # doctest: +ELLIPSIS
         array([[ 0.4718..., -0.8816...],
                [-0.8816..., -0.4718...]])
@@ -1550,7 +1550,7 @@ class sptensor:
         Examples
         --------
         Create a 3-way sparse tensor from a dense tensor:
-       
+
         >>> S = ttb.tensor(np.arange(9)+1, shape=(1, 3, 3)).to_sptensor()
         >>> S
         sparse tensor of shape (1, 3, 3) with 9 nonzeros
@@ -1577,8 +1577,8 @@ class sptensor:
         [0, 6] = 7
         [0, 7] = 8
         [0, 8] = 9
-        
-        Reshape the first two dimensions and move to the end of the indices. 
+
+        Reshape the first two dimensions and move to the end of the indices.
         The first two indices are reshaped from (1,3) to (3,1) and moved
         after the remaining index (i.e., corresponding to mode 2).
 
