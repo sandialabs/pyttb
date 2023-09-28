@@ -1860,18 +1860,84 @@ class sptensor:
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
     ) -> Union[sptensor, ttb.tensor]:
         """
-        Sparse tensor times vector
+        Sparse tensor times vector.
+
+        Computes the n-mode product of `self` with the vector `vector`; i.e.,
+        `self x_n vector`. The integer `n` specifies the dimension (or mode)
+        along which the vector should be multiplied. If `vector.shape = (I,)`,
+        then the tensor must have `self.shape[n] = I`. The result will be the
+        same order and shape as `self` except that the size of dimension `n`
+        will be `J`. The resulting tensor has one less dimension, as dimension
+        `n` is removed in the multiplication.
+
+        Multiplication with more than one vector is provided using a list of
+        vectors and corresponding dimensions in the tensor to use.
+
+        The dimensions of the tensor with which to multiply can be provided as
+        `dims`, or the dimensions to exclude from `[0, ..., self.ndims]` can be
+        specified using `exclude_dims`.
+        
+        Returns
+        -------
 
         Parameters
         ----------
         vector:
-            Vector(s) to multiply against
+            Vector or vectors to multiple by.
         dims:
-            Dimensions to multiply with vector(s)
+            Dimensions to multiply against.
         exclude_dims:
-            Use all dimensions but these
-        """
+            Use all dimensions but these.
 
+        Returns
+        -------
+        Sparse tensor product.
+
+        Examples
+        --------
+        Create a 2-way sparse array that is relatively dense:
+        
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 2.0
+        [1, 0] = 3.0
+
+        Compute the product across mode 0. The result is a dense tensor:
+
+        >>> S.ttv(np.ones(2),0)
+        tensor of shape (2,)
+        data[:] =
+        [4. 2.]
+
+        Create a 3-way sparse array the is much more sparse:
+
+        >>> subs = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 1]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2, 2)
+        >>> S1 = ttb.sptensor(subs, vals, shape)
+        
+        Compute the product across mode 1. The result is a sparse tensor:
+
+        >>> S1.ttv(np.ones(2),1)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 3.0
+        [1, 1] = 3.0
+
+        Compute the product with multiple vectors across all dimensions. When
+        all dimensions will be included in the product, `dims` does not need
+        to be specified. The result is a scalar value.
+
+        >>> vectors = [(i+1)*np.ones(2) for i in range(len(S1.shape))]
+        >>> vectors
+        [array([1., 1.]), array([2., 2.]), array([3., 3.])]
+        >>> S1.ttv(vectors)
+        36.0
+        """
         if dims is None and exclude_dims is None:
             dims = np.array([])
         elif isinstance(dims, (float, int)):
