@@ -958,8 +958,8 @@ class sptensor:
 
         >>> S.logical_and(1.0)
         sparse tensor of shape (2, 2) with 2 nonzeros
-        [0, 0] = True
-        [1, 1] = False
+        [0, 0] = 1.0
+        [1, 1] = 1.0
         """
         # Case 1: One argument is a scalar
         if isinstance(B, (int, float)):
@@ -1014,8 +1014,8 @@ class sptensor:
         [1, 1] = 2.0
         >>> S.logical_not()
         sparse tensor of shape (2, 2) with 2 nonzeros
-        [0, 1] = True
-        [1, 0] = True
+        [0, 1] = 1.0
+        [1, 0] = 1.0
         """
         allsubs = self.allsubs()
         subsIdx = tt_setdiff_rows(allsubs, self.subs)
@@ -1064,16 +1064,16 @@ class sptensor:
         >>> S.logical_or(T)
         tensor of shape (2, 2)
         data[:, :] =
-        [[ True False]
-         [False  True]]
+        [[1. 0.]
+         [0. 1.]]
 
         Compute logical OR with scalar value:
 
         >>> S.logical_or(1)
         tensor of shape (2, 2)
         data[:, :] =
-        [[ True  True]
-         [ True  True]]
+        [[1. 1.]
+         [1. 1.]]
         """
         # Case 1: Argument is a scalar or tensor
         if isinstance(B, (float, int, ttb.tensor)):
@@ -1135,16 +1135,16 @@ class sptensor:
         >>> S.logical_xor(T)
         tensor of shape (2, 2)
         data[:, :] =
-        [[False False]
-         [ True False]]
+        [[0. 0.]
+         [1. 0.]]
 
         Compute logical XOR with scalar value:
 
         >>> S.logical_xor(1)
         tensor of shape (2, 2)
         data[:, :] =
-        [[False  True]
-         [ True False]]
+        [[0. 1.]
+         [1. 0.]]
         """
         # Case 1: Argument is a scalar or dense tensor
         if isinstance(other, (float, int, ttb.tensor)):
@@ -1642,9 +1642,9 @@ class sptensor:
 
         Parameters
         ----------
-        factor: 
+        factor:
             Scaling factor.
-        dims: 
+        dims:
             Dimensions to scale.
 
         Returns
@@ -1667,7 +1667,7 @@ class sptensor:
         [0, 0, 2] = 7
         [0, 1, 2] = 8
         [0, 2, 2] = 9
-        
+
         Mode 2 is of length 3. Create a scaling factor array of length 3 and
         scale along mode 2:
 
@@ -1729,7 +1729,7 @@ class sptensor:
         sparse tensor of shape (2, 2) with 2 nonzeros
         [0, 0] = 1.0
         [1, 1] = 2.0
-        
+
         Convert it to a sparse matrix (scipy.sparse.coo_matrix):
         >>> M = S.spmatrix()
         >>> type(M)
@@ -1759,7 +1759,7 @@ class sptensor:
         --------
         Create a sparse tensor with a single element and squeeze all the
         dimensions:
-       
+
         >>> S = ttb.sptensor(np.array([[0,0,0,0,0]]), np.array([[3.14]]))
         >>> S.squeeze()
         3.14
@@ -1881,7 +1881,7 @@ class sptensor:
         The dimensions of the tensor with which to multiply can be provided as
         `dims`, or the dimensions to exclude from `[0, ..., self.ndims]` can be
         specified using `exclude_dims`.
-        
+
         Returns
         -------
 
@@ -1901,7 +1901,7 @@ class sptensor:
         Examples
         --------
         Create a 2-way sparse array that is relatively dense:
-        
+
         >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
         >>> vals = np.array([[1.0], [2.0], [3.0]])
         >>> shape = (2, 2)
@@ -1925,7 +1925,7 @@ class sptensor:
         >>> vals = np.array([[1.0], [2.0], [3.0]])
         >>> shape = (2, 2, 2)
         >>> S1 = ttb.sptensor(subs, vals, shape)
-        
+
         Compute the product across mode 1. The result is a sparse tensor:
 
         >>> S1.ttv(np.ones(2),1)
