@@ -174,11 +174,14 @@ def test_sptensor_and_scalar(sample_sptensor):
     assert b.subs.size == 0
     assert b.vals.size == 0
     assert b.shape == data["shape"]
+    assert b.vals.dtype == sptensorInstance.vals.dtype
 
+    # Sparsity pattern check not exact value equality
     b = sptensorInstance.logical_and(0.5)
     assert np.array_equal(b.subs, data["subs"])
-    assert np.array_equal(b.vals, np.array([[True], [False], [False], [False]]))
+    assert np.array_equal(b.vals, np.array([[True], [True], [True], [True]]))
     assert b.shape == data["shape"]
+    assert b.vals.dtype == sptensorInstance.vals.dtype
 
 
 def test_sptensor_and_sptensor(sample_sptensor):
@@ -188,6 +191,7 @@ def test_sptensor_and_sptensor(sample_sptensor):
     assert np.array_equal(b.subs, data["subs"])
     assert np.array_equal(b.vals, np.array([[True], [True], [True], [True]]))
     assert b.shape == data["shape"]
+    assert b.vals.dtype == sptensorInstance.vals.dtype
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.logical_and(
@@ -207,6 +211,7 @@ def test_sptensor_and_tensor(sample_sptensor):
     b = sptensorInstance.logical_and(sptensorInstance.to_tensor())
     assert np.array_equal(b.subs, data["subs"])
     assert np.array_equal(b.vals, np.ones(data["vals"].shape))
+    assert b.vals.dtype == sptensorInstance.vals.dtype
 
 
 def test_sptensor_full(sample_sptensor):
@@ -685,6 +690,7 @@ def test_sptensor_logical_not(sample_sptensor):
     assert all(notSptensorInstance.vals == 1)
     assert np.array_equal(notSptensorInstance.subs, np.array(result))
     assert notSptensorInstance.shape == data["shape"]
+    assert notSptensorInstance.vals.dtype == sptensorInstance.vals.dtype
 
 
 def test_sptensor_logical_or(sample_sptensor):
@@ -695,20 +701,24 @@ def test_sptensor_logical_or(sample_sptensor):
     assert sptensorOr.shape == data["shape"]
     assert np.array_equal(sptensorOr.subs, data["subs"])
     assert np.array_equal(sptensorOr.vals, np.ones((data["vals"].shape[0], 1)))
+    assert sptensorOr.vals.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical or with tensor
     sptensorOr = sptensorInstance.logical_or(sptensorInstance.to_tensor())
     nonZeroMatrix = np.zeros(data["shape"])
     nonZeroMatrix[tuple(data["subs"].transpose())] = 1
     assert np.array_equal(sptensorOr.data, nonZeroMatrix)
+    assert sptensorOr.data.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical or with scalar, 0
     sptensorOr = sptensorInstance.logical_or(0)
     assert np.array_equal(sptensorOr.data, nonZeroMatrix)
+    assert sptensorOr.data.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical or with scalar, not 0
     sptensorOr = sptensorInstance.logical_or(1)
     assert np.array_equal(sptensorOr.data, np.ones(data["shape"]))
+    assert sptensorOr.data.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical or with wrong shape sptensor
     with pytest.raises(AssertionError) as excinfo:
@@ -1165,19 +1175,23 @@ def test_sptensor_logical_xor(sample_sptensor):
     # Sptensor logical xor with scalar, 0
     sptensorXor = sptensorInstance.logical_xor(0)
     assert np.array_equal(sptensorXor.data, nonZeroMatrix)
+    assert sptensorXor.data.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical xor with scalar, not 0
     sptensorXor = sptensorInstance.logical_xor(1)
     assert np.array_equal(sptensorXor.data, sptensorInstance.logical_not().full().data)
+    assert sptensorXor.data.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical xor with another sptensor
     sptensorXor = sptensorInstance.logical_xor(sptensorInstance)
     assert sptensorXor.shape == data["shape"]
     assert sptensorXor.vals.size == 0
+    assert sptensorXor.vals.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical xor with tensor
     sptensorXor = sptensorInstance.logical_xor(sptensorInstance.to_tensor())
-    assert np.array_equal(sptensorXor.data, np.zeros(data["shape"], dtype=bool))
+    assert np.array_equal(sptensorXor.data, np.zeros(data["shape"]))
+    assert sptensorXor.data.dtype == sptensorInstance.vals.dtype
 
     # Sptensor logical xor with wrong shape sptensor
     with pytest.raises(AssertionError) as excinfo:

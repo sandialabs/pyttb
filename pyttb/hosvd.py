@@ -138,7 +138,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     if verbosity > 0:
         diffnormsqr = ((input_tensor - result.full()) ** 2).collapse()
         relnorm = np.sqrt(diffnormsqr / normxsqr)
-        print(f" Size of core: {G.shape}")
+        print(f"Shape of core: {G.shape}")
         if relnorm <= tol:
             print(f"||X-T||/||X|| = {relnorm: g} <=" f"{tol: f} (tol)")
         else:
