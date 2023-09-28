@@ -1633,16 +1633,51 @@ class sptensor:
         dims: Union[float, np.ndarray],
     ) -> sptensor:
         """
-        Scale along specified dimensions for sparse tensors
+        Scale along specified dimensions for tensors.
 
         Parameters
         ----------
-        factor: Scaling factor
-        dims: Dimensions to scale
+        factor: 
+            Scaling factor.
+        dims: 
+            Dimensions to scale.
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        Scaled sparse tensor.
+
+        Examples
+        --------
+        Create a 3-way sparse tensor from a dense tensor:
+
+        >>> S = ttb.tensor(np.arange(9)+1, shape=(1, 3, 3)).to_sptensor()
+        >>> S
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [0, 0, 1] = 4
+        [0, 1, 1] = 5
+        [0, 2, 1] = 6
+        [0, 0, 2] = 7
+        [0, 1, 2] = 8
+        [0, 2, 2] = 9
+        
+        Mode 2 is of length 3. Create a scaling factor array of length 3 and
+        scale along mode 2:
+
+        >>> scaling_factor = np.array([1,2,3])
+        >>> S.scale(scaling_factor, np.array([2]))
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [0, 0, 1] = 8
+        [0, 1, 1] = 10
+        [0, 2, 1] = 12
+        [0, 0, 2] = 21
+        [0, 1, 2] = 24
+        [0, 2, 2] = 27
         """
         if isinstance(dims, (float, int)):
             dims = np.array([dims])
@@ -1677,8 +1712,26 @@ class sptensor:
 
     def spmatrix(self) -> sparse.coo_matrix:
         """
-        Converts a two-way sparse tensor to a sparse matrix in
-        scipy.sparse.coo_matrix format
+        Converts a 2-way sparse tensor to a sparse matrix in
+        scipy.sparse.coo_matrix format.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor:
+
+        >>> S = ttb.tendiag([1, 2]).to_sptensor()
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+        
+        Convert it to a sparse matrix (scipy.sparse.coo_matrix):
+        >>> M = S.spmatrix()
+        >>> type(M)
+        <class 'scipy.sparse._coo.coo_matrix'>
+        >>> M.toarray()
+        array([[1., 0.],
+               [0., 2.]])
         """
         if self.ndims != 2:
             assert False, "Sparse tensor must be two dimensional"
@@ -1691,11 +1744,33 @@ class sptensor:
 
     def squeeze(self) -> Union[sptensor, float]:
         """
-        Remove singleton dimensions from a sparse tensor
+        Removes singleton dimensions from the tensor.
 
         Returns
         -------
-        :class:`pyttb.sptensor` or float if sptensor is only singleton dimensions
+        Sparse tensor or scalar if all dimensions squeezed.
+
+        Examples
+        --------
+        Create a sparse tensor with a single element and squeeze all the
+        dimensions:
+       
+        >>> S = ttb.sptensor(np.array([[0,0,0,0,0]]), np.array([[3.14]]))
+        >>> S.squeeze()
+        3.14
+
+        Create sparse array with interior singleton dimension and squeeze
+        it out:
+
+        >>> S = ttb.sptensor(np.array([[0,0,0],[1,0,1]]), np.array([[1.],[2.]]))
+        >>> S
+        sparse tensor of shape (2, 1, 2) with 2 nonzeros
+        [0, 0, 0] = 1.0
+        [1, 0, 1] = 2.0
+        >>> S.squeeze()
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
         """
         shapeArray = np.array(self.shape)
 
@@ -1704,7 +1779,7 @@ class sptensor:
             return self.copy()
         idx = np.where(shapeArray > 1)[0]
         if idx.size == 0:
-            return self.vals[0].copy()
+            return np.squeeze(self.vals)[()]
         siz = tuple(shapeArray[idx])
         if self.vals.size == 0:
             return ttb.sptensor(np.array([]), np.array([]), siz, copy=False)
