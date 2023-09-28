@@ -407,19 +407,19 @@ def test_tensor_logical_and(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
     # Tensor And
-    assert np.array_equal(
-        tensorInstance.logical_and(tensorInstance).data, np.ones((params["shape"]))
-    )
+    tensor_and = tensorInstance.logical_and(tensorInstance).data
+    assert np.array_equal(tensor_and, np.ones((params["shape"])))
+    assert tensor_and.dtype == tensorInstance.data.dtype
 
     # Non-zero And
-    assert np.array_equal(
-        tensorInstance.logical_and(1).data, np.ones((params["shape"]))
-    )
+    non_zero_and = tensorInstance.logical_and(1).data
+    assert np.array_equal(non_zero_and, np.ones((params["shape"])))
+    assert non_zero_and.dtype == tensorInstance.data.dtype
 
     # Zero And
-    assert np.array_equal(
-        tensorInstance.logical_and(0).data, np.zeros((params["shape"]))
-    )
+    zero_and = tensorInstance.logical_and(0).data
+    assert np.array_equal(zero_and, np.zeros((params["shape"])))
+    assert zero_and.dtype == tensorInstance.data.dtype
 
 
 def test_tensor__eq__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
@@ -627,43 +627,47 @@ def test_tensor_norm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way)
 def test_tensor_logical_not(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
-    assert np.array_equal(
-        tensorInstance.logical_not().data, np.logical_not(params["data"])
-    )
+    not_tensor = tensorInstance.logical_not().data
+    assert np.array_equal(not_tensor, np.logical_not(params["data"]))
+    assert not_tensor.dtype == tensorInstance.data.dtype
 
 
 def test_tensor_logical_or(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
     # Tensor Or
-    assert np.array_equal(
-        tensorInstance.logical_or(tensorInstance).data, np.ones((params["shape"]))
-    )
+    or_tensor = tensorInstance.logical_or(tensorInstance).data
+    assert np.array_equal(or_tensor, np.ones((params["shape"])))
+    assert or_tensor.dtype == tensorInstance.data.dtype
 
     # Non-zero Or
-    assert np.array_equal(tensorInstance.logical_or(1).data, np.ones((params["shape"])))
+    non_zero_or = tensorInstance.logical_or(1).data
+    assert np.array_equal(non_zero_or, np.ones((params["shape"])))
+    assert non_zero_or.dtype == tensorInstance.data.dtype
 
     # Zero Or
-    assert np.array_equal(tensorInstance.logical_or(0).data, np.ones((params["shape"])))
+    zero_or = tensorInstance.logical_or(0).data
+    assert np.array_equal(zero_or, np.ones((params["shape"])))
+    assert zero_or.dtype == tensorInstance.data.dtype
 
 
 def test_tensor_logical_xor(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
 
     # Tensor xor
-    assert np.array_equal(
-        tensorInstance.logical_xor(tensorInstance).data, np.zeros((params["shape"]))
-    )
+    xor_tensor = tensorInstance.logical_xor(tensorInstance).data
+    assert np.array_equal(xor_tensor, np.zeros((params["shape"])))
+    assert xor_tensor.dtype == tensorInstance.data.dtype
 
     # Non-zero xor
-    assert np.array_equal(
-        tensorInstance.logical_xor(1).data, np.zeros((params["shape"]))
-    )
+    non_zero_xor = tensorInstance.logical_xor(1).data
+    assert np.array_equal(non_zero_xor, np.zeros((params["shape"])))
+    assert non_zero_xor.dtype == tensorInstance.data.dtype
 
     # Zero xor
-    assert np.array_equal(
-        tensorInstance.logical_xor(0).data, np.ones((params["shape"]))
-    )
+    zero_xor = tensorInstance.logical_xor(0).data
+    assert np.array_equal(zero_xor, np.ones((params["shape"])))
+    assert zero_xor.dtype == tensorInstance.data.dtype
 
 
 def test_tensor__add__(sample_tensor_2way):
