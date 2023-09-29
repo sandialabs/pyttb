@@ -1792,32 +1792,55 @@ class sptensor:
 
     def subdims(self, region: Sequence[Union[int, np.ndarray, slice]]) -> np.ndarray:
         """
-        SUBDIMS Compute the locations of subscripts within a subdimension.
+        Compute the locations of subscripts within a subdimension.
+
+        Finds the locations of the subscripts in the sparse tensor that are
+        within the range specified by `region`. For example, if `region` is
+        `[1, np.array([1,2]), np.array([1,2]])`, then the locations of all
+        elements of the sparse tensor that have a first index equal to 1,
+        a second index equal to 1 or 2, and a third index equal to 1 or 2
+        is returned.
 
         Parameters
         ----------
         region:
-            Subset of total sptensor shape in which to find non-zero values
+            Subset of total sptensor shape in which to find non-zero values.
 
         Returns
         -------
-        :class:`numpy.ndarray`
-            Index into subs for non-zero values in region
+        Array of indices into sparse tensor `subs` member.
 
         Examples
         --------
-        >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
+        Create 3-way sparse tensor:
+
+        >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [2, 3, 2]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
-        >>> sp = sptensor(subs,vals,shape)
-        >>> region = [np.array([1]), np.array([1]), np.array([1,3])]
-        >>> loc = sp.subdims(region)
-        >>> print(loc)
+        >>> S = ttb.sptensor(subs,vals,shape)
+
+        Define a region with indices 1 in mode 0, 1 in mode 1, and either
+        1 or 3 in mode 2, then find the location of the indices of the
+        sparse tensor for that region:
+
+        >>> region = [1, 1, np.array([1,3])]
+        >>> subs_loc = S.subdims(region)
+        >>> print(subs_loc)
         [0 1]
-        >>> region = (1, 1, slice(None, None, None))
-        >>> loc = sp.subdims(region)
-        >>> print(loc)
-        [0 1]
+        >>> S.subs[subs_loc]
+        array([[1, 1, 1],
+               [1, 1, 3]])
+
+        Use :meth:`slice` to define part of the region. In this case,
+        allow any index in mode 1:
+
+        >>> region = (2, slice(None, None, None), 2)
+        >>> subs_loc = S.subdims(region)
+        >>> print(subs_loc)
+        [2 3]
+        >>> S.subs[subs_loc]
+        array([[2, 2, 2],
+               [2, 3, 2]])
         """
         if len(region) != self.ndims:
             assert False, "Number of subdimensions must equal number of dimensions"
@@ -2014,42 +2037,56 @@ class sptensor:
         We can extract elements or subtensors from a sparse tensor in the
         following ways.
 
-        Case 1a: y = X(i1,i2,...,iN), where each in is an index, returns a
+        Case 1a: `y = S[I1,I2,...,In]`, where each `I` is an index, returns a
         scalar.
 
-        Case 1b: Y = X(R1,R2,...,RN), where one or more Rn is a range and
+        Case 1b: `Y = S[R1,R2,...,Rn]`, where one or more `R` is a range and
         the rest are indices, returns a sparse tensor. The elements are
         renumbered here as appropriate.
 
-        Case 2a: V = X(S) where S is a p x n array
-        of subscripts, returns a vector of p values.
+        Case 2a: `V = S(M) where `M` is a `p` x `n` array of indices, returns
+        a vector of `p` values.
 
-        Case 2b: V = X(I) where I is a set of p
-        linear indices, returns a vector of p values.
+        Case 2b: `V = S(I)` where `I` is a set of `p`
+        linear indices, returns a vector of `p` values.
 
         Any ambiguity results in executing the first valid case. This
-        is particularily an issue if ndims(X)==1.
-
-        Parameters
-        ----------
-        item:
-
-        Returns
-        -------
-
-        :class:`numpy.ndarray` or :class:`pyttb.sptensor`
+        is particularily an issue if `self.ndims == 1`.
 
         Examples
         --------
+
+        Create a 3-way sparse tensor:
+
         >>> subs = np.array([[3,3,3],[1,1,0],[1,2,1]])
-        >>> vals = np.array([3,5,1])
+        >>> vals = np.array([[3],[5],[1]])
         >>> shape = (4,4,4)
-        >>> X = sptensor(subs,vals,shape)
-        >>> print(X[0,1,0])
-        0
-        >>> print(X[3,3,3])
-        3
-        >>> _ = X[2:3,:,:] #<-- returns 1 x 4 x 4 sptensor
+        >>> S = ttb.sptensor(subs,vals,shape)
+
+        Use a single index (Case 1a):
+
+        >>> print(S[1,2,1])
+        1
+
+        Use a range of indices (Case 1b):
+
+        >>> S[3,3,:]
+        sparse tensor of shape (4,) with 1 nonzeros
+        [3] = 3
+
+        Use an array of indeices (Case 2a):
+
+        >>> M = np.array([[1,1,0],[1,1,1]])
+        >>> print(S[M])
+        [[5]
+         [0]]
+
+        Use linear indexing, including negative index for offsets from the
+        end of the linear index into the sparse tensor data (Case 2b):
+
+        >>> print(S[[5,-1]])
+        [[5]
+         [3]]
         """
         # TODO IndexError for value outside of indices
         # TODO Key error if item not in container

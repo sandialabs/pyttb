@@ -1795,7 +1795,7 @@ class tensor:
         We can extract elements or subtensors from a tensor in the
         following ways.
 
-        Case 1a: `y = T[I1,I2,...,In], where each `I` is an index, returns a
+        Case 1a: `y = T[I1,I2,...,In]`, where each `I` is an index, returns a
         scalar.
 
         Case 1b: `Y = T[R1,R2,...,Rn]`, where one or more `R` is a range and
