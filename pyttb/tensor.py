@@ -1106,7 +1106,7 @@ class tensor:
             result = result.transpose()
         return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
 
-    def squeeze(self) -> Union[tensor, np.ndarray, float]:
+    def squeeze(self) -> Union[tensor, float]:
         """
         Removes singleton dimensions from the tensor.
 
@@ -1129,7 +1129,7 @@ class tensor:
         else:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
-                return np.squeeze(self.data)[()]
+                return self.data[0].copy()
             return ttb.tensor(np.squeeze(self.data))
 
     def symmetrize(  # noqa: PLR0912,PLR0915

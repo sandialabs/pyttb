@@ -1784,7 +1784,7 @@ class sptensor:
             return self.copy()
         idx = np.where(shapeArray > 1)[0]
         if idx.size == 0:
-            return np.squeeze(self.vals)[()]
+            return self.vals[0].copy()
         siz = tuple(shapeArray[idx])
         if self.vals.size == 0:
             return ttb.sptensor(np.array([]), np.array([]), siz, copy=False)
