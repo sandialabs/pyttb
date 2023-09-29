@@ -1129,7 +1129,7 @@ class tensor:
         else:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
-                return self.data[0].copy()
+                return self.data.item()
             return ttb.tensor(np.squeeze(self.data))
 
     def symmetrize(  # noqa: PLR0912,PLR0915
