@@ -33,6 +33,7 @@ documentation = "https://pyttb.readthedocs.io"
 dev = [
     "black[jupyter]",
     "mypy",
+    "nbstripout",
     "pytest",
     "pytest-cov",
     "ruff",
