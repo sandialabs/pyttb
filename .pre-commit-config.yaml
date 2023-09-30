@@ -14,6 +14,6 @@ repos:
     hooks:
       - id: nbstripout
         args: [
-            --extra-keys "metadata.language_info metadata.vscode metadata.kernelspec cell.metadata.vscode",
+            --extra-keys=metadata.language_info metadata.vscode metadata.kernelspec cell.metadata.vscode,
             --drop-empty-cells
         ]
