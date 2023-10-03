@@ -9,3 +9,11 @@ repos:
     hooks:
       - id: black
         language_version: python
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+        args: [
+            --extra-keys=metadata.language_info metadata.vscode metadata.kernelspec cell.metadata.vscode,
+            --drop-empty-cells
+        ]
