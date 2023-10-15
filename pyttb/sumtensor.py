@@ -269,3 +269,67 @@ class sumtensor:
                [2., 2.]])
         """
         return self.full().double()
+
+    def innerprod(
+        self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
+    ) -> float:
+        """
+        Efficient inner product between a sumtensor and other `pyttb` tensors
+        (`tensor`, `sptensor`, `ktensor`, or `ttensor`).
+
+        Parameters
+        ----------
+        other:
+            Tensor to take an innerproduct with.
+
+        Examples
+        --------
+        >>> T1 = ttb.tensor(np.array([[1, 0], [0, 4]]))
+        >>> T2 = T1.to_sptensor()
+        >>> S = ttb.sumtensor([T1, T2])
+        >>> T1.innerprod(T1)
+        17
+        >>> T1.innerprod(T2)
+        17
+        >>> S.innerprod(T1)
+        34
+        """
+        result = self.parts[0].innerprod(other)
+        for part in self.parts[1:]:
+            result += part.innerprod(other)
+        return result
+
+    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+        """
+        Matricized tensor times Khatri-Rao product. The matrices used in the
+        Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
+        factor matrices are used) or as a list of :class:`numpy.ndarray` objects.
+
+        Parameters
+        ----------
+        U:
+            Matrices to create the Khatri-Rao product.
+        n:
+            Mode used to matricize tensor.
+
+        Returns
+        -------
+        Array containing matrix product.
+
+        Examples
+        --------
+        >>> T1 = ttb.tenones((2,2,2))
+        >>> T2 = T1.to_sptensor()
+        >>> S = ttb.sumtensor([T1, T2])
+        >>> U = [np.ones((2,2))] * 3
+        >>> T1.mttkrp(U, 2)
+        array([[4., 4.],
+               [4., 4.]])
+        >>> S.mttkrp(U, 2)
+        array([[8., 8.],
+               [8., 8.]])
+        """
+        result = self.parts[0].mttkrp(U, n)
+        for part in self.parts[1:]:
+            result += part.mttkrp(U, n)
+        return result

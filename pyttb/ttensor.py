@@ -251,7 +251,9 @@ class ttensor:
         """
         return ttensor(-self.core, self.factor_matrices)
 
-    def innerprod(self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor]) -> float:
+    def innerprod(
+        self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
+    ) -> float:
         """
         Efficient inner product with a ttensor
 

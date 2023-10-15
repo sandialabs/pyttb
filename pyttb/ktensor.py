@@ -1080,7 +1080,7 @@ class ktensor:
             vals = vals + tmpvals
         return vals
 
-    def mttkrp(self, U: List[np.ndarray], n: int) -> np.ndarray:
+    def mttkrp(self, U: Union[ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for :class:`pyttb.ktensor`.
 
@@ -1107,6 +1107,17 @@ class ktensor:
         [[24. 24.]
          [24. 24.]]
         """
+        if isinstance(U, ttb.ktensor):
+            U = U.copy()
+            # Absorb lambda into one of the factors but not the one that is skipped
+            if n == 0:
+                U.redistribute(1)
+            else:
+                U.redistribute(0)
+
+            # Extract the factor matrices
+            U = U.factor_matrices
+
         if not isinstance(U, list):
             assert False, "Second argument must be list of numpy.ndarray's"
 

@@ -892,6 +892,7 @@ class sptensor:
         N = self.ndims
 
         if isinstance(U, ttb.ktensor):
+            U = U.copy()
             # Absorb lambda into one of the factors but not the one that is skipped
             if n == 0:
                 U.redistribute(1)
