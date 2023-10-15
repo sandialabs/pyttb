@@ -1,6 +1,8 @@
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from copy import deepcopy
+
 import pytest
 
 import pyttb as ttb
@@ -43,3 +45,19 @@ def test_sumtensor_initialization_str():
     S = ttb.sumtensor([T1, T2])
     assert str(S) == S.__repr__()
     assert f"sumtensor of shape {shape}" in str(S)
+
+
+def test_sumtensor_deepcopy():
+    T1 = ttb.tenones((3, 4, 5))
+    T2 = ttb.tenones((3, 4, 5))
+    S1 = ttb.sumtensor([T1, T2])
+    S2 = S1.copy()
+    S2.parts[0] *= 2
+    assert not S1.parts[0].isequal(S2.parts[0])
+
+    T1 = ttb.tenones((3, 4, 5))
+    T2 = ttb.tenones((3, 4, 5))
+    S1 = ttb.sumtensor([T1, T2])
+    S2 = deepcopy(S1)
+    S2.parts[0] *= 2
+    assert not S1.parts[0].isequal(S2.parts[0])

@@ -49,6 +49,30 @@ class sumtensor:
             tensors = deepcopy(tensors)
         self.parts = tensors
 
+    def copy(self) -> sumtensor:
+        """Make a deep copy of a :class:`pyttb.sumtensor`.
+
+        Returns
+        -------
+        Copy of original sumtensor.
+
+        Examples
+        --------
+        >>> T1 = ttb.tensor(np.ones((3,2)))
+        >>> S1 = ttb.sumtensor([T1, T1])
+        >>> S2 = S1
+        >>> S3 = S2.copy()
+        >>> S1.parts[0][0,0] = 3
+        >>> S1.parts[0][0,0] == S2.parts[0][0,0]
+        True
+        >>> S1.parts[0][0,0] == S3.parts[0][0,0]
+        False
+        """
+        return ttb.sumtensor(self.parts, copy=True)
+
+    def __deepcopy__(self, memo):
+        return self.copy()
+
     @property
     def shape(self) -> Tuple[int, ...]:
         return self.parts[0].shape
