@@ -120,3 +120,108 @@ class sumtensor:
         2
         """
         return self.parts[0].ndims
+
+    def __pos__(self):
+        """
+        Unary plus (+) for tensors.
+
+        Returns
+        -------
+        Copy of sumtensor.
+
+        Examples
+        --------
+        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> S = ttb.sumtensor([T, T])
+        >>> S2 = +S
+        """
+        return self.copy()
+
+    def __neg__(self):
+        """
+        Unary minus (-) for tensors.
+
+        Returns
+        -------
+        Copy of negated sumtensor.
+
+        Examples
+        --------
+        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> S = ttb.sumtensor([T, T])
+        >>> S2 = -S
+        >>> S2.parts[0].isequal(-1 * S.parts[0])
+        True
+        """
+        return ttb.sumtensor([-part for part in self.parts], copy=False)
+
+    def __add__(self, other):
+        """
+        Binary addition (+) for sumtensors.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
+            :class:`pyttb.ktensor`, :class:`pyttb.ttensor`, or list
+            containing those classes
+
+        Returns
+        -------
+        :class:`pyttb.sumtensor`
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2,2))
+        >>> S = ttb.sumtensor([T])
+        >>> len(S.parts)
+        1
+        >>> S2 = S + T
+        >>> len(S2.parts)
+        2
+        >>> S3 = S2 + [T, T]
+        >>> len(S3.parts)
+        4
+        """
+        updated_parts = self.parts.copy()
+        if isinstance(other, (ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor)):
+            updated_parts.append(other)
+        elif isinstance(other, list) and all(
+            isinstance(part, (ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor))
+            for part in other
+        ):
+            updated_parts.extend(other)
+        else:
+            raise TypeError(
+                "Sumtensor only supports collections of tensor, sptensor, ktensor, "
+                f"and ttensor but received: {type(other)}"
+            )
+        return ttb.sumtensor(updated_parts, copy=False)
+
+    def __radd__(self, other):
+        """
+        Right Binary addition (+) for sumtensors.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
+            :class:`pyttb.ktensor`, :class:`pyttb.ttensor`, or list
+            containing those classes
+
+        Returns
+        -------
+        :class:`pyttb.sumtensor`
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2,2))
+        >>> S = ttb.sumtensor([T])
+        >>> len(S.parts)
+        1
+        >>> S2 = T + S
+        >>> len(S2.parts)
+        2
+        >>> S3 = [T, T] + S2
+        >>> len(S3.parts)
+        4
+        """
+        return self.__add__(other)

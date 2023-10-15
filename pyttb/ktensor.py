@@ -2140,7 +2140,8 @@ class ktensor:
         -------
         :class:`pyttb.ktensor`
         """
-        # TODO include test of other as sumtensor and call sumtensor.__add__
+        if isinstance(other, ttb.sumtensor):
+            return other.__add__(self)
         if not isinstance(other, ktensor):
             assert False, "Cannot add instance of this type to a ktensor"
 

@@ -2159,7 +2159,7 @@ class tensor:
          [4 5]]
         """
         # If rhs is sumtensor, treat as such
-        if isinstance(other, ttb.sumtensor):  # pragma: no cover
+        if isinstance(other, ttb.sumtensor):
             return other.__add__(self)
 
         def tensor_add(x, y):
@@ -2358,7 +2358,7 @@ class tensor:
         [[1 2]
          [3 4]]
         """
-        return ttb.tensor(self.data)
+        return self.copy()
 
     def __neg__(self):
         """

@@ -2017,7 +2017,7 @@ class sptensor:
         :class:`pyttb.sptensor`
         """
         # If other is sumtensor perform sumtensor add
-        if isinstance(other, ttb.sumtensor):  # pragma: no cover
+        if isinstance(other, ttb.sumtensor):
             return other.__add__(self)
         # Otherwise return negated sub
         return self.__sub__(-other)
