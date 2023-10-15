@@ -397,6 +397,7 @@ class ttensor:
         if remdims.size == 0:
             assert not isinstance(newcore, (ttb.tensor, ttb.sptensor))
             return float(newcore)
+        assert not isinstance(newcore, float)
         return ttensor(newcore, [self.factor_matrices[dim] for dim in remdims])
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:

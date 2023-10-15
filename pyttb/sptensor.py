@@ -907,7 +907,12 @@ class sptensor:
                 else:
                     Z.append(np.array([]))
             # Perform ttv multiplication
-            V[:, r] = self.ttv(Z, exclude_dims=n).double()
+            ttv = self.ttv(Z, exclude_dims=n)
+            # TODO is is possible to hit the float condition here?
+            if isinstance(ttv, float):  # pragma: no cover
+                V[:, r] = ttv
+            else:
+                V[:, r] = ttv.double()
 
         return V
 
@@ -1211,7 +1216,7 @@ class sptensor:
         vector: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[int, np.ndarray]] = None,
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
-    ) -> Union[sptensor, ttb.tensor]:
+    ) -> Union[sptensor, ttb.tensor, float]:
         """
         Sparse tensor times vector
 

@@ -1465,7 +1465,7 @@ class tensor:
         vector: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[int, np.ndarray]] = None,
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
-    ) -> tensor:
+    ) -> Union[float, tensor]:
         """
         Tensor times vector.
 
@@ -1559,7 +1559,7 @@ class tensor:
         vector: np.ndarray,
         skip_dim: Optional[int] = None,
         version: Optional[int] = None,
-    ) -> Union[np.ndarray, tensor]:
+    ) -> Union[float, np.ndarray, tensor]:
         """
         Tensor times same vector in multiple modes.
 
@@ -1597,8 +1597,10 @@ class tensor:
         if version == 1:  # Calculate the old way
             P = self.ndims
             X = np.array([vector for i in range(P)])
-            if skip_dim in (0, 1):  # Return scalar or matrix
-                return self.ttv(X, exclude_dims=exclude_dims).double()
+            if skip_dim in (0, 1):  # Return matrix
+                result = self.ttv(X, exclude_dims=exclude_dims)
+                assert not isinstance(result, float)
+                return result.double()
             return self.ttv(X, exclude_dims=exclude_dims)
 
         if version == 2 or version is None:  # Calculate the new way

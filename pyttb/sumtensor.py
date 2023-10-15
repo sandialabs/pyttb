@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from textwrap import indent
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -333,3 +333,77 @@ class sumtensor:
         for part in self.parts[1:]:
             result += part.mttkrp(U, n)
         return result
+
+    def ttv(
+        self,
+        vector: Union[np.ndarray, List[np.ndarray]],
+        dims: Optional[Union[int, np.ndarray]] = None,
+        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+    ) -> Union[float, sumtensor]:
+        """
+        Tensor times vector.
+
+        Computes the n-mode product of `parts` with the vector `vector`; i.e.,
+        `self x_n vector`. The integer `n` specifies the dimension (or mode)
+        along which the vector should be multiplied. If `vector.shape = (I,)`,
+        then the sumtensor must have `self.shape[n] = I`. The result will be the
+        same order and shape as `self` except that the size of dimension `n`
+        will be `J`. The resulting parts of the sum tensor have one less dimension,
+        as dimension `n` is removed in the multiplication.
+
+        Multiplication with more than one vector is provided using a list of
+        vectors and corresponding dimensions in the tensor to use.
+
+        The dimensions of the tensor with which to multiply can be provided as
+        `dims`, or the dimensions to exclude from `[0, ..., self.ndims]` can be
+        specified using `exclude_dims`.
+
+        Parameters
+        ----------
+        vector:
+            Vector or vectors to multiple by.
+        dims:
+            Dimensions to multiply against.
+        exclude_dims:
+            Use all dimensions but these.
+
+        Returns
+        -------
+        Sumtensor containing individual products or a single sum if every
+            product is a single value.
+
+        Examples
+        --------
+        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> S = ttb.sumtensor([T, T])
+        >>> T.ttv(np.ones(2),0)
+        tensor of shape (2,)
+        data[:] =
+        [4. 6.]
+        >>> S.ttv(np.ones(2),0)  # doctest: +NORMALIZE_WHITESPACE
+        sumtensor of shape (2,) with 2 parts:
+        Part 0:
+             tensor of shape (2,)
+             data[:] =
+             [4. 6.]
+        Part 1:
+             tensor of shape (2,)
+             data[:] =
+             [4. 6.]
+        >>> T.ttv([np.ones(2), np.ones(2)])
+        10.0
+        >>> S.ttv([np.ones(2), np.ones(2)])
+        20.0
+        """
+        new_parts = []
+        scalar_sum = 0.0
+        for part in self.parts:
+            result = part.ttv(vector, dims, exclude_dims)
+            if isinstance(result, float):
+                scalar_sum += result
+            else:
+                new_parts.append(result)
+        if len(new_parts) == 0:
+            return scalar_sum
+        assert scalar_sum == 0.0
+        return ttb.sumtensor(new_parts, copy=False)
