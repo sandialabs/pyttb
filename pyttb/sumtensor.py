@@ -8,6 +8,8 @@ from copy import deepcopy
 from textwrap import indent
 from typing import List, Tuple, Union
 
+import numpy as np
+
 import pyttb as ttb
 
 
@@ -225,3 +227,45 @@ class sumtensor:
         4
         """
         return self.__add__(other)
+
+    def full(self) -> ttb.tensor:
+        """
+        Convert a :class:`pyttb.sumtensor` to a :class:`pyttb.tensor`.
+
+        Returns
+        -------
+        Re-assembled dense tensor.
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2,2))
+        >>> S = ttb.sumtensor([T, T])
+        >>> print(S.full()) # doctest: +NORMALIZE_WHITESPACE
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[2. 2.]
+         [2. 2.]]
+        <BLANKLINE>
+        """
+        result = self.parts[0].full()
+        for part in self.parts[1:]:
+            result += part
+        return result
+
+    def double(self) -> np.ndarray:
+        """
+        Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
+
+        Returns
+        -------
+        Copy of tensor data.
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2,2))
+        >>> S = ttb.sumtensor([T, T])
+        >>> S.double()
+        array([[2., 2.],
+               [2., 2.]])
+        """
+        return self.full().double()

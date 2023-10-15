@@ -131,3 +131,21 @@ def test_sumtensor_add_incorrect_type():
     non_tensor_object = 5
     with pytest.raises(TypeError):
         S1 + non_tensor_object
+
+
+def test_sumtensor_full_double():
+    T1 = ttb.tenones((2, 2))
+    T2 = ttb.sptensor(shape=(2, 2))
+    weights = np.array([1.0, 2.0])
+    fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
+    K = ttb.ktensor([fm0, fm1], weights)
+    # TODO there are probably already fixtures for these values
+    core_values = np.ones((2, 2))
+    core = ttb.tensor(core_values)
+    factors = [np.ones((2, 2))] * len(core_values.shape)
+    TT = ttb.ttensor(core, factors)
+    S = ttb.sumtensor([T1, T2, K, TT])
+    # Smoke test that all type combine
+    assert isinstance(S.full(), ttb.tensor)
+    assert isinstance(S.double(), np.ndarray)
