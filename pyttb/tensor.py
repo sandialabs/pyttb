@@ -20,6 +20,7 @@ import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
     get_index_variant,
+    get_mttkrp_factors,
     tt_dimscheck,
     tt_ind2sub,
     tt_sub2ind,
@@ -738,9 +739,7 @@ class tensor:
         # Extract those non-zero values
         return self.data[tuple(wsubs.transpose())]
 
-    def mttkrp(  # noqa: PLR0912
-        self, U: Union[ttb.ktensor, List[np.ndarray]], n: int
-    ) -> np.ndarray:
+    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product. The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
@@ -770,23 +769,7 @@ class tensor:
         if self.ndims < 2:
             assert False, "MTTKRP is invalid for tensors with fewer than 2 dimensions"
 
-        # extract the list of factor matrices if given a ktensor
-        if isinstance(U, ttb.ktensor):
-            U = U.copy()
-            if n == 0:
-                U.redistribute(1)
-            else:
-                U.redistribute(0)
-            # Extract the factor matrices
-            U = U.factor_matrices
-
-        # check that we have a list (or list extracted from a ktensor)
-        if not isinstance(U, list):
-            assert False, "Second argument should be a list of arrays or a ktensor"
-
-        # check that list is the correct length
-        if len(U) != self.ndims:
-            assert False, "Second argument contains the wrong number of arrays"
+        U = get_mttkrp_factors(U, n, self.ndims)
 
         if n == 0:
             R = U[1].shape[1]

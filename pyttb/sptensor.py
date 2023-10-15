@@ -30,6 +30,7 @@ import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
     get_index_variant,
+    get_mttkrp_factors,
     tt_dimscheck,
     tt_ind2sub,
     tt_intersect_rows,
@@ -889,24 +890,7 @@ class sptensor:
         # In the sparse case, it is most efficient to do a series of TTV operations
         # rather than forming the Khatri-Rao product.
 
-        N = self.ndims
-
-        if isinstance(U, ttb.ktensor):
-            U = U.copy()
-            # Absorb lambda into one of the factors but not the one that is skipped
-            if n == 0:
-                U.redistribute(1)
-            else:
-                U.redistribute(0)
-
-            # Extract the factor matrices
-            U = U.factor_matrices
-
-        if not isinstance(U, np.ndarray) and not isinstance(U, list):
-            assert False, "Second argument must be ktensor or array"
-
-        if len(U) != N:
-            assert False, "List is the wrong length"
+        U = get_mttkrp_factors(U, n, self.ndims)
 
         if n == 0:
             R = U[1].shape[1]
@@ -917,7 +901,7 @@ class sptensor:
         for r in range(R):
             # Set up list with appropriate vectors for ttv multiplication
             Z = []
-            for i in range(N):
+            for i in range(self.ndims):
                 if i != n:
                     Z.append(U[i][:, r])
                 else:

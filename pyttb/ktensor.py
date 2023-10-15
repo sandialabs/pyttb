@@ -24,7 +24,13 @@ import scipy.sparse.linalg
 from typing_extensions import Self
 
 import pyttb as ttb
-from pyttb.pyttb_utils import isrow, isvector, tt_dimscheck, tt_ind2sub
+from pyttb.pyttb_utils import (
+    get_mttkrp_factors,
+    isrow,
+    isvector,
+    tt_dimscheck,
+    tt_ind2sub,
+)
 
 
 class ktensor:
@@ -1107,22 +1113,7 @@ class ktensor:
         [[24. 24.]
          [24. 24.]]
         """
-        if isinstance(U, ttb.ktensor):
-            U = U.copy()
-            # Absorb lambda into one of the factors but not the one that is skipped
-            if n == 0:
-                U.redistribute(1)
-            else:
-                U.redistribute(0)
-
-            # Extract the factor matrices
-            U = U.factor_matrices
-
-        if not isinstance(U, list):
-            assert False, "Second argument must be list of numpy.ndarray's"
-
-        if len(U) != self.ndims:
-            assert False, "List of factor matrices is the wrong length"
+        U = get_mttkrp_factors(U, n, self.ndims)
 
         # Number of columns in input matrices
         if n == 0:
