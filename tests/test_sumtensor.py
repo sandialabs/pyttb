@@ -28,6 +28,10 @@ def example_kensor():
 
 
 def test_sumtensor_initialization_init():
+    # Create empty sumtensor
+    S = ttb.sumtensor()
+    assert len(S.parts) == 0
+
     # Basic smoke test
     T1 = ttb.tenones((3, 4, 5))
     T2 = ttb.sptensor(shape=(3, 4, 5))
@@ -56,6 +60,9 @@ def test_sumtensor_initialization_shape():
     S = ttb.sumtensor([T1, T2])
     assert S.shape == shape
 
+    # Empty case
+    assert ttb.sumtensor().shape == ()
+
 
 def test_sumtensor_initialization_str():
     shape = (3, 4, 5)
@@ -64,6 +71,8 @@ def test_sumtensor_initialization_str():
     S = ttb.sumtensor([T1, T2])
     assert str(S) == S.__repr__()
     assert f"sumtensor of shape {shape}" in str(S)
+
+    assert "Empty sumtensor" in str(ttb.sumtensor())
 
 
 def test_sumtensor_deepcopy():
@@ -174,3 +183,9 @@ def test_sumtensor_ttv(example_ttensor, example_kensor):
     TT = example_ttensor
     S = ttb.sumtensor([T1, T2, K, TT])
     S.ttv(np.ones(2), 0)
+
+
+def test_sumtensor_initialization_norm():
+    with pytest.warns(Warning):
+        norm = ttb.sumtensor().norm()
+    assert norm == 0.0

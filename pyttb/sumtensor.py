@@ -4,6 +4,7 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
+import warnings
 from copy import deepcopy
 from textwrap import indent
 from typing import List, Optional, Tuple, Union
@@ -21,7 +22,9 @@ class sumtensor:
 
     def __init__(
         self,
-        tensors: List[Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]],
+        tensors: Optional[
+            List[Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]]
+        ] = None,
         copy: bool = True,
     ):
         """
@@ -44,6 +47,12 @@ class sumtensor:
         >>> T2 = ttb.sptensor(shape=(3,4,5))
         >>> S = ttb.sumtensor([T1, T2])
         """
+        if tensors is None:
+            tensors = []
+        assert isinstance(tensors, list), (
+            "Collection of tensors must be provided as a list "
+            f"but received: {type(tensors)}"
+        )
         assert all(
             tensors[0].shape == tensor_i.shape for tensor_i in tensors[1:]
         ), "All tensors must be the same shape"
@@ -77,6 +86,8 @@ class sumtensor:
 
     @property
     def shape(self) -> Tuple[int, ...]:
+        if len(self.parts) == 0:
+            return ()
         return self.parts[0].shape
 
     def __repr__(self):
@@ -101,6 +112,8 @@ class sumtensor:
         Part 1:
             All-zero sparse tensor of shape 2 x 2
         """
+        if len(self.parts) == 0:
+            return "Empty sumtensor"
         s = f"sumtensor of shape {self.shape} with {len(self.parts)} parts:"
         for i, part in enumerate(self.parts):
             s += f"\nPart {i}: \n"
@@ -407,3 +420,10 @@ class sumtensor:
             return scalar_sum
         assert scalar_sum == 0.0
         return ttb.sumtensor(new_parts, copy=False)
+
+    def norm(self) -> float:
+        """Compatibility Interface. Just returns 0"""
+        warnings.warn(
+            "Sumtensor doesn't actually support norm. " "Returning 0 for compatibility."
+        )
+        return 0.0

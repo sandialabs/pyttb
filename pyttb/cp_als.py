@@ -12,7 +12,7 @@ import pyttb as ttb
 
 
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: Union[ttb.tensor, ttb.sptensor, ttb.ttensor],
+    input_tensor: Union[ttb.tensor, ttb.sptensor, ttb.ttensor, ttb.sumtensor],
     rank: int,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
@@ -156,6 +156,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
             )
         init = ttb.ktensor(factor_matrices)
     elif isinstance(init, str) and init.lower() == "nvecs":
+        assert not isinstance(
+            input_tensor, ttb.sumtensor
+        ), "Sumtensor doesn't support nvecs"
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(input_tensor.nvecs(n, rank))
