@@ -8,7 +8,6 @@ import pytest
 import pyttb as ttb
 
 
-@pytest.mark.indevelopment
 def test_khatrirao():
     A = np.array([[1, 2, 3], [4, 5, 6]])
     # This result was from MATLAB tensortoolbox, didn't verify by hand

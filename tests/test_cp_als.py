@@ -52,7 +52,6 @@ def random_ttensor():
     return ttensorInstance
 
 
-@pytest.mark.indevelopment
 def test_cp_als_tensor_default_init(capsys, sample_tensor):
     (data, T) = sample_tensor
     (M, Minit, output) = ttb.cp_als(T, 2)
@@ -60,7 +59,6 @@ def test_cp_als_tensor_default_init(capsys, sample_tensor):
     assert pytest.approx(output["fit"]) == 1
 
 
-@pytest.mark.indevelopment
 def test_cp_als_tensor_nvecs_init(capsys, sample_tensor):
     (data, T) = sample_tensor
     (M, Minit, output) = ttb.cp_als(T, 1, init="nvecs")
@@ -68,7 +66,6 @@ def test_cp_als_tensor_nvecs_init(capsys, sample_tensor):
     assert pytest.approx(output["fit"], 1) == 0
 
 
-@pytest.mark.indevelopment
 def test_cp_als_tensor_ktensor_init(capsys, sample_tensor):
     (data, T) = sample_tensor
     KInit = ttb.ktensor.from_function(np.random.random_sample, T.shape, 2)
@@ -77,7 +74,6 @@ def test_cp_als_tensor_ktensor_init(capsys, sample_tensor):
     assert pytest.approx(output["fit"]) == 1
 
 
-@pytest.mark.indevelopment
 def test_cp_als_incorrect_init(capsys, sample_tensor):
     (data, T) = sample_tensor
 
@@ -96,7 +92,6 @@ def test_cp_als_incorrect_init(capsys, sample_tensor):
     assert "Mode 0 of the initial guess is the wrong size" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_cp_als_sptensor_default_init(capsys, sample_sptensor):
     (data, T) = sample_sptensor
     (M, Minit, output) = ttb.cp_als(T, 2)
@@ -104,7 +99,6 @@ def test_cp_als_sptensor_default_init(capsys, sample_sptensor):
     assert pytest.approx(output["fit"]) == 1
 
 
-@pytest.mark.indevelopment
 def test_cp_als_sptensor_nvecs_init(capsys, sample_sptensor):
     (data, T) = sample_sptensor
     (M, Minit, output) = ttb.cp_als(T, 1, init="nvecs")
@@ -112,7 +106,6 @@ def test_cp_als_sptensor_nvecs_init(capsys, sample_sptensor):
     assert pytest.approx(output["fit"], 1) == 0
 
 
-@pytest.mark.indevelopment
 def test_cp_als_sptensor_ktensor_init(capsys, sample_sptensor):
     (data, T) = sample_sptensor
     KInit = ttb.ktensor.from_function(np.random.random_sample, T.shape, 2)
@@ -121,7 +114,6 @@ def test_cp_als_sptensor_ktensor_init(capsys, sample_sptensor):
     assert pytest.approx(output["fit"]) == 1
 
 
-@pytest.mark.indevelopment
 def test_cp_als_ttensor_default_init(capsys, sample_ttensor):
     T = sample_ttensor
     (M, Minit, output) = ttb.cp_als(T, 1)
@@ -129,7 +121,6 @@ def test_cp_als_ttensor_default_init(capsys, sample_ttensor):
     assert pytest.approx(output["fit"]) == 1
 
 
-@pytest.mark.indevelopment
 def test_cp_als_ttensor_default_init_consistency(capsys, random_ttensor):
     T = random_ttensor
     KInit = ttb.ktensor.from_function(np.random.random_sample, T.shape, 2)
@@ -140,7 +131,6 @@ def test_cp_als_ttensor_default_init_consistency(capsys, random_ttensor):
     assert pytest.approx(output["fit"]) == dense_output["fit"]
 
 
-@pytest.mark.indevelopment
 def test_cp_als_tensor_dimorder(capsys, sample_tensor):
     (data, T) = sample_tensor
 
@@ -171,7 +161,6 @@ def test_cp_als_tensor_dimorder(capsys, sample_tensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_cp_als_tensor_zeros(capsys, sample_tensor):
     # 2-way tensor
     T2 = ttb.tensor.from_function(np.zeros, (2, 2))
@@ -188,7 +177,6 @@ def test_cp_als_tensor_zeros(capsys, sample_tensor):
     assert output3["normresidual"] == 0
 
 
-@pytest.mark.indevelopment
 def test_cp_als_sptensor_zeros(capsys):
     # 2-way tensor
     shape2 = (2, 2)
