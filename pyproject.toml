@@ -37,6 +37,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
+    "pre-commit",
 ]
 doc = [
     "sphinx >= 4.0",
