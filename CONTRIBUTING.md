@@ -43,7 +43,7 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
       ```
 
 1. Run tests (at desired fidelity)
-    1. Just doctests (enabled by default)
+   1. Just doctests (enabled by default)
         ```commandline
         pytest
         ```
@@ -57,11 +57,11 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
         ```
 
 1. (Optionally) Building documentation and tutorials
-
-   From project root
+   1. From project root
    ```commandline
    sphinx-build ./docs/source ./docs/build
    ```
+   2. Clear notebook outputs if run locally see `nbstripout` in our [pre-commit configuration](.pre-commit-config.yaml)
 
 ## GitHub Workflow
 
