@@ -2726,7 +2726,7 @@ class sptensor:
             subs2 = self.allsubs()[subs2Idx, :]
             return ttb.sptensor(
                 np.vstack((subs1, subs2)),
-                True * np.ones((self.subs.shape[0], 1)).astype(bool),
+                True * np.ones((subs2.shape[0], 1)).astype(bool),
                 self.shape,
             )
 
@@ -2748,7 +2748,7 @@ class sptensor:
             # subs1 = setxor(self.subs, other.subs,'rows')
             # find entries where both are nonzero, but inequal
             subs2 = tt_intersect_rows(self.subs, other.subs)
-            subs_pad = np.zeros((self.shape[0],)).astype(bool)
+            subs_pad = np.zeros((self.subs.shape[0],)).astype(bool)
             subs_pad[subs2] = (
                 self.extract(self.subs[subs2]) != other.extract(self.subs[subs2])
             ).transpose()[0]
