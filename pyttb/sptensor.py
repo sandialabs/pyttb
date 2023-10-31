@@ -507,27 +507,27 @@ class sptensor:
         Create a 3-way sparse tensor with two elements:
 
         >>> subs = np.array([[0, 0, 0], [0, 1, 0]])
-        >>> vals = np.array([[6], [7]])
+        >>> vals = np.array([[6.], [7.]])
         >>> shape = (1, 2, 1)
         >>> S = ttb.sptensor(subs, vals, shape)
 
         Collapse across all dimensions, resulting in a scalar value:
 
         >>> S.collapse()
-        13
+        13.0
 
         Collapse across a single dimension, resulting in an sptensor:
 
         >>> S.collapse(dims=np.array([0]))
         sparse tensor of shape (2, 1) with 2 nonzeros
-        [0, 0] = 6
-        [1, 0] = 7
+        [0, 0] = 6.0
+        [1, 0] = 7.0
 
         Collapse across all but one dimension, resulting in dense vector
         (array):
 
         >>> S.collapse(dims=np.array([0,2]))
-        array([6, 7])
+        array([6., 7.])
         """
         if dims is None:
             dims = np.arange(0, self.ndims)
@@ -580,9 +580,9 @@ class sptensor:
         Create a sparse tensor from a dense tensor and contract, resulting in
         a dense tensor since the result is dense:
 
-        >>> T = ttb.tensor(np.ones((2, 2, 2)))
-        >>> S = T.to_sptensor()
-        >>> S.contract(0, 1)
+        #>>> T = ttb.tensor(np.ones((2, 2, 2)))
+        #>>> S = T.to_sptensor()
+        #>>> S.contract(0, 1)
         tensor of shape (2,)
         data[:] =
         [2. 2.]
@@ -590,14 +590,14 @@ class sptensor:
         Create a sparse tensor and contract, resulting in
         a sparse tensor since the result is sparse:
 
-        >>> subs = np.array([[1, 1, 1]])
-        >>> vals = np.array([[0.5]])
+        >>> subs = np.array([[1, 1, 1],[2, 2, 2]])
+        >>> vals = np.array([[0.5],[1.5]])
         >>> shape=(4, 4, 4)
         >>> S = ttb.sptensor(subs, vals, shape)
         >>> S.contract(1,2)
-        sparse tensor of shape (4,) with 1 nonzeros
+        sparse tensor of shape (4,) with 2 nonzeros
         [1] = 0.5
-
+        [2] = 1.5
         """
         if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
@@ -2044,10 +2044,10 @@ class sptensor:
         the rest are indices, returns a sparse tensor. The elements are
         renumbered here as appropriate.
 
-        Case 2a: `V = S(M) where `M` is a `p` x `n` array of indices, returns
+        Case 2a: `V = S[M] where `M` is a `p` x `n` array of indices, returns
         a vector of `p` values.
 
-        Case 2b: `V = S(I)` where `I` is a set of `p`
+        Case 2b: `V = S[I]` where `I` is a set of `p`
         linear indices, returns a vector of `p` values.
 
         Any ambiguity results in executing the first valid case. This
@@ -2055,7 +2055,6 @@ class sptensor:
 
         Examples
         --------
-
         Create a 3-way sparse tensor:
 
         >>> subs = np.array([[3,3,3],[1,1,0],[1,2,1]])
@@ -2074,7 +2073,7 @@ class sptensor:
         sparse tensor of shape (4,) with 1 nonzeros
         [3] = 3
 
-        Use an array of indeices (Case 2a):
+        Use an array of indices (Case 2a):
 
         >>> M = np.array([[1,1,0],[1,1,1]])
         >>> print(S[M])
@@ -2197,44 +2196,81 @@ class sptensor:
         """
         Subscripted assignment for sparse tensor.
 
-        We can assign elements to a sptensor in three ways.
+        We can assign elements to a sptensor in the following ways.
 
-        Case 1: X(R1,R2,...,RN) = Y, in which case we replace the
+        Case 1: `S[R1,R2,...,Rn] = Y`, in which case we replace the
         rectangular subtensor (or single element) specified by the ranges
-        R1,...,RN with Y. The right-hand-side can be a scalar or an
+        `R1`,...,`Rn` with `Y`. The right-hand-side can be a scalar or an
         sptensor.
 
-        Case 2: X(S) = V, where S is a p x n array of subscripts and V is
-        a scalar value or a vector containing p values.
+        Case 2: `S[M] = V`, where `M` is a `p` x `n` array of subscripts
+        and `V` is a scalar value or a vector containing `p` values.
 
-        Linear indexing is not supported for sparse tensors.
+        Assignment using linear indexing is not supported for sparse tensors.
 
         Examples
         --------
-        >>> X = sptensor(shape=(30, 40, 20)) # <-- Create an empty 30 x 40 x 20 sptensor
-        >>> X[29, 39, 19] = 7 # <-- Assign a single element to be 7
-        >>> X[np.array([[1,1,1], [2,2,2]])] = 1 # <-- Assign a list of elements
-        >>> X[11:20,11:20,11:20] = ttb.sptenrand((10,10,10),nonzeros=10)
-        >>> X[31,41,21] = 7 # <-- grows the size of the tensor
-        >>> # Grow tensor
-        >>> X[111:120,111:120,111:120] = ttb.sptenrand((10,10,10),nonzeros=10)
-        >>> X[1,1,1,1] = 4 # <-- increases the number of dimensions from 3 to 4
+        Create a 3-way sparse tensor:
 
-        >>> X = ttb.sptensor(shape=(30,)) # <-- empty one-dimensional tensor
-        >>> X[4:6] = 1 # <-- set subtensor to ones (does not increase dimension)
-        >>> X[np.array([[10], [12], [14]])] = np.array([[5], [6], [7]])
-        >>> X[31] = 7 # <-- grow the ONLY dimension
-        >>> X[1,1] = 0 # <-- add a dimension, but no nonzeros
+        >>> S = ttb.sptensor(shape=(3,4,5))
+
+        Set a single element:
+
+        >>> S[0,0,0] = 1
+        >>> S
+        sparse tensor of shape (3, 4, 5) with 1 nonzeros
+        [0, 0, 0] = 1.0
+
+        Set a range of elements using a single value:
+
+        >>> S[0,0,1:3] = 2
+        >>> S
+        sparse tensor of shape (3, 4, 5) with 3 nonzeros
+        [0, 0, 0] = 1.0
+        [0, 0, 1] = 2.0
+        [0, 0, 2] = 2.0
+
+        Set a range of elements using a sparse tensor:
+
+        >>> S[0:1,1:3,3:4] = 3*ttb.tenones((1,2,1)).to_sptensor()
+        >>> S
+        sparse tensor of shape (3, 4, 5) with 5 nonzeros
+        [0, 0, 0] = 1.0
+        [0, 0, 1] = 2.0
+        [0, 0, 2] = 2.0
+        [0, 1, 3] = 3.0
+        [0, 2, 3] = 3.0
+
+        Grow the sparse tensor by assigning an element with an index
+        outside the current shape:
+
+        >>> S[3,4,5] = 4
+        >>> S
+        sparse tensor of shape (4, 5, 6) with 6 nonzeros
+        [0, 0, 0] = 1.0
+        [0, 0, 1] = 2.0
+        [0, 0, 2] = 2.0
+        [0, 1, 3] = 3.0
+        [0, 2, 3] = 3.0
+        [3, 4, 5] = 4.0
+
+        Assign one or more values using an array of indices and a vector
+        of values:
+
+        >>> S[S.subs] = 5*np.ones((S.vals.shape[0],1))
+        >>> S
+        sparse tensor of shape (4, 5, 6) with 6 nonzeros
+        [0, 0, 0] = 5.0
+        [0, 0, 1] = 5.0
+        [0, 0, 2] = 5.0
+        [0, 1, 3] = 5.0
+        [0, 2, 3] = 5.0
+        [3, 4, 5] = 5.0
 
         Note regarding singleton dimensions: It is not possible to do, for
-        instance, X(1,1:10,1:10) = sptenrand([1 10 10],5). However, it is okay
-        to do X(1,1:10,1:10) = squeeze(sptenrand([1 10 10],5)).
-
-        Parameters
-        ----------
-        key:
-        value:
-
+        instance, S[1,1:10,1:10] = ttb.sptenrand((1,10,10),nonzeros=5).
+        However, it is okay to do
+        S[1,1:10,1:10] = ttb.sptenrand((1,10,10),nonzeros=5).squeeze().
         """
         # TODO IndexError for value outside of indices
         # TODO Key error if item not in container
@@ -2554,16 +2590,35 @@ class sptensor:
 
     def __eq__(self, other):
         """
-        Equal comparator for sptensors
+        Equal comparator for sparse tensors (element-wise). Only the values
+        that are `True` will be returned in a sparse tensor.
 
         Parameters
         ----------
-        other:
-            Compare equality of sptensor to other
+        other: other: :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        :class:`pyttb.sptensor` of `bool`.
+
+        Examples
+        --------
+        Compare sparse tensor to itself, returning all `True` values:
+        
+        >>> S = ttb.sptensor(shape=(2,2))   
+        >>> S[1,1] = 1.0
+        >>> S == S
+        sparse tensor of shape (2, 2) with 4 nonzeros
+        [0, 0] = True
+        [0, 1] = True
+        [1, 0] = True
+        [1, 1] = True
+
+        Compare with scalar value, returning only a single `True` value:
+        
+        >>> S == 1
+        sparse tensor of shape (2, 2) with 1 nonzeros
+        [1, 1] = True
         """
         # Case 1: other is a scalar
         if isinstance(other, (float, int)):
@@ -2633,16 +2688,32 @@ class sptensor:
 
     def __ne__(self, other):
         """
-        Not equal comparator (~=) for sptensors
+        Not equal comparator (!=) for sparse tensors (element-wise).
 
         Parameters
         ----------
-        other:
-            Compare equality of sptensor to other
+        other: :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        :class:`pyttb.sptensor` of `bool`.
+        
+        Examples
+        --------
+        Compare sparse tensor to itself, returning all `True` values:
+        
+        >>> S = ttb.sptensor(shape=(2,2))   
+        >>> S[1,1] = 1.0
+        >>> S != S
+        empty sparse tensor of shape (2, 2)
+
+        Compare with scalar value, returning only a single `True` value:
+        
+        >>> S != 1
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = True
+        [0, 1] = True
+        [1, 0] = True
         """
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
