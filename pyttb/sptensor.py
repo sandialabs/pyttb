@@ -1,4 +1,4 @@
-"""Sparse Tensor Implementation"""
+"""Classes and functions for working with sparse tensors."""
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -119,6 +119,32 @@ def tt_from_sparse_matrix(
 class sptensor:
     """
     SPTENSOR Class for sparse tensors.
+
+    Contains the following data members:
+
+    ``subs``: `p` x `n` array (:class:`numpy.ndarray`) specifying the
+    subscripts of the non-zero values in the sptensor. Row `k` specifies the indices
+    of the `k`-th value in `vals`.
+
+    ``vals``: `p` vector (:class:`numpy.ndarray`) containing the data elements
+    of the sptensor.
+
+    ``shape``: :class:`tuple` specifying the sizes of the dimensions of the sptensor.
+    Note that since the sptensor is sparse, `shape` cannot be derived from `subs` and
+    must be explicit defined.
+
+    Instances of :class:`pyttb.sptensor` can be created using `__init__()` or
+    the following method:
+
+      * :meth:`from_function`
+      * :meth:`from_aggregator`
+
+    Examples
+    --------
+    For all examples listed below, the following module imports are assumed:
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
     """
 
     __slots__ = ("subs", "vals", "shape")
@@ -131,37 +157,40 @@ class sptensor:
         copy=True,
     ):
         """
-        Construct an sptensor from fully defined SUB, VAL and SIZE matrices.
-        This does no validation to optimize for speed when components are known.
-        For default initializer with error checking see
-        :func:`~pyttb.sptensor.sptensor.from_aggregator`.
+        Construct an :class:`pyttb.sptensor` from a set of `subs` (indices),
+        `vals` (values), and `shape`. This does no validation to optimize
+        for speed when components are known. For default initializer with
+        error checking see :func:`pyttb.sptensor.from_aggregator`.
 
         Parameters
         ----------
         subs:
-            Location of non-zero entries
+            Indices of non-zero entries.
         vals:
-            Values for non-zero entries
+            Values for non-zero entries.
         shape:
-            Shape of sparse tensor
+            Shape of sparse tensor.
         copy:
-            Whether to make a copy of provided data or just reference it
+            Whether to make a copy of provided data or just reference it.
 
         Examples
         --------
-        Import required modules:
+        Create an empty :class:`pyttb.sptensor`:
 
-        >>> import pyttb as ttb
-        >>> import numpy as np
+        >>> shape = (4, 4, 4)
+        >>> S = ttb.sptensor(shape=shape)
+        >>> S
+        empty sparse tensor of shape (4, 4, 4)
 
-        Set up input data
-        # Create sptensor with explicit data description
+        Create a :class:`pyttb.sptensor` from indices and values:
 
         >>> subs = np.array([[1, 2, 1], [1, 3, 1]])
         >>> vals = np.array([[6], [7]])
-        >>> shape = (4, 4, 4)
-        >>> K0 = ttb.sptensor(subs,vals, shape)
-        >>> empty_sptensor = ttb.sptensor(shape=shape)
+        >>> S = ttb.sptensor(subs,vals, shape)
+        >>> S
+        sparse tensor of shape (4, 4, 4) with 2 nonzeros
+        [1, 2, 1] = 6
+        [1, 3, 1] = 7
         """
 
         if subs is None and vals is None:
@@ -184,9 +213,9 @@ class sptensor:
             assert subs.shape[1] == len(shape) and np.all(
                 (np.max(subs, axis=0) + 1) <= shape
             ), (
-                f"Shape provided was an incorrect to fit all subs:"
-                f"\tShape: {shape} shape required for subscripts: "
-                f"{np.max(subs, axis=0) + 1}"
+                f"Shape provided was incorrect to fit all indices; "
+                f"max indices are "
+                f"{tuple(np.max(subs, axis=0) + 1)}"
             )
 
         if copy:
@@ -207,24 +236,54 @@ class sptensor:
         nonzeros: float,
     ) -> sptensor:
         """
-        Creates a sparse tensor of the specified shape with NZ nonzeros created from
-        the specified function handle
+        Construct an :class:`pyttb.sptensor` whose nonzeros are set using a
+        function. The indices of the nonzero elements of the sparse tensor
+        are generated randomly using `numpy`, so calling `numpy.random.seed()`
+        before using this method will provide reproducible index sets.
 
         Parameters
         ----------
         function_handle:
-            Function that accepts 2 arguments and generates
-            :class:`numpy.ndarray` of length nonzeros
+            A function that can accept a shape (i.e., :class:`tuple` of
+            dimension sizes) and return a :class:`numpy.ndarray` of that shape.
+            Example functions include `numpy.random.random_sample`,
+            `numpy.zeros`, `numpy.ones`.
         shape:
-            Shape of generated tensor
+            Shape of generated sparse tensor
         nonzeros:
-            Number of nonzeros in generated tensor
+            Number of nonzeros in generated sparse tensor
 
         Returns
         -------
-        Generated Sparse Tensor
+        Generated sptensor.
+
+        Examples
+        --------
+        Create an :class:`pyttb.sptensor` with entries of the factor matrices
+        taken from a uniform random distribution:
+
+        >>> np.random.seed(1)
+        >>> S = ttb.sptensor.from_function(np.random.random_sample, (2, 3, 4), 5)
+        >>> print(S)  # doctest: +ELLIPSIS
+        sparse tensor of shape (2, 3, 4) with 5 nonzeros
+        [0, 1, 3] = 0.4478...
+        [0, 2, 0] = 0.9085...
+        [1, 2, 0] = 0.2936...
+        [1, 2, 1] = 0.2877...
+        [1, 2, 2] = 0.1300...
+
+        Create an :class:`pyttb.sptensor` with entries equal to 1:
+
+        >>> np.random.seed(1)
+        >>> S = ttb.sptensor.from_function(np.ones, (2, 3, 4), 5)
+        >>> print(S)
+        sparse tensor of shape (2, 3, 4) with 5 nonzeros
+        [0, 1, 3] = 1.0
+        [0, 2, 0] = 1.0
+        [1, 2, 0] = 1.0
+        [1, 2, 1] = 1.0
+        [1, 2, 2] = 1.0
         """
-        # Random Tensor
         assert callable(function_handle), "function_handle must be callable"
 
         if (nonzeros < 0) or (nonzeros >= np.prod(shape)):
@@ -264,34 +323,58 @@ class sptensor:
         function_handle: Union[str, Callable[[Any], Union[float, np.ndarray]]] = "sum",
     ) -> sptensor:
         """
-        Construct an sptensor from fully defined SUB, VAL and shape matrices,
-        after an aggregation is applied
+        Construct an :class:`pyttb.sptensor` from a set of `subs` (indices),
+        `vals` (values), and `shape` after an aggregation function is applied
+        to the values.
 
         Parameters
         ----------
         subs:
-            Location of non-zero entries
+            Indices of non-zero entries.
         vals:
-            Values for non-zero entries
+            Values for non-zero entries.
         shape:
-            Shape of sparse tensor
+            Shape of sparse tensor.
         function_handle:
             Aggregation function, or name of supported
-            aggregation function from numpy_groupies
+            aggregation function from `numpy_groupies`.
 
         Returns
         -------
-        Generated Sparse Tensor
+        Generated sptensor.
 
         Examples
         --------
-        >>> subs = np.array([[1, 2], [1, 3]])
-        >>> vals = np.array([[6], [7]])
-        >>> shape = np.array([4, 4])
-        >>> K0 = ttb.sptensor.from_aggregator(subs,vals)
-        >>> K1 = ttb.sptensor.from_aggregator(subs,vals,shape)
-        >>> function_handle = sum
-        >>> K2 = ttb.sptensor.from_aggregator(subs,vals,shape,function_handle)
+        Create an :class:`pyttb.sptensor` with some duplicate indices so the
+        aggregator function is used. The default aggregator is `sum`. The
+        shape of the sparse tensor is inferred from the indices.
+
+        >>> subs = np.array([[1, 2], [1, 3], [1, 3]])
+        >>> vals = np.array([[6], [7], [8]])
+        >>> shape = (4, 4)
+        >>> S = ttb.sptensor.from_aggregator(subs,vals)
+        >>> print(S)
+        sparse tensor of shape (2, 4) with 2 nonzeros
+        [1, 2] = 6
+        [1, 3] = 15
+
+        Create another :class:`pyttb.sptensor` but specify the shape
+        explicitly.
+
+        >>> S = ttb.sptensor.from_aggregator(subs,vals,shape)
+        >>> print(S)
+        sparse tensor of shape (4, 4) with 2 nonzeros
+        [1, 2] = 6
+        [1, 3] = 15
+
+        Create another :class:`pyttb.sptensor` but aggregate using the mean of
+        values corresponding to duplicate indices.
+
+        >>> S3 = ttb.sptensor.from_aggregator(subs,vals,shape,function_handle=np.mean)
+        >>> print(S3)
+        sparse tensor of shape (4, 4) with 2 nonzeros
+        [1, 2] = 6.0
+        [1, 3] = 7.5
         """
 
         tt_subscheck(subs)
@@ -338,7 +421,8 @@ class sptensor:
         return cls(newsubs, newvals, shape, copy=False)
 
     def copy(self) -> sptensor:
-        """Make a deep copy of a :class:`pyttb.sptensor`.
+        """
+        Make a deep copy of an :class:`pyttb.sptensor`.
 
         Returns
         -------
@@ -346,14 +430,17 @@ class sptensor:
 
         Examples
         --------
-        >>> first = ttb.sptensor(shape=(2,2))
-        >>> first[0,0] = 1
-        >>> second = first
-        >>> third = second.copy()
-        >>> first[0,0] = 3
-        >>> first[0,0] == second[0,0]
+        Create an :class:`pyttb.sptensor` (S1) and make a deep copy. Verify
+        the deep copy (S3) is not just a reference (like S2) to the original.
+
+        >>> S1 = ttb.sptensor(shape=(2,2))
+        >>> S1[0,0] = 1
+        >>> S2 = S1
+        >>> S3 = S1.copy()
+        >>> S1[0,0] = 3
+        >>> S1[0,0] == S2[0,0]
         True
-        >>> first[0,0] == third[0,0]
+        >>> S1[0,0] == S3[0,0]
         False
         """
         return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
@@ -361,18 +448,25 @@ class sptensor:
     def __deepcopy__(self, memo):
         return self.copy()
 
-    # TODO decide if property
     def allsubs(self) -> np.ndarray:
         """
-        Generate all possible subscripts for sparse tensor
+        Generate all possible subscripts for sparse tensor.
 
         Returns
         -------
-        s: All possible subscripts for sptensor
+        Array of indices.
+
+        Examples
+        --------
+        Create an empty sparse tensor and generate all indices:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S.allsubs()
+        array([[0, 0],
+               [0, 1],
+               [1, 0],
+               [1, 1]])
         """
-
-        # Generate all possible indices
-
         # Preallocate (discover any memory issues here!)
         s = np.zeros(shape=(np.prod(self.shape), self.ndims))
 
@@ -392,7 +486,7 @@ class sptensor:
     def collapse(
         self,
         dims: Optional[np.ndarray] = None,
-        fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
+        function_handle: Callable[[np.ndarray], Union[float, np.ndarray]] = sum,
     ) -> Union[float, np.ndarray, sptensor]:
         """
         Collapse sparse tensor along specified dimensions.
@@ -400,24 +494,40 @@ class sptensor:
         Parameters
         ----------
         dims:
-            Dimensions to collapse
-        fun:
-            Method used to collapse dimensions
+            Dimensions to collapse.
+        function_handle:
+            Function used to collapse dimensions (default is `sum`).
 
         Returns
         -------
-        Collapsed value
+        Collapsed sparse tensor as scalar, array, or sptensor.
 
-        Example
-        -------
-        >>> subs = np.array([[1, 2], [1, 3]])
-        >>> vals = np.array([[1], [1]])
-        >>> shape = np.array([4, 4])
-        >>> X = ttb.sptensor(subs, vals, shape)
-        >>> X.collapse()
-        2
-        >>> X.collapse(np.arange(X.ndims), sum)
-        2
+        Examples
+        --------
+        Create a 3-way sparse tensor with two elements:
+
+        >>> subs = np.array([[0, 0, 0], [0, 1, 0]])
+        >>> vals = np.array([[6.], [7.]])
+        >>> shape = (1, 2, 1)
+        >>> S = ttb.sptensor(subs, vals, shape)
+
+        Collapse across all dimensions, resulting in a scalar value:
+
+        >>> S.collapse()
+        13.0
+
+        Collapse across a single dimension, resulting in an sptensor:
+
+        >>> S.collapse(dims=np.array([0]))
+        sparse tensor of shape (2, 1) with 2 nonzeros
+        [0, 0] = 6.0
+        [1, 0] = 7.0
+
+        Collapse across all but one dimension, resulting in dense vector
+        (array):
+
+        >>> S.collapse(dims=np.array([0,2]))
+        array([6., 7.])
         """
         if dims is None:
             dims = np.arange(0, self.ndims)
@@ -427,7 +537,7 @@ class sptensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            return fun(self.vals.transpose()[0])
+            return function_handle(self.vals.transpose()[0])
 
         # Calculate the size of the result
         newsize = np.array(self.shape)[remdims]
@@ -439,43 +549,60 @@ class sptensor:
                     self.subs[:, remdims].transpose()[0],
                     self.vals.transpose()[0],
                     size=newsize[0],
-                    func=fun,
+                    func=function_handle,
                 )
             return np.zeros((newsize[0],))
 
         # Create Result
         if self.subs.size > 0:
             return ttb.sptensor.from_aggregator(
-                self.subs[:, remdims], self.vals, tuple(newsize), fun
+                self.subs[:, remdims], self.vals, tuple(newsize), function_handle
             )
         return ttb.sptensor(np.array([]), np.array([]), tuple(newsize), copy=False)
 
-    def contract(self, i: int, j: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
+    def contract(self, i1: int, i2: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
         """
         Contract tensor along two dimensions (array trace).
 
         Parameters
         ----------
-        i:
-            First dimension
-        j:
-            Second dimension
+        i1:
+            First dimension.
+        i2:
+            Second dimension.
 
         Returns
         -------
         Contracted sptensor, converted to tensor if sufficiently dense
 
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = X.to_sptensor()
-        >>> Y.contract(0, 1)
-        2.0
+        Examples
+        --------
+        Create a sparse tensor from a dense tensor and contract, resulting in
+        a dense tensor since the result is dense:
+
+        #>>> T = ttb.tensor(np.ones((2, 2, 2)))
+        #>>> S = T.to_sptensor()
+        #>>> S.contract(0, 1)
+        tensor of shape (2,)
+        data[:] =
+        [2. 2.]
+
+        Create a sparse tensor and contract, resulting in
+        a sparse tensor since the result is sparse:
+
+        >>> subs = np.array([[1, 1, 1],[2, 2, 2]])
+        >>> vals = np.array([[0.5],[1.5]])
+        >>> shape=(4, 4, 4)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S.contract(1,2)
+        sparse tensor of shape (4,) with 2 nonzeros
+        [1] = 0.5
+        [2] = 1.5
         """
-        if self.shape[i] != self.shape[j]:
+        if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
 
-        if i == j:
+        if i1 == i2:
             assert False, "Must contract along two different dimensions"
 
         # Easy case - returns a scalar
@@ -484,13 +611,13 @@ class sptensor:
             return sum(self.vals[tfidx].transpose()[0])
 
         # Remaining dimensions after contract
-        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i, j])).astype(int)
+        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i1, i2])).astype(int)
 
         # Size for return
         newsize = tuple(np.array(self.shape)[remdims])
 
         # Find index of values on diagonal
-        indx = np.where(self.subs[:, i] == self.subs[:, j])[0]
+        indx = np.where(self.subs[:, i1] == self.subs[:, i2])[0]
 
         # Let constructor sum entries
         if remdims.size == 1:
@@ -510,7 +637,24 @@ class sptensor:
 
     def double(self) -> np.ndarray:
         """
-        Convert sptensor to dense multidimensional array
+        Convert sparse tensor to dense multidimensional array.
+
+        Returns
+        -------
+        Dense array representation of sparse tensor.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor with two elements and convert it to a
+        dense array:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,1] = 1.5
+        >>> S
+        sparse tensor of shape (1, 2) with 1 nonzeros
+        [0, 1] = 1.5
+        >>> S.double()
+        array([[0. , 1.5]])
         """
         a = np.zeros(self.shape)
         if self.nnz > 0:
@@ -519,26 +663,29 @@ class sptensor:
 
     def elemfun(self, function_handle: Callable[[np.ndarray], np.ndarray]) -> sptensor:
         """
-        Manipulate the non-zero elements of a sparse tensor
+        Apply a function to the non-zero elements of a sparse tensor.
 
         Parameters
         ----------
         function_handle:
-            Function that updates all values.
+            Function to apply to all values.
 
         Returns
         -------
-        Updated sptensor
+        New sparse tensor with updated values.
 
-        Example
-        -------
-        >>> X = ttb.tensor(np.ones((2,2)))
-        >>> Y = X.to_sptensor()
-        >>> Z = Y.elemfun(lambda values: values*2)
-        >>> Z.isequal(Y*2)
-        True
+        Examples
+        --------
+
+        Create a 2-way sparse tensor and multiply each non-zero element by 2:
+
+        >>> S1 = ttb.sptensor()
+        >>> S1[2,2,2] = 1.5
+        >>> S2 = S1.elemfun(lambda values: values*2)
+        >>> S2
+        sparse tensor of shape (3, 3, 3) with 1 nonzeros
+        [2, 2, 2] = 3.0
         """
-
         vals = function_handle(self.vals)
         idx = np.where(vals > 0)[0]
         if idx.size == 0:
@@ -589,24 +736,59 @@ class sptensor:
 
     def find(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        FIND Find subscripts of nonzero elements in a sparse tensor.
+        Find subscripts of nonzero elements in a sparse tensor.
 
         Returns
         -------
-        subs: Subscripts of nonzero elements
-        vals: Values at corresponding subscripts
+        Tuple of arrays of subscripts and values.
+
+        Examples
+        --------
+        >>> S = ttb.sptensor()
+        >>> S[0,1] = 1
+        >>> S.find()
+        (array([[0, 1]]), array([[1.]]))
         """
         return self.subs, self.vals
 
     def to_tensor(self) -> ttb.tensor:
-        """Convenience method to convert to tensor.
+        """
+        Convenience method to convert to tensor.
         Same as :meth:`pyttb.sptensor.full`
+
+        Returns
+        -------
+        Dense tensor.
+
+        Examples
+        --------
+        >>> S = ttb.sptensor()
+        >>> S[1,1] = 1
+        >>> S.to_tensor()
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[0. 0.]
+         [0. 1.]]
         """
         return self.full()
 
     def full(self) -> ttb.tensor:
         """
-        FULL Convert a sparse tensor to a (dense) tensor.
+        Convert a sparse tensor to a dense tensor.
+
+        Returns
+        -------
+        Dense tensor.
+
+        Examples
+        --------
+        >>> S = ttb.sptensor()
+        >>> S[1,1] = 1
+        >>> S.full()
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[0. 0.]
+         [0. 1.]]
         """
         # Handle the completely empty (no shape) case
         if len(self.shape) == 0:
@@ -629,12 +811,42 @@ class sptensor:
         self, other: Union[sptensor, ttb.tensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
         """
-        Efficient inner product with a sparse tensor
+        Efficient inner product with a sparse tensor.
 
         Parameters
         ----------
         other:
-            Other tensor to take innerproduct with
+            Other tensor to take innerproduct with.
+
+        Returns
+        -------
+        Innerproduct between sptensor and other tensor.
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Inner product with dense tensor of all ones that is same shape as
+        sparse tensor:
+
+        >>> T = ttb.tenones(S.shape)
+        >>> S.innerprod(T)
+        3.0
+
+        Inner product with rank-1 Kruskal tensor of all ones that is same
+        shape as sparse tensor:
+
+        >>> factor_matrices = [np.ones((s,1)) for s in S.shape]
+        >>> K = ttb.ktensor(factor_matrices)
+        >>> S.innerprod(K)
+        3.0
         """
         # If all entries are zero innerproduct must be 0
         if self.nnz == 0:
@@ -670,12 +882,36 @@ class sptensor:
 
     def isequal(self, other: Union[sptensor, ttb.tensor]) -> bool:
         """
-        Exact equality for sptensors
+        Exact equality for sparse tensors, where all elements are exactly the
+        same in both tensors. Can be compared to another sparse tensor or
+        dense tensor.
 
         Parameters
         ----------
-        other:
-            Other tensor to compare against
+        Other tensor to compare against.
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Test with a tensor that should be equal:
+
+        >>> T = S.to_tensor()
+        >>> S.isequal(T)
+        True
+
+        Test with a tensor that should not be equal:
+
+        >>> T[0,0] = T[0,0] + 1
+        >>> S.isequal(T)
+        False
         """
         if self.shape != other.shape:
             return False
@@ -687,16 +923,43 @@ class sptensor:
 
     def logical_and(self, B: Union[float, sptensor, ttb.tensor]) -> sptensor:
         """
-        Logical and with self and another object
+        Logical AND with a scalar or another sparse or dense tensor.
 
         Parameters
         ----------
-        B:
-            Other value to compare with
+        Scalar (float) value or other tensor to compare against.
 
         Returns
         ----------
-        Indicator tensor
+        Indicator sparse tensor (values if 1.0 for True).
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Compute logical AND with dense tensor that has the same non-zero
+        pattern but different values:
+
+        >>> T = S.to_tensor()
+        >>> T[0,0] = T[0,0] + 1
+        >>> S.logical_and(T)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 1.0
+
+        Compute logical AND with scalar value:
+
+        >>> S.logical_and(1.0)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 1.0
         """
         # Case 1: One argument is a scalar
         if isinstance(B, (int, float)):
@@ -732,12 +995,27 @@ class sptensor:
 
     def logical_not(self) -> sptensor:
         """
-        Logical NOT for sptensors
+        Logical NOT for sparse tensors.
 
         Returns
         -------
-        Sparse tensor with all zero-values marked from original
-        sparse tensor
+        Sparse tensor with True set to all zero values from original sparse
+        tensor.
+
+        Examples
+        --------
+        Create a sparse tensor and compute logical NOT:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+        >>> S.logical_not()
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 1] = 1.0
+        [1, 0] = 1.0
         """
         allsubs = self.allsubs()
         subsIdx = tt_setdiff_rows(allsubs, self.subs)
@@ -757,11 +1035,45 @@ class sptensor:
         self, B: Union[float, ttb.tensor, sptensor]
     ) -> Union[ttb.tensor, sptensor]:
         """
-        Logical OR for sptensor and another value
+        Logical OR for sptensor and a scalar or another sparse or dense tensor.
+
+        Parameters
+        ----------
+        Scalar (float) value or other tensor to compare against.
 
         Returns
-        -------
-        Indicator tensor
+        ----------
+        Dense indicator tensor if input is scalar or dense tensor,\
+            sparse indicator tensor otherwise.
+
+        Examples
+        --------
+        Create a sparse tensor and compute logical OR with itself:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S.logical_or(S)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 1.0
+
+        Compute logical OR with dense tensor that has the same non-zero
+        pattern:
+
+        >>> T = S.to_tensor()
+        >>> S.logical_or(T)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[1. 0.]
+         [0. 1.]]
+
+        Compute logical OR with scalar value:
+
+        >>> S.logical_or(1)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[1. 1.]
+         [1. 1.]]
         """
         # Case 1: Argument is a scalar or tensor
         if isinstance(B, (float, int, ttb.tensor)):
@@ -795,16 +1107,44 @@ class sptensor:
         self, other: Union[float, ttb.tensor, sptensor]
     ) -> Union[ttb.tensor, sptensor]:
         """
-        Logical XOR for sptensors
+        Logical XOR with a scalar or another sparse or dense tensor.
 
         Parameters
         ----------
-        other:
-            Other value to xor against
+        Scalar (float) value or other tensor to compare against.
 
         Returns
-        -------
-        Indicator tensor
+        ----------
+        Dense indicator tensor if input is scalar or dense tensor,\
+            sparse indicator tensor otherwise.
+
+        Examples
+        --------
+        Create a sparse tensor and compute logical XOR with itself:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S.logical_xor(S)
+        empty sparse tensor of shape (2, 2)
+
+        Compute logical XOR with dense tensor that has a different non-zero
+        pattern:
+
+        >>> T = S.to_tensor()
+        >>> T[1,0] = 1.0
+        >>> S.logical_xor(T)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[0. 0.]
+         [1. 0.]]
+
+        Compute logical XOR with scalar value:
+
+        >>> S.logical_xor(1)
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[0. 1.]
+         [1. 0.]]
         """
         # Case 1: Argument is a scalar or dense tensor
         if isinstance(other, (float, int, ttb.tensor)):
@@ -827,16 +1167,48 @@ class sptensor:
 
     def mask(self, W: sptensor) -> np.ndarray:
         """
-        Extract values as specified by a mask tensor
+        Extract :class:`pyttb.sptensor` values as specified by `W`, a
+        :class:`pyttb.sptensor` containing only non-zero values that are
+        ones (1). The values in the :class:`pyttb.sptensor` corresponding
+        to the indices of the ones (1) in `W` will be returned as a column
+        vector.
 
         Parameters
         ----------
         W:
-            Mask tensor
+            Mask tensor to apply to ktensor.
 
         Returns
         -------
-        Extracted values
+        Extracted values in a column vector (array).
+
+        Examples
+        --------
+        Create a sparse tensor:
+
+        >>> S = ttb.sptensor()
+        >>> S[0,0] = 1; S[1,1] = 2
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Create mask sparse tensor and extract non-zero values:
+
+        >>> W = ttb.sptensor()
+        >>> W[0,0] = 1; W[1,1] = 1;
+        >>> S.mask(W)
+        array([[1.],
+               [2.]])
+
+        Create mask sparse tensor and extract some non-zero and some zero
+        values:
+
+        >>> W = ttb.sptensor()
+        >>> W[0,0] = 1; W[1,0] = 1;
+        >>> S.mask(W)
+        array([[1.],
+               [0.]])
         """
         # Error check
         if len(W.shape) != len(self.shape) or np.any(
@@ -859,32 +1231,56 @@ class sptensor:
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
-        Matricized tensor times Khatri-Rao product for sparse tensor.
+        Matricized tensor times Khatri-Rao product for sparse tensor. This is
+        an efficient form of the matrix product that avoids explicitly
+        computing the matricized sparse tensor and the large intermediate
+        Khatri-Rao product arrays.
+
+        If the input includes a list of 2-D arrays (factor_matrices), this
+        computes a matrix product of the mode-`n` matricization of the sparse
+        tensor the with Khatri-Rao product of all arrays in the list except
+        the `n`th. The length of the list of arrays must equal the number of
+        dimensions of the sparse tensor. The shapes of each array must have
+        leading dimensions equal to the dimensions of the sparse tensor and
+        the same second dimension.
+
+        If the input is a :class:`pyttb.ktensor`, this
+        computes a matrix product of the mode-`n` matricization of the sparse
+        tensor the with Khatri-Rao product formed by the `factor_matrices` and
+        `weights` from the ktensor, excluding the `n`th factor matrix and
+        corresponding weight. The shape of the ktensor must be compatible with
+        the shape of the sparse tensor.
 
         Parameters
         ----------
         U:
-            Matrices to create the Khatri-Rao product
+            List of 2-D arrays or ktensor.
         n:
-            Mode to matricize sptensor in
+            Mode used to matricize sparse tensor.
 
         Returns
         -------
-        Matrix product
+        Matrix product as array.
 
         Examples
         --------
-        >>> matrix = np.ones((4, 4))
+        Create list of arrays:
+
+        >>> A = np.ones((4, 4))
+        >>> U = [A, A, A]
+
+        Create sparse array and compute matricized tensor times Khatri-Rao
+        product:
+
         >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
-        >>> sptensorInstance = sptensor(subs, vals, shape)
-        >>> sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S.mttkrp(U, 0)
         array([[0. , 0. , 0. , 0. ],
                [2. , 2. , 2. , 2. ],
                [2.5, 2.5, 2.5, 2.5],
                [3.5, 3.5, 3.5, 3.5]])
-
         """
         # In the sparse case, it is most efficient to do a series of TTV operations
         # rather than forming the Khatri-Rao product.
@@ -929,14 +1325,33 @@ class sptensor:
     @property
     def ndims(self) -> int:
         """
-        NDIMS Number of dimensions of a sparse tensor.
+        Number of dimensions of the sparse tensor.
+
+        Examples
+        --------
+        Create a 6-way sparse tensor and return the number of dimensions:
+
+        >>> S = ttb.sptensor(shape=(1,2,3,4,5,6))
+        >>> S
+        empty sparse tensor of shape (1, 2, 3, 4, 5, 6)
+        >>> S.ndims
+        6
         """
         return len(self.shape)
 
     @property
     def nnz(self) -> int:
         """
-        Number of nonzeros in sparse tensor
+        Number of non-zeros values in the sparse tensor.
+
+        Examples
+        --------
+        Create a sparse tensor from a dense tensor from the 10x10 diagonal
+        identity matrix and return the number of non-zeros:
+
+        >>> S = ttb.tensor(np.eye(10)).to_sptensor()
+        >>> S.nnz
+        10
         """
         if self.subs.size == 0:
             return 0
@@ -944,22 +1359,75 @@ class sptensor:
 
     def norm(self) -> np.floating:
         """
-        Compute the Frobenius norm of a sparse tensor.
+        Compute the norm (i.e., Frobenius norm, or square root of the sum of
+        squares of entries) of a sparse tensor.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor from a diagonal matrix and compute the
+        norm:
+
+        >>> S = ttb.tensor(np.diag([1.,2.,3.,4.])).to_sptensor()
+        >>> S
+        sparse tensor of shape (4, 4) with 4 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+        [2, 2] = 3.0
+        [3, 3] = 4.0
+        >>> S.norm() # doctest: +ELLIPSIS
+        5.47722557...
         """
         return np.linalg.norm(self.vals)
 
     def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
-        Compute the leading mode-n vectors for a sparse tensor.
+        Compute the leading mode-n vectors of the sparse tensor.
+
+        Computes the `r` leading eigenvectors of Sn*Sn.T (where Sn is the
+        mode-`n` matricization/unfolding of self), which provides information
+        about the mode-n fibers. In two-dimensions, the `r` leading mode-1
+        vectors are the same as the `r` left singular vectors and the `r`
+        leading mode-2 vectors are the same as the `r` right singular
+        vectors. By default, this method computes the top `r` eigenvectors
+        of Sn*Sn.T. The output product for sparse tensors is not formed,
+        making this operation very efficient when the tensor is very sparse.
 
         Parameters
         ----------
         n:
-            Mode to unfold
+            Mode for tensor matricization.
         r:
-            Number of eigenvectors to compute
+            Number of eigenvectors to compute and use.
         flipsign:
-            Make each eigenvector's largest element positive
+            If True, make each column's largest element positive.
+
+        Returns
+        -------
+        Computed eigenvectors.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor:
+
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+
+        Compute two mode-0 leading eigenvectors, making sign of largest element
+        of each eigenvector positive (i.e., `flipsign=True, which is the
+        default behavior).
+
+        >>> S.nvecs(0, 2) # doctest: +ELLIPSIS
+        array([[-0.4718...,  0.8816...],
+               [ 0.8816...,  0.4718...]])
+
+        Compute the same `nvecs`, but do not adjust the sign of the largest
+        element of each eigenvector.
+
+        >>> S.nvecs(0, 2, flipsign=False) # doctest: +ELLIPSIS
+        array([[ 0.4718..., -0.8816...],
+               [-0.8816..., -0.4718...]])
         """
         old = np.setdiff1d(np.arange(self.ndims), n).astype(int)
         # tnt calculation is a workaround for missing sptenmat
@@ -992,7 +1460,28 @@ class sptensor:
 
     def ones(self) -> sptensor:
         """
-        Replace nonzero elements of sparse tensor with ones
+        Replace nonzero elements of sparse tensor with ones (1).
+
+        Returns
+        -------
+        Sparse tensor.
+
+        Examples
+        --------
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 2.0
+        [1, 0] = 3.0
+        >>> S.ones()
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 1.0
+        [1, 0] = 1.0
         """
         oneVals = self.vals.copy()
         oneVals.fill(1)
@@ -1000,12 +1489,36 @@ class sptensor:
 
     def permute(self, order: np.ndarray) -> sptensor:
         """
-        Rearrange the dimensions of a sparse tensor
+        Permute sparse tensor dimensions. The result is a tensor that has
+        the same values, but the order of the subscripts needed to access
+        any particular element are rearranged as specified by `order`.
 
         Parameters
         ----------
         order:
-            Updated order of dimensions
+            New order of tensor dimensions.
+
+        Returns
+        -------
+        New tensor with permuted dimensions.
+
+        Examples
+        --------
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 2.0
+        [1, 0] = 3.0
+        >>> S1 = S.permute(np.array((1,0)))
+        >>> S1
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [1, 0] = 2.0
+        [0, 1] = 3.0
         """
         # Error check
         if self.ndims != order.size or np.any(
@@ -1026,16 +1539,65 @@ class sptensor:
         old_modes: Optional[Union[np.ndarray, int]] = None,
     ) -> sptensor:
         """
-        Reshape specified modes of sparse tensor
+        Reshape the sparse tenso to the have shape specified in `new_shape`.
+        If `old_modes` is specified, reshape only those modes, moving newly
+        reshape modes to the end of the indices. The product of the new shape
+        must equal the product of the old shape, in both the default case and
+        when using `old_modes`.
 
         Parameters
         ----------
-        new_shape:
+        shape:
+            New shape
         old_modes:
+            modes used for reshaping (default is all modes)
 
-        Returns
-        -------
-        :class:`pyttb.sptensor`
+        Examples
+        --------
+        Create a 3-way sparse tensor from a dense tensor:
+
+        >>> S = ttb.tensor(np.arange(9)+1, shape=(1, 3, 3)).to_sptensor()
+        >>> S
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [0, 0, 1] = 4
+        [0, 1, 1] = 5
+        [0, 2, 1] = 6
+        [0, 0, 2] = 7
+        [0, 1, 2] = 8
+        [0, 2, 2] = 9
+
+        Reshape to a 2-way sparse tensor:
+
+        >>> S.reshape((1,9))
+        sparse tensor of shape (1, 9) with 9 nonzeros
+        [0, 0] = 1
+        [0, 1] = 2
+        [0, 2] = 3
+        [0, 3] = 4
+        [0, 4] = 5
+        [0, 5] = 6
+        [0, 6] = 7
+        [0, 7] = 8
+        [0, 8] = 9
+
+        Reshape the first two dimensions and move to the end of the indices.
+        The first two indices are reshaped from (1,3) to (3,1) and moved
+        after the remaining index (i.e., corresponding to mode 2).
+
+        >>> S.reshape(new_shape=(3,1),old_modes=np.array((1,0)))
+        sparse tensor of shape (3, 3, 1) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [1, 0, 0] = 4
+        [1, 1, 0] = 5
+        [1, 2, 0] = 6
+        [2, 0, 0] = 7
+        [2, 1, 0] = 8
+        [2, 2, 0] = 9
         """
 
         if old_modes is None:
@@ -1076,16 +1638,51 @@ class sptensor:
         dims: Union[float, np.ndarray],
     ) -> sptensor:
         """
-        Scale along specified dimensions for sparse tensors
+        Scale along specified dimensions for tensors.
 
         Parameters
         ----------
-        factor: Scaling factor
-        dims: Dimensions to scale
+        factor:
+            Scaling factor.
+        dims:
+            Dimensions to scale.
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        Scaled sparse tensor.
+
+        Examples
+        --------
+        Create a 3-way sparse tensor from a dense tensor:
+
+        >>> S = ttb.tensor(np.arange(9)+1, shape=(1, 3, 3)).to_sptensor()
+        >>> S
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [0, 0, 1] = 4
+        [0, 1, 1] = 5
+        [0, 2, 1] = 6
+        [0, 0, 2] = 7
+        [0, 1, 2] = 8
+        [0, 2, 2] = 9
+
+        Mode 2 is of length 3. Create a scaling factor array of length 3 and
+        scale along mode 2:
+
+        >>> scaling_factor = np.array([1,2,3])
+        >>> S.scale(scaling_factor, np.array([2]))
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        [0, 0, 0] = 1
+        [0, 1, 0] = 2
+        [0, 2, 0] = 3
+        [0, 0, 1] = 8
+        [0, 1, 1] = 10
+        [0, 2, 1] = 12
+        [0, 0, 2] = 21
+        [0, 1, 2] = 24
+        [0, 2, 2] = 27
         """
         if isinstance(dims, (float, int)):
             dims = np.array([dims])
@@ -1120,8 +1717,26 @@ class sptensor:
 
     def spmatrix(self) -> sparse.coo_matrix:
         """
-        Converts a two-way sparse tensor to a sparse matrix in
-        scipy.sparse.coo_matrix format
+        Converts a 2-way sparse tensor to a sparse matrix in
+        scipy.sparse.coo_matrix format.
+
+        Examples
+        --------
+        Create a 2-way sparse tensor:
+
+        >>> S = ttb.tendiag([1, 2]).to_sptensor()
+        >>> S
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
+
+        Convert it to a sparse matrix (scipy.sparse.coo_matrix):
+        >>> M = S.spmatrix()
+        >>> type(M)
+        <class 'scipy.sparse._coo.coo_matrix'>
+        >>> M.toarray()
+        array([[1., 0.],
+               [0., 2.]])
         """
         if self.ndims != 2:
             assert False, "Sparse tensor must be two dimensional"
@@ -1134,11 +1749,33 @@ class sptensor:
 
     def squeeze(self) -> Union[sptensor, float]:
         """
-        Remove singleton dimensions from a sparse tensor
+        Removes singleton dimensions from the tensor.
 
         Returns
         -------
-        :class:`pyttb.sptensor` or float if sptensor is only singleton dimensions
+        Sparse tensor or scalar if all dimensions squeezed.
+
+        Examples
+        --------
+        Create a sparse tensor with a single element and squeeze all the
+        dimensions:
+
+        >>> S = ttb.sptensor(np.array([[0,0,0,0,0]]), np.array([[3.14]]))
+        >>> S.squeeze()
+        3.14
+
+        Create sparse array with interior singleton dimension and squeeze
+        it out:
+
+        >>> S = ttb.sptensor(np.array([[0,0,0],[1,0,1]]), np.array([[1.],[2.]]))
+        >>> S
+        sparse tensor of shape (2, 1, 2) with 2 nonzeros
+        [0, 0, 0] = 1.0
+        [1, 0, 1] = 2.0
+        >>> S.squeeze()
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 1.0
+        [1, 1] = 2.0
         """
         shapeArray = np.array(self.shape)
 
@@ -1147,7 +1784,7 @@ class sptensor:
             return self.copy()
         idx = np.where(shapeArray > 1)[0]
         if idx.size == 0:
-            return self.vals[0].copy()
+            return self.vals.item()
         siz = tuple(shapeArray[idx])
         if self.vals.size == 0:
             return ttb.sptensor(np.array([]), np.array([]), siz, copy=False)
@@ -1155,32 +1792,55 @@ class sptensor:
 
     def subdims(self, region: Sequence[Union[int, np.ndarray, slice]]) -> np.ndarray:
         """
-        SUBDIMS Compute the locations of subscripts within a subdimension.
+        Compute the locations of subscripts within a subdimension.
+
+        Finds the locations of the subscripts in the sparse tensor that are
+        within the range specified by `region`. For example, if `region` is
+        `[1, np.array([1,2]), np.array([1,2]])`, then the locations of all
+        elements of the sparse tensor that have a first index equal to 1,
+        a second index equal to 1 or 2, and a third index equal to 1 or 2
+        is returned.
 
         Parameters
         ----------
         region:
-            Subset of total sptensor shape in which to find non-zero values
+            Subset of total sptensor shape in which to find non-zero values.
 
         Returns
         -------
-        :class:`numpy.ndarray`
-            Index into subs for non-zero values in region
+        Array of indices into sparse tensor `subs` member.
 
         Examples
         --------
-        >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
+        Create 3-way sparse tensor:
+
+        >>> subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [2, 3, 2]])
         >>> vals = np.array([[0.5], [1.5], [2.5], [3.5]])
         >>> shape = (4, 4, 4)
-        >>> sp = sptensor(subs,vals,shape)
-        >>> region = [np.array([1]), np.array([1]), np.array([1,3])]
-        >>> loc = sp.subdims(region)
-        >>> print(loc)
+        >>> S = ttb.sptensor(subs,vals,shape)
+
+        Define a region with indices 1 in mode 0, 1 in mode 1, and either
+        1 or 3 in mode 2, then find the location of the indices of the
+        sparse tensor for that region:
+
+        >>> region = [1, 1, np.array([1,3])]
+        >>> subs_loc = S.subdims(region)
+        >>> print(subs_loc)
         [0 1]
-        >>> region = (1, 1, slice(None, None, None))
-        >>> loc = sp.subdims(region)
-        >>> print(loc)
-        [0 1]
+        >>> S.subs[subs_loc]
+        array([[1, 1, 1],
+               [1, 1, 3]])
+
+        Use :meth:`slice` to define part of the region. In this case,
+        allow any index in mode 1:
+
+        >>> region = (2, slice(None, None, None), 2)
+        >>> subs_loc = S.subdims(region)
+        >>> print(subs_loc)
+        [2 3]
+        >>> S.subs[subs_loc]
+        array([[2, 2, 2],
+               [2, 3, 2]])
         """
         if len(region) != self.ndims:
             assert False, "Number of subdimensions must equal number of dimensions"
@@ -1228,18 +1888,84 @@ class sptensor:
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
     ) -> Union[sptensor, ttb.tensor]:
         """
-        Sparse tensor times vector
+        Sparse tensor times vector.
+
+        Computes the n-mode product of `self` with the vector `vector`; i.e.,
+        `self x_n vector`. The integer `n` specifies the dimension (or mode)
+        along which the vector should be multiplied. If `vector.shape = (I,)`,
+        then the tensor must have `self.shape[n] = I`. The result will be the
+        same order and shape as `self` except that the size of dimension `n`
+        will be `J`. The resulting tensor has one less dimension, as dimension
+        `n` is removed in the multiplication.
+
+        Multiplication with more than one vector is provided using a list of
+        vectors and corresponding dimensions in the tensor to use.
+
+        The dimensions of the tensor with which to multiply can be provided as
+        `dims`, or the dimensions to exclude from `[0, ..., self.ndims]` can be
+        specified using `exclude_dims`.
+
+        Returns
+        -------
 
         Parameters
         ----------
         vector:
-            Vector(s) to multiply against
+            Vector or vectors to multiple by.
         dims:
-            Dimensions to multiply with vector(s)
+            Dimensions to multiply against.
         exclude_dims:
-            Use all dimensions but these
-        """
+            Use all dimensions but these.
 
+        Returns
+        -------
+        Sparse tensor product.
+
+        Examples
+        --------
+        Create a 2-way sparse array that is relatively dense:
+
+        >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2)
+        >>> S = ttb.sptensor(subs, vals, shape)
+        >>> S
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = 1.0
+        [0, 1] = 2.0
+        [1, 0] = 3.0
+
+        Compute the product across mode 0. The result is a dense tensor:
+
+        >>> S.ttv(np.ones(2),0)
+        tensor of shape (2,)
+        data[:] =
+        [4. 2.]
+
+        Create a 3-way sparse array the is much more sparse:
+
+        >>> subs = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 1]])
+        >>> vals = np.array([[1.0], [2.0], [3.0]])
+        >>> shape = (2, 2, 2)
+        >>> S1 = ttb.sptensor(subs, vals, shape)
+
+        Compute the product across mode 1. The result is a sparse tensor:
+
+        >>> S1.ttv(np.ones(2),1)
+        sparse tensor of shape (2, 2) with 2 nonzeros
+        [0, 0] = 3.0
+        [1, 1] = 3.0
+
+        Compute the product with multiple vectors across all dimensions. When
+        all dimensions will be included in the product, `dims` does not need
+        to be specified. The result is a scalar value.
+
+        >>> vectors = [(i+1)*np.ones(2) for i in range(len(S1.shape))]
+        >>> vectors
+        [array([1., 1.]), array([2., 2.]), array([3., 3.])]
+        >>> S1.ttv(vectors)
+        36.0
+        """
         if dims is None and exclude_dims is None:
             dims = np.array([])
         elif isinstance(dims, (float, int)):
@@ -1311,42 +2037,55 @@ class sptensor:
         We can extract elements or subtensors from a sparse tensor in the
         following ways.
 
-        Case 1a: y = X(i1,i2,...,iN), where each in is an index, returns a
+        Case 1a: `y = S[I1,I2,...,In]`, where each `I` is an index, returns a
         scalar.
 
-        Case 1b: Y = X(R1,R2,...,RN), where one or more Rn is a range and
+        Case 1b: `Y = S[R1,R2,...,Rn]`, where one or more `R` is a range and
         the rest are indices, returns a sparse tensor. The elements are
         renumbered here as appropriate.
 
-        Case 2a: V = X(S) where S is a p x n array
-        of subscripts, returns a vector of p values.
+        Case 2a: `V = S[M] where `M` is a `p` x `n` array of indices, returns
+        a vector of `p` values.
 
-        Case 2b: V = X(I) where I is a set of p
-        linear indices, returns a vector of p values.
+        Case 2b: `V = S[I]` where `I` is a set of `p`
+        linear indices, returns a vector of `p` values.
 
         Any ambiguity results in executing the first valid case. This
-        is particularily an issue if ndims(X)==1.
-
-        Parameters
-        ----------
-        item:
-
-        Returns
-        -------
-
-        :class:`numpy.ndarray` or :class:`pyttb.sptensor`
+        is particularily an issue if `self.ndims == 1`.
 
         Examples
         --------
+        Create a 3-way sparse tensor:
+
         >>> subs = np.array([[3,3,3],[1,1,0],[1,2,1]])
-        >>> vals = np.array([3,5,1])
+        >>> vals = np.array([[3],[5],[1]])
         >>> shape = (4,4,4)
-        >>> X = sptensor(subs,vals,shape)
-        >>> print(X[0,1,0])
-        0
-        >>> print(X[3,3,3])
-        3
-        >>> _ = X[2:3,:,:] #<-- returns 1 x 4 x 4 sptensor
+        >>> S = ttb.sptensor(subs,vals,shape)
+
+        Use a single index (Case 1a):
+
+        >>> print(S[1,2,1])
+        1
+
+        Use a range of indices (Case 1b):
+
+        >>> S[3,3,:]
+        sparse tensor of shape (4,) with 1 nonzeros
+        [3] = 3
+
+        Use an array of indices (Case 2a):
+
+        >>> M = np.array([[1,1,0],[1,1,1]])
+        >>> print(S[M])
+        [[5]
+         [0]]
+
+        Use linear indexing, including negative index for offsets from the
+        end of the linear index into the sparse tensor data (Case 2b):
+
+        >>> print(S[[5,-1]])
+        [[5]
+         [3]]
         """
         # TODO IndexError for value outside of indices
         # TODO Key error if item not in container
@@ -1457,44 +2196,81 @@ class sptensor:
         """
         Subscripted assignment for sparse tensor.
 
-        We can assign elements to a sptensor in three ways.
+        We can assign elements to a sptensor in the following ways.
 
-        Case 1: X(R1,R2,...,RN) = Y, in which case we replace the
+        Case 1: `S[R1,R2,...,Rn] = Y`, in which case we replace the
         rectangular subtensor (or single element) specified by the ranges
-        R1,...,RN with Y. The right-hand-side can be a scalar or an
+        `R1`,...,`Rn` with `Y`. The right-hand-side can be a scalar or an
         sptensor.
 
-        Case 2: X(S) = V, where S is a p x n array of subscripts and V is
-        a scalar value or a vector containing p values.
+        Case 2: `S[M] = V`, where `M` is a `p` x `n` array of subscripts
+        and `V` is a scalar value or a vector containing `p` values.
 
-        Linear indexing is not supported for sparse tensors.
+        Assignment using linear indexing is not supported for sparse tensors.
 
         Examples
         --------
-        >>> X = sptensor(shape=(30, 40, 20)) # <-- Create an empty 30 x 40 x 20 sptensor
-        >>> X[29, 39, 19] = 7 # <-- Assign a single element to be 7
-        >>> X[np.array([[1,1,1], [2,2,2]])] = 1 # <-- Assign a list of elements
-        >>> X[11:20,11:20,11:20] = ttb.sptenrand((10,10,10),nonzeros=10)
-        >>> X[31,41,21] = 7 # <-- grows the size of the tensor
-        >>> # Grow tensor
-        >>> X[111:120,111:120,111:120] = ttb.sptenrand((10,10,10),nonzeros=10)
-        >>> X[1,1,1,1] = 4 # <-- increases the number of dimensions from 3 to 4
+        Create a 3-way sparse tensor:
 
-        >>> X = ttb.sptensor(shape=(30,)) # <-- empty one-dimensional tensor
-        >>> X[4:6] = 1 # <-- set subtensor to ones (does not increase dimension)
-        >>> X[np.array([[10], [12], [14]])] = np.array([[5], [6], [7]])
-        >>> X[31] = 7 # <-- grow the ONLY dimension
-        >>> X[1,1] = 0 # <-- add a dimension, but no nonzeros
+        >>> S = ttb.sptensor(shape=(3,4,5))
+
+        Set a single element:
+
+        >>> S[0,0,0] = 1
+        >>> S
+        sparse tensor of shape (3, 4, 5) with 1 nonzeros
+        [0, 0, 0] = 1.0
+
+        Set a range of elements using a single value:
+
+        >>> S[0,0,1:3] = 2
+        >>> S
+        sparse tensor of shape (3, 4, 5) with 3 nonzeros
+        [0, 0, 0] = 1.0
+        [0, 0, 1] = 2.0
+        [0, 0, 2] = 2.0
+
+        Set a range of elements using a sparse tensor:
+
+        >>> S[0:1,1:3,3:4] = 3*ttb.tenones((1,2,1)).to_sptensor()
+        >>> S
+        sparse tensor of shape (3, 4, 5) with 5 nonzeros
+        [0, 0, 0] = 1.0
+        [0, 0, 1] = 2.0
+        [0, 0, 2] = 2.0
+        [0, 1, 3] = 3.0
+        [0, 2, 3] = 3.0
+
+        Grow the sparse tensor by assigning an element with an index
+        outside the current shape:
+
+        >>> S[3,4,5] = 4
+        >>> S
+        sparse tensor of shape (4, 5, 6) with 6 nonzeros
+        [0, 0, 0] = 1.0
+        [0, 0, 1] = 2.0
+        [0, 0, 2] = 2.0
+        [0, 1, 3] = 3.0
+        [0, 2, 3] = 3.0
+        [3, 4, 5] = 4.0
+
+        Assign one or more values using an array of indices and a vector
+        of values:
+
+        >>> S[S.subs] = 5*np.ones((S.vals.shape[0],1))
+        >>> S
+        sparse tensor of shape (4, 5, 6) with 6 nonzeros
+        [0, 0, 0] = 5.0
+        [0, 0, 1] = 5.0
+        [0, 0, 2] = 5.0
+        [0, 1, 3] = 5.0
+        [0, 2, 3] = 5.0
+        [3, 4, 5] = 5.0
 
         Note regarding singleton dimensions: It is not possible to do, for
-        instance, X(1,1:10,1:10) = sptenrand([1 10 10],5). However, it is okay
-        to do X(1,1:10,1:10) = squeeze(sptenrand([1 10 10],5)).
-
-        Parameters
-        ----------
-        key:
-        value:
-
+        instance, S[1,1:10,1:10] = ttb.sptenrand((1,10,10),nonzeros=5).
+        However, it is okay to do
+        S[1,1:10,1:10] = ttb.sptenrand((1,10,10),nonzeros=5).squeeze().
         """
         # TODO IndexError for value outside of indices
         # TODO Key error if item not in container
@@ -1814,16 +2590,35 @@ class sptensor:
 
     def __eq__(self, other):
         """
-        Equal comparator for sptensors
+        Equal comparator for sparse tensors (element-wise). Only the values
+        that are `True` will be returned in a sparse tensor.
 
         Parameters
         ----------
-        other:
-            Compare equality of sptensor to other
+        other: other: :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        :class:`pyttb.sptensor` of `bool`.
+
+        Examples
+        --------
+        Compare sparse tensor to itself, returning all `True` values:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S[1,1] = 1.0
+        >>> S == S
+        sparse tensor of shape (2, 2) with 4 nonzeros
+        [0, 0] = True
+        [0, 1] = True
+        [1, 0] = True
+        [1, 1] = True
+
+        Compare with scalar value, returning only a single `True` value:
+
+        >>> S == 1
+        sparse tensor of shape (2, 2) with 1 nonzeros
+        [1, 1] = True
         """
         # Case 1: other is a scalar
         if isinstance(other, (float, int)):
@@ -1893,16 +2688,32 @@ class sptensor:
 
     def __ne__(self, other):
         """
-        Not equal comparator (~=) for sptensors
+        Not equal comparator (!=) for sparse tensors (element-wise).
 
         Parameters
         ----------
-        other:
-            Compare equality of sptensor to other
+        other: :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        :class:`pyttb.sptensor` of `bool`.
+
+        Examples
+        --------
+        Compare sparse tensor to itself, returning all `True` values:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S[1,1] = 1.0
+        >>> S != S
+        empty sparse tensor of shape (2, 2)
+
+        Compare with scalar value, returning only a single `True` value:
+
+        >>> S != 1
+        sparse tensor of shape (2, 2) with 3 nonzeros
+        [0, 0] = True
+        [0, 1] = True
+        [1, 0] = True
         """
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
@@ -1915,7 +2726,7 @@ class sptensor:
             subs2 = self.allsubs()[subs2Idx, :]
             return ttb.sptensor(
                 np.vstack((subs1, subs2)),
-                True * np.ones((self.subs.shape[0], 1)).astype(bool),
+                True * np.ones((subs2.shape[0], 1)).astype(bool),
                 self.shape,
             )
 
@@ -1937,7 +2748,7 @@ class sptensor:
             # subs1 = setxor(self.subs, other.subs,'rows')
             # find entries where both are nonzero, but inequal
             subs2 = tt_intersect_rows(self.subs, other.subs)
-            subs_pad = np.zeros((self.shape[0],)).astype(bool)
+            subs_pad = np.zeros((self.subs.shape[0],)).astype(bool)
             subs_pad[subs2] = (
                 self.extract(self.subs[subs2]) != other.extract(self.subs[subs2])
             ).transpose()[0]
@@ -2522,14 +3333,10 @@ class sptensor:
         """
         nz = self.nnz
         if nz == 0:
-            s = "All-zero sparse tensor of shape "
-            if self.ndims == 0:
-                s += str(self.shape)
-                return s
-            s += (" x ").join([str(int(d)) for d in self.shape])
+            s = f"empty sparse tensor of shape {self.shape!r}"
             return s
 
-        s = f"Sparse tensor of shape {self.shape}"
+        s = f"sparse tensor of shape {self.shape!r}"
         s += f" with {nz} nonzeros\n"
 
         # Stop insane printouts

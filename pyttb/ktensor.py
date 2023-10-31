@@ -1041,7 +1041,7 @@ class ktensor:
 
         Returns
         -------
-        Extracted values.
+        Extracted values in a column vector (array).
 
         Examples
         --------
@@ -1164,8 +1164,8 @@ class ktensor:
         Examples
         --------
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> K.norm()
-        9.797958971132712
+        >>> K.norm() # doctest: +ELLIPSIS
+        9.79795897...
         """
         # Compute the matrix of correlation coefficients
         coefMatrix = self.weights[:, None] @ self.weights[None, :]
