@@ -2604,8 +2604,8 @@ class sptensor:
         Examples
         --------
         Compare sparse tensor to itself, returning all `True` values:
-        
-        >>> S = ttb.sptensor(shape=(2,2))   
+
+        >>> S = ttb.sptensor(shape=(2,2))
         >>> S[1,1] = 1.0
         >>> S == S
         sparse tensor of shape (2, 2) with 4 nonzeros
@@ -2615,7 +2615,7 @@ class sptensor:
         [1, 1] = True
 
         Compare with scalar value, returning only a single `True` value:
-        
+
         >>> S == 1
         sparse tensor of shape (2, 2) with 1 nonzeros
         [1, 1] = True
@@ -2697,18 +2697,18 @@ class sptensor:
         Returns
         -------
         :class:`pyttb.sptensor` of `bool`.
-        
+
         Examples
         --------
         Compare sparse tensor to itself, returning all `True` values:
-        
-        >>> S = ttb.sptensor(shape=(2,2))   
+
+        >>> S = ttb.sptensor(shape=(2,2))
         >>> S[1,1] = 1.0
         >>> S != S
         empty sparse tensor of shape (2, 2)
 
         Compare with scalar value, returning only a single `True` value:
-        
+
         >>> S != 1
         sparse tensor of shape (2, 2) with 3 nonzeros
         [0, 0] = True
