@@ -932,7 +932,7 @@ def test_sptensor__mul__(sample_sptensor):
     # Test mul with wrong shape
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance * ttb.sptensor(np.array([]), np.array([]), (5, 5, 5))
-    assert "Sptensor Multiply requires two tensors of the same shape." in str(excinfo)
+    assert "Sptensor multiply requires two tensors of the same shape." in str(excinfo)
 
     # Test mul with wrong type
     with pytest.raises(AssertionError) as excinfo:

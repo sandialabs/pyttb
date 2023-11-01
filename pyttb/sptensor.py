@@ -2787,15 +2787,33 @@ class sptensor:
 
     def __sub__(self, other):
         """
-        MINUS Binary subtraction for sparse tensors.
+        Binary subtraction (-) for sparse tensors. Returns sparse tensor
+        when subtracting a sparse tensor; otherwise returns a dense tensor.
 
         Parameters
         ----------
-        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        :class:`pyttb.sptensor` or :class:`pyttb.tensor`
+
+        Examples
+        --------
+        Subtract sparse tensor from itself, returning empty sparse tensor:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S[1,1] = 1.0
+        >>> S - S
+        empty sparse tensor of shape (2, 2)
+
+        Subtract scalar value:
+
+        >>> S - 1
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[-1. -1.]
+         [-1.  0.]]
         """
         # Case 1: One argument is a scalar
         # Emulating the sparse matrix case here, which creates and returns
@@ -2817,15 +2835,33 @@ class sptensor:
 
     def __add__(self, other):
         """
-        MINUS Binary addition for sparse tensors.
+        Binary addition (+) for sparse tensors.
 
         Parameters
         ----------
-        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`, float, int
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        :class:`pyttb.sptensor` or :class:`pyttb.tensor`
+
+        Examples
+        --------
+        Add sparse tensor to itself, returning sparse tensor:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S[1,1] = 1.0
+        >>> S + S
+        sparse tensor of shape (2, 2) with 1 nonzeros
+        [1, 1] = 2.0
+
+        Add scalar value:
+
+        >>> S + 1
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[1. 1.]
+         [1. 2.]]
         """
         # If other is sumtensor perform sumtensor add
         if isinstance(other, ttb.sumtensor):  # pragma: no cover
@@ -2835,37 +2871,56 @@ class sptensor:
 
     def __pos__(self):
         """
-        Unary plus (+) for sptensors
+        Unary plus (+) for sparse tensors.
 
         Returns
         -------
-        :class:`pyttb.sptensor`, copy of tensor
+        :class:`pyttb.sptensor`
         """
 
         return self.copy()
 
     def __neg__(self):
         """
-        Unary minus (-) for sptensors
+        Unary minus (-) for sparse tensors.
 
         Returns
         -------
-        :class:`pyttb.sptensor`, copy of tensor
+        :class:`pyttb.sptensor`
         """
 
         return ttb.sptensor(self.subs, -1 * self.vals, self.shape)
 
     def __mul__(self, other):
         """
-        Element wise multiplication (*) for sptensors
+        Element-wise multiplication (*) for sparse tensors.
 
         Parameters
         ----------
-        other: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, float, int
+        other: :class:`pyttb.sptensor`, :class:`pyttb.tensor`, \
+            :class:`pyttb.tensor`, float, int
 
         Returns
         -------
         :class:`pyttb.sptensor`
+
+        Examples
+        --------
+        Multiply sparse tensor by a scalar:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S[1,1] = 1.0
+        >>> S * 3
+        sparse tensor of shape (2, 2) with 1 nonzeros
+        [1, 1] = 3.0
+
+        Multiply two sparse tensors with no overlap in indices of nonzeros,
+        resulting in an empty sparse tensor:
+
+        >>> S2 = ttb.sptensor(shape=(2,2))
+        >>> S2[1,0] = 1.0
+        >>> S * S2
+        empty sparse tensor of shape (2, 2)
         """
         if isinstance(other, (float, int, np.number)):
             return ttb.sptensor(self.subs, self.vals * other, self.shape)
@@ -2874,7 +2929,7 @@ class sptensor:
             isinstance(other, (ttb.sptensor, ttb.tensor, ttb.ktensor))
             and self.shape != other.shape
         ):
-            assert False, "Sptensor Multiply requires two tensors of the same shape."
+            assert False, "Sptensor multiply requires two tensors of the same shape."
 
         if isinstance(other, ttb.sptensor):
             idxSelf = tt_intersect_rows(self.subs, other.subs)
@@ -2906,7 +2961,7 @@ class sptensor:
 
     def __rmul__(self, other):
         """
-        Element wise right multiplication (*) for sptensors
+        Element-wise right multiplication (*) for sparse tensors.
 
         Parameters
         ----------
@@ -2915,6 +2970,16 @@ class sptensor:
         Returns
         -------
         :class:`pyttb.sptensor`
+
+        Examples
+        --------
+        Multiple scalar by sparse tensor:
+
+        >>> S = ttb.sptensor(shape=(2,2))
+        >>> S[1,1] = 1.0
+        >>> 3 * S
+        sparse tensor of shape (2, 2) with 1 nonzeros
+        [1, 1] = 3.0
         """
         if isinstance(other, (float, int, np.number)):
             return self.__mul__(other)
