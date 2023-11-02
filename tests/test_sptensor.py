@@ -258,31 +258,6 @@ def test_sptensor_ndims(sample_sptensor):
     assert sptensorInstance.ndims == 3
 
 
-def test_sptensor_extract(sample_sptensor, capsys):
-    (data, sptensorInstance) = sample_sptensor
-
-    # Out of range subs case
-    # Too large
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.extract(np.array([[4, 4, 4], [1, 1, 1]]))
-    assert "Invalid subscripts" in str(excinfo)
-    capsys.readouterr()
-    # Negative #TODO, would we like to support reverse indexing which is pythonic
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.extract(np.array([[-1, -1, -1], [1, 1, 1]]))
-    assert "Invalid subscripts" in str(excinfo)
-    capsys.readouterr()
-
-    # List of subs case
-    assert np.array_equal(
-        sptensorInstance.extract(np.array([[1, 1, 1], [1, 1, 3]])), [[0.5], [1.5]]
-    )
-
-    # Single sub case
-    # TODO if you pass a single sub should you get a list of vals with one entry or just a single val
-    assert np.array_equal(sptensorInstance.extract(np.array([1, 1, 1])), [[0.5]])
-
-
 class TestGetItem:
     def test_linear(self, sample_sptensor):
         (data, sptensorInstance) = sample_sptensor
@@ -768,7 +743,7 @@ def test_sptensor__eq__(sample_sptensor):
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance == np.ones((4, 4, 4))
-    assert "Sptensor == argument must be scalar or sptensor" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__ne__(sample_sptensor):
@@ -812,9 +787,7 @@ def test_sptensor__ne__(sample_sptensor):
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance != np.ones((4, 4, 4))
-    assert "The arguments must be two sptensors or an sptensor and a scalar." in str(
-        excinfo
-    )
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__find(sample_sptensor):
@@ -1020,7 +993,7 @@ def test_sptensor__le__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance <= "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__ge__(sample_sptensor):
@@ -1053,7 +1026,7 @@ def test_sptensor__ge__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance >= "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__gt__(sample_sptensor):
@@ -1087,7 +1060,7 @@ def test_sptensor__gt__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance > "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__lt__(sample_sptensor):
@@ -1119,7 +1092,7 @@ def test_sptensor__lt__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance < "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor_innerprod(sample_sptensor):

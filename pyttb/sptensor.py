@@ -861,10 +861,10 @@ class sptensor:
 
             if self.nnz < other.nnz:
                 [subsSelf, valsSelf] = self.find()
-                valsOther = other.extract(subsSelf)
+                valsOther = other[subsSelf]
             else:
                 [subsOther, valsOther] = other.find()
-                valsSelf = self.extract(subsOther)
+                valsSelf = self[subsOther]
             return valsOther.transpose().dot(valsSelf).item()
 
         if isinstance(other, ttb.tensor):
@@ -1702,7 +1702,7 @@ class sptensor:
             if not np.array_equal(factor.shape, shapeArray[dims]):
                 assert False, "Size mismatch in scale"
             return ttb.sptensor(
-                self.subs, self.vals * factor.extract(self.subs[:, dims]), self.shape
+                self.subs, self.vals * factor[self.subs[:, dims]], self.shape
             )
         if isinstance(factor, np.ndarray):
             shapeArray = np.array(self.shape)
@@ -2670,9 +2670,7 @@ class sptensor:
         if isinstance(other, ttb.tensor):
             # Find where their zeros interact
             otherzerosubs, _ = (other == 0).find()
-            zzerosubs = otherzerosubs[
-                (self.extract(otherzerosubs) == 0).transpose()[0], :
-            ]
+            zzerosubs = otherzerosubs[(self[otherzerosubs] == 0).transpose()[0], :]
 
             # Find where their nonzeros intersect
             othervals = other[self.subs]
@@ -2684,7 +2682,7 @@ class sptensor:
                 self.shape,
             )
 
-        assert False, "Sptensor == argument must be scalar or sptensor"
+        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
     def __ne__(self, other):
         """
@@ -2783,7 +2781,7 @@ class sptensor:
             )
 
         # Otherwise
-        assert False, "The arguments must be two sptensors or an sptensor and a scalar."
+        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
     def __sub__(self, other):
         """
@@ -2995,7 +2993,7 @@ class sptensor:
 
         Returns
         -------
-        :class:`pyttb.sptensor`
+        :class:`pyttb.sptensor` of `bool`.
 
         Examples
         --------
@@ -3086,7 +3084,7 @@ class sptensor:
             return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Otherwise
-        assert False, "Cannot compare sptensor with that type"
+        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
     def __lt__(self, other):  # noqa: PLR0912
         """
@@ -3181,7 +3179,7 @@ class sptensor:
             return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Otherwise
-        assert False, "Cannot compare sptensor with that type"
+        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
     def __ge__(self, other):
         """
@@ -3256,11 +3254,11 @@ class sptensor:
             )
 
         # Otherwise
-        assert False, "Cannot compare sptensor with that type"
+        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
     def __gt__(self, other):
         """
-        Greater than (>) to for sptensor
+        Greater than (>) to for sparse tensors.
 
         Parameters
         ----------
@@ -3328,11 +3326,12 @@ class sptensor:
             )
 
         # Otherwise
-        assert False, "Cannot compare sptensor with that type"
+        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
     def __truediv__(self, other):  # noqa: PLR0912, PLR0915
         """
         Element-wise left division (/) for sparse tensors, self/other.
+        Comparisons with empty tensors raise an exception.
 
         Parameters
         ----------
