@@ -580,9 +580,9 @@ class sptensor:
         Create a sparse tensor from a dense tensor and contract, resulting in
         a dense tensor since the result is dense:
 
-        #>>> T = ttb.tensor(np.ones((2, 2, 2)))
-        #>>> S = T.to_sptensor()
-        #>>> S.contract(0, 1)
+        >>> T = ttb.tensor(np.ones((2, 2, 2)))
+        >>> S = T.to_sptensor()
+        >>> S.contract(0, 1)
         tensor of shape (2,)
         data[:] =
         [2. 2.]
