@@ -135,10 +135,9 @@ def _get_initial_guess(
     """
     # TODO might be nice to merge with ALS/other CP methods
     if isinstance(init, list):
-        return ttb.ktensor(init)
+        return ttb.ktensor(init).normalize("all")
     if isinstance(init, ttb.ktensor):
-        if np.any(init.weights != 1.0):
-            init.normalize(0)
+        init.normalize("all")
         return init
     if init == "random":
         factor_matrices = []
@@ -146,6 +145,6 @@ def _get_initial_guess(
             factor_matrices.append(np.random.uniform(0, 1, (data.shape[n], rank)))
         M0 = ttb.ktensor(factor_matrices)
         M0 *= data.norm() / M0.norm()
-        M0.normalize(0)
+        M0.normalize("all")
         return M0
     raise ValueError(f"Unexpected input for init received: {init}")
