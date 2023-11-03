@@ -431,7 +431,7 @@ class sptensor:
 
         Examples
         --------
-        Create an :class:`pyttb.sptensor` (S1) and make a deep copy. Verify
+        Create a :class:`pyttb.sptensor` (S1) and make a deep copy. Verify
         the deep copy (S3) is not just a reference (like S2) to the original.
 
         >>> S1 = ttb.sptensor(shape=(2,2))
