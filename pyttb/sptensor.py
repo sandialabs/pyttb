@@ -324,7 +324,7 @@ class sptensor:
         function_handle: Union[str, Callable[[Any], Union[float, np.ndarray]]] = "sum",
     ) -> sptensor:
         """
-        Construct an :class:`pyttb.sptensor` from a set of `subs` (indices),
+        Construct a :class:`pyttb.sptensor` from a set of `subs` (indices),
         `vals` (values), and `shape` after an aggregation function is applied
         to the values.
 
