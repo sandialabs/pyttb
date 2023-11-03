@@ -237,7 +237,7 @@ class sptensor:
         nonzeros: float,
     ) -> sptensor:
         """
-        Construct an :class:`pyttb.sptensor` whose nonzeros are set using a
+        Construct a :class:`pyttb.sptensor` whose nonzeros are set using a
         function. The indices of the nonzero elements of the sparse tensor
         are generated randomly using `numpy`, so calling `numpy.random.seed()`
         before using this method will provide reproducible index sets.
