@@ -884,8 +884,7 @@ class sptensor:
     def isequal(self, other: Union[sptensor, ttb.tensor]) -> bool:
         """
         Exact equality for sparse tensors, where all elements are exactly the
-        same in both tensors. Can be compared to another sparse tensor or
-        dense tensor.
+        same in both tensors.
 
         Parameters
         ----------
