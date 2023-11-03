@@ -346,7 +346,7 @@ class sptensor:
 
         Examples
         --------
-        Create an :class:`pyttb.sptensor` with some duplicate indices so the
+        Create a :class:`pyttb.sptensor` with some duplicate indices so the
         aggregator function is used. The default aggregator is `sum`. The
         shape of the sparse tensor is inferred from the indices.
 
