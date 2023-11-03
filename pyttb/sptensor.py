@@ -567,7 +567,7 @@ class sptensor:
 
         Parameters
         ----------
-        i1:
+        i_0:
             First dimension.
         i2:
             Second dimension.
