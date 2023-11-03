@@ -260,7 +260,7 @@ class sptensor:
 
         Examples
         --------
-        Create an :class:`pyttb.sptensor` with entries of the factor matrices
+        Create a :class:`pyttb.sptensor` with entries of the factor matrices
         taken from a uniform random distribution:
 
         >>> np.random.seed(1)
