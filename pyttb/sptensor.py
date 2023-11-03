@@ -618,7 +618,7 @@ class sptensor:
         newsize = tuple(np.array(self.shape)[remdims])
 
         # Find index of values on diagonal
-        indx = np.where(self.subs[:, i1] == self.subs[:, i2])[0]
+        indx = np.where(self.subs[:, i_0] == self.subs[:, i_1])[0]
 
         # Let constructor sum entries
         if remdims.size == 1:
