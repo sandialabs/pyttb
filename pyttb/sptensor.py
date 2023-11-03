@@ -923,7 +923,7 @@ class sptensor:
 
     def logical_and(self, B: Union[float, sptensor, ttb.tensor]) -> sptensor:
         """
-        Logical AND with a scalar or another sparse or dense tensor.
+        Logical AND with another object.
 
         Parameters
         ----------
