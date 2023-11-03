@@ -158,7 +158,7 @@ class sptensor:
         copy=True,
     ):
         """
-        Construct an :class:`pyttb.sptensor` from a set of `subs` (indices),
+        Construct a :class:`pyttb.sptensor` from a set of `subs` (indices),
         `vals` (values), and `shape`. This does no validation to optimize
         for speed when components are known. For default initializer with
         error checking see :func:`pyttb.sptensor.from_aggregator`.
