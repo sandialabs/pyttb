@@ -134,7 +134,7 @@ class sptensor:
     Note that since the sptensor is sparse, `shape` cannot be derived from `subs` and
     must be explicitly defined.
 
-    Instances of :class:`pyttb.sptensor` can be created using `__init__()` or
+    Instances of :class:`pyttb.sptensor` can be created using :meth:`__init__` or
     the following method:
 
       * :meth:`from_function`
