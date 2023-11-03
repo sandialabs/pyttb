@@ -888,7 +888,8 @@ class sptensor:
 
         Parameters
         ----------
-        Other tensor to compare against.
+        other:
+           Other tensor to compare against.
 
         Examples
         --------
