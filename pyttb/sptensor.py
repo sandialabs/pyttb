@@ -561,7 +561,7 @@ class sptensor:
             )
         return ttb.sptensor(np.array([]), np.array([]), tuple(newsize), copy=False)
 
-    def contract(self, i1: int, i2: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
+    def contract(self, i_0: int, i_1: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
         """
         Contract tensor along two dimensions (array trace).
 
