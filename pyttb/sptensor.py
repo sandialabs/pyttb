@@ -273,7 +273,7 @@ class sptensor:
         [1, 2, 1] = 0.2877...
         [1, 2, 2] = 0.1300...
 
-        Create an :class:`pyttb.sptensor` with entries equal to 1:
+        Create a :class:`pyttb.sptensor` with entries equal to 1:
 
         >>> np.random.seed(1)
         >>> S = ttb.sptensor.from_function(np.ones, (2, 3, 4), 5)
