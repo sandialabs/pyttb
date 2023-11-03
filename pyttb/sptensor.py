@@ -132,7 +132,7 @@ class sptensor:
 
     ``shape``: :class:`tuple` specifying the sizes of the dimensions of the sptensor.
     Note that since the sptensor is sparse, `shape` cannot be derived from `subs` and
-    must be explicit defined.
+    must be explicitly defined.
 
     Instances of :class:`pyttb.sptensor` can be created using `__init__()` or
     the following method:
