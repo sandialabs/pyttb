@@ -37,6 +37,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
+    "pre-commit",
 ]
 doc = [
     "sphinx >= 4.0",
@@ -99,3 +100,10 @@ module = [
     "numpy_groupies"
 ]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--doctest-modules pyttb"
+filterwarnings = [
+    "ignore:.*deprecated.*:"
+]
