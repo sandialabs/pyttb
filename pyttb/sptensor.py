@@ -501,7 +501,7 @@ class sptensor:
 
         Returns
         -------
-        Collapsed sparse tensor as scalar, array, or sptensor.
+        Collapsed sparse tensor value.
 
         Examples
         --------
