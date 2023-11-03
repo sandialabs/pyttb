@@ -497,7 +497,7 @@ class sptensor:
         dims:
             Dimensions to collapse.
         function_handle:
-            Function used to collapse dimensions (default is `sum`).
+            Function used to collapse dimensions.
 
         Returns
         -------
