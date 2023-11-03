@@ -135,7 +135,7 @@ class sptensor:
     must be explicitly defined.
 
     Instances of :class:`pyttb.sptensor` can be created using :meth:`__init__` or
-    the following method:
+    the following methods:
 
       * :meth:`from_function`
       * :meth:`from_aggregator`
