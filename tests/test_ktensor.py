@@ -1039,29 +1039,32 @@ def test_ktensor_update(sample_ktensor_3way):
     vec2 = np.random.randn(K.shape[2] * K.ncomponents)
     K1.update(0, vec0)
     assert np.array_equal(
-        K1.factor_matrices[0], vec0.reshape((K1.shape[0], K1.ncomponents))
+        K1.factor_matrices[0], vec0.reshape((K1.shape[0], K1.ncomponents), order="F")
     )
     K1.update(1, vec1)
     assert np.array_equal(
-        K1.factor_matrices[1], vec1.reshape((K1.shape[1], K1.ncomponents))
+        K1.factor_matrices[1], vec1.reshape((K1.shape[1], K1.ncomponents), order="F")
     )
     K1.update(2, vec2)
     assert np.array_equal(
-        K1.factor_matrices[2], vec2.reshape((K1.shape[2], K1.ncomponents))
+        K1.factor_matrices[2], vec2.reshape((K1.shape[2], K1.ncomponents), order="F")
     )
 
     # all factor matrix updates
     K2 = K.copy()
     vec_all = np.concatenate((vec0, vec1, vec2))
     K2.update([0, 1, 2], vec_all)
+    K_from_vec = ttb.ktensor.from_vector(vec_all, K2.shape, False)
+    K_from_vec.weights = K2.weights
+    assert K2.isequal(K_from_vec)
     assert np.array_equal(
-        K2.factor_matrices[0], vec0.reshape((K2.shape[0], K2.ncomponents))
+        K2.factor_matrices[0], vec0.reshape((K2.shape[0], K2.ncomponents), order="F")
     )
     assert np.array_equal(
-        K2.factor_matrices[1], vec1.reshape((K2.shape[1], K2.ncomponents))
+        K2.factor_matrices[1], vec1.reshape((K2.shape[1], K2.ncomponents), order="F")
     )
     assert np.array_equal(
-        K2.factor_matrices[2], vec2.reshape((K2.shape[2], K2.ncomponents))
+        K2.factor_matrices[2], vec2.reshape((K2.shape[2], K2.ncomponents), order="F")
     )
 
     # multiple but not all factor matrix updates
@@ -1069,10 +1072,10 @@ def test_ktensor_update(sample_ktensor_3way):
     vec_some = np.concatenate((vec0, vec2))
     K3.update([0, 2], vec_some)
     assert np.array_equal(
-        K3.factor_matrices[0], vec0.reshape((K3.shape[0], K3.ncomponents))
+        K3.factor_matrices[0], vec0.reshape((K3.shape[0], K3.ncomponents), order="F")
     )
     assert np.array_equal(
-        K3.factor_matrices[2], vec2.reshape((K3.shape[2], K3.ncomponents))
+        K3.factor_matrices[2], vec2.reshape((K3.shape[2], K3.ncomponents), order="F")
     )
 
     # weights update

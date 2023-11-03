@@ -7,7 +7,6 @@ import pytest
 import pyttb as ttb
 
 
-@pytest.mark.indevelopment
 def test_sptenmat_initialization_empty():
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptenmat()

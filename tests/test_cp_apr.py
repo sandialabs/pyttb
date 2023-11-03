@@ -62,14 +62,12 @@ def rand_ktensor():
     return ktensorInstance
 
 
-@pytest.mark.indevelopment
 def test_vectorizeForMu():
     matrix = np.array([[1, 2], [3, 4]])
     vector = np.array([1, 2, 3, 4])
     assert np.array_equal(vectorize_for_mu(matrix), vector)
 
 
-@pytest.mark.indevelopment
 def test_loglikelihood():
     # Test case when both model and data are zero, we define 0*log(0) = 0
     weights = np.array([1.0, 2.0])
@@ -116,7 +114,6 @@ def test_loglikelihood():
     assert np.isclose(explicitAnswer, tt_loglikelihood(tensorInstance, ktensorInstance))
 
 
-@pytest.mark.indevelopment
 def test_calculatePi():
     # Test simple case
     weights = np.array([1.0, 2.0])
@@ -164,7 +161,6 @@ def test_calculatePi():
     """
 
 
-@pytest.mark.indevelopment
 def test_calculatePhi():
     # Test simple case
     weights = np.array([1.0, 2.0])
@@ -184,7 +180,6 @@ def test_calculatePhi():
     ).all()
 
 
-@pytest.mark.indevelopment
 def test_cpapr_mu(capsys, sample_tensor1, default_init_ktensor):
     # Test simple case
     tensorInstance, ktensorSolnInstance = sample_tensor1
@@ -223,7 +218,6 @@ def test_cpapr_mu(capsys, sample_tensor1, default_init_ktensor):
     assert "time limit exceeded" in out
 
 
-@pytest.mark.indevelopment
 @pytest.mark.filterwarnings(
     "ignore::UserWarning"
 )  # Ignores UserWarning "CP_APR: Line search failed, using multiplicative update step"
@@ -281,7 +275,6 @@ def test_cpapr_pdnr(capsys, sample_tensor1, default_init_ktensor):
     assert "time limit exceeded" in out
 
 
-@pytest.mark.indevelopment
 @pytest.mark.filterwarnings(
     "ignore::UserWarning"
 )  # Ignores UserWarning "CP_APR: Line search failed, using multiplicative update step"
@@ -365,7 +358,8 @@ def test_cpapr_pqnr(
 
 
 # PDNR tests below
-@pytest.mark.indevelopment
+
+
 def test_calculatepi_prowsubprob():
     # Test simple case
     weights = np.array([1.0, 2.0])
@@ -558,7 +552,6 @@ def test_getSearchDirPdnr():
         assert search[i] == direction[i]
 
 
-@pytest.mark.indevelopment
 def test_tt_loglikelihood_row():
     # Test simple case
     weights = np.array([1.0, 2.0])
@@ -576,7 +569,6 @@ def test_tt_loglikelihood_row():
     # print(loglikelihood)
 
 
-@pytest.mark.indevelopment
 def test_tt_linesearch_prowsubprob():
     # Test simple case
     weights = np.array([1.0, 2.0])

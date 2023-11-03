@@ -2117,7 +2117,9 @@ class ktensor:
                 if len(data) < endloc:
                     assert False, "Data is too short"
                 self.factor_matrices[k] = np.reshape(
-                    data[loc:endloc].copy(), (self.shape[k], self.ncomponents)
+                    data[loc:endloc].copy(),
+                    (self.shape[k], self.ncomponents),
+                    order="F",
                 )
                 loc = endloc
             else:
