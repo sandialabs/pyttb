@@ -569,7 +569,7 @@ class sptensor:
         ----------
         i_0:
             First dimension.
-        i2:
+        i_1:
             Second dimension.
 
         Returns
