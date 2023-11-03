@@ -1168,10 +1168,9 @@ class sptensor:
 
     def mask(self, W: sptensor) -> np.ndarray:
         """
-        Extract :class:`pyttb.sptensor` values as specified by `W`, a
-        :class:`pyttb.sptensor` containing only non-zero values that are
-        ones (1). The values in the :class:`pyttb.sptensor` corresponding
-        to the indices of the ones (1) in `W` will be returned as a column
+        Extract :class:`pyttb.sptensor` values as specified by `W`.
+        The values in the :class:`pyttb.sptensor` corresponding
+        to entries containing ones (1) in `W` will be returned as a column
         vector.
 
         Parameters
