@@ -28,6 +28,10 @@ def test_tucker_als_tensor_default_init(capsys, sample_tensor):
     capsys.readouterr()
     assert pytest.approx(output["fit"], 1) == 0
 
+    (Solution, Uinit, output) = ttb.tucker_als(T, 2, dimorder=[1, 0])
+    capsys.readouterr()
+    assert pytest.approx(output["fit"], 1) == 0
+
 
 def test_tucker_als_tensor_incorrect_init(capsys, sample_tensor):
     (data, T) = sample_tensor
