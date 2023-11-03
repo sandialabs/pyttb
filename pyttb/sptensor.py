@@ -931,7 +931,7 @@ class sptensor:
 
         Returns
         ----------
-        Indicator sparse tensor (values if 1.0 for True).
+        Indicator sparse tensor (values of 1.0 for True).
 
         Examples
         --------
