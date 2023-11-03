@@ -612,7 +612,7 @@ class sptensor:
             return sum(self.vals[tfidx].transpose()[0])
 
         # Remaining dimensions after contract
-        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i1, i2])).astype(int)
+        remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i_0, i_1])).astype(int)
 
         # Size for return
         newsize = tuple(np.array(self.shape)[remdims])
