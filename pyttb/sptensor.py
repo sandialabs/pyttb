@@ -1239,7 +1239,7 @@ class sptensor:
 
         If the input includes a list of 2-D arrays (factor_matrices), this
         computes a matrix product of the mode-`n` matricization of the sparse
-        tensor the with Khatri-Rao product of all arrays in the list except
+        tensor with the Khatri-Rao product of all arrays in the list except
         the `n`th. The length of the list of arrays must equal the number of
         dimensions of the sparse tensor. The shapes of each array must have
         leading dimensions equal to the dimensions of the sparse tensor and
