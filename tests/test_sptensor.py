@@ -1611,11 +1611,13 @@ def test_sptensor_mttkrp(sample_sptensor):
     # Wrong length input
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.mttkrp(np.array([matrix, matrix, matrix, matrix]), 0)
-    assert "List is the wrong length" in str(excinfo)
+    assert "List of factor matrices is the wrong length" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.mttkrp("string", 0)
-    assert "Second argument must be ktensor or array" in str(excinfo)
+    assert "Second argument must be list of numpy.ndarray's or a ktensor" in str(
+        excinfo
+    )
 
 
 def test_sptensor_nvecs(sample_sptensor):
