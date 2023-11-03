@@ -928,7 +928,8 @@ class sptensor:
 
         Parameters
         ----------
-        Scalar (float) value or other tensor to compare against.
+        B:
+           Other value to compare against.
 
         Returns
         ----------
