@@ -420,6 +420,12 @@ class TestSetItem:
         dense_data[tuple(sub.flatten())] = arbitrary_value
         assert np.array_equal(sptensorInstance.full().data, dense_data)
 
+        # Tuple key, single value
+        sub = (1, 1, 1)
+        sptensorInstance[sub] = arbitrary_value
+        dense_data[sub] = arbitrary_value
+        assert np.array_equal(sptensorInstance.full().data, dense_data)
+
         # Multiple keys, single value
         subs = np.array([[1, 1, 1], [1, 1, 3]])
         sptensorInstance[subs] = arbitrary_value + 1
@@ -432,6 +438,15 @@ class TestSetItem:
         sptensorInstance[subs] = vals
         dense_data[tuple(subs.transpose())] = vals.flatten()
         assert np.array_equal(sptensorInstance.full().data, dense_data)
+
+        # 1-way sptensor
+        sptensorInstance1 = ttb.sptensor(shape=(30,))
+        dense_data1 = sptensorInstance1.full().data
+        sptensorInstance1[0] = arbitrary_value
+        dense_data1[0] = arbitrary_value
+        sptensorInstance1[4:6] = arbitrary_value + 1
+        dense_data1[4:6] = arbitrary_value + 1
+        assert np.array_equal(sptensorInstance1.full().data, dense_data1)
 
     def test_subtensor_invalid(
         self,
