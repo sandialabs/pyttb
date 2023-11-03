@@ -2204,9 +2204,13 @@ class sptensor:
 
         >>> S = ttb.sptensor(shape=(3,4,5))
 
-        Set a single element:
+        Set a single element using direc indices or index tuple:
 
         >>> S[0,0,0] = 1
+        >>> S[(0,0,0)] = 1
+        >>> S
+        sparse tensor of shape (3, 4, 5) with 1 nonzeros
+        [0, 0, 0] = 1.0
         >>> S
         sparse tensor of shape (3, 4, 5) with 1 nonzeros
         [0, 0, 0] = 1.0
