@@ -603,7 +603,7 @@ class sptensor:
         if self.shape[i_0] != self.shape[i_1]:
             assert False, "Must contract along equally sized dimensions"
 
-        if i1 == i2:
+        if i_0 == i_1:
             assert False, "Must contract along two different dimensions"
 
         # Easy case - returns a scalar
