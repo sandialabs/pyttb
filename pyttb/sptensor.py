@@ -1176,7 +1176,7 @@ class sptensor:
         Parameters
         ----------
         W:
-            Mask tensor to apply to ktensor.
+            Mask tensor to apply to sparse tensor.
 
         Returns
         -------
