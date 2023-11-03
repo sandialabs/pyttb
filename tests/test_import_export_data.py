@@ -67,7 +67,6 @@ def sample_array():
     return M
 
 
-@pytest.mark.indevelopment
 def test_import_data_tensor(sample_tensor):
     # truth data
     T = sample_tensor
@@ -79,7 +78,6 @@ def test_import_data_tensor(sample_tensor):
     assert T.isequal(X)
 
 
-@pytest.mark.indevelopment
 def test_import_data_sptensor(sample_sptensor):
     # truth data
     S = sample_sptensor
@@ -91,7 +89,6 @@ def test_import_data_sptensor(sample_sptensor):
     assert S.isequal(X)
 
 
-@pytest.mark.indevelopment
 def test_import_data_sptensor_0_based(sample_sptensor):
     # truth data
     S = sample_sptensor
@@ -105,7 +102,6 @@ def test_import_data_sptensor_0_based(sample_sptensor):
     assert S.isequal(X)
 
 
-@pytest.mark.indevelopment
 def test_import_data_ktensor(sample_ktensor):
     # truth data
     K = sample_ktensor
@@ -117,7 +113,6 @@ def test_import_data_ktensor(sample_ktensor):
     assert K.isequal(X)
 
 
-@pytest.mark.indevelopment
 def test_import_data_array(sample_array):
     # truth data
     M = sample_array
@@ -129,7 +124,6 @@ def test_import_data_array(sample_array):
     assert np.array_equal(M, X)
 
 
-@pytest.mark.indevelopment
 def test_import_invalid():
     # invalid filename
     data_filename = os.path.normpath(
@@ -158,7 +152,6 @@ def test_import_invalid():
     assert "Imported dimensions are not of expected size" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_export_data_tensor(sample_tensor):
     # truth data
     T = sample_tensor
@@ -178,7 +171,6 @@ def test_export_data_tensor(sample_tensor):
     os.unlink(data_filename)
 
 
-@pytest.mark.indevelopment
 def test_export_data_sptensor(sample_sptensor):
     # truth data
     S = sample_sptensor
@@ -199,7 +191,6 @@ def test_export_data_sptensor(sample_sptensor):
     os.unlink(data_filename)
 
 
-@pytest.mark.indevelopment
 def test_export_data_ktensor(sample_ktensor):
     # truth data
     K = sample_ktensor
@@ -220,7 +211,6 @@ def test_export_data_ktensor(sample_ktensor):
     os.unlink(data_filename)
 
 
-@pytest.mark.indevelopment
 def test_export_data_array(sample_array):
     # truth data
     M = sample_array
@@ -241,7 +231,6 @@ def test_export_data_array(sample_array):
     os.unlink(data_filename)
 
 
-@pytest.mark.indevelopment
 def test_export_invalid():
     # list data is invalid
     data = [1, 2, 3]

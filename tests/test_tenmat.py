@@ -74,7 +74,6 @@ def sample_tensor_4way():
     return params, tensorInstance
 
 
-@pytest.mark.indevelopment
 def test_tenmat_initialization_empty():
     empty = np.array([])
 
@@ -87,7 +86,6 @@ def test_tenmat_initialization_empty():
     assert (tenmatInstance.data == empty).all()
 
 
-@pytest.mark.indevelopment
 def test_tenmat_initialization_from_data(
     sample_ndarray_1way, sample_ndarray_2way, sample_ndarray_4way, sample_tenmat_4way
 ):
@@ -221,7 +219,6 @@ def test_tenmat_initialization_from_data(
         assert exc in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tenmat_initialization_from_tensor_type(
     sample_tenmat_4way, sample_tensor_3way, sample_tensor_4way
 ):
@@ -375,7 +372,6 @@ def test_tenmat_to_tensor():
     assert tensorInstance4.isequal(tensorTenmatInstance4)
 
 
-@pytest.mark.indevelopment
 def test_tenmat_ctranspose(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
 
@@ -389,14 +385,12 @@ def test_tenmat_ctranspose(sample_tenmat_4way):
     assert (tenmatInstanceCtranspose.data == tenmatInstance.data.conj().T).all()
 
 
-@pytest.mark.indevelopment
 def test_tenmat_double(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
 
     assert (tenmatInstance.double() == tenmatInstance.data.astype(np.float_)).all()
 
 
-@pytest.mark.indevelopment
 def test_tenmat_ndims(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
 
@@ -407,7 +401,6 @@ def test_tenmat_ndims(sample_tenmat_4way):
     assert ttb.tenmat().ndims == 0
 
 
-@pytest.mark.indevelopment
 def test_tenmat_norm(sample_ndarray_1way, sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
     params["tshape"]
@@ -428,7 +421,6 @@ def test_tenmat_norm(sample_ndarray_1way, sample_tenmat_4way):
     assert ttb.tenmat().norm() == 0
 
 
-@pytest.mark.indevelopment
 def test_tenmat__setitem__():
     ndarrayInstance = np.reshape(np.arange(1, 17), (2, 2, 2, 2), order="F")
     tensorInstance = ttb.tensor(ndarrayInstance, shape=(2, 2, 2, 2))
@@ -452,7 +444,6 @@ def test_tenmat__setitem__():
     assert exc in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tenmat__getitem__():
     ndarrayInstance = np.reshape(np.arange(1, 17), (4, 4), order="F")
     tensorInstance = ttb.tensor(ndarrayInstance, shape=(4, 4))
@@ -474,7 +465,6 @@ def test_tenmat__getitem__():
     assert (ndarrayInstance[-1, -1] == tenmatInstance[-1, -1]).all()
 
 
-@pytest.mark.indevelopment
 def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
     tshape = params["tshape"]
@@ -537,7 +527,6 @@ def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4
     assert exc in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tenmat__add__(sample_ndarray_2way, sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
     tshape = params["tshape"]
@@ -579,7 +568,6 @@ def test_tenmat__add__(sample_ndarray_2way, sample_tenmat_4way):
     assert exc in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tenmat__sub__(sample_ndarray_2way, sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
     tshape = params["tshape"]
@@ -618,7 +606,6 @@ def test_tenmat__sub__(sample_ndarray_2way, sample_tenmat_4way):
     assert exc in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tenmat__rsub__(sample_ndarray_2way, sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
     tshape = params["tshape"]
@@ -655,7 +642,6 @@ def test_tenmat__rsub__(sample_ndarray_2way, sample_tenmat_4way):
     assert exc in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tenmat__pos__(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
     params["data"]
@@ -664,7 +650,6 @@ def test_tenmat__pos__(sample_tenmat_4way):
     assert ((+tenmatInstance).data == params["data"]).all()
 
 
-@pytest.mark.indevelopment
 def test_tenmat__neg__(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
     params["data"]
@@ -673,7 +658,6 @@ def test_tenmat__neg__(sample_tenmat_4way):
     assert ((-tenmatInstance).data == -params["data"]).all()
 
 
-@pytest.mark.indevelopment
 def test_tenmat__str__(
     sample_ndarray_1way, sample_ndarray_2way, sample_ndarray_4way, sample_tenmat_4way
 ):
