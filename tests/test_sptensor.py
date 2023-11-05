@@ -90,21 +90,21 @@ def test_sptensor_initialization_from_function():
     assert sptensorInstance.shape == shape
     assert len(sptensorInstance.subs) == int(nz * np.prod(shape))
 
-    # Random Tensor exception for negative non-zeros
+    # Random Tensor exception for negative nonzeros
     nz = -1
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_function(function_handle, shape, nz)
     assert (
-        "Requested number of non-zeros must be positive and less than the total size"
+        "Requested number of nonzeros must be positive and less than the total size"
         in str(excinfo)
     )
 
-    # Random Tensor exception for negative non-zeros
+    # Random Tensor exception for negative nonzeros
     nz = np.prod(shape) + 1
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_function(function_handle, shape, nz)
     assert (
-        "Requested number of non-zeros must be positive and less than the total size"
+        "Requested number of nonzeros must be positive and less than the total size"
         in str(excinfo)
     )
 
@@ -229,7 +229,7 @@ def test_sptensor_full(sample_sptensor):
     emptyTensor = ttb.tensor()
     assert emptyTensor.isequal(emptySptensor.full())
 
-    # Empty, no non-zeros tensor conversion
+    # Empty, no nonzeros tensor conversion
     emptySptensor = ttb.sptensor(np.array([]), np.array([]), data["shape"])
     assert np.array_equal(emptySptensor.full().data, np.zeros(data["shape"]))
 
@@ -1281,7 +1281,7 @@ def test_sptensor_reshape(sample_sptensor):
 def test_sptensor_mask(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
-    # Mask captures all non-zero entries
+    # Mask captures all nonzero entries
     assert np.array_equal(sptensorInstance.mask(sptensorInstance), data["vals"])
 
     # Mask correctly skips zeros
@@ -1347,7 +1347,7 @@ def test_sptensor__truediv__(sample_sptensor):
 
     emptySptensor = ttb.sptensor(np.array([]), np.array([]), (4, 4, 4))
 
-    # Sptensor/ non-zero scalar
+    # Sptensor/ nonzero scalar
     assert np.array_equal((sptensorInstance / 5).vals, data["vals"] / 5)
 
     # Sptensor/zero scalar
