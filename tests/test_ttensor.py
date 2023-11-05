@@ -33,7 +33,6 @@ def random_ttensor():
     return ttensorInstance
 
 
-@pytest.mark.indevelopment
 def test_ttensor_initialization_empty():
     empty_tensor = ttb.tensor()
 
@@ -43,7 +42,6 @@ def test_ttensor_initialization_empty():
     assert ttensorInstance.factor_matrices == []
 
 
-@pytest.mark.indevelopment
 def test_ttensor_initialization_from_data(sample_ttensor):
     ttensorInstance = sample_ttensor
     assert isinstance(ttensorInstance.core, ttb.tensor)
@@ -114,7 +112,6 @@ def test_ttensor__deepcopy__(sample_ttensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_ttensor_full(sample_ttensor):
     ttensorInstance = sample_ttensor
     tensor = ttensorInstance.full()
@@ -148,21 +145,18 @@ def test_ttensor_to_tensor(sample_ttensor):
     assert ttensorInstance.full().isequal(ttensorInstance.to_tensor())
 
 
-@pytest.mark.indevelopment
 def test_ttensor_double(sample_ttensor):
     ttensorInstance = sample_ttensor
     # This sanity check only works for all 1's
     assert ttensorInstance.double() == np.prod(ttensorInstance.core.shape)
 
 
-@pytest.mark.indevelopment
 def test_ttensor_ndims(sample_ttensor):
     ttensorInstance = sample_ttensor
 
     assert ttensorInstance.ndims == 3
 
 
-@pytest.mark.indevelopment
 def test_ttensor__pos__(sample_ttensor):
     ttensorInstance = sample_ttensor
     ttensorInstance2 = +ttensorInstance
@@ -170,7 +164,6 @@ def test_ttensor__pos__(sample_ttensor):
     assert ttensorInstance.isequal(ttensorInstance2)
 
 
-@pytest.mark.indevelopment
 def test_sptensor__neg__(sample_ttensor):
     ttensorInstance = sample_ttensor
     ttensorInstance2 = -ttensorInstance
@@ -180,7 +173,6 @@ def test_sptensor__neg__(sample_ttensor):
     assert ttensorInstance.isequal(ttensorInstance3)
 
 
-@pytest.mark.indevelopment
 def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
     ttensorInstance = sample_ttensor
 
@@ -226,7 +218,6 @@ def test_ttensor_innerproduct(sample_ttensor, random_ttensor):
         ttensorInstance.innerprod(invalid_option)
 
 
-@pytest.mark.indevelopment
 def test_ttensor__mul__(sample_ttensor):
     ttensorInstance = sample_ttensor
     mul_factor = 2
@@ -244,7 +235,6 @@ def test_ttensor__mul__(sample_ttensor):
         _ = ttensorInstance * "some_string"
 
 
-@pytest.mark.indevelopment
 def test_ttensor__rmul__(sample_ttensor):
     ttensorInstance = sample_ttensor
     mul_factor = 2
@@ -262,7 +252,6 @@ def test_ttensor__rmul__(sample_ttensor):
         _ = "some_string" * ttensorInstance
 
 
-@pytest.mark.indevelopment
 def test_ttensor_ttv(sample_ttensor):
     ttensorInstance = sample_ttensor
     mul_factor = 1
@@ -287,7 +276,6 @@ def test_ttensor_ttv(sample_ttensor):
         sample_ttensor.ttv(wrong_shape_vector)
 
 
-@pytest.mark.indevelopment
 def test_ttensor_mttkrp(random_ttensor):
     ttensorInstance = random_ttensor
     column_length = 6
@@ -307,7 +295,6 @@ def test_ttensor_mttkrp(random_ttensor):
     )
 
 
-@pytest.mark.indevelopment
 def test_ttensor_norm(sample_ttensor, random_ttensor):
     ttensorInstance = random_ttensor
     assert np.isclose(ttensorInstance.norm(), ttensorInstance.full().norm())
@@ -317,7 +304,6 @@ def test_ttensor_norm(sample_ttensor, random_ttensor):
     assert np.isclose(ttensorInstance.norm(), ttensorInstance.full().norm())
 
 
-@pytest.mark.indevelopment
 def test_ttensor_permute(random_ttensor):
     ttensorInstance = random_ttensor
     original_order = np.arange(0, len(ttensorInstance.core.shape))
@@ -330,7 +316,6 @@ def test_ttensor_permute(random_ttensor):
         ttensorInstance.permute(bad_permutation_order)
 
 
-@pytest.mark.indevelopment
 def test_ttensor_ttm(random_ttensor):
     ttensorInstance = random_ttensor
     row_length = 9
@@ -385,7 +370,6 @@ def test_ttensor_ttm(random_ttensor):
         ttensorInstance.ttm(matrices, -1)
 
 
-@pytest.mark.indevelopment
 def test_ttensor_reconstruct(random_ttensor):
     ttensorInstance = random_ttensor
     # TODO: This slice drops the singleton dimension, should it? If so should ttensor squeeze during reconstruct?
@@ -411,7 +395,6 @@ def test_ttensor_reconstruct(random_ttensor):
         ttensorInstance.reconstruct(modes=np.array([1]))
 
 
-@pytest.mark.indevelopment
 def test_ttensor_nvecs(random_ttensor):
     ttensorInstance = random_ttensor
 
@@ -477,7 +460,6 @@ def test_ttensor_nvecs_all_zeros(random_ttensor):
     assert isinstance(higher_value_sparse_nvecs, np.ndarray)
 
 
-@pytest.mark.indevelopment
 def test_sptensor_isequal(sample_ttensor):
     ttensorInstance = sample_ttensor
     # Negative Tests

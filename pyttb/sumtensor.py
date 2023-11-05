@@ -108,9 +108,9 @@ class sumtensor:
             tensor of shape (2, 2)
             data[:, :] =
             [[1. 1.]
-            [1. 1.]]
+             [1. 1.]]
         Part 1:
-            All-zero sparse tensor of shape 2 x 2
+            empty sparse tensor of shape (2, 2)
         """
         if len(self.parts) == 0:
             return "Empty sumtensor"

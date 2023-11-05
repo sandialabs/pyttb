@@ -61,6 +61,7 @@ class tensor:
     ):
         """
         Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
+
         Note that 1D tensors (i.e., when len(shape)==1) contains a data
         array that follow the Numpy convention of being a row vector.
 
@@ -432,7 +433,7 @@ class tensor:
          [3 0]]
         >>> S = T.to_sptensor()
         >>> print(S)
-        Sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros
         [1, 0] = 3
         [0, 1] = 2
         """
@@ -1088,7 +1089,7 @@ class tensor:
             result = result.transpose()
         return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
 
-    def squeeze(self) -> Union[tensor, np.ndarray, float]:
+    def squeeze(self) -> Union[tensor, float]:
         """
         Removes singleton dimensions from the tensor.
 
@@ -1111,7 +1112,7 @@ class tensor:
         else:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
-                return np.squeeze(self.data)[()]
+                return self.data.item()
             return ttb.tensor(np.squeeze(self.data))
 
     def symmetrize(  # noqa: PLR0912,PLR0915
@@ -1779,7 +1780,7 @@ class tensor:
         We can extract elements or subtensors from a tensor in the
         following ways.
 
-        Case 1a: `y = T[I1,I2,...,In], where each `I` is an index, returns a
+        Case 1a: `y = T[I1,I2,...,In]`, where each `I` is an index, returns a
         scalar.
 
         Case 1b: `Y = T[R1,R2,...,Rn]`, where one or more `R` is a range and
