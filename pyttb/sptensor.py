@@ -1154,7 +1154,7 @@ class sptensor:
         If the input includes a list of 2-D arrays (factor_matrices), this
         computes a matrix product of the mode-`n` matricization of the sparse
         tensor with the Khatri-Rao product of all arrays in the list except
-        the `n`th. The length of the list of arrays must equal the number of
+        the `n` th. The length of the list of arrays must equal the number of
         dimensions of the sparse tensor. The shapes of each array must have
         leading dimensions equal to the dimensions of the sparse tensor and
         the same second dimension.
@@ -1162,7 +1162,7 @@ class sptensor:
         If the input is a :class:`pyttb.ktensor`, this
         computes a matrix product of the mode-`n` matricization of the sparse
         tensor with the Khatri-Rao product formed by the `factor_matrices` and
-        `weights` from the ktensor, excluding the `n`th factor matrix and
+        `weights` from the ktensor, excluding the `n` th factor matrix and
         corresponding weight. The shape of the ktensor must be compatible with
         the shape of the sparse tensor.
 
@@ -1313,7 +1313,7 @@ class sptensor:
         >>> S = ttb.sptensor(subs, vals, shape)
 
         Compute two mode-0 leading eigenvectors of `S`, making sign of largest
-        element of each eigenvector positive (i.e., `flipsign`=True).
+        element of each eigenvector positive (i.e., `flipsign` =True).
 
         >>> S.nvecs(0, 2, flipsign=True) # doctest: +ELLIPSIS
         array([[-0.4718...,  0.8816...],
