@@ -4,14 +4,12 @@
 
 """Classes and functions for working with Kruskal tensors."""
 
-import logging
-import warnings
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
-from pyttb.pyttb_utils import *
+from pyttb.pyttb_utils import tt_sub2ind
 
 
 class sptenmat(object):
@@ -34,7 +32,7 @@ class sptenmat(object):
         self.vals = np.array([])
 
     @classmethod
-    def from_data(cls, subs, vals, rdims, cdims, tshape):
+    def from_data(cls, subs, vals, rdims, cdims, tshape):  # noqa: PLR0913
         """
         Construct a :class:`pyttb.sptenmat` from a set of 2D subscripts (subs)
         and values (vals) along with the mappings of the row (rdims) and column
@@ -64,17 +62,14 @@ class sptenmat(object):
         else:
             dims = np.hstack([rdims, cdims])
         if not len(dims) == n or not (alldims == np.sort(dims)).all():
-            assert (
-                False
-            ), "Incorrect specification of dimensions, the sorted concatenation of rdims and cdims must be range(len(tshape))."
-        elif subs.size > 1 and np.prod(np.array(tshape)[rdims]) < np.max(subs[:,0]):
-            assert (
-                False
-            ), "Invalid row index."
-        elif subs.size > 1 and np.prod(np.array(tshape)[cdims]) < np.max(subs[:,1]):
-            assert (
-                False
-            ), "Invalid column index."
+            assert False, (
+                "Incorrect specification of dimensions, the sorted concatenation of "
+                "rdims and cdims must be range(len(tshape))."
+            )
+        elif subs.size > 1 and np.prod(np.array(tshape)[rdims]) < np.max(subs[:, 0]):
+            assert False, "Invalid row index."
+        elif subs.size > 1 and np.prod(np.array(tshape)[cdims]) < np.max(subs[:, 1]):
+            assert False, "Invalid column index."
 
         # Sum any duplicates
         if subs.size == 0:
@@ -85,9 +80,7 @@ class sptenmat(object):
             newsubs, loc = np.unique(subs, axis=0, return_inverse=True)
             # Sum the corresponding values
             # Squeeze to convert from column vector to row vector
-            newvals = accumarray(
-                loc, np.squeeze(vals), size=newsubs.shape[0], func=sum
-            )
+            newvals = accumarray(loc, np.squeeze(vals), size=newsubs.shape[0], func=sum)
 
         # Find the nonzero indices of the new values
         nzidx = np.nonzero(newvals)
@@ -106,11 +99,18 @@ class sptenmat(object):
         return sptenmatInstance
 
     @classmethod
-    def from_tensor_type(cls, source, rdims=None, cdims=None, cdims_cyclic=None):
-
+    def from_tensor_type(  # noqa: PLR0912
+        cls, source, rdims=None, cdims=None, cdims_cyclic=None
+    ):
         # Copy Contructor
         if isinstance(source, sptenmat):
-            return cls().from_data(source.subs.copy(), source.vals.copy(), source.rdims.copy(), source.cdims.copy(), source.tshape)
+            return cls().from_data(
+                source.subs.copy(),
+                source.vals.copy(),
+                source.rdims.copy(),
+                source.cdims.copy(),
+                source.tshape,
+            )
 
         if isinstance(source, ttb.sptensor):
             n = source.ndims
@@ -133,9 +133,10 @@ class sptenmat(object):
                             + [i for i in range(n - 1, rdims[0], -1)]
                         )
                     else:
-                        assert (
-                            False
-                        ), 'Unrecognized value for cdims_cyclic pattern, must be "t", "fc" or "bc".'
+                        assert False, (
+                            "Unrecognized value for cdims_cyclic pattern, "
+                            'must be "t", "fc" or "bc".'
+                        )
                 else:
                     # Multiple row mapping
                     cdims = np.setdiff1d(alldims, rdims)
@@ -151,9 +152,10 @@ class sptenmat(object):
             else:
                 dims = np.hstack([rdims, cdims])
             if not len(dims) == n or not (alldims == np.sort(dims)).all():
-                assert (
-                    False
-                ), "Incorrect specification of dimensions, the sorted concatenation of rdims and cdims must be range(source.ndims)."
+                assert False, (
+                    "Incorrect specification of dimensions, the sorted "
+                    "concatenation of rdims and cdims must be range(source.ndims)."
+                )
 
             rsize = np.array(source.shape)[rdims]
             csize = np.array(source.shape)[cdims]
@@ -163,7 +165,7 @@ class sptenmat(object):
             elif source.subs.size == 0:
                 ridx = np.array([])
             else:
-                ridx = tt_sub2ind(rsize, source.subs[:,rdims])
+                ridx = tt_sub2ind(rsize, source.subs[:, rdims])
             ridx = ridx.reshape((ridx.size, 1))
 
             if cdims.size == 0:
@@ -171,10 +173,12 @@ class sptenmat(object):
             elif source.subs.size == 0:
                 cidx = np.array([])
             else:
-                cidx = tt_sub2ind(csize, source.subs[:,cdims])
+                cidx = tt_sub2ind(csize, source.subs[:, cdims])
             cidx = cidx.reshape((cidx.size, 1))
 
-            return cls().from_data(np.hstack([ridx, cidx]), source.vals.copy(), rdims, cdims, source.shape)
+            return cls().from_data(
+                np.hstack([ridx, cidx]), source.vals.copy(), rdims, cdims, source.shape
+            )
 
     @property
     def shape(self):
@@ -190,7 +194,7 @@ class sptenmat(object):
         else:
             m = np.prod(np.array(self.tshape)[self.rdims])
             n = np.prod(np.array(self.tshape)[self.cdims])
-            return (m,n)
+            return (m, n)
 
     def __repr__(self):
         """
@@ -199,7 +203,8 @@ class sptenmat(object):
         Returns
         -------
         str
-            Contains the shape, row indices (rindices), column indices (cindices) and data as strings on different lines.
+            Contains the shape, row indices (rindices), column indices (cindices)
+                and data as strings on different lines.
         """
         s = ""
         s += "sptenmat corresponding to a sptensor of shape "
@@ -237,4 +242,3 @@ class sptenmat(object):
         return s
 
     __str__ = __repr__
-
