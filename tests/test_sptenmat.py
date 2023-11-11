@@ -7,8 +7,6 @@ import pytest
 
 import pyttb as ttb
 
-DEBUG_tests = False
-
 
 @pytest.fixture()
 def sample_sptensor_3way():
@@ -53,10 +51,10 @@ def test_sptenmat_initialization_empty():
     sptenmatInstance = ttb.sptenmat()
     assert sptenmatInstance.shape == ()
     assert sptenmatInstance.tshape == ()
-    assert (sptenmatInstance.rdims == empty).all()
-    assert (sptenmatInstance.cdims == empty).all()
-    assert (sptenmatInstance.subs == empty).all()
-    assert (sptenmatInstance.vals == empty).all()
+    np.testing.assert_array_equal(sptenmatInstance.rdims, empty)
+    np.testing.assert_array_equal(sptenmatInstance.cdims, empty)
+    np.testing.assert_array_equal(sptenmatInstance.subs, empty)
+    np.testing.assert_array_equal(sptenmatInstance.vals, empty)
 
 
 def test_sptenmat_initialization_from_data(sample_sptenmat):
@@ -72,12 +70,117 @@ def test_sptenmat_initialization_from_data(sample_sptenmat):
 
     # Constructor from data: subs, vals, rdims, cdims, and tshape
     S = ttb.sptenmat.from_data(subs, vals, rdims, cdims, tshape)
-    assert (S.subs == subs).all()
-    assert (S.vals == vals).all()
-    assert (S.rdims == rdims).all()
-    assert (S.cdims == cdims).all()
-    assert S.tshape == tshape
-    assert S.shape == shape
+    np.testing.assert_array_equal(S.subs, subs)
+    np.testing.assert_array_equal(S.vals, vals)
+    np.testing.assert_array_equal(S.rdims, rdims)
+    np.testing.assert_array_equal(S.cdims, cdims)
+    np.testing.assert_array_equal(S.tshape, tshape)
+    np.testing.assert_array_equal(S.shape, shape)
+
+    # Constructor from data: rdims, cdims, and tshape
+    S = ttb.sptenmat.from_data(rdims=rdims, cdims=cdims, tshape=tshape)
+    np.testing.assert_array_equal(S.subs, np.array([]))
+    np.testing.assert_array_equal(S.vals, np.array([]))
+    np.testing.assert_array_equal(S.rdims, rdims)
+    np.testing.assert_array_equal(S.cdims, cdims)
+    np.testing.assert_array_equal(S.tshape, tshape)
+    np.testing.assert_array_equal(S.shape, shape)
+
+    # Constructor from data: rdims, and tshape
+    all_rdims = np.arange(len(tshape))
+    rdims_shape = (np.prod(tshape), 1)
+    S = ttb.sptenmat.from_data(rdims=all_rdims, tshape=tshape)
+    np.testing.assert_array_equal(S.subs, np.array([]))
+    np.testing.assert_array_equal(S.vals, np.array([]))
+    np.testing.assert_array_equal(S.rdims, all_rdims)
+    np.testing.assert_array_equal(S.cdims, np.array([]))
+    np.testing.assert_array_equal(S.tshape, tshape)
+    np.testing.assert_array_equal(S.shape, rdims_shape)
+
+    # Constructor from data: cdims, and tshape
+    cdims_shape = (1, np.prod(tshape))
+    S = ttb.sptenmat.from_data(cdims=all_rdims, tshape=tshape)
+    np.testing.assert_array_equal(S.subs, np.array([]))
+    np.testing.assert_array_equal(S.vals, np.array([]))
+    np.testing.assert_array_equal(S.rdims, np.array([]))
+    np.testing.assert_array_equal(S.cdims, all_rdims)
+    np.testing.assert_array_equal(S.tshape, tshape)
+    np.testing.assert_array_equal(S.shape, cdims_shape)
+    # TODO: hit negative case assertions
+
+
+def test_sptenmat_initialization_from_tensor_type(
+    sample_sptenmat, sample_sptensor_3way
+):
+    params, sptenmatInstance = sample_sptenmat
+    params3, sptensorInstance = sample_sptensor_3way
+    # Copy constructor
+    S = ttb.sptenmat.from_tensor_type(sptenmatInstance)
+    assert S is not sptenmatInstance
+    np.testing.assert_array_equal(S.subs, sptenmatInstance.subs)
+    np.testing.assert_array_equal(S.vals, sptenmatInstance.vals)
+    np.testing.assert_array_equal(S.rdims, sptenmatInstance.rdims)
+    np.testing.assert_array_equal(S.cdims, sptenmatInstance.cdims)
+    np.testing.assert_array_equal(S.tshape, sptenmatInstance.tshape)
+
+    # Multi-row options
+    S = ttb.sptenmat.from_tensor_type(sptensorInstance, rdims=np.array([0, 1]))
+    np.testing.assert_array_equal(S.vals, sptensorInstance.vals)
+    np.testing.assert_array_equal(S.rdims, np.array([0, 1]))
+    np.testing.assert_array_equal(S.cdims, np.array([2]))
+    np.testing.assert_array_equal(S.tshape, sptensorInstance.shape)
+
+    S = ttb.sptenmat.from_tensor_type(sptensorInstance, cdims=np.array([2]))
+    np.testing.assert_array_equal(S.vals, sptensorInstance.vals)
+    np.testing.assert_array_equal(S.rdims, np.array([0, 1]))
+    np.testing.assert_array_equal(S.cdims, np.array([2]))
+    np.testing.assert_array_equal(S.tshape, sptensorInstance.shape)
+
+    # Single row options
+    S = ttb.sptenmat.from_tensor_type(
+        sptensorInstance, rdims=np.array([0]), cdims_cyclic="fc"
+    )
+    np.testing.assert_array_equal(S.vals, sptensorInstance.vals)
+    np.testing.assert_array_equal(S.rdims, np.array([0]))
+    np.testing.assert_array_equal(S.cdims, np.array([1, 2]))
+    np.testing.assert_array_equal(S.tshape, sptensorInstance.shape)
+
+    S = ttb.sptenmat.from_tensor_type(
+        sptensorInstance, rdims=np.array([0]), cdims_cyclic="bc"
+    )
+    np.testing.assert_array_equal(S.vals, sptensorInstance.vals)
+    np.testing.assert_array_equal(S.rdims, np.array([0]))
+    np.testing.assert_array_equal(S.cdims, np.array([2, 1]))
+    np.testing.assert_array_equal(S.tshape, sptensorInstance.shape)
+
+    # Some fun edge cases
+    ## Empty sptensor
+    S = ttb.sptenmat.from_tensor_type(
+        ttb.sptensor(shape=(4, 4, 4)), rdims=np.array([0]), cdims=np.array([1, 2])
+    )
+    assert S.subs.size == 0
+    ## Only rows
+    S = ttb.sptenmat.from_tensor_type(sptensorInstance, rdims=np.array([0, 1, 2]))
+    np.all(S.subs[:, 1] == 0)
+    np.testing.assert_array_equal(S.rdims, np.array([0, 1, 2]))
+    np.testing.assert_array_equal(S.cdims, np.array([]))
+    np.testing.assert_array_equal(S.tshape, sptensorInstance.shape)
+    ## Only cols
+    S = ttb.sptenmat.from_tensor_type(sptensorInstance, cdims=np.array([0, 1, 2]))
+    np.all(S.subs[:, 0] == 0)
+    np.testing.assert_array_equal(S.rdims, np.array([]))
+    np.testing.assert_array_equal(S.cdims, np.array([0, 1, 2]))
+    np.testing.assert_array_equal(S.tshape, sptensorInstance.shape)
+
+    # Negative tests
+    with pytest.raises(AssertionError):
+        ttb.sptenmat.from_tensor_type(
+            sptensorInstance, rdims=np.array([0]), cdims_cyclic="bag_argument_string"
+        )
+    with pytest.raises(AssertionError):
+        ttb.sptenmat.from_tensor_type(
+            sptensorInstance, rdims=np.array([0]), cdims=np.array([1])
+        )
 
 
 def test_sptenmat__str__(sample_sptensor_3way):

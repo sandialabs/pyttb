@@ -3,7 +3,9 @@
 # U.S. Government retains certain rights in this software.
 
 """Classes and functions for working with Kruskal tensors."""
+from __future__ import annotations
 
+from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
@@ -18,12 +20,11 @@ class sptenmat(object):
 
     """
 
-    def __init__(self, *args):  # pragma:no cover
+    __slots__ = ("tshape", "rdims", "cdims", "subs", "vals")
+
+    def __init__(self):
         """
         Construct an empty :class:`pyttb.sptenmat`
-
-        The constructor takes no arguments and returns an empty
-        :class:`pyttb.sptenmat`.
         """
         self.tshape = ()
         self.rdims = np.array([])
@@ -32,7 +33,14 @@ class sptenmat(object):
         self.vals = np.array([])
 
     @classmethod
-    def from_data(cls, subs, vals, rdims, cdims, tshape):  # noqa: PLR0913
+    def from_data(  # noqa: PLR0913
+        cls,
+        subs: Optional[np.ndarray] = None,
+        vals: Optional[np.ndarray] = None,
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        tshape: Tuple[int, ...] = (),
+    ):
         """
         Construct a :class:`pyttb.sptenmat` from a set of 2D subscripts (subs)
         and values (vals) along with the mappings of the row (rdims) and column
@@ -40,39 +48,44 @@ class sptenmat(object):
 
         Parameters
         ----------
-        subs: :class:`numpy.ndarray`, required
+        subs:
             Location of non-zero entries
-        vals: :class:`numpy.ndarray`, required
+        vals:
             Values for non-zero entries
-        rdims: :class:`numpy.ndarray`, required
+        rdims:
             Mapping of row indices
-        cdims: :class:`numpy.ndarray`, required
+        cdims:
             Mapping of column indices
-        tshape: :class:`tuple`, required
+        tshape:
             Shape of the original tensor
-
         """
+        if subs is None:
+            subs = np.array([])
+        if vals is None:
+            vals = np.array([])
+        if rdims is None:
+            rdims = np.array([], dtype=int)
+        if cdims is None:
+            cdims = np.array([], dtype=int)
+
         n = len(tshape)
         alldims = np.array([range(n)])
         # Error check
-        if rdims.size == 0:
-            dims = cdims.copy()
-        elif cdims.size == 0:
-            dims = rdims.copy()
-        else:
-            dims = np.hstack([rdims, cdims])
-        if not len(dims) == n or not (alldims == np.sort(dims)).all():
-            assert False, (
-                "Incorrect specification of dimensions, the sorted concatenation of "
-                "rdims and cdims must be range(len(tshape))."
-            )
-        elif subs.size > 1 and np.prod(np.array(tshape)[rdims]) < np.max(subs[:, 0]):
-            assert False, "Invalid row index."
-        elif subs.size > 1 and np.prod(np.array(tshape)[cdims]) < np.max(subs[:, 1]):
-            assert False, "Invalid column index."
+        dims = np.hstack([rdims, cdims], dtype=int)
+        assert len(dims) == n and (alldims == np.sort(dims)).all(), (
+            "Incorrect specification of dimensions, the sorted concatenation of "
+            "rdims and cdims must be range(len(tshape))."
+        )
+        assert subs.size == 0 or np.prod(np.array(tshape)[rdims]) >= np.max(
+            subs[:, 0]
+        ), "Invalid row index."
+        assert subs.size == 0 or np.prod(np.array(tshape)[cdims]) >= np.max(
+            subs[:, 1]
+        ), "Invalid column index."
 
         # Sum any duplicates
         if subs.size == 0:
+            assert vals.size == 0, "Empty subs requires empty vals"
             newsubs = np.array([])
             newvals = np.array([])
         else:
@@ -92,17 +105,26 @@ class sptenmat(object):
 
         sptenmatInstance = cls()
         sptenmatInstance.tshape = tshape
-        sptenmatInstance.rdims = rdims.copy()
-        sptenmatInstance.cdims = cdims.copy()
+        sptenmatInstance.rdims = rdims.copy().astype(int)
+        sptenmatInstance.cdims = cdims.copy().astype(int)
         sptenmatInstance.subs = newsubs
         sptenmatInstance.vals = newvals
         return sptenmatInstance
 
     @classmethod
     def from_tensor_type(  # noqa: PLR0912
-        cls, source, rdims=None, cdims=None, cdims_cyclic=None
+        cls,
+        source: Union[ttb.sptensor, ttb.sptenmat],
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"]]] = None,
     ):
-        # Copy Contructor
+        valid_sources = (sptenmat, ttb.sptensor)
+        assert isinstance(source, valid_sources), (
+            "Can only generate sptenmat from "
+            f"{[src.__name__ for src in valid_sources]} but received {type(source)}."
+        )
+        # Copy Constructor
         if isinstance(source, sptenmat):
             return cls().from_data(
                 source.subs.copy(),
@@ -115,7 +137,6 @@ class sptenmat(object):
         if isinstance(source, ttb.sptensor):
             n = source.ndims
             alldims = np.array([range(n)])
-            tshape = source.shape
 
             if rdims is not None and cdims is None:
                 # Single row mapping
@@ -135,7 +156,7 @@ class sptenmat(object):
                     else:
                         assert False, (
                             "Unrecognized value for cdims_cyclic pattern, "
-                            'must be "t", "fc" or "bc".'
+                            'must be "fc" or "bc".'
                         )
                 else:
                     # Multiple row mapping
@@ -144,13 +165,8 @@ class sptenmat(object):
             elif rdims is None and cdims is not None:
                 rdims = np.setdiff1d(alldims, cdims)
 
-            # if rdims or cdims is empty, hstack will output an array of float not int
-            if rdims.size == 0:
-                dims = cdims.copy()
-            elif cdims.size == 0:
-                dims = rdims.copy()
-            else:
-                dims = np.hstack([rdims, cdims])
+            assert rdims is not None and cdims is not None
+            dims = np.hstack([rdims, cdims], dtype=int)
             if not len(dims) == n or not (alldims == np.sort(dims)).all():
                 assert False, (
                     "Incorrect specification of dimensions, the sorted "
@@ -160,28 +176,32 @@ class sptenmat(object):
             rsize = np.array(source.shape)[rdims]
             csize = np.array(source.shape)[cdims]
 
-            if rdims.size == 0:
-                ridx = np.ones((source.nnz, 1))
+            if rsize.size == 0:
+                ridx = np.zeros((source.nnz, 1))
             elif source.subs.size == 0:
-                ridx = np.array([])
+                ridx = np.array([], dtype=int)
             else:
                 ridx = tt_sub2ind(rsize, source.subs[:, rdims])
-            ridx = ridx.reshape((ridx.size, 1))
+            ridx = ridx.reshape((ridx.size, 1)).astype(int)
 
-            if cdims.size == 0:
-                cidx = np.ones((source.nnz, 1))
+            if csize.size == 0:
+                cidx = np.zeros((source.nnz, 1))
             elif source.subs.size == 0:
-                cidx = np.array([])
+                cidx = np.array([], dtype=int)
             else:
                 cidx = tt_sub2ind(csize, source.subs[:, cdims])
-            cidx = cidx.reshape((cidx.size, 1))
+            cidx = cidx.reshape((cidx.size, 1)).astype(int)
 
             return cls().from_data(
-                np.hstack([ridx, cidx]), source.vals.copy(), rdims, cdims, source.shape
+                np.hstack([ridx, cidx], dtype=int),
+                source.vals.copy(),
+                rdims,
+                cdims,
+                source.shape,
             )
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """
         Return the shape of a sptenmat
 
@@ -194,7 +214,7 @@ class sptenmat(object):
         else:
             m = np.prod(np.array(self.tshape)[self.rdims])
             n = np.prod(np.array(self.tshape)[self.cdims])
-            return (m, n)
+            return m, n
 
     def __repr__(self):
         """
@@ -224,7 +244,7 @@ class sptenmat(object):
         s += "(modes of sptensor corresponding to columns)\n"
 
         # Stop insane printouts
-        if self.vals.size > 10000:
+        if self.vals.size > 10000:  # pragma: no cover
             r = input("Are you sure you want to print all nonzeros? (Y/N)")
             if r.upper() != "Y":
                 return s
