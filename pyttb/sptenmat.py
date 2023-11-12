@@ -346,7 +346,7 @@ class sptenmat(object):
         if self.vals.size == 0:
             s += str(self.shape)
         else:
-            s += (" x ").join([str(int(d)) for d in self.tshape])
+            s += f"{self.tshape!r}"
         s += " with " + str(self.vals.size) + " nonzeros"
         s += "\n"
 
