@@ -12,7 +12,7 @@ from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
-from pyttb.pyttb_utils import tt_sub2ind
+from pyttb.pyttb_utils import tt_ind2sub, tt_sub2ind
 
 
 class sptenmat(object):
@@ -196,10 +196,25 @@ class sptenmat(object):
             return cls().from_data(
                 np.hstack([ridx, cidx], dtype=int),
                 source.vals.copy(),
-                rdims,
-                cdims,
+                rdims.astype(int),
+                cdims.astype(int),
                 source.shape,
             )
+
+    def to_sptensor(self) -> ttb.sptensor:
+        """
+        Contruct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`
+        """
+        vals = None
+        subs = None
+        if self.subs.size > 0:
+            print(f"Rdims: {self.rdims}")
+            tshape = np.array(self.tshape)
+            rdims = tt_ind2sub(tshape[self.rdims], self.subs[:, 0])
+            cdims = tt_ind2sub(tshape[self.cdims], self.subs[:, 1])
+            subs = np.hstack([rdims, cdims], dtype=int)
+            vals = self.vals
+        return ttb.sptensor(subs, vals, self.tshape)
 
     @property
     def shape(self) -> Tuple[int, ...]:

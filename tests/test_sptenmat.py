@@ -305,6 +305,17 @@ def test_sptenmat_setitem(sample_sptensor_2way):
     np.testing.assert_array_equal(S.vals, expected_vals)
 
 
+def test_sptenmat_to_sptensor(sample_sptensor_2way):
+    params3, sptensorInstance = sample_sptensor_2way
+    S = ttb.sptenmat.from_tensor_type(
+        sptensorInstance, rdims=np.array([0]), cdims=np.array([1])
+    )
+    round_trip = S.to_sptensor()
+    assert sptensorInstance.isequal(round_trip), (
+        f"Original: {sptensorInstance}\n" f"Reconstructed: {round_trip}"
+    )
+
+
 def test_sptenmat__str__(sample_sptensor_3way):
     (params3, sptensorInstance3) = sample_sptensor_3way
     tshape = params3["tshape"]
@@ -325,7 +336,7 @@ def test_sptenmat__str__(sample_sptensor_3way):
     )
     s = ""
     s += "sptenmat corresponding to a sptensor of shape "
-    s += (" x ").join([str(int(d)) for d in sptenmatInstance3.tshape])
+    s += f"{sptenmatInstance3.tshape!r}"
     s += " with " + str(sptenmatInstance3.vals.size) + " nonzeros"
     s += "\n"
     s += "rdims = "
