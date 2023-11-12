@@ -10,7 +10,6 @@ import pytest
 import scipy.sparse as sparse
 
 import pyttb as ttb
-from pyttb.sptensor import tt_from_sparse_matrix, tt_to_sparse_matrix
 
 
 @pytest.fixture()
@@ -1710,40 +1709,6 @@ def test_sptensor_ttm(sample_sptensor):
         4,
         1,
     )
-
-
-def test_sptensor_to_sparse_matrix():
-    subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
-    vals = np.array([[0.5], [1.5], [2.5], [3.5]])
-    shape = (4, 4, 4)
-    mode0 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
-    mode1 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
-    mode2 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 5, 10, 15], [1, 3, 2, 3])))
-    Ynt = [mode0, mode1, mode2]
-    sptensorInstance = ttb.sptensor(subs, vals, shape)
-
-    for mode in range(sptensorInstance.ndims):
-        Xnt = tt_to_sparse_matrix(sptensorInstance, mode, True)
-        assert (Xnt != Ynt[mode]).nnz == 0
-        assert Xnt.shape == Ynt[mode].shape
-
-
-def test_sptensor_from_sparse_matrix():
-    subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
-    vals = np.array([[0.5], [1.5], [2.5], [3.5]])
-    shape = (4, 4, 4)
-    sptensorInstance = ttb.sptensor(subs, vals, shape)
-    for mode in range(sptensorInstance.ndims):
-        sptensorCopy = sptensorInstance.copy()
-        Xnt = tt_to_sparse_matrix(sptensorCopy, mode, True)
-        Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 0)
-        assert sptensorCopy.isequal(Ynt)
-
-    for mode in range(sptensorInstance.ndims):
-        sptensorCopy = sptensorInstance.copy()
-        Xnt = tt_to_sparse_matrix(sptensorCopy, mode, False)
-        Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 1)
-        assert sptensorCopy.isequal(Ynt)
 
 
 def test_sptensor_squash():

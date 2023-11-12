@@ -85,7 +85,7 @@ class sptenmat(object):
         ), "Invalid column index."
 
         # Sum any duplicates
-        if subs.size == 0:
+        if vals.size == 0:
             assert vals.size == 0, "Empty subs requires empty vals"
             newsubs = np.array([])
             newvals = np.array([])
@@ -118,7 +118,9 @@ class sptenmat(object):
         source: Union[ttb.sptensor, ttb.sptenmat],
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
-        cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"]]] = None,
+        cdims_cyclic: Optional[
+            Union[Literal["fc"], Literal["bc"], Literal["t"]]
+        ] = None,
     ):
         valid_sources = (sptenmat, ttb.sptensor)
         assert isinstance(source, valid_sources), (
@@ -142,7 +144,10 @@ class sptenmat(object):
             if rdims is not None and cdims is None:
                 # Single row mapping
                 if len(rdims) == 1 and cdims_cyclic is not None:
-                    if cdims_cyclic == "fc":
+                    if cdims_cyclic == "t":
+                        cdims = rdims
+                        rdims = np.setdiff1d(alldims, rdims)
+                    elif cdims_cyclic == "fc":
                         # cdims = [rdims+1:n, 1:rdims-1];
                         cdims = np.array(
                             [i for i in range(rdims[0] + 1, n)]
@@ -201,6 +206,42 @@ class sptenmat(object):
                 source.shape,
             )
 
+    @classmethod
+    def from_array(
+        cls,
+        array: Union[sparse.coo_matrix, np.ndarray],
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        tshape: Tuple[int, ...] = (),
+    ):
+        """
+        Construct a :class:`pyttb.sptenmat` from a coo_matrix
+        along with the mappings of the row (rdims) and column
+        indices (cdims) and the shape of the original tensor (tshape).
+
+        Parameters
+        ----------
+        array:
+            Representation of sparse tensor data (sparse or dense).
+        rdims:
+            Mapping of row indices.
+        cdims:
+            Mapping of column indices.
+        tshape:
+            Shape of the original tensor.
+        """
+        vals = None
+        if isinstance(array, np.ndarray):
+            vals = np.expand_dims(array[array.nonzero()], axis=1)
+        elif sparse.issparse(array):
+            vals = np.expand_dims(array.tocoo(False).data, axis=1)
+        else:
+            raise ValueError(
+                f"Expected sparse matrix or array but received: {type(array)}"
+            )
+        subs = np.vstack(array.nonzero()).transpose()
+        return ttb.sptenmat.from_data(subs, vals, rdims, cdims, tshape)
+
     def to_sptensor(self) -> ttb.sptensor:
         """
         Contruct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`
@@ -208,11 +249,14 @@ class sptenmat(object):
         vals = None
         subs = None
         if self.subs.size > 0:
-            print(f"Rdims: {self.rdims}")
             tshape = np.array(self.tshape)
             rdims = tt_ind2sub(tshape[self.rdims], self.subs[:, 0])
             cdims = tt_ind2sub(tshape[self.cdims], self.subs[:, 1])
-            subs = np.hstack([rdims, cdims], dtype=int)
+            subs = np.zeros(
+                (rdims.shape[0], rdims.shape[1] + cdims.shape[1]), dtype=int
+            )
+            subs[:, self.rdims] = rdims
+            subs[:, self.cdims] = cdims
             vals = self.vals
         return ttb.sptensor(subs, vals, self.tshape)
 
@@ -220,10 +264,6 @@ class sptenmat(object):
     def shape(self) -> Tuple[int, ...]:
         """
         Return the shape of a sptenmat
-
-        Returns
-        -------
-        tuple
         """
         if self.tshape == ():
             return ()

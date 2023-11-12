@@ -316,6 +316,12 @@ def test_sptenmat_to_sptensor(sample_sptensor_2way):
     )
 
 
+def test_sptenmat_from_sparse(sample_sptensor_2way):
+    params3, sptensorInstance = sample_sptensor_2way
+    with pytest.raises(ValueError):
+        ttb.sptenmat.from_array("NotAnArray")
+
+
 def test_sptenmat__str__(sample_sptensor_3way):
     (params3, sptensorInstance3) = sample_sptensor_3way
     tshape = params3["tshape"]

@@ -48,66 +48,6 @@ from pyttb.pyttb_utils import (
 )
 
 
-def tt_to_sparse_matrix(
-    sptensorInstance: sptensor, mode: int, transpose: bool = False
-) -> sparse.coo_matrix:
-    """
-    Helper function to unwrap sparse tensor into sparse matrix, should replace the
-    core need for sptenmat.
-
-    Parameters
-    ----------
-    sptensorInstance:
-        Sparse tensor to unwrap.
-    mode:
-        Mode around which to unwrap tensor.
-    transpose:
-        Whether or not to transpose unwrapped tensor.
-    """
-    old = np.setdiff1d(np.arange(sptensorInstance.ndims), mode).astype(int)
-    spmatrix = sptensorInstance.reshape(
-        (np.prod(np.array(sptensorInstance.shape)[old]),), old
-    ).spmatrix()
-    if transpose:
-        return spmatrix.transpose()
-    return spmatrix
-
-
-def tt_from_sparse_matrix(
-    spmatrix: sparse.coo_matrix, shape: Any, mode: int, idx: int
-) -> sptensor:
-    """
-    Helper function to wrap sparse matrix into sparse tensor.
-    Inverse of :meth:`pyttb.tt_to_sparse_matrix`.
-
-    Parameters
-    ----------
-    spmatrix:
-    mode:
-        Mode around which tensor was unwrapped.
-    idx:
-        in {0,1}, idx of mode in spmatrix, s.b. 0 for tranpose=True.
-    """
-    siz = np.array(shape)
-    old = np.setdiff1d(np.arange(len(shape)), mode).astype(int)
-    if not isinstance(spmatrix, sparse.coo_matrix):
-        spmatrix = sparse.coo_matrix(spmatrix)
-    subs = np.vstack((spmatrix.row, spmatrix.col)).transpose()
-    vals = spmatrix.data[:, None]
-    sptensorInstance = ttb.sptensor(subs, vals, spmatrix.shape, copy=False)
-
-    # This expands the compressed dimension back to full size
-    sptensorInstance = sptensorInstance.reshape(siz[old], idx)
-    # This puts the modes in the right order, reshape places modified modes after the
-    # unchanged ones
-    sptensorInstance = sptensorInstance.reshape(
-        shape,
-        np.concatenate([np.arange(1, mode + 1), [0], np.arange(mode + 1, len(shape))]),
-    )
-
-    return sptensorInstance
-
-
 class sptensor:
     """
     SPTENSOR Class for sparse tensors.
@@ -3515,22 +3455,20 @@ class sptensor:
         siz[final_dim] = matrices.shape[0]
 
         # Compute self[mode]'
-        Xnt = tt_to_sparse_matrix(self, final_dim, True)
-
-        # Reshape puts the reshaped things after the unchanged modes, transpose then
-        # puts it in front
-        idx = 0
+        Xnt = ttb.sptenmat.from_tensor_type(
+            self, np.array([final_dim]), cdims_cyclic="t"
+        )
 
         # Convert to sparse matrix and do multiplication; generally result is sparse
-        Z = Xnt.dot(matrices.transpose())
+        Z = Xnt.double().dot(matrices.transpose())
 
         # Rearrange back into sparse tensor of correct shape
-        Ynt = tt_from_sparse_matrix(Z, siz, final_dim, idx)
+        Ynt = ttb.sptenmat.from_array(Z, Xnt.rdims, Xnt.cdims, tuple(siz)).to_sptensor()
 
         if not isinstance(Z, np.ndarray) and Z.nnz <= 0.5 * np.prod(siz):
             return Ynt
         # TODO evaluate performance loss by casting into sptensor then tensor.
-        #  I assume minimal since we are already using spare matrix representation
+        #  I assume minimal since we are already using sparse matrix representation
         return Ynt.to_tensor()
 
     @overload
