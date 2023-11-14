@@ -5,6 +5,7 @@ Tensor Classes
     :maxdepth: 2
 
     ktensor.rst
+    sptenmat.rst
     sptensor.rst
     sumtensor.rst
     tensor.rst

@@ -16,7 +16,6 @@ from scipy import sparse
 
 import pyttb as ttb
 from pyttb import pyttb_utils as ttb_utils
-from pyttb.sptensor import tt_to_sparse_matrix
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/sptensor."
 
@@ -626,14 +625,18 @@ class ttensor:
         H = self.core.ttm(V)
 
         if isinstance(H, ttb.sptensor):
-            HnT = tt_to_sparse_matrix(H, n, True)
+            HnT = ttb.sptenmat.from_tensor_type(
+                H, np.array([n]), cdims_cyclic="t"
+            ).double()
         else:
             HnT = ttb.tenmat.from_tensor_type(H.full(), cdims=np.array([n])).double()
 
         G = self.core
 
         if isinstance(G, ttb.sptensor):
-            GnT = tt_to_sparse_matrix(G, n, True)
+            GnT = ttb.sptenmat.from_tensor_type(
+                G, np.array([n]), cdims_cyclic="t"
+            ).double()
         else:
             GnT = ttb.tenmat.from_tensor_type(G.full(), cdims=np.array([n])).double()
 
