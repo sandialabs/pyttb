@@ -9,6 +9,7 @@ from typing import Literal, Optional, Tuple, Union
 import numpy as np
 
 import pyttb as ttb
+from pyttb.pyttb_utils import gather_wrap_dims
 
 
 class tenmat:
@@ -109,9 +110,9 @@ class tenmat:
         return ttb.tenmat.from_tensor_type(ttb.tensor(data, tshape), rdims, cdims)
 
     @classmethod
-    def from_tensor_type(  # noqa: PLR0912
+    def from_tensor_type(
         cls,
-        source: Union[ttb.tensor, tenmat],
+        source: Union[ttb.tensor],
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
         cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"]]] = None,
@@ -145,36 +146,7 @@ class tenmat:
             if cdims is not None and not sum(np.in1d(cdims, alldims)) == len(cdims):
                 assert False, "Values in cdims must be in [0, source.ndims]."
 
-            if rdims is not None and cdims is None:
-                # Single row mapping
-                if len(rdims) == 1 and cdims_cyclic is not None:
-                    if cdims_cyclic == "fc":
-                        # cdims = [rdims+1:n, 1:rdims-1];
-                        cdims = np.array(
-                            list(range(rdims[0] + 1, n)) + list(range(rdims[0]))
-                        )
-                    elif cdims_cyclic == "bc":
-                        # cdims = [rdims-1:-1:1, n:-1:rdims+1];
-                        cdims = np.array(
-                            list(range(rdims[0] - 1, -1, -1))
-                            + list(range(n - 1, rdims[0], -1))
-                        )
-                    else:
-                        assert False, (
-                            "Unrecognized value for cdims_cyclic pattern, must be "
-                            '"fc" or "bc".'
-                        )
-
-                else:
-                    # Multiple row mapping
-                    cdims = np.setdiff1d(alldims, rdims)
-
-            elif rdims is None and cdims is not None:
-                rdims = np.setdiff1d(alldims, cdims)
-
-            # Making typing happy
-            assert rdims is not None
-            assert cdims is not None
+            rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
             # if rdims or cdims is empty, hstack will output an array of float not int
             if rdims.size == 0:
                 dims = cdims.copy()

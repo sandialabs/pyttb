@@ -29,6 +29,7 @@ from scipy import sparse
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
+    gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
     tt_dimscheck,
@@ -686,14 +687,14 @@ class sptensor:
         B[idx.astype(int)] = self.vals.transpose()[0]
         return B
 
-    def to_sptenmat(  # noqa: PLR0912
+    def to_sptenmat(
         self,
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
         cdims_cyclic: Optional[
             Union[Literal["fc"], Literal["bc"], Literal["t"]]
         ] = None,
-    ):
+    ) -> ttb.sptenmat:
         """
         Construct a :class:`pyttb.sptenmat` from a :class:`pyttb.sptensor` and
         unwrapping details.
@@ -761,37 +762,7 @@ class sptensor:
         n = self.ndims
         alldims = np.array([range(n)])
 
-        if rdims is not None and cdims is None:
-            # Single row mapping
-            if len(rdims) == 1 and cdims_cyclic is not None:
-                # TODO we should be able to remove this since we can just specify
-                #   cdims alone
-                if cdims_cyclic == "t":
-                    cdims = rdims
-                    rdims = np.setdiff1d(alldims, rdims)
-                elif cdims_cyclic == "fc":
-                    cdims = np.array(
-                        [i for i in range(rdims[0] + 1, n)]
-                        + [i for i in range(rdims[0])]
-                    )
-                elif cdims_cyclic == "bc":
-                    cdims = np.array(
-                        [i for i in range(rdims[0] - 1, -1, -1)]
-                        + [i for i in range(n - 1, rdims[0], -1)]
-                    )
-                else:
-                    assert False, (
-                        "Unrecognized value for cdims_cyclic pattern, "
-                        'must be "fc" or "bc".'
-                    )
-            else:
-                # Multiple row mapping
-                cdims = np.setdiff1d(alldims, rdims)
-
-        elif rdims is None and cdims is not None:
-            rdims = np.setdiff1d(alldims, cdims)
-
-        assert rdims is not None and cdims is not None
+        rdims, cdims = gather_wrap_dims(self.ndims, rdims, cdims, cdims_cyclic)
         dims = np.hstack([rdims, cdims], dtype=int)
         if not len(dims) == n or not (alldims == np.sort(dims)).all():
             assert False, (
