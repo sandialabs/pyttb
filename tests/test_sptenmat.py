@@ -2,6 +2,8 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+from copy import deepcopy
+
 import numpy as np
 import pytest
 from scipy import sparse
@@ -134,7 +136,15 @@ def test_sptenmat_initialization_from_tensor_type(
     params, sptenmatInstance = sample_sptenmat
     params3, sptensorInstance = sample_sptensor_3way
     # Copy constructor
-    S = ttb.sptenmat.from_tensor_type(sptenmatInstance)
+    S = sptenmatInstance.copy()
+    assert S is not sptenmatInstance
+    np.testing.assert_array_equal(S.subs, sptenmatInstance.subs)
+    np.testing.assert_array_equal(S.vals, sptenmatInstance.vals)
+    np.testing.assert_array_equal(S.rdims, sptenmatInstance.rdims)
+    np.testing.assert_array_equal(S.cdims, sptenmatInstance.cdims)
+    np.testing.assert_array_equal(S.tshape, sptenmatInstance.tshape)
+
+    S = deepcopy(sptenmatInstance)
     assert S is not sptenmatInstance
     np.testing.assert_array_equal(S.subs, sptenmatInstance.subs)
     np.testing.assert_array_equal(S.vals, sptenmatInstance.vals)

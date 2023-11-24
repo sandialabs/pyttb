@@ -131,16 +131,6 @@ class tenmat:
         -------
         Constructed tenmat
         """
-        # Case 0b: Copy Constructor
-        if isinstance(source, tenmat):
-            # Create tenmat
-            tenmatInstance = cls()
-            tenmatInstance.tshape = source.tshape
-            tenmatInstance.rindices = source.rindices.copy()
-            tenmatInstance.cindices = source.cindices.copy()
-            tenmatInstance.data = source.data.copy()
-            return tenmatInstance
-
         # Case III: Convert a tensor to a tenmat
         if isinstance(source, ttb.tensor):
             n = source.ndims
@@ -210,8 +200,38 @@ class tenmat:
             tenmatInstance.data = data.copy()
             return tenmatInstance
         raise ValueError(
-            f"Can only create tenmat from tensor or tenmat but recieved {type(source)}"
+            f"Can only create tenmat from tensor but recieved {type(source)}"
         )
+
+    def copy(self) -> tenmat:
+        """
+        Return a deep copy of the :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        Create a :class:`pyttb.tenmat` (TM1) and make a deep copy. Verify
+        the deep copy (TM3) is not just a reference (like TM2) to the original.
+
+        >>> T1 = ttb.tensor(np.ones((3,2)))
+        >>> TM1 = ttb.tenmat.from_tensor_type(T1, np.array([0]))
+        >>> TM2 = TM1
+        >>> TM3 = TM1.copy()
+        >>> TM1[0,0] = 3
+        >>> TM1[0,0] == TM2[0,0]
+        True
+        >>> TM1[0,0] == TM3[0,0]
+        False
+        """
+        # Create tenmat
+        tenmatInstance = tenmat()
+        tenmatInstance.tshape = self.tshape
+        tenmatInstance.rindices = self.rindices.copy()
+        tenmatInstance.cindices = self.cindices.copy()
+        tenmatInstance.data = self.data.copy()
+        return tenmatInstance
+
+    def __deepcopy__(self, memo):
+        return self.copy()
 
     def to_tensor(self) -> ttb.tensor:
         """Return copy of tenmat data as a tensor"""
@@ -309,7 +329,7 @@ class tenmat:
         """
         # One argument is a scalar
         if np.isscalar(other):
-            Z = ttb.tenmat.from_tensor_type(self)
+            Z = self.copy()
             Z.data = Z.data * other
             return Z
         if isinstance(other, tenmat):
@@ -370,7 +390,7 @@ class tenmat:
 
         # One argument is a scalar
         if np.isscalar(other):
-            Z = ttb.tenmat.from_tensor_type(self)
+            Z = self.copy()
             Z.data = Z.data + other
             return Z
         if isinstance(other, tenmat):
@@ -378,7 +398,7 @@ class tenmat:
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
 
-            Z = ttb.tenmat.from_tensor_type(self)
+            Z = self.copy()
             Z.data = Z.data + other.data
             return Z
         assert False, "tenmat addition only valid with scalar or tenmat objects."
@@ -412,7 +432,7 @@ class tenmat:
 
         # One argument is a scalar
         if np.isscalar(other):
-            Z = ttb.tenmat.from_tensor_type(self)
+            Z = self.copy()
             Z.data = Z.data - other
             return Z
         if isinstance(other, tenmat):
@@ -420,7 +440,7 @@ class tenmat:
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
 
-            Z = ttb.tenmat.from_tensor_type(self)
+            Z = self.copy()
             Z.data = Z.data - other.data
             return Z
         assert False, "tenmat subtraction only valid with scalar or tenmat objects."
@@ -440,7 +460,7 @@ class tenmat:
 
         # One argument is a scalar
         if np.isscalar(other):
-            Z = ttb.tenmat.from_tensor_type(self)
+            Z = self.copy()
             Z.data = other - Z.data
             return Z
         if isinstance(other, tenmat):
@@ -448,7 +468,7 @@ class tenmat:
             if not self.shape == other.shape:
                 assert False, "tenmat shape mismatch."
 
-            Z = ttb.tenmat.from_tensor_type(self)
+            Z = self.copy()
             Z.data = other.data - Z.data
             return Z
         assert False, "tenmat subtraction only valid with scalar or tenmat objects."
@@ -463,7 +483,7 @@ class tenmat:
             copy of tenmat
         """
 
-        T = ttb.tenmat.from_tensor_type(self)
+        T = self.copy()
 
         return T
 
@@ -477,7 +497,7 @@ class tenmat:
             copy of tenmat
         """
 
-        T = ttb.tenmat.from_tensor_type(self)
+        T = self.copy()
         T.data = -1 * T.data
 
         return T

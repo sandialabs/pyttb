@@ -2,6 +2,8 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+from copy import deepcopy
+
 import numpy as np
 import pytest
 
@@ -231,7 +233,14 @@ def test_tenmat_initialization_from_tensor_type(
     data = params["data"]
 
     # Copy Constructor
-    tenmatCopy = ttb.tenmat.from_tensor_type(tenmatInstance)
+    tenmatCopy = tenmatInstance.copy()
+    assert (tenmatCopy.data == data).all()
+    assert (tenmatCopy.rindices == rdims).all()
+    assert (tenmatCopy.cindices == cdims).all()
+    assert tenmatCopy.shape == data.shape
+    assert tenmatCopy.tshape == tshape
+
+    tenmatCopy = deepcopy(tenmatInstance)
     assert (tenmatCopy.data == data).all()
     assert (tenmatCopy.rindices == rdims).all()
     assert (tenmatCopy.cindices == cdims).all()
@@ -427,7 +436,7 @@ def test_tenmat__setitem__():
     tenmatInstance = ttb.tenmat.from_tensor_type(tensorInstance, rdims=np.array([0, 1]))
 
     # single element -> scalar
-    tenmatInstance2 = ttb.tenmat.from_tensor_type(tenmatInstance)
+    tenmatInstance2 = tenmatInstance.copy()
     for i in range(4):
         for j in range(4):
             tenmatInstance2[i, j] = i * 4 + j + 10

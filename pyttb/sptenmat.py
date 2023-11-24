@@ -94,7 +94,9 @@ class sptenmat(object):
             newsubs, loc = np.unique(subs, axis=0, return_inverse=True)
             # Sum the corresponding values
             # Squeeze to convert from column vector to row vector
-            newvals = accumarray(loc, np.squeeze(vals), size=newsubs.shape[0], func=sum)
+            newvals = accumarray(
+                loc, np.squeeze(vals, axis=1), size=newsubs.shape[0], func=sum
+            )
 
         # Find the nonzero indices of the new values
         nzidx = np.nonzero(newvals)
@@ -115,27 +117,16 @@ class sptenmat(object):
     @classmethod
     def from_tensor_type(  # noqa: PLR0912
         cls,
-        source: Union[ttb.sptensor, ttb.sptenmat],
+        source: Union[ttb.sptensor],
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
         cdims_cyclic: Optional[
             Union[Literal["fc"], Literal["bc"], Literal["t"]]
         ] = None,
     ):
-        valid_sources = (sptenmat, ttb.sptensor)
-        assert isinstance(source, valid_sources), (
-            "Can only generate sptenmat from "
-            f"{[src.__name__ for src in valid_sources]} but received {type(source)}."
+        assert isinstance(source, ttb.sptensor), (
+            "Can only generate sptenmat from " f"sptensor but received {type(source)}."
         )
-        # Copy Constructor
-        if isinstance(source, sptenmat):
-            return cls().from_data(
-                source.subs.copy(),
-                source.vals.copy(),
-                source.rdims.copy(),
-                source.cdims.copy(),
-                source.tshape,
-            )
 
         if isinstance(source, ttb.sptensor):
             n = source.ndims
@@ -242,6 +233,37 @@ class sptenmat(object):
         subs = np.vstack(array.nonzero()).transpose()
         return ttb.sptenmat.from_data(subs, vals, rdims, cdims, tshape)
 
+    def copy(self) -> sptenmat:
+        """
+        Return a deep copy of the :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        Create a :class:`pyttb.sptenmat` (ST1) and make a deep copy. Verify
+        the deep copy (ST3) is not just a reference (like ST2) to the original.
+
+        >>> S1 = ttb.sptensor(shape=(2,2))
+        >>> S1[0,0] = 1
+        >>> ST1 = ttb.sptenmat.from_tensor_type(S1, np.array([0]))
+        >>> ST2 = ST1
+        >>> ST3 = ST1.copy()
+        >>> ST1[0,0] = 3
+        >>> ST1.to_sptensor().isequal(ST2.to_sptensor())
+        True
+        >>> ST1.to_sptensor().isequal(ST3.to_sptensor())
+        False
+        """
+        return sptenmat().from_data(
+            self.subs.copy(),
+            self.vals.copy(),
+            self.rdims.copy(),
+            self.cdims.copy(),
+            self.tshape,
+        )
+
+    def __deepcopy__(self, memo):
+        return self.copy()
+
     def to_sptensor(self) -> ttb.sptensor:
         """
         Contruct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`
@@ -312,13 +334,13 @@ class sptenmat(object):
         """
         Unary plus operator (+).
         """
-        return self.from_tensor_type(self)
+        return self.copy()
 
     def __neg__(self):
         """
         Unary minus operator (-).
         """
-        result = self.from_tensor_type(self)
+        result = self.copy()
         result.vals *= -1
         return result
 
