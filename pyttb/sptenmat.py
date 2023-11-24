@@ -5,17 +5,17 @@
 """Classes and functions for working with Kruskal tensors."""
 from __future__ import annotations
 
-from typing import Literal, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
-from pyttb.pyttb_utils import tt_ind2sub, tt_sub2ind
+from pyttb.pyttb_utils import tt_ind2sub
 
 
-class sptenmat(object):
+class sptenmat:
     """
     SPTENMAT Store sparse tensor as a sparse matrix.
 
@@ -132,89 +132,6 @@ class sptenmat(object):
         self.vals = newvals
 
     @classmethod
-    def from_tensor_type(  # noqa: PLR0912
-        cls,
-        source: Union[ttb.sptensor],
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        cdims_cyclic: Optional[
-            Union[Literal["fc"], Literal["bc"], Literal["t"]]
-        ] = None,
-    ):
-        assert isinstance(source, ttb.sptensor), (
-            "Can only generate sptenmat from " f"sptensor but received {type(source)}."
-        )
-
-        if isinstance(source, ttb.sptensor):
-            n = source.ndims
-            alldims = np.array([range(n)])
-
-            if rdims is not None and cdims is None:
-                # Single row mapping
-                if len(rdims) == 1 and cdims_cyclic is not None:
-                    if cdims_cyclic == "t":
-                        cdims = rdims
-                        rdims = np.setdiff1d(alldims, rdims)
-                    elif cdims_cyclic == "fc":
-                        # cdims = [rdims+1:n, 1:rdims-1];
-                        cdims = np.array(
-                            [i for i in range(rdims[0] + 1, n)]
-                            + [i for i in range(rdims[0])]
-                        )
-                    elif cdims_cyclic == "bc":
-                        # cdims = [rdims-1:-1:1, n:-1:rdims+1];
-                        cdims = np.array(
-                            [i for i in range(rdims[0] - 1, -1, -1)]
-                            + [i for i in range(n - 1, rdims[0], -1)]
-                        )
-                    else:
-                        assert False, (
-                            "Unrecognized value for cdims_cyclic pattern, "
-                            'must be "fc" or "bc".'
-                        )
-                else:
-                    # Multiple row mapping
-                    cdims = np.setdiff1d(alldims, rdims)
-
-            elif rdims is None and cdims is not None:
-                rdims = np.setdiff1d(alldims, cdims)
-
-            assert rdims is not None and cdims is not None
-            dims = np.hstack([rdims, cdims], dtype=int)
-            if not len(dims) == n or not (alldims == np.sort(dims)).all():
-                assert False, (
-                    "Incorrect specification of dimensions, the sorted "
-                    "concatenation of rdims and cdims must be range(source.ndims)."
-                )
-
-            rsize = np.array(source.shape)[rdims]
-            csize = np.array(source.shape)[cdims]
-
-            if rsize.size == 0:
-                ridx = np.zeros((source.nnz, 1))
-            elif source.subs.size == 0:
-                ridx = np.array([], dtype=int)
-            else:
-                ridx = tt_sub2ind(rsize, source.subs[:, rdims])
-            ridx = ridx.reshape((ridx.size, 1)).astype(int)
-
-            if csize.size == 0:
-                cidx = np.zeros((source.nnz, 1))
-            elif source.subs.size == 0:
-                cidx = np.array([], dtype=int)
-            else:
-                cidx = tt_sub2ind(csize, source.subs[:, cdims])
-            cidx = cidx.reshape((cidx.size, 1)).astype(int)
-
-            return cls(
-                np.hstack([ridx, cidx], dtype=int),
-                source.vals.copy(),
-                rdims.astype(int),
-                cdims.astype(int),
-                source.shape,
-            )
-
-    @classmethod
     def from_array(
         cls,
         array: Union[sparse.coo_matrix, np.ndarray],
@@ -261,7 +178,7 @@ class sptenmat(object):
 
         >>> S1 = ttb.sptensor(shape=(2,2))
         >>> S1[0,0] = 1
-        >>> ST1 = ttb.sptenmat.from_tensor_type(S1, np.array([0]))
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST2 = ST1
         >>> ST3 = ST1.copy()
         >>> ST1[0,0] = 3
@@ -346,6 +263,22 @@ class sptenmat(object):
         squares of entries) of the :class:`pyttb.sptenmat`.
         """
         return np.linalg.norm(self.vals)
+
+    def isequal(self, other: sptenmat) -> bool:
+        """
+        Exact equality for :class:`pyttb.sptenmat`
+        """
+        if not isinstance(other, ttb.sptenmat):
+            raise ValueError(
+                f"Can only compares against other sptenmat but received: {type(other)}"
+            )
+        return (
+            np.array_equal(self.vals, other.vals)
+            and np.array_equal(self.subs, other.subs)
+            and self.tshape == other.tshape
+            and np.array_equal(self.cdims, other.cdims)
+            and np.array_equal(self.rdims, other.rdims)
+        )
 
     def __pos__(self):
         """
