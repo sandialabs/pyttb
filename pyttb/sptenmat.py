@@ -23,19 +23,8 @@ class sptenmat(object):
 
     __slots__ = ("tshape", "rdims", "cdims", "subs", "vals")
 
-    def __init__(self):
-        """
-        Construct an empty :class:`pyttb.sptenmat`
-        """
-        self.tshape = ()
-        self.rdims = np.array([])
-        self.cdims = np.array([])
-        self.subs = np.array([], ndmin=2, dtype=int)
-        self.vals = np.array([], ndmin=2)
-
-    @classmethod
-    def from_data(  # noqa: PLR0913
-        cls,
+    def __init__(  # noqa: PLR0913
+        self,
         subs: Optional[np.ndarray] = None,
         vals: Optional[np.ndarray] = None,
         rdims: Optional[np.ndarray] = None,
@@ -50,15 +39,45 @@ class sptenmat(object):
         Parameters
         ----------
         subs:
-            Location of non-zero entries
+            Location of non-zero entries, in sptenmat.
         vals:
-            Values for non-zero entries
+            Values for non-zero entries, in sptenmat.
         rdims:
-            Mapping of row indices
+            Mapping of row indices.
         cdims:
-            Mapping of column indices
+            Mapping of column indices.
         tshape:
-            Shape of the original tensor
+            Shape of the original tensor.
+
+        Examples
+        --------
+        Create an empty :class:`pyttb.sptenmat`:
+
+        >>> S = ttb.sptenmat()
+        >>> S # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape () with 0 nonzeros
+        rdims = [  ] (modes of sptensor corresponding to rows)
+        cdims = [  ] (modes of sptensor corresponding to columns)
+
+        Create a :class:`pyttb.sptenmat` from subscripts, values, and unwrapping
+            dimensions:
+
+        >>> subs = np.array([[1, 6], [1, 7]])
+        >>> vals = np.array([[6], [7]])
+        >>> tshape = (4, 4, 4)
+        >>> S = ttb.sptenmat(\
+            subs,\
+            vals,\
+            rdims=np.array([0]),\
+            cdims=np.array([1,2]),\
+            tshape=tshape\
+        )
+        >>> S # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [1, 6] = 6
+            [1, 7] = 7
         """
         if subs is None:
             subs = np.array([], ndmin=2, dtype=int)
@@ -106,13 +125,11 @@ class sptenmat(object):
         if newvals.size > 0:
             newvals = newvals[:, None]
 
-        sptenmatInstance = cls()
-        sptenmatInstance.tshape = tshape
-        sptenmatInstance.rdims = rdims.copy().astype(int)
-        sptenmatInstance.cdims = cdims.copy().astype(int)
-        sptenmatInstance.subs = newsubs
-        sptenmatInstance.vals = newvals
-        return sptenmatInstance
+        self.tshape = tshape
+        self.rdims = rdims.copy().astype(int)
+        self.cdims = cdims.copy().astype(int)
+        self.subs = newsubs
+        self.vals = newvals
 
     @classmethod
     def from_tensor_type(  # noqa: PLR0912
@@ -189,7 +206,7 @@ class sptenmat(object):
                 cidx = tt_sub2ind(csize, source.subs[:, cdims])
             cidx = cidx.reshape((cidx.size, 1)).astype(int)
 
-            return cls().from_data(
+            return cls(
                 np.hstack([ridx, cidx], dtype=int),
                 source.vals.copy(),
                 rdims.astype(int),
@@ -231,7 +248,7 @@ class sptenmat(object):
                 f"Expected sparse matrix or array but received: {type(array)}"
             )
         subs = np.vstack(array.nonzero()).transpose()
-        return ttb.sptenmat.from_data(subs, vals, rdims, cdims, tshape)
+        return ttb.sptenmat(subs, vals, rdims, cdims, tshape)
 
     def copy(self) -> sptenmat:
         """
@@ -253,7 +270,7 @@ class sptenmat(object):
         >>> ST1.to_sptensor().isequal(ST3.to_sptensor())
         False
         """
-        return sptenmat().from_data(
+        return sptenmat(
             self.subs.copy(),
             self.vals.copy(),
             self.rdims.copy(),

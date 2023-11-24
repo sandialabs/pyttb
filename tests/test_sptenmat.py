@@ -61,7 +61,7 @@ def sample_sptenmat():
         "cdims": cdims,
         "tshape": tshape,
     }
-    sptenmatInstance = ttb.sptenmat.from_data(subs, vals, rdims, cdims, tshape)
+    sptenmatInstance = ttb.sptenmat(subs, vals, rdims, cdims, tshape)
     return data, sptenmatInstance
 
 
@@ -90,7 +90,7 @@ def test_sptenmat_initialization_from_data(sample_sptenmat):
     shape = (np.prod(np.array(tshape)[rdims]), np.prod(np.array(tshape)[cdims]))
 
     # Constructor from data: subs, vals, rdims, cdims, and tshape
-    S = ttb.sptenmat.from_data(subs, vals, rdims, cdims, tshape)
+    S = ttb.sptenmat(subs, vals, rdims, cdims, tshape)
     np.testing.assert_array_equal(S.subs, subs)
     np.testing.assert_array_equal(S.vals, vals)
     np.testing.assert_array_equal(S.rdims, rdims)
@@ -99,7 +99,7 @@ def test_sptenmat_initialization_from_data(sample_sptenmat):
     np.testing.assert_array_equal(S.shape, shape)
 
     # Constructor from data: rdims, cdims, and tshape
-    S = ttb.sptenmat.from_data(rdims=rdims, cdims=cdims, tshape=tshape)
+    S = ttb.sptenmat(rdims=rdims, cdims=cdims, tshape=tshape)
     np.testing.assert_array_equal(S.subs, np.array([]))
     np.testing.assert_array_equal(S.vals, np.array([]))
     np.testing.assert_array_equal(S.rdims, rdims)
@@ -110,7 +110,7 @@ def test_sptenmat_initialization_from_data(sample_sptenmat):
     # Constructor from data: rdims, and tshape
     all_rdims = np.arange(len(tshape))
     rdims_shape = (np.prod(tshape), 1)
-    S = ttb.sptenmat.from_data(rdims=all_rdims, tshape=tshape)
+    S = ttb.sptenmat(rdims=all_rdims, tshape=tshape)
     np.testing.assert_array_equal(S.subs, np.array([]))
     np.testing.assert_array_equal(S.vals, np.array([]))
     np.testing.assert_array_equal(S.rdims, all_rdims)
@@ -120,7 +120,7 @@ def test_sptenmat_initialization_from_data(sample_sptenmat):
 
     # Constructor from data: cdims, and tshape
     cdims_shape = (1, np.prod(tshape))
-    S = ttb.sptenmat.from_data(cdims=all_rdims, tshape=tshape)
+    S = ttb.sptenmat(cdims=all_rdims, tshape=tshape)
     np.testing.assert_array_equal(S.subs, np.array([]))
     np.testing.assert_array_equal(S.vals, np.array([]))
     np.testing.assert_array_equal(S.rdims, np.array([]))
