@@ -131,7 +131,7 @@ class tenmat:
         -------
         Constructed tenmat
         """
-        # Case 0b: Copy Contructor
+        # Case 0b: Copy Constructor
         if isinstance(source, tenmat):
             # Create tenmat
             tenmatInstance = cls()

@@ -10,7 +10,6 @@ import pytest
 import scipy.sparse as sparse
 
 import pyttb as ttb
-from pyttb.sptensor import tt_from_sparse_matrix, tt_to_sparse_matrix
 
 
 @pytest.fixture()
@@ -90,21 +89,21 @@ def test_sptensor_initialization_from_function():
     assert sptensorInstance.shape == shape
     assert len(sptensorInstance.subs) == int(nz * np.prod(shape))
 
-    # Random Tensor exception for negative non-zeros
+    # Random Tensor exception for negative nonzeros
     nz = -1
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_function(function_handle, shape, nz)
     assert (
-        "Requested number of non-zeros must be positive and less than the total size"
+        "Requested number of nonzeros must be positive and less than the total size"
         in str(excinfo)
     )
 
-    # Random Tensor exception for negative non-zeros
+    # Random Tensor exception for negative nonzeros
     nz = np.prod(shape) + 1
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_function(function_handle, shape, nz)
     assert (
-        "Requested number of non-zeros must be positive and less than the total size"
+        "Requested number of nonzeros must be positive and less than the total size"
         in str(excinfo)
     )
 
@@ -229,7 +228,7 @@ def test_sptensor_full(sample_sptensor):
     emptyTensor = ttb.tensor()
     assert emptyTensor.isequal(emptySptensor.full())
 
-    # Empty, no non-zeros tensor conversion
+    # Empty, no nonzeros tensor conversion
     emptySptensor = ttb.sptensor(np.array([]), np.array([]), data["shape"])
     assert np.array_equal(emptySptensor.full().data, np.zeros(data["shape"]))
 
@@ -256,31 +255,6 @@ def test_sptensor_ndims(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
     assert sptensorInstance.ndims == 3
-
-
-def test_sptensor_extract(sample_sptensor, capsys):
-    (data, sptensorInstance) = sample_sptensor
-
-    # Out of range subs case
-    # Too large
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.extract(np.array([[4, 4, 4], [1, 1, 1]]))
-    assert "Invalid subscripts" in str(excinfo)
-    capsys.readouterr()
-    # Negative #TODO, would we like to support reverse indexing which is pythonic
-    with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.extract(np.array([[-1, -1, -1], [1, 1, 1]]))
-    assert "Invalid subscripts" in str(excinfo)
-    capsys.readouterr()
-
-    # List of subs case
-    assert np.array_equal(
-        sptensorInstance.extract(np.array([[1, 1, 1], [1, 1, 3]])), [[0.5], [1.5]]
-    )
-
-    # Single sub case
-    # TODO if you pass a single sub should you get a list of vals with one entry or just a single val
-    assert np.array_equal(sptensorInstance.extract(np.array([1, 1, 1])), [[0.5]])
 
 
 class TestGetItem:
@@ -445,6 +419,12 @@ class TestSetItem:
         dense_data[tuple(sub.flatten())] = arbitrary_value
         assert np.array_equal(sptensorInstance.full().data, dense_data)
 
+        # Tuple key, single value
+        sub = (1, 1, 1)
+        sptensorInstance[sub] = arbitrary_value
+        dense_data[sub] = arbitrary_value
+        assert np.array_equal(sptensorInstance.full().data, dense_data)
+
         # Multiple keys, single value
         subs = np.array([[1, 1, 1], [1, 1, 3]])
         sptensorInstance[subs] = arbitrary_value + 1
@@ -457,6 +437,15 @@ class TestSetItem:
         sptensorInstance[subs] = vals
         dense_data[tuple(subs.transpose())] = vals.flatten()
         assert np.array_equal(sptensorInstance.full().data, dense_data)
+
+        # 1-way sptensor
+        sptensorInstance1 = ttb.sptensor(shape=(30,))
+        dense_data1 = sptensorInstance1.full().data
+        sptensorInstance1[0] = arbitrary_value
+        dense_data1[0] = arbitrary_value
+        sptensorInstance1[4:6] = arbitrary_value + 1
+        dense_data1[4:6] = arbitrary_value + 1
+        assert np.array_equal(sptensorInstance1.full().data, dense_data1)
 
     def test_subtensor_invalid(
         self,
@@ -768,7 +757,7 @@ def test_sptensor__eq__(sample_sptensor):
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance == np.ones((4, 4, 4))
-    assert "Sptensor == argument must be scalar or sptensor" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__ne__(sample_sptensor):
@@ -812,9 +801,7 @@ def test_sptensor__ne__(sample_sptensor):
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance != np.ones((4, 4, 4))
-    assert "The arguments must be two sptensors or an sptensor and a scalar." in str(
-        excinfo
-    )
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__find(sample_sptensor):
@@ -932,7 +919,7 @@ def test_sptensor__mul__(sample_sptensor):
     # Test mul with wrong shape
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance * ttb.sptensor(np.array([]), np.array([]), (5, 5, 5))
-    assert "Sptensor Multiply requires two tensors of the same shape." in str(excinfo)
+    assert "Sptensor multiply requires two tensors of the same shape." in str(excinfo)
 
     # Test mul with wrong type
     with pytest.raises(AssertionError) as excinfo:
@@ -1020,7 +1007,7 @@ def test_sptensor__le__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance <= "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__ge__(sample_sptensor):
@@ -1053,7 +1040,7 @@ def test_sptensor__ge__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance >= "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__gt__(sample_sptensor):
@@ -1087,7 +1074,7 @@ def test_sptensor__gt__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance > "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor__lt__(sample_sptensor):
@@ -1119,7 +1106,7 @@ def test_sptensor__lt__(sample_sptensor):
     # Test comparison with incorrect type
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance < "string"
-    assert "Cannot compare sptensor with that type" in str(excinfo)
+    assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
 
 def test_sptensor_innerprod(sample_sptensor):
@@ -1293,7 +1280,7 @@ def test_sptensor_reshape(sample_sptensor):
 def test_sptensor_mask(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
-    # Mask captures all non-zero entries
+    # Mask captures all nonzero entries
     assert np.array_equal(sptensorInstance.mask(sptensorInstance), data["vals"])
 
     # Mask correctly skips zeros
@@ -1359,7 +1346,7 @@ def test_sptensor__truediv__(sample_sptensor):
 
     emptySptensor = ttb.sptensor(np.array([]), np.array([]), (4, 4, 4))
 
-    # Sptensor/ non-zero scalar
+    # Sptensor/ nonzero scalar
     assert np.array_equal((sptensorInstance / 5).vals, data["vals"] / 5)
 
     # Sptensor/zero scalar
@@ -1437,7 +1424,7 @@ def test_sptensor_collapse(sample_sptensor):
     assert sptensorInstance.collapse() == np.sum(data["vals"])
 
     # Test with custom function
-    assert sptensorInstance.collapse(fun=sum) == np.sum(data["vals"])
+    assert sptensorInstance.collapse(function_handle=sum) == np.sum(data["vals"])
 
     # Test partial collapse, output vector
     assert np.array_equal(
@@ -1611,11 +1598,13 @@ def test_sptensor_mttkrp(sample_sptensor):
     # Wrong length input
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.mttkrp(np.array([matrix, matrix, matrix, matrix]), 0)
-    assert "List is the wrong length" in str(excinfo)
+    assert "List of factor matrices is the wrong length" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.mttkrp("string", 0)
-    assert "Second argument must be ktensor or array" in str(excinfo)
+    assert "Second argument must be list of numpy.ndarray's or a ktensor" in str(
+        excinfo
+    )
 
 
 def test_sptensor_nvecs(sample_sptensor):
@@ -1720,40 +1709,6 @@ def test_sptensor_ttm(sample_sptensor):
         4,
         1,
     )
-
-
-def test_sptensor_to_sparse_matrix():
-    subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
-    vals = np.array([[0.5], [1.5], [2.5], [3.5]])
-    shape = (4, 4, 4)
-    mode0 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
-    mode1 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3])))
-    mode2 = sparse.coo_matrix(([0.5, 1.5, 2.5, 3.5], ([5, 5, 10, 15], [1, 3, 2, 3])))
-    Ynt = [mode0, mode1, mode2]
-    sptensorInstance = ttb.sptensor(subs, vals, shape)
-
-    for mode in range(sptensorInstance.ndims):
-        Xnt = tt_to_sparse_matrix(sptensorInstance, mode, True)
-        assert (Xnt != Ynt[mode]).nnz == 0
-        assert Xnt.shape == Ynt[mode].shape
-
-
-def test_sptensor_from_sparse_matrix():
-    subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
-    vals = np.array([[0.5], [1.5], [2.5], [3.5]])
-    shape = (4, 4, 4)
-    sptensorInstance = ttb.sptensor(subs, vals, shape)
-    for mode in range(sptensorInstance.ndims):
-        sptensorCopy = sptensorInstance.copy()
-        Xnt = tt_to_sparse_matrix(sptensorCopy, mode, True)
-        Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 0)
-        assert sptensorCopy.isequal(Ynt)
-
-    for mode in range(sptensorInstance.ndims):
-        sptensorCopy = sptensorInstance.copy()
-        Xnt = tt_to_sparse_matrix(sptensorCopy, mode, False)
-        Ynt = tt_from_sparse_matrix(Xnt, sptensorCopy.shape, mode, 1)
-        assert sptensorCopy.isequal(Ynt)
 
 
 def test_sptensor_squash():

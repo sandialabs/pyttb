@@ -24,7 +24,13 @@ import scipy.sparse.linalg
 from typing_extensions import Self
 
 import pyttb as ttb
-from pyttb.pyttb_utils import isrow, isvector, tt_dimscheck, tt_ind2sub
+from pyttb.pyttb_utils import (
+    get_mttkrp_factors,
+    isrow,
+    isvector,
+    tt_dimscheck,
+    tt_ind2sub,
+)
 
 
 class ktensor:
@@ -1041,7 +1047,7 @@ class ktensor:
 
         Returns
         -------
-        Extracted values.
+        Extracted values in a column vector (array).
 
         Examples
         --------
@@ -1080,7 +1086,7 @@ class ktensor:
             vals = vals + tmpvals
         return vals
 
-    def mttkrp(self, U: List[np.ndarray], n: int) -> np.ndarray:
+    def mttkrp(self, U: Union[ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for :class:`pyttb.ktensor`.
 
@@ -1107,11 +1113,7 @@ class ktensor:
         [[24. 24.]
          [24. 24.]]
         """
-        if not isinstance(U, list):
-            assert False, "Second argument must be list of numpy.ndarray's"
-
-        if len(U) != self.ndims:
-            assert False, "List of factor matrices is the wrong length"
+        U = get_mttkrp_factors(U, n, self.ndims)
 
         # Number of columns in input matrices
         if n == 0:
@@ -1164,8 +1166,8 @@ class ktensor:
         Examples
         --------
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> K.norm()
-        9.797958971132712
+        >>> K.norm() # doctest: +ELLIPSIS
+        9.79795897...
         """
         # Compute the matrix of correlation coefficients
         coefMatrix = self.weights[:, None] @ self.weights[None, :]
@@ -2115,7 +2117,9 @@ class ktensor:
                 if len(data) < endloc:
                     assert False, "Data is too short"
                 self.factor_matrices[k] = np.reshape(
-                    data[loc:endloc].copy(), (self.shape[k], self.ncomponents)
+                    data[loc:endloc].copy(),
+                    (self.shape[k], self.ncomponents),
+                    order="F",
                 )
                 loc = endloc
             else:
@@ -2140,7 +2144,8 @@ class ktensor:
         -------
         :class:`pyttb.ktensor`
         """
-        # TODO include test of other as sumtensor and call sumtensor.__add__
+        if isinstance(other, ttb.sumtensor):
+            return other.__add__(self)
         if not isinstance(other, ktensor):
             assert False, "Cannot add instance of this type to a ktensor"
 

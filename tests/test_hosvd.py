@@ -26,7 +26,6 @@ def sample_tensor_3way():
     return params, tensorInstance
 
 
-@pytest.mark.indevelopment
 def test_hosvd_simple_convergence(capsys, sample_tensor):
     (data, T) = sample_tensor
     tol = 1e-4
@@ -47,20 +46,17 @@ def test_hosvd_simple_convergence(capsys, sample_tensor):
     ).norm() / T.norm() > impossible_tol, "Converged beyond provided precision"
 
 
-@pytest.mark.indevelopment
 def test_hosvd_default_init(capsys, sample_tensor):
     (data, T) = sample_tensor
     _ = ttb.hosvd(T, 1)
 
 
-@pytest.mark.indevelopment
 def test_hosvd_smoke_test_verbosity(capsys, sample_tensor):
     """For now just make sure verbosity calcs don't crash"""
     (data, T) = sample_tensor
     ttb.hosvd(T, 1, verbosity=10)
 
 
-@pytest.mark.indevelopment
 def test_hosvd_incorrect_ranks(capsys, sample_tensor):
     (data, T) = sample_tensor
     ranks = list(range(T.ndims - 1))
@@ -68,7 +64,6 @@ def test_hosvd_incorrect_ranks(capsys, sample_tensor):
         _ = ttb.hosvd(T, 1, ranks=ranks)
 
 
-@pytest.mark.indevelopment
 def test_hosvd_incorrect_dimorder(capsys, sample_tensor):
     (data, T) = sample_tensor
     dimorder = list(range(T.ndims - 1))
@@ -80,7 +75,6 @@ def test_hosvd_incorrect_dimorder(capsys, sample_tensor):
         _ = ttb.hosvd(T, 1, dimorder=dimorder)
 
 
-@pytest.mark.indevelopment
 def test_hosvd_3way(capsys, sample_tensor_3way):
     (data, T) = sample_tensor_3way
     M = ttb.hosvd(T, 1e-4, verbosity=0)

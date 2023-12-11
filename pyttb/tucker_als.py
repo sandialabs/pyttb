@@ -120,7 +120,7 @@ def tucker_als(  # noqa: PLR0912,PLR0913,PLR0915
         # Observe that we don't need to calculate an initial guess for the
         # first index in dimorder because that will be solved for in the first
         # inner iteration.
-        for n in range(1, N):
+        for n in dimorder[1::]:
             Uinit[n] = np.random.uniform(0, 1, (input_tensor.shape[n], rank[n]))
     elif isinstance(init, str) and init.lower() in ("nvecs", "eigs"):
         # Compute an orthonormal basis for the dominant

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from enum import Enum
 from inspect import signature
-from typing import Optional, Tuple, Union, get_args, overload
+from typing import List, Optional, Tuple, Union, get_args, overload
 
 import numpy as np
 
@@ -856,3 +856,27 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
         if len(key.shape) == 1 or key.shape[1] == 1:
             variant = IndexVariant.LINEAR
     return variant
+
+
+def get_mttkrp_factors(
+    U: Union[ttb.ktensor, List[np.ndarray]], n: int, ndims: int
+) -> List[np.ndarray]:
+    """Apply standard checks and type conversions for mttkrp factors"""
+    if isinstance(U, ttb.ktensor):
+        U = U.copy()
+        # Absorb lambda into one of the factors but not the one that is skipped
+        if n == 0:
+            U.redistribute(1)
+        else:
+            U.redistribute(0)
+
+        # Extract the factor matrices
+        U = U.factor_matrices
+
+    assert isinstance(
+        U, (list, np.ndarray)
+    ), "Second argument must be list of numpy.ndarray's or a ktensor"
+
+    assert len(U) == ndims, "List of factor matrices is the wrong length"
+
+    return U

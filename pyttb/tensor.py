@@ -20,6 +20,7 @@ import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
     get_index_variant,
+    get_mttkrp_factors,
     tt_dimscheck,
     tt_ind2sub,
     tt_sub2ind,
@@ -60,6 +61,7 @@ class tensor:
     ):
         """
         Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
+
         Note that 1D tensors (i.e., when len(shape)==1) contains a data
         array that follow the Numpy convention of being a row vector.
 
@@ -193,7 +195,7 @@ class tensor:
         >>> T2 = T1
         >>> T3 = T2.copy()
         >>> T1[0,0] = 3
-        >>> T2[0,0] == T2[0,0]
+        >>> T1[0,0] == T2[0,0]
         True
         >>> T1[0,0] == T3[0,0]
         False
@@ -431,7 +433,7 @@ class tensor:
          [3 0]]
         >>> S = T.to_sptensor()
         >>> print(S)
-        Sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros
         [1, 0] = 3
         [0, 1] = 2
         """
@@ -738,9 +740,7 @@ class tensor:
         # Extract those non-zero values
         return self.data[tuple(wsubs.transpose())]
 
-    def mttkrp(  # noqa: PLR0912
-        self, U: Union[ttb.ktensor, List[np.ndarray]], n: int
-    ) -> np.ndarray:
+    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product. The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
@@ -770,23 +770,7 @@ class tensor:
         if self.ndims < 2:
             assert False, "MTTKRP is invalid for tensors with fewer than 2 dimensions"
 
-        # extract the list of factor matrices if given a ktensor
-        if isinstance(U, ttb.ktensor):
-            U = U.copy()
-            if n == 0:
-                U.redistribute(1)
-            else:
-                U.redistribute(0)
-            # Extract the factor matrices
-            U = U.factor_matrices
-
-        # check that we have a list (or list extracted from a ktensor)
-        if not isinstance(U, list):
-            assert False, "Second argument should be a list of arrays or a ktensor"
-
-        # check that list is the correct length
-        if len(U) != self.ndims:
-            assert False, "Second argument contains the wrong number of arrays"
+        U = get_mttkrp_factors(U, n, self.ndims)
 
         if n == 0:
             R = U[1].shape[1]
@@ -1105,7 +1089,7 @@ class tensor:
             result = result.transpose()
         return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
 
-    def squeeze(self) -> Union[tensor, np.ndarray, float]:
+    def squeeze(self) -> Union[tensor, float]:
         """
         Removes singleton dimensions from the tensor.
 
@@ -1128,7 +1112,7 @@ class tensor:
         else:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
-                return np.squeeze(self.data)[()]
+                return self.data.item()
             return ttb.tensor(np.squeeze(self.data))
 
     def symmetrize(  # noqa: PLR0912,PLR0915
@@ -1482,7 +1466,7 @@ class tensor:
         vector: Union[np.ndarray, List[np.ndarray]],
         dims: Optional[Union[int, np.ndarray]] = None,
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
-    ) -> tensor:
+    ) -> Union[float, tensor]:
         """
         Tensor times vector.
 
@@ -1576,7 +1560,7 @@ class tensor:
         vector: np.ndarray,
         skip_dim: Optional[int] = None,
         version: Optional[int] = None,
-    ) -> Union[np.ndarray, tensor]:
+    ) -> Union[float, np.ndarray, tensor]:
         """
         Tensor times same vector in multiple modes.
 
@@ -1614,8 +1598,10 @@ class tensor:
         if version == 1:  # Calculate the old way
             P = self.ndims
             X = np.array([vector for i in range(P)])
-            if skip_dim in (0, 1):  # Return scalar or matrix
-                return self.ttv(X, exclude_dims=exclude_dims).double()
+            if skip_dim in (0, 1):  # Return matrix
+                result = self.ttv(X, exclude_dims=exclude_dims)
+                assert not isinstance(result, float)
+                return result.double()
             return self.ttv(X, exclude_dims=exclude_dims)
 
         if version == 2 or version is None:  # Calculate the new way
@@ -1794,7 +1780,7 @@ class tensor:
         We can extract elements or subtensors from a tensor in the
         following ways.
 
-        Case 1a: `y = T[I1,I2,...,In], where each `I` is an index, returns a
+        Case 1a: `y = T[I1,I2,...,In]`, where each `I` is an index, returns a
         scalar.
 
         Case 1b: `Y = T[R1,R2,...,Rn]`, where one or more `R` is a range and
@@ -2159,7 +2145,7 @@ class tensor:
          [4 5]]
         """
         # If rhs is sumtensor, treat as such
-        if isinstance(other, ttb.sumtensor):  # pragma: no cover
+        if isinstance(other, ttb.sumtensor):
             return other.__add__(self)
 
         def tensor_add(x, y):
@@ -2358,7 +2344,7 @@ class tensor:
         [[1 2]
          [3 4]]
         """
-        return ttb.tensor(self.data)
+        return self.copy()
 
     def __neg__(self):
         """

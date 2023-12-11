@@ -1624,13 +1624,15 @@ def test_tensor_mttkrp(sample_tensor_2way):
     # second argument not a ktensor or list
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance.mttkrp(5, 0)
-    assert "Second argument should be a list of arrays or a ktensor" in str(excinfo)
+    assert "Second argument must be list of numpy.ndarray's or a ktensor" in str(
+        excinfo
+    )
 
     # second argument list is not the correct length
     with pytest.raises(AssertionError) as excinfo:
         m0 = np.ones((2, 2))
         tensorInstance.mttkrp([m0, m0, m0, m0], 0)
-    assert "Second argument contains the wrong number of arrays" in str(excinfo)
+    assert "List of factor matrices is the wrong length" in str(excinfo)
 
     # arrays not the correct shape
     with pytest.raises(AssertionError) as excinfo:
