@@ -37,6 +37,7 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
        ```
       1. Ruff's `--fix` won't necessarily address everything and may point out issues that need manual attention
       1. [We](./.pre-commit-config.yaml) optionally support [pre-commit hooks](https://pre-commit.com/) for this
+         1. Alternatively, you can run `pre-commit run --all-files` from the command line if you don't want to install the hooks.
    1. Check typing
       ```commandline
       mypy pyttb/

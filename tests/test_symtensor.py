@@ -7,7 +7,6 @@ import pytest
 import pyttb as ttb
 
 
-@pytest.mark.indevelopment
 def test_symtensor_initialization_empty():
     with pytest.raises(AssertionError) as excinfo:
         ttb.symtensor()

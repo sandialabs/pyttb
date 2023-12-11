@@ -12,7 +12,6 @@ import pyttb as ttb
 import pyttb.pyttb_utils as ttb_utils
 
 
-@pytest.mark.indevelopment
 def test_sptensor_to_dense_matrix():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5]])
@@ -36,7 +35,6 @@ def test_sptensor_to_dense_matrix():
         assert np.array_equal(Xnt, Ynt[mode])
 
 
-@pytest.mark.indevelopment
 def test_sptensor_from_dense_matrix():
     tensorInstance = ttb.tensor(np.random.normal(size=(4, 4, 4)))
     for mode in range(tensorInstance.ndims):
@@ -52,7 +50,6 @@ def test_sptensor_from_dense_matrix():
         assert tensorCopy.isequal(Ynt)
 
 
-@pytest.mark.indevelopment
 def test_tt_union_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6], [99, 0]])
     b = np.array([[1, 7], [1, 8], [2, 6]])
@@ -65,7 +62,6 @@ def test_tt_union_rows():
     assert np.array_equal(ttb_utils.tt_union_rows(np.array([]), a), a[np.sort(idx)])
 
 
-@pytest.mark.indevelopment
 def test_tt_dimscheck():
     #  Empty
     rdims, ridx = ttb_utils.tt_dimscheck(6, dims=np.array([]))
@@ -118,7 +114,6 @@ def test_tt_dimscheck():
     assert "Negative dims" in str(excinfo), f"{str(excinfo)}"
 
 
-@pytest.mark.indevelopment
 def test_tt_tenfun():
     data = np.array([[1, 2, 3], [4, 5, 6]])
     t1 = ttb.tensor(data)
@@ -172,7 +167,6 @@ def test_tt_tenfun():
     assert "Tensor 2 is not the same size as the first tensor input" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tt_setdiff_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6], [99, 0]])
     b = np.array(
@@ -190,7 +184,6 @@ def test_tt_setdiff_rows():
     assert np.array_equal(ttb_utils.tt_setdiff_rows(b, a), b)
 
 
-@pytest.mark.indevelopment
 def test_tt_intersect_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6]])
     b = np.array(
@@ -206,7 +199,6 @@ def test_tt_intersect_rows():
     )
 
 
-@pytest.mark.indevelopment
 def test_tt_ismember_rows():
     a = np.array([[4, 6], [1, 9], [2, 6]])
     b = np.array(
@@ -225,7 +217,6 @@ def test_tt_ismember_rows():
     assert np.all(result[~valid] < 0)
 
 
-@pytest.mark.indevelopment
 def test_tt_irenumber():
     # Constant shouldn't effect performance
     const = 1
@@ -265,7 +256,6 @@ def test_tt_irenumber():
     )
 
 
-@pytest.mark.indevelopment
 def test_tt_renumberdims():
     # Singleton output
     shape = 5
@@ -290,7 +280,6 @@ def test_tt_renumberdims():
     assert newshape == 2
 
 
-@pytest.mark.indevelopment
 def test_tt_renumber():
     # Singleton in each dimension
     shape = (5, 5, 5)
@@ -333,7 +322,6 @@ def test_tt_renumber():
     assert newshape == (3, 3, 3)
 
 
-@pytest.mark.indevelopment
 def test_tt_sub2ind_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     idx = np.array([0, 21, 63])
@@ -344,7 +332,6 @@ def test_tt_sub2ind_valid():
     assert np.array_equal(ttb_utils.tt_sub2ind(siz, empty), empty)
 
 
-@pytest.mark.indevelopment
 def test_tt_ind2sub_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     idx = np.array([0, 21, 63])
@@ -380,7 +367,6 @@ def test_tt_ind2sub_valid():
     )
 
 
-@pytest.mark.indevelopment
 def test_tt_subsubsref_valid():
     subs = np.array([[0, 0, 0], [1, 1, 1], [3, 3, 3]])
     vals = np.array([[0], [21], [63]])
@@ -391,24 +377,20 @@ def test_tt_subsubsref_valid():
     assert True
 
 
-@pytest.mark.indevelopment
 def test_tt_intvec2str_valid():
     """This function is slotted to be removed because it is probably unnecessary in python"""
     v = np.array([1, 2, 3])
     assert ttb_utils.tt_intvec2str(v) == "[1 2 3]"
 
 
-@pytest.mark.indevelopment
 def test_tt_sizecheck_empty():
     assert ttb_utils.tt_sizecheck(())
 
 
-@pytest.mark.indevelopment
 def test_tt_sizecheck_valid():
     assert ttb_utils.tt_sizecheck((2, 2, 2))
 
 
-@pytest.mark.indevelopment
 def test_tt_sizecheck_invalid():
     # Float
     assert not ttb_utils.tt_sizecheck((1.0, 2, 2))
@@ -422,7 +404,6 @@ def test_tt_sizecheck_invalid():
     assert not ttb_utils.tt_sizecheck((0, 2, 2))
 
 
-@pytest.mark.indevelopment
 def test_tt_sizecheck_errorMessage():
     # Raise when nargout == 0
     with pytest.raises(AssertionError) as excinfo:
@@ -430,17 +411,14 @@ def test_tt_sizecheck_errorMessage():
     assert "Size must be a row vector of real positive integers" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tt_subscheck_empty():
     assert ttb_utils.tt_subscheck(np.array([]))
 
 
-@pytest.mark.indevelopment
 def test_tt_subscheck_valid():
     assert ttb_utils.tt_subscheck(np.array([[2, 2], [2, 2]]))
 
 
-@pytest.mark.indevelopment
 def test_tt_subscheck_invalid():
     # Too Few Dims
     assert not ttb_utils.tt_subscheck(np.array([2]))
@@ -456,7 +434,6 @@ def test_tt_subscheck_invalid():
     assert not ttb_utils.tt_subscheck(np.array([[1.0, 2], [2, 2]]))
 
 
-@pytest.mark.indevelopment
 def test_tt_subscheck_errorMessage():
     # Raise when nargout == 0
     with pytest.raises(AssertionError) as excinfo:
@@ -464,17 +441,14 @@ def test_tt_subscheck_errorMessage():
     assert "Subscripts must be a matrix of real positive integers" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_tt_valscheck_empty():
     assert ttb_utils.tt_valscheck(np.array([]))
 
 
-@pytest.mark.indevelopment
 def test_tt_valscheck_valid():
     assert ttb_utils.tt_valscheck(np.array([[0.5], [1.5], [2.5]]))
 
 
-@pytest.mark.indevelopment
 def test_tt_valscheck_invalid():
     # Row array
     assert not ttb_utils.tt_valscheck(np.array([2, 2]))
@@ -482,7 +456,6 @@ def test_tt_valscheck_invalid():
     assert not ttb_utils.tt_valscheck(np.array([[2, 2], [2, 2]]))
 
 
-@pytest.mark.indevelopment
 def test_tt_valscheck_errorMessage():
     # Raise when nargout == 0
     with pytest.raises(AssertionError) as excinfo:
@@ -490,17 +463,14 @@ def test_tt_valscheck_errorMessage():
     assert "Values must be in array" in str(excinfo)
 
 
-@pytest.mark.indevelopment
 def test_isrow_empty():
     assert not ttb_utils.isrow(np.array([[]]))
 
 
-@pytest.mark.indevelopment
 def test_isrow_valid():
     assert ttb_utils.isrow(np.array([[2, 2, 2]]))
 
 
-@pytest.mark.indevelopment
 def test_isrow_invalid():
     # 2 x 2 Matrix
     assert not ttb_utils.isrow(np.array([[2, 2], [2, 2]]))
@@ -508,34 +478,28 @@ def test_isrow_invalid():
     assert not ttb_utils.isrow(np.array([[2, 2, 2]]).T)
 
 
-@pytest.mark.indevelopment
 def test_isvector_empty():
     assert ttb_utils.isvector(np.array([[]]))
 
 
-@pytest.mark.indevelopment
 def test_isvector_valid():
     assert ttb_utils.isvector(np.array([[2, 2, 2]]))
     assert ttb_utils.isvector(np.array([[2, 2, 2]]).T)
 
 
-@pytest.mark.indevelopment
 def test_isvector_invalid():
     # 2 x 2 Matrix
     assert not ttb_utils.isvector(np.array([[2, 2], [2, 2]]))
 
 
-@pytest.mark.indevelopment
 def test_islogical_empty():
     assert not ttb_utils.islogical(np.array([[]]))
 
 
-@pytest.mark.indevelopment
 def test_islogical_valid():
     assert ttb_utils.islogical(True)
 
 
-@pytest.mark.indevelopment
 def test_islogical_invalid():
     assert not ttb_utils.islogical(np.array([[2, 2, 2]]))
     assert not ttb_utils.islogical(1.1)
