@@ -29,10 +29,10 @@ class tenmat:
         self.tshape = ()
         self.rindices = np.array([])
         self.cindices = np.array([])
-        self.data = np.array([])
+        self.data = np.array([], order="F")
 
     @classmethod
-    def from_data(
+    def from_data(  # noqa: PLR0912
         cls,
         data: np.ndarray,
         rdims: np.ndarray,
@@ -82,9 +82,10 @@ class tenmat:
                 # make data a 2d array with shape (1, data.shape[0]), i.e., a row vector
                 data = np.reshape(data.copy(), (1, data.shape[0]), order="F")
 
-        # data is ndarray and only rdims is specified
-        if cdims is None:
-            return ttb.tenmat.from_tensor_type(ttb.tensor(data), rdims)
+        if len(data.shape) != 2:
+            raise ValueError(
+                f"Data must be a matrix or vector but had {len(data.shape)} dimensions"
+            )
 
         # use data.shape for tshape if not provided
         if tshape is None:
@@ -99,6 +100,10 @@ class tenmat:
                 "not match"
             )
 
+        n = len(tshape)
+        alldims = np.array([range(n)])
+        rdims, cdims = gather_wrap_dims(n, rdims, cdims)
+
         # check that data.shape and product of dimensions agree
         if not np.prod(np.array(tshape)[rdims]) * np.prod(
             np.array(tshape)[cdims]
@@ -107,7 +112,25 @@ class tenmat:
                 False
             ), "data.shape does not match shape specified by rdims, cdims, and tshape."
 
-        return ttb.tenmat.from_tensor_type(ttb.tensor(data, tshape), rdims, cdims)
+        # if rdims or cdims is empty, hstack will output an array of float not int
+        if rdims.size == 0:
+            dims = cdims.copy()
+        elif cdims.size == 0:
+            dims = rdims.copy()
+        else:
+            dims = np.hstack([rdims, cdims])
+        if not len(dims) == n or not (alldims == np.sort(dims)).all():
+            assert False, (
+                "Incorrect specification of dimensions, the sorted concatenation "
+                "of rdims and cdims must be range(source.ndims)."
+            )
+
+        result = ttb.tenmat()
+        result.tshape = tshape
+        result.rindices = rdims.copy()
+        result.cindices = cdims.copy()
+        result.data = np.asfortranarray(data.copy())
+        return result
 
     @classmethod
     def from_tensor_type(
@@ -159,18 +182,14 @@ class tenmat:
                     "Incorrect specification of dimensions, the sorted concatenation "
                     "of rdims and cdims must be range(source.ndims)."
                 )
-
             rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
             cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
-            data = np.reshape(source.permute(dims).data, (rprod, cprod), order="F")
-
-            # Create tenmat
-            tenmatInstance = cls()
-            tenmatInstance.tshape = tshape
-            tenmatInstance.rindices = rdims.copy()
-            tenmatInstance.cindices = cdims.copy()
-            tenmatInstance.data = data.copy()
-            return tenmatInstance
+            data = np.reshape(
+                ttb.tensor(source.data, tshape).permute(dims).data,
+                (rprod, cprod),
+                order="F",
+            )
+            return ttb.tenmat.from_data(data, rdims, cdims, tshape=tshape)
         raise ValueError(
             f"Can only create tenmat from tensor but recieved {type(source)}"
         )

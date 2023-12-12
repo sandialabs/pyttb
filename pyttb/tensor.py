@@ -258,7 +258,7 @@ class tensor:
         newshape = tuple(np.array(self.shape)[remdims])
 
         ## Convert to a matrix where each row is going to be collapsed
-        A = ttb.tenmat.from_data(self.data, remdims, dims).double()
+        A = ttb.tenmat.from_tensor_type(self, remdims, dims).double()
 
         ## Apply the collapse function
         B = np.zeros((A.shape[0], 1))
@@ -1084,9 +1084,6 @@ class tensor:
         vector_self = ttb.tenmat.from_tensor_type(self, dims, remdims).double()
         # Numpy broadcasting should be equivalent to bsxfun
         result = vector_self * vector_factor
-        # TODO why do we need this transpose for things to work?
-        if len(dims) == 1:
-            result = result.transpose()
         return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
 
     def squeeze(self) -> Union[tensor, float]:

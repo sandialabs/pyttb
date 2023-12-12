@@ -101,7 +101,9 @@ def test_tenmat_initialization_from_data(
     (_, ndarrayInstance4) = sample_ndarray_4way
 
     # Constructor from empty array, rdims, cdims, and tshape
-    tenmatNdarraye = ttb.tenmat.from_data(np.array([]), np.array([]), np.array([]), ())
+    tenmatNdarraye = ttb.tenmat.from_data(
+        np.array([[]]), np.array([]), np.array([]), ()
+    )
     assert (tenmatNdarraye.data == np.array([])).all()
     assert (tenmatNdarraye.rindices == np.array([])).all()
     assert (tenmatNdarraye.cindices == np.array([])).all()
@@ -110,24 +112,29 @@ def test_tenmat_initialization_from_data(
 
     # Constructor from 1d array
     tenmatNdarray1 = ttb.tenmat.from_data(ndarrayInstance1, rdims, cdims, tshape)
-    assert (tenmatNdarray1.data == tenmatInstance.data).all()
+    assert (
+        tenmatNdarray1.data
+        == np.reshape(
+            tenmatInstance.data, (1, np.prod(tenmatNdarray1.shape)), order="F"
+        )
+    ).all()
     assert (tenmatNdarray1.rindices == tenmatInstance.rindices).all()
     assert (tenmatNdarray1.cindices == tenmatInstance.cindices).all()
-    assert tenmatNdarray1.shape == tenmatInstance.shape
+    assert np.prod(tenmatNdarray1.shape) == np.prod(tenmatInstance.shape)
     assert tenmatNdarray1.tshape == tenmatInstance.tshape
 
-    # Constructor from 1d array converted to 2d column vector
-    tenmatNdarray1c = ttb.tenmat.from_data(
-        np.reshape(ndarrayInstance1, (ndarrayInstance1.shape[0], 1), order="F"),
+    # Constructor from 1d array converted to 2d row vector
+    tenmatNdarray1r = ttb.tenmat.from_data(
+        np.reshape(ndarrayInstance1, (1, ndarrayInstance1.shape[0]), order="F"),
         rdims,
         cdims,
         tshape,
     )
-    assert (tenmatNdarray1c.data == tenmatInstance.data).all()
-    assert (tenmatNdarray1c.rindices == tenmatInstance.rindices).all()
-    assert (tenmatNdarray1c.cindices == tenmatInstance.cindices).all()
-    assert tenmatNdarray1c.shape == tenmatInstance.shape
-    assert tenmatNdarray1c.tshape == tenmatInstance.tshape
+    assert np.array_equal(tenmatNdarray1r.data, tenmatNdarray1.data)
+    assert (tenmatNdarray1r.rindices == tenmatNdarray1.rindices).all()
+    assert (tenmatNdarray1r.cindices == tenmatNdarray1.cindices).all()
+    assert tenmatNdarray1r.shape == tenmatNdarray1.shape
+    assert tenmatNdarray1r.tshape == tenmatNdarray1.tshape
 
     # Constructor from 2d array
     tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, tshape)
@@ -136,21 +143,6 @@ def test_tenmat_initialization_from_data(
     assert (tenmatNdarray2.cindices == tenmatInstance.cindices).all()
     assert tenmatNdarray2.shape == tenmatInstance.shape
     assert tenmatNdarray2.tshape == tenmatInstance.tshape
-
-    ## Constructor from 4d array
-    tenmatNdarray4 = ttb.tenmat.from_data(ndarrayInstance4, rdims, cdims)
-    assert (tenmatNdarray4.data == tenmatInstance.data).all()
-    assert (tenmatNdarray4.rindices == tenmatInstance.rindices).all()
-    assert (tenmatNdarray4.cindices == tenmatInstance.cindices).all()
-    assert tenmatNdarray4.shape == tenmatInstance.shape
-    assert tenmatNdarray4.tshape == tenmatInstance.tshape
-
-    ## Constructor from 4d array just specifying rdims
-    tenmatNdarray4 = ttb.tenmat.from_data(ndarrayInstance4, np.array([0]))
-    assert (
-        tenmatNdarray4.data
-        == np.reshape(ndarrayInstance4, tenmatNdarray4.shape, order="F")
-    ).all()
 
     # Exceptions
 
@@ -219,6 +211,10 @@ def test_tenmat_initialization_from_data(
         with pytest.raises(AssertionError) as excinfo:
             ttb.tenmat.from_data(ndarrayInstance2, d[0], d[1], tshape)
         assert exc in str(excinfo)
+
+    # Passing tensor shaped data
+    with pytest.raises(ValueError) as excinfo:
+        ttb.tenmat.from_data(np.ones((4, 4, 4)), np.arange(3))
 
 
 def test_tenmat_initialization_from_tensor_type(
@@ -492,11 +488,12 @@ def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4
     assert ((np.int64(3) * tenmatInstance).data == (np.int64(3) * params["data"])).all()
 
     # Tenmat * Tenmat -> 2x2 result
-    tenmat1 = ttb.tenmat.from_data(
-        ndarrayInstance4, rdims=np.array([0]), cdims=np.array([1, 2, 3])
+    tensor0 = ttb.tensor(ndarrayInstance4)
+    tenmat1 = ttb.tenmat.from_tensor_type(
+        tensor0, rdims=np.array([0]), cdims=np.array([1, 2, 3])
     )
-    tenmat2 = ttb.tenmat.from_data(
-        ndarrayInstance4, rdims=np.array([0, 1, 2]), cdims=np.array([3])
+    tenmat2 = ttb.tenmat.from_tensor_type(
+        tensor0, rdims=np.array([0, 1, 2]), cdims=np.array([3])
     )
     tenmatProd = tenmat1 * tenmat2
     data = np.array([[372, 884], [408, 984]])
@@ -518,11 +515,11 @@ def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4
 
     # shape mismatch
     exc = "tenmat shape mismatch: number or columns of left operand must match number of rows of right operand."
-    tenmat1 = ttb.tenmat.from_data(
-        ndarrayInstance4, rdims=np.array([0, 1]), cdims=np.array([2, 3])
+    tenmat1 = ttb.tenmat.from_tensor_type(
+        tensor0, rdims=np.array([0, 1]), cdims=np.array([2, 3])
     )
-    tenmat2 = ttb.tenmat.from_data(
-        ndarrayInstance4, rdims=np.array([0, 1, 2]), cdims=np.array([3])
+    tenmat2 = ttb.tenmat.from_tensor_type(
+        tensor0, rdims=np.array([0, 1, 2]), cdims=np.array([3])
     )
     with pytest.raises(AssertionError) as excinfo:
         tenmat1 * tenmat2
@@ -530,7 +527,7 @@ def test_tenmat__mul__(sample_ndarray_1way, sample_ndarray_4way, sample_tenmat_4
 
     # type mismatch
     exc = "tenmat multiplication only valid with scalar or tenmat objects."
-    tenmatNdarray4 = ttb.tenmat.from_data(ndarrayInstance4, rdims, cdims, tshape)
+    tenmatNdarray4 = ttb.tenmat.from_tensor_type(tensor0, rdims, cdims, tshape)
     with pytest.raises(AssertionError) as excinfo:
         tenmatInstance * tenmatNdarray4.data
     assert exc in str(excinfo)
@@ -561,7 +558,7 @@ def test_tenmat__add__(sample_ndarray_2way, sample_tenmat_4way):
 
     # shape mismatch
     exc = "tenmat shape mismatch."
-    tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, (1, 1, 1, 16))
+    tenmatNdarray2 = ttb.tenmat.from_data(np.ones((5, 5)), rdims, cdims, (1, 1, 1, 25))
     with pytest.raises(AssertionError) as excinfo:
         tenmatInstance + tenmatNdarray2
     assert exc in str(excinfo)
@@ -602,7 +599,7 @@ def test_tenmat__sub__(sample_ndarray_2way, sample_tenmat_4way):
 
     # shape mismatch
     exc = "tenmat shape mismatch."
-    tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, (1, 1, 1, 16))
+    tenmatNdarray2 = ttb.tenmat.from_data(np.ones((5, 5)), rdims, cdims, (1, 1, 1, 25))
     with pytest.raises(AssertionError) as excinfo:
         tenmatInstance - tenmatNdarray2
     assert exc in str(excinfo)
@@ -638,7 +635,7 @@ def test_tenmat__rsub__(sample_ndarray_2way, sample_tenmat_4way):
 
     # shape mismatch
     exc = "tenmat shape mismatch."
-    tenmatNdarray2 = ttb.tenmat.from_data(ndarrayInstance2, rdims, cdims, (1, 1, 1, 16))
+    tenmatNdarray2 = ttb.tenmat.from_data(np.ones((5, 5)), rdims, cdims, (1, 1, 1, 25))
     with pytest.raises(AssertionError) as excinfo:
         tenmatInstance.__rsub__(tenmatNdarray2)
     assert exc in str(excinfo)
@@ -689,7 +686,8 @@ def test_tenmat__str__(
     assert s == tenmatInstance.__str__()
 
     # Test 1D
-    tenmatInstance = ttb.tenmat.from_data(ndarrayInstance1, rdims, cdims, tshape)
+    tensor1 = ttb.tensor(ndarrayInstance1, shape=tshape)
+    tenmatInstance = ttb.tenmat.from_tensor_type(tensor1, rdims, cdims, tshape)
     s = ""
     s += "matrix corresponding to a tensor of shape "
     s += str(tenmatInstance.tshape)
@@ -723,7 +721,8 @@ def test_tenmat__str__(
     assert s == tenmatInstance.__str__()
 
     # Test 4D
-    tenmatInstance = ttb.tenmat.from_data(ndarrayInstance4, rdims, cdims, tshape)
+    tensor0 = ttb.tensor(ndarrayInstance4, shape=tshape)
+    tenmatInstance = ttb.tenmat.from_tensor_type(tensor0, rdims, cdims, tshape)
     s = ""
     s += "matrix corresponding to a tensor of shape "
     s += str(tenmatInstance.tshape)
