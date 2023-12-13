@@ -28,19 +28,58 @@ class tenmat:
         tshape: Optional[Tuple[int, ...]] = None,
     ):
         """
-        Creates a tenmat from explicit description.
+        Construct a :class:`pyttb.tenmat` from explicit components.
+        If you already have a tensor see :method:`pyttb.tensor.to_tenmat`.
 
         Parameters
         ----------
         data:
-            Tensor source data
+            Flattened tensor data.
         rdims:
+            Which dimensions of original tensor map to rows.
         cdims:
+            Which dimensions of original tensor map to columns.
         tshape:
+            Original tensor shape.
 
-        Returns
-        -------
-        Constructed tenmat
+        Examples
+        --------
+        Create an empty :class:`pyttb.tenmat`.
+
+        >>> ttb.tenmat() # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape ()
+        rindices = [  ] (modes of tensor corresponding to rows)
+        cindices = [  ] (modes of tensor corresponding to columns)
+        data = []
+
+        Create tensor shaped data.
+
+        >>> tshape = (2, 2, 2)
+        >>> data = np.reshape(np.arange(np.prod(tshape), dtype=np.double), tshape)
+        >>> data # doctest: +NORMALIZE_WHITESPACE
+        array([[[0., 1.],
+                [2., 3.]],
+               [[4., 5.],
+                [6., 7.]]])
+
+        Manually matrize the tensor.
+
+        >>> flat_data = np.reshape(data, (2,4), order="F")
+        >>> flat_data # doctest: +NORMALIZE_WHITESPACE
+        array([[0., 2., 1., 3.],
+               [4., 6., 5., 7.]])
+
+        Encode matrication into :class:`pyttb.tenmat`.
+
+        >>> tm = ttb.tenmat(flat_data, rdims=np.array([0]), tshape=tshape)
+
+        Extract original tensor shaped data.
+
+        >>> tm.to_tensor().double() # doctest: +NORMALIZE_WHITESPACE
+        array([[[0., 1.],
+                [2., 3.]],
+               [[4., 5.],
+                [6., 7.]]])
         """
 
         # Case 0a: Empty Contructor
@@ -153,7 +192,43 @@ class tenmat:
         return self.copy()
 
     def to_tensor(self) -> ttb.tensor:
-        """Return copy of tenmat data as a tensor"""
+        """
+        Return copy of tenmat data as a tensor.
+
+        Examples
+        --------
+        Create tensor shaped data.
+
+        >>> tshape = (2, 2, 2)
+        >>> data = np.reshape(np.arange(np.prod(tshape), dtype=np.double), tshape)
+        >>> data # doctest: +NORMALIZE_WHITESPACE
+        array([[[0., 1.],
+                [2., 3.]],
+               [[4., 5.],
+                [6., 7.]]])
+
+        Manually matrize the tensor.
+
+        >>> flat_data = np.reshape(data, (2,4), order="F")
+        >>> flat_data # doctest: +NORMALIZE_WHITESPACE
+        array([[0., 2., 1., 3.],
+               [4., 6., 5., 7.]])
+
+        Encode matrication into :class:`pyttb.tenmat`.
+
+        >>> tm = ttb.tenmat(flat_data, rdims=np.array([0]), tshape=tshape)
+
+        Extract original tensor shaped data.
+
+        >>> tm.to_tensor() # doctest: +NORMALIZE_WHITESPACE
+        tensor of shape (2, 2, 2)
+        data[0, :, :] =
+        [[0. 1.]
+         [2. 3.]]
+        data[1, :, :] =
+        [[4. 5.]
+         [6. 7.]]
+        """
         # RESHAPE TENSOR-AS-MATRIX
         # Here we just reverse what was done in the tenmat constructor.
         # First we reshape the data to be an MDA, then we un-permute
@@ -169,14 +244,29 @@ class tenmat:
         """
         Complex conjugate transpose for tenmat.
 
-        Parameters
-        ----------
+        Examples
+        --------
+        Create :class:`pyttb.tensor` then convert to :class:`pyttb.tenmat`.
 
-        Returns
-        -------
-        :class:`pyttb.tenmat`
+        >>> T = ttb.tenones((2,2,2))
+        >>> TM = T.to_tenmat(rdims=np.array([0]))
+        >>> TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 1. 1. 1.]
+         [1. 1. 1. 1.]]
+        >>> TM.ctranspose() # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 1, 2 ] (modes of tensor corresponding to rows)
+        cindices = [ 0 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 1.]
+         [1. 1.]
+         [1. 1.]
+         [1. 1.]]
         """
-
         tenmatInstance = tenmat()
         tenmatInstance.rindices = self.cindices.copy()
         tenmatInstance.cindices = self.rindices.copy()
@@ -187,6 +277,21 @@ class tenmat:
     def double(self) -> np.ndarray:
         """
         Convert tenmat to an array of doubles
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2,2,2))
+        >>> TM = T.to_tenmat(rdims=np.array([0]))
+        >>> TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 1. 1. 1.]
+         [1. 1. 1. 1.]]
+        >>> TM.double() # doctest: +NORMALIZE_WHITESPACE
+        array([[1., 1., 1., 1.],
+               [1., 1., 1., 1.]])
 
         Returns
         -------
@@ -200,7 +305,23 @@ class tenmat:
         return len(self.shape)
 
     def norm(self) -> float:
-        """Frobenius norm of a tenmat."""
+        """
+        Frobenius norm of a tenmat.
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2,2,2))
+        >>> TM = T.to_tenmat(rdims=np.array([0]))
+        >>> TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 1. 1. 1.]
+         [1. 1. 1. 1.]]
+        >>> TM.norm() # doctest: +ELLIPSIS
+        2.82...
+        """
         # default of np.linalg.norm is to vectorize the data and compute the vector
         # norm, which is equivalent to the Frobenius norm for multidimensional arrays.
         # However, the argument 'fro' only works for 1-D and 2-D

@@ -477,6 +477,11 @@ class tensor:
                 _bc_ (backward cyclic) range(rdims-1, -1, -1) then
                 range(self.ndims(), rdims, -1).
 
+        Notes
+        -----
+        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+            De Lathauwer, De Moor, and Vandewalle [2]_.
+
         References
         ----------
         .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology

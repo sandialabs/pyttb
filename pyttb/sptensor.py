@@ -707,10 +707,15 @@ class sptensor:
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and
-                the remaining dimensons span the columns. _fc_ (forward cyclic)
+                the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
                 in the order range(rdims,self.ndims()) followed by range(0, rdims).
-                _bc_ (backward cyclic) range(rdims-1, -1, -1) then
+                _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
                 range(self.ndims(), rdims, -1).
+
+        Notes
+        -----
+        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+            De Lathauwer, De Moor, and Vandewalle [2]_.
 
         References
         ----------

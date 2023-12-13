@@ -12,7 +12,7 @@ from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
-from pyttb.pyttb_utils import tt_ind2sub
+from pyttb.pyttb_utils import gather_wrap_dims, tt_ind2sub
 
 
 class sptenmat:
@@ -79,19 +79,34 @@ class sptenmat:
             [1, 6] = 6
             [1, 7] = 7
         """
+        # Empty case
+        if rdims is None and cdims is None:
+            assert (
+                subs is None and vals is None
+            ), "Must provide rdims or cdims with values"
+            self.subs = np.array([], ndmin=2, dtype=int)
+            self.vals = np.array([], ndmin=2)
+            self.rdims = np.array([], dtype=int)
+            self.cdims = np.array([], dtype=int)
+            self.tshape: Union[Tuple[()], Tuple[int, ...]] = ()
+            return
+
         if subs is None:
             subs = np.array([], ndmin=2, dtype=int)
         if vals is None:
             vals = np.array([], ndmin=2)
-        if rdims is None:
-            rdims = np.array([], dtype=int)
-        if cdims is None:
-            cdims = np.array([], dtype=int)
 
         n = len(tshape)
         alldims = np.array([range(n)])
         # Error check
-        dims = np.hstack([rdims, cdims], dtype=int)
+        rdims, cdims = gather_wrap_dims(n, rdims, cdims)
+        # if rdims or cdims is empty, hstack will output an array of float not int
+        if rdims.size == 0:
+            dims = cdims.copy()
+        elif cdims.size == 0:
+            dims = rdims.copy()
+        else:
+            dims = np.hstack([rdims, cdims], dtype=int)
         assert len(dims) == n and (alldims == np.sort(dims)).all(), (
             "Incorrect specification of dimensions, the sorted concatenation of "
             "rdims and cdims must be range(len(tshape))."
@@ -154,6 +169,28 @@ class sptenmat:
             Mapping of column indices.
         tshape:
             Shape of the original tensor.
+
+        Examples
+        --------
+        Create a :class:`pyttb.sptenmat` from a sparse matrix and unwrapping
+            dimensions. Infer column dimensions from row dimensions specification.
+
+        >>> data = np.array([6, 7])
+        >>> rows = np.array([1, 1])
+        >>> cols = np.array([6, 7])
+        >>> sparse_matrix = sparse.coo_matrix((data, (rows, cols)))
+        >>> tshape = (4, 4, 4)
+        >>> S = ttb.sptenmat.from_array(\
+            sparse_matrix,\
+            rdims=np.array([0]),\
+            tshape=tshape\
+        )
+        >>> S # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [1, 6] = 6
+            [1, 7] = 7
         """
         vals = None
         if isinstance(array, np.ndarray):
