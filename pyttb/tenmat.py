@@ -20,25 +20,13 @@ class tenmat:
 
     __slots__ = ("tshape", "rindices", "cindices", "data")
 
-    def __init__(self):
-        """
-        Create empty tenmat.
-        """
-
-        # Case 0a: Empty Contructor
-        self.tshape = ()
-        self.rindices = np.array([])
-        self.cindices = np.array([])
-        self.data = np.array([], order="F")
-
-    @classmethod
-    def from_data(  # noqa: PLR0912
-        cls,
-        data: np.ndarray,
-        rdims: np.ndarray,
+    def __init__(  # noqa: PLR0912
+        self,
+        data: Optional[np.ndarray] = None,
+        rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
         tshape: Optional[Tuple[int, ...]] = None,
-    ) -> tenmat:
+    ):
         """
         Creates a tenmat from explicit description.
 
@@ -54,25 +42,28 @@ class tenmat:
         -------
         Constructed tenmat
         """
-        # CONVERT A MULTIDIMENSIONAL ARRAY
 
-        # Verify that data is a numeric numpy.ndarray
-        if not isinstance(data, np.ndarray) or not issubclass(
-            data.dtype.type, np.number
-        ):
-            assert False, "First argument must be a numeric numpy.ndarray."
-
+        # Case 0a: Empty Contructor
         # data is empty, return empty tenmat unless rdims, cdims, or tshape are
         # not empty
-        if data.size == 0:
-            cdims_empty = cdims is None or not cdims.size == 0
+        if data is None or (isinstance(data, np.ndarray) and data.size == 0):
+            cdims_empty = cdims is None or cdims.size == 0
+            rdims_empty = rdims is None or rdims.size == 0
             tshape_empty = tshape is None or tshape == ()
-            if not rdims.size == 0 or cdims_empty or not tshape_empty:
-                assert (
-                    False
-                ), "When data is empty, rdims, cdims, and tshape must also be empty."
-            else:
-                return cls()
+            assert (
+                rdims_empty and cdims_empty and tshape_empty
+            ), "When data is empty, rdims, cdims, and tshape must also be empty."
+
+            self.tshape: Union[Tuple[()], Tuple[int, ...]] = ()
+            self.rindices = np.array([])
+            self.cindices = np.array([])
+            self.data = np.array([], ndmin=2, order="F")
+            return
+
+        # Verify that data is a numeric numpy.ndarray
+        assert isinstance(data, np.ndarray) and issubclass(
+            data.dtype.type, np.number
+        ), "First argument must be a numeric numpy.ndarray."
 
         # data is 1d array, must convert to 2d array for tenmat
         if len(data.shape) == 1:
@@ -125,12 +116,11 @@ class tenmat:
                 "of rdims and cdims must be range(source.ndims)."
             )
 
-        result = ttb.tenmat()
-        result.tshape = tshape
-        result.rindices = rdims.copy()
-        result.cindices = cdims.copy()
-        result.data = np.asfortranarray(data.copy())
-        return result
+        self.tshape = tshape
+        self.rindices = rdims.copy()
+        self.cindices = cdims.copy()
+        self.data = np.asfortranarray(data.copy())
+        return
 
     @classmethod
     def from_tensor_type(
@@ -189,7 +179,7 @@ class tenmat:
                 (rprod, cprod),
                 order="F",
             )
-            return ttb.tenmat.from_data(data, rdims, cdims, tshape=tshape)
+            return ttb.tenmat(data, rdims, cdims, tshape=tshape)
         raise ValueError(
             f"Can only create tenmat from tensor but recieved {type(source)}"
         )
@@ -275,14 +265,14 @@ class tenmat:
         """Frobenius norm of a tenmat."""
         # default of np.linalg.norm is to vectorize the data and compute the vector
         # norm, which is equivalent to the Frobenius norm for multidimensional arrays.
-        # However, the argument 'fro' only workks for 1-D and 2-D
+        # However, the argument 'fro' only works for 1-D and 2-D
         # arrays currently.
         return float(np.linalg.norm(self.data))
 
     @property
     def shape(self) -> Tuple[int, ...]:
         """Return the shape of a tenmat"""
-        if self.data.shape == (0,):
+        if self.data.size == 0:
             return ()
         return self.data.shape
 

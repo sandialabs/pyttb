@@ -1084,7 +1084,7 @@ class tensor:
         vector_self = ttb.tenmat.from_tensor_type(self, dims, remdims).double()
         # Numpy broadcasting should be equivalent to bsxfun
         result = vector_self * vector_factor
-        return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
+        return ttb.tenmat(result, dims, remdims, self.shape).to_tensor()
 
     def squeeze(self) -> Union[tensor, float]:
         """

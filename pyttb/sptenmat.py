@@ -243,9 +243,7 @@ class sptenmat:
         Convert a :class:`pyttb.sptenmat` to a (dense) :class:`pyttb.tenmat`.
         """
         # Create empty dense tenmat
-        result = ttb.tenmat.from_data(
-            np.zeros(self.shape), self.rdims, self.cdims, self.tshape
-        )
+        result = ttb.tenmat(np.zeros(self.shape), self.rdims, self.cdims, self.tshape)
         # Assign nonzero values
         result[tuple(self.subs.transpose())] = np.squeeze(self.vals)
         return result
