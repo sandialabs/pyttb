@@ -36,7 +36,7 @@ dev = [
     "nbstripout",
     "pytest",
     "pytest-cov",
-    "ruff",
+    "ruff==0.0.284",
     "pre-commit",
 ]
 doc = [
