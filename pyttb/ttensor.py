@@ -627,14 +627,14 @@ class ttensor:
         if isinstance(H, ttb.sptensor):
             HnT = H.to_sptenmat(np.array([n]), cdims_cyclic="t").double()
         else:
-            HnT = ttb.tenmat.from_tensor_type(H.full(), cdims=np.array([n])).double()
+            HnT = H.full().to_tenmat(cdims=np.array([n])).double()
 
         G = self.core
 
         if isinstance(G, ttb.sptensor):
             GnT = G.to_sptenmat(np.array([n]), cdims_cyclic="t").double()
         else:
-            GnT = ttb.tenmat.from_tensor_type(G.full(), cdims=np.array([n])).double()
+            GnT = G.full().to_tenmat(cdims=np.array([n])).double()
 
         # Compute Xn * Xn'
         # Big hack because if RHS is sparse wrong dot product is used

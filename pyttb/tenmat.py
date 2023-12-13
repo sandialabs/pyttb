@@ -4,7 +4,7 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
-from typing import Literal, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
@@ -122,68 +122,6 @@ class tenmat:
         self.data = np.asfortranarray(data.copy())
         return
 
-    @classmethod
-    def from_tensor_type(
-        cls,
-        source: Union[ttb.tensor],
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"]]] = None,
-    ):
-        """
-        Converts other tensor types into a tenmat
-
-        Parameters
-        ----------
-        source:
-            Tensor type to create dense tensor from
-        rdims:
-        cdims:
-        cdims_cyclic:
-
-        Returns
-        -------
-        Constructed tenmat
-        """
-        # Case III: Convert a tensor to a tenmat
-        if isinstance(source, ttb.tensor):
-            n = source.ndims
-            alldims = np.array([range(n)])
-            tshape = source.shape
-
-            # Verify inputs
-            if rdims is None and cdims is None:
-                assert False, "Either rdims or cdims or both must be specified."
-            if rdims is not None and not sum(np.in1d(rdims, alldims)) == len(rdims):
-                assert False, "Values in rdims must be in [0, source.ndims]."
-            if cdims is not None and not sum(np.in1d(cdims, alldims)) == len(cdims):
-                assert False, "Values in cdims must be in [0, source.ndims]."
-
-            rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
-            # if rdims or cdims is empty, hstack will output an array of float not int
-            if rdims.size == 0:
-                dims = cdims.copy()
-            elif cdims.size == 0:
-                dims = rdims.copy()
-            else:
-                dims = np.hstack([rdims, cdims])
-            if not len(dims) == n or not (alldims == np.sort(dims)).all():
-                assert False, (
-                    "Incorrect specification of dimensions, the sorted concatenation "
-                    "of rdims and cdims must be range(source.ndims)."
-                )
-            rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
-            cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
-            data = np.reshape(
-                ttb.tensor(source.data, tshape).permute(dims).data,
-                (rprod, cprod),
-                order="F",
-            )
-            return ttb.tenmat(data, rdims, cdims, tshape=tshape)
-        raise ValueError(
-            f"Can only create tenmat from tensor but recieved {type(source)}"
-        )
-
     def copy(self) -> tenmat:
         """
         Return a deep copy of the :class:`pyttb.tenmat`.
@@ -194,7 +132,7 @@ class tenmat:
         the deep copy (TM3) is not just a reference (like TM2) to the original.
 
         >>> T1 = ttb.tensor(np.ones((3,2)))
-        >>> TM1 = ttb.tenmat.from_tensor_type(T1, np.array([0]))
+        >>> TM1 = T1.to_tenmat(np.array([0]))
         >>> TM2 = TM1
         >>> TM3 = TM1.copy()
         >>> TM1[0,0] = 3
@@ -275,6 +213,21 @@ class tenmat:
         if self.data.size == 0:
             return ()
         return self.data.shape
+
+    def isequal(self, other: tenmat) -> bool:
+        """
+        Exact equality for :class:`pyttb.tenmat`
+        """
+        if not isinstance(other, ttb.tenmat):
+            raise ValueError(
+                f"Can only compares against other tenmat but received: {type(other)}"
+            )
+        return (
+            np.array_equal(self.data, other.data)
+            and self.tshape == other.tshape
+            and np.array_equal(self.rindices, other.rindices)
+            and np.array_equal(self.cindices, other.cindices)
+        )
 
     def __setitem__(self, key, value):
         """
