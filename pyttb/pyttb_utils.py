@@ -6,82 +6,11 @@ from __future__ import annotations
 
 from enum import Enum
 from inspect import signature
-from typing import List, Optional, Tuple, Union, get_args, overload
+from typing import List, Literal, Optional, Tuple, Union, get_args, overload
 
 import numpy as np
 
 import pyttb as ttb
-
-
-def tt_to_dense_matrix(
-    tensorInstance: Union[ttb.tensor, ttb.ktensor], mode: int, transpose: bool = False
-) -> np.ndarray:
-    """
-    Helper function to unwrap tensor into dense matrix, should replace the core need
-    for tenmat
-
-    Parameters
-    ----------
-    tensorInstance:
-        Tensor to matricize
-    mode:
-        Mode around which to unwrap tensor
-    transpose:
-        Whether or not to tranpose unwrapped tensor
-
-    Returns
-    -------
-    Resultant matrix.
-    """
-    siz = np.array(tensorInstance.shape).astype(int)
-    old = np.setdiff1d(np.arange(tensorInstance.ndims), mode).astype(int)
-    permutation: np.ndarray = np.concatenate((np.array([mode]), old))
-    # This mimics how tenmat handles ktensors
-    # TODO check if full can be done after permutation and reshape for efficiency
-    if isinstance(tensorInstance, ttb.ktensor):
-        tensorInstance = tensorInstance.full()
-    tensorInstance = tensorInstance.permute(permutation).reshape(
-        (siz[mode], np.prod(siz[old]))
-    )
-    matrix = tensorInstance.data
-    if transpose:
-        matrix = np.transpose(matrix)
-    return matrix
-
-
-def tt_from_dense_matrix(
-    matrix: np.ndarray,
-    shape: Tuple[int, ...],
-    mode: int,
-    idx: int,
-) -> ttb.tensor:
-    """
-    Helper function to wrap dense matrix into tensor.
-    Inverse of :class:`pyttb.tt_to_dense_matrix`
-
-    Parameters
-    ----------
-    matrix:
-        Matrix to (re-)create tensor from.
-    mode:
-        Mode around which tensor was unwrapped
-    idx:
-        In {0,1}, idx of mode in matrix, s.b. 0 for tranpose=True
-
-    Returns
-    -------
-    Dense tensor.
-    """
-    tensorInstance = ttb.tensor(matrix)
-    if idx == 0:
-        tensorInstance = tensorInstance.permute(np.array([1, 0]))
-    tensorInstance = tensorInstance.reshape(shape)
-    tensorInstance = tensorInstance.permute(
-        np.concatenate(
-            (np.arange(1, mode + 1), np.array([0]), np.arange(mode + 1, len(shape)))
-        )
-    )
-    return tensorInstance
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
@@ -880,3 +809,45 @@ def get_mttkrp_factors(
     assert len(U) == ndims, "List of factor matrices is the wrong length"
 
     return U
+
+
+def gather_wrap_dims(
+    ndims: int,
+    rdims: Optional[np.ndarray] = None,
+    cdims: Optional[np.ndarray] = None,
+    cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"], Literal["t"]]] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
+    alldims = np.array([range(ndims)])
+
+    if rdims is not None and cdims is None:
+        # Single row mapping
+        if len(rdims) == 1 and cdims_cyclic is not None:
+            # TODO we should be able to remove this since we can just specify
+            #   cdims alone
+            if cdims_cyclic == "t":
+                cdims = rdims
+                rdims = np.setdiff1d(alldims, rdims)
+            elif cdims_cyclic == "fc":
+                cdims = np.array(
+                    [i for i in range(rdims[0] + 1, ndims)]
+                    + [i for i in range(rdims[0])]
+                )
+            elif cdims_cyclic == "bc":
+                cdims = np.array(
+                    [i for i in range(rdims[0] - 1, -1, -1)]
+                    + [i for i in range(ndims - 1, rdims[0], -1)]
+                )
+            else:
+                assert False, (
+                    "Unrecognized value for cdims_cyclic pattern, "
+                    'must be "fc" or "bc".'
+                )
+        else:
+            # Multiple row mapping
+            cdims = np.setdiff1d(alldims, rdims)
+
+    elif rdims is None and cdims is not None:
+        rdims = np.setdiff1d(alldims, cdims)
+
+    assert rdims is not None and cdims is not None
+    return rdims.astype(int), cdims.astype(int)

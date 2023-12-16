@@ -36,7 +36,7 @@ dev = [
     "nbstripout",
     "pytest",
     "pytest-cov",
-    "ruff",
+    "ruff==0.0.284",
     "pre-commit",
 ]
 doc = [
@@ -44,6 +44,10 @@ doc = [
     "sphinx_rtd_theme",
     "myst-nb",
     "matplotlib",
+]
+profiling = [
+    "gprof2dot",
+    "graphviz",
 ]
 
 [tool.setuptools.packages.find]

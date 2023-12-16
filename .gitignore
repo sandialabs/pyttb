@@ -13,3 +13,8 @@ __pycache__
 .vs*
 TestResults
 .DS_Store
+# Static tensor data
+profiling/**/*.tns
+# Profiling results
+*.pstats
+profiling/**/*.png
