@@ -20,12 +20,13 @@ class tenmat:
 
     __slots__ = ("tshape", "rindices", "cindices", "data")
 
-    def __init__(  # noqa: PLR0912
+    def __init__(  # noqa: PLR0912, PLR0913
         self,
         data: Optional[np.ndarray] = None,
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
         tshape: Optional[Tuple[int, ...]] = None,
+        copy: bool = True,
     ):
         """
         Construct a :class:`pyttb.tenmat` from explicit components.
@@ -41,6 +42,8 @@ class tenmat:
             Which dimensions of original tensor map to columns.
         tshape:
             Original tensor shape.
+        copy:
+            Whether to make a copy of provided data or just reference it.
 
         Examples
         --------
@@ -158,7 +161,10 @@ class tenmat:
         self.tshape = tshape
         self.rindices = rdims.copy()
         self.cindices = cdims.copy()
-        self.data = np.asfortranarray(data.copy())
+        if copy:
+            self.data = data.copy()
+        else:
+            self.data = data
         return
 
     def copy(self) -> tenmat:
@@ -181,19 +187,21 @@ class tenmat:
         False
         """
         # Create tenmat
-        tenmatInstance = tenmat()
-        tenmatInstance.tshape = self.tshape
-        tenmatInstance.rindices = self.rindices.copy()
-        tenmatInstance.cindices = self.cindices.copy()
-        tenmatInstance.data = self.data.copy()
-        return tenmatInstance
+        return ttb.tenmat(
+            self.data, self.rindices, self.cindices, self.tshape, copy=True
+        )
 
     def __deepcopy__(self, memo):
         return self.copy()
 
-    def to_tensor(self) -> ttb.tensor:
+    def to_tensor(self, copy: bool = True) -> ttb.tensor:
         """
-        Return copy of :class:`pyttb.tenmat` data as a :class:`pyttb.tensor`.
+        Return :class:`pyttb.tenmat` data as a :class:`pyttb.tensor`.
+
+        Parameters
+        ----------
+        copy:
+            Whether to make a copy of provided data or just reference it.
 
         Examples
         --------
@@ -235,7 +243,10 @@ class tenmat:
         # it using ipermute.
         shape = self.tshape
         order = np.hstack([self.rindices, self.cindices])
-        data = np.reshape(self.data.copy(), np.array(shape)[order], order="F")
+        data = self.data
+        if copy:
+            data = self.data.copy()
+        data = np.reshape(data, np.array(shape)[order], order="F")
         if order.size > 1:
             data = np.transpose(data, np.argsort(order))
         return ttb.tensor(data, shape, copy=False)
@@ -268,10 +279,11 @@ class tenmat:
          [1. 1.]]
         """
         return tenmat(
-            self.data.conj().T.copy(),
-            self.cindices.copy(),
-            self.rindices.copy(),
+            self.data.conj().T,
+            self.cindices,
+            self.rindices,
             self.tshape,
+            copy=True,
         )
 
     def double(self) -> np.ndarray:
@@ -469,13 +481,13 @@ class tenmat:
 
             if not tshape:
                 return (self.data @ other.data)[0, 0]
-            tenmatInstance = tenmat()
-            tenmatInstance.tshape = tshape
-            tenmatInstance.rindices = np.arange(len(self.rindices))
-            tenmatInstance.cindices = np.arange(len(other.cindices)) + len(
-                self.rindices
+            tenmatInstance = tenmat(
+                self.data @ other.data,
+                np.arange(len(self.rindices)),
+                np.arange(len(other.cindices)) + len(self.rindices),
+                tshape,
+                copy=False,
             )
-            tenmatInstance.data = self.data @ other.data
             return tenmatInstance
         assert False, "tenmat multiplication only valid with scalar or tenmat objects."
 
