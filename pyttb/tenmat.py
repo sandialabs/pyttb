@@ -193,7 +193,7 @@ class tenmat:
 
     def to_tensor(self) -> ttb.tensor:
         """
-        Return copy of tenmat data as a tensor.
+        Return copy of :class:`pyttb.tenmat` data as a :class:`pyttb.tensor`.
 
         Examples
         --------
@@ -242,7 +242,7 @@ class tenmat:
 
     def ctranspose(self) -> tenmat:
         """
-        Complex conjugate transpose for tenmat.
+        Complex conjugate transpose for :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -267,16 +267,16 @@ class tenmat:
          [1. 1.]
          [1. 1.]]
         """
-        tenmatInstance = tenmat()
-        tenmatInstance.rindices = self.cindices.copy()
-        tenmatInstance.cindices = self.rindices.copy()
-        tenmatInstance.tshape = self.tshape
-        tenmatInstance.data = self.data.conj().T.copy()
-        return tenmatInstance
+        return tenmat(
+            self.data.conj().T.copy(),
+            self.cindices.copy(),
+            self.rindices.copy(),
+            self.tshape,
+        )
 
     def double(self) -> np.ndarray:
         """
-        Convert tenmat to an array of doubles
+        Convert a :class:`pyttb.tenmat` to an array of doubles.
 
         Examples
         --------
@@ -301,12 +301,23 @@ class tenmat:
 
     @property
     def ndims(self) -> int:
-        """Return the number of dimensions of a tenmat"""
+        """Return the number of dimensions of a :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        >>> TM = ttb.tenmat() # empty tenmat
+        >>> TM.ndims
+        0
+
+        >>> TM = ttb.tenones((2,2,2)).to_tenmat(np.array([0]))
+        >>> TM.ndims
+        2
+        """
         return len(self.shape)
 
     def norm(self) -> float:
         """
-        Frobenius norm of a tenmat.
+        Frobenius norm of a :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -330,14 +341,34 @@ class tenmat:
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        """Return the shape of a tenmat"""
+        """Return the shape of a :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        >>> TM = ttb.tenmat() # empty tenmat
+        >>> TM.shape
+        ()
+
+        >>> TM = ttb.tenones((2,2,2)).to_tenmat(np.array([0]))
+        >>> TM.shape
+        (2, 4)
+        """
         if self.data.size == 0:
             return ()
         return self.data.shape
 
     def isequal(self, other: tenmat) -> bool:
         """
-        Exact equality for :class:`pyttb.tenmat`
+        Exact equality for :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        >>> TM1 = ttb.tenmat() # empty tenmat
+        >>> TM2 = ttb.tenones((2,2,2)).to_tenmat(np.array([0]))
+        >>> TM1.isequal(TM2)
+        False
+        >>> TM1.isequal(TM1)
+        True
         """
         if not isinstance(other, ttb.tenmat):
             raise ValueError(
@@ -352,17 +383,38 @@ class tenmat:
 
     def __setitem__(self, key, value):
         """
-        SUBSASGN Subscripted assignment for a tensor.
+        Subscripted assignment for a :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2,2)).to_tenmat(np.array([0]))
+        >>> TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 1. 1. 1.]
+         [1. 1. 1. 1.]]
+        >>> TM[0, 0] = 2.
+        >>> TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[2. 1. 1. 1.]
+         [1. 1. 1. 1.]]
         """
         self.data[key] = value
 
     def __getitem__(self, item):
         """
-        SUBSREF Subscripted reference for tenmat.
+        Subscripted reference for :class:`pyttb.tenmat`.
 
-        Parameters
-        ----------
-        item:
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2,2)).to_tenmat(np.array([0]))
+        >>> TM[0, 0]
+        1.0
 
         Returns
         -------
@@ -372,11 +424,22 @@ class tenmat:
 
     def __mul__(self, other):
         """
-        Multiplies two tenmat objects.
+        Multiplies two :class:`pyttb.tenmat` objects.
 
         Parameters
         ----------
         other: :class:`pyttb.tenmat`
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> TM * TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[2. 2.]
+         [2. 2.]]
 
         Returns
         -------
@@ -418,11 +481,22 @@ class tenmat:
 
     def __rmul__(self, other):
         """
-        Multiplies two tenmat objects.
+        Multiplies two :class:`pyttb.tenmat` objects.
 
         Parameters
         ----------
         other: :class:`pyttb.tenmat`
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> TM * TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[2. 2.]
+         [2. 2.]]
 
         Returns
         -------
@@ -432,11 +506,29 @@ class tenmat:
 
     def __add__(self, other):
         """
-        Binary addition (+) for tenmats
+        Binary addition (+) for :class:`pyttb.tenmat`.
 
         Parameters
         ----------
         other: :class:`pyttb.tenmat`, float, int
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> TM + TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[2. 2.]
+         [2. 2.]]
+        >>> TM + 1.0 # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[2. 2.]
+         [2. 2.]]
 
         Returns
         -------
@@ -460,11 +552,22 @@ class tenmat:
 
     def __radd__(self, other):
         """
-        Reverse binary addition (+) for tenmats
+        Right binary addition (+) for :class:`pyttb.tenmat`.
 
         Parameters
         ----------
         other: :class:`pyttb.tenmat`, float, int
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> 1.0 + TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[2. 2.]
+         [2. 2.]]
 
         Returns
         -------
@@ -474,11 +577,29 @@ class tenmat:
 
     def __sub__(self, other):
         """
-        Binary subtraction (-) for tenmats
+        Binary subtraction (-) for :class:`pyttb.tenmat`.
 
         Parameters
         ----------
         other: :class:`pyttb.tenmat`, float, int
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> TM - TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[0. 0.]
+         [0. 0.]]
+        >>> TM - 1.0 # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[0. 0.]
+         [0. 0.]]
 
         Returns
         -------
@@ -502,11 +623,22 @@ class tenmat:
 
     def __rsub__(self, other):
         """
-        Reverse binary subtraction (-) for tenmats
+        Right binary subtraction (-) for :class:`pyttb.tenmat`.
 
         Parameters
         ----------
         other: :class:`pyttb.tenmat`, float, int
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> 1.0 - TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[0. 0.]
+         [0. 0.]]
 
         Returns
         -------
@@ -530,7 +662,18 @@ class tenmat:
 
     def __pos__(self):
         """
-        Unary plus (+) for tenmats
+        Unary plus (+) for :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> +TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 1.]
+         [1. 1.]]
 
         Returns
         -------
@@ -544,12 +687,23 @@ class tenmat:
 
     def __neg__(self):
         """
-        Unary minus (-) for tenmats
+        Unary minus (-) for :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> -TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[-1. -1.]
+         [-1. -1.]]
 
         Returns
         -------
         :class:`pyttb.tenmat`
-            copy of tenmat
+            Copy of original tenmat with negated data.
         """
 
         T = self.copy()
@@ -559,7 +713,28 @@ class tenmat:
 
     def __repr__(self):
         """
-        String representation of a tenmat.
+        String representation of a :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        Print an empty :class:`pyttb.tenmat`.
+
+        >>> ttb.tenmat() # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape ()
+        rindices = [  ] (modes of tensor corresponding to rows)
+        cindices = [  ] (modes of tensor corresponding to columns)
+        data = []
+
+        Print a non-empty :class:`pyttb.tenmat`.
+
+        >>> TM = ttb.tenones((2,2)).to_tenmat(np.array([0]))
+        >>> TM # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 1.]
+         [1. 1.]]
 
         Returns
         -------
