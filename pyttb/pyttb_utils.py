@@ -13,41 +13,6 @@ import numpy as np
 import pyttb as ttb
 
 
-def tt_from_dense_matrix(
-    matrix: np.ndarray,
-    shape: Tuple[int, ...],
-    mode: int,
-    idx: int,
-) -> ttb.tensor:
-    """
-    Helper function to wrap dense matrix into tensor.
-    Inverse of :class:`pyttb.tt_to_dense_matrix`
-
-    Parameters
-    ----------
-    matrix:
-        Matrix to (re-)create tensor from.
-    mode:
-        Mode around which tensor was unwrapped
-    idx:
-        In {0,1}, idx of mode in matrix, s.b. 0 for tranpose=True
-
-    Returns
-    -------
-    Dense tensor.
-    """
-    tensorInstance = ttb.tensor(matrix)
-    if idx == 0:
-        tensorInstance = tensorInstance.permute(np.array([1, 0]))
-    tensorInstance = tensorInstance.reshape(shape)
-    tensorInstance = tensorInstance.permute(
-        np.concatenate(
-            (np.arange(1, mode + 1), np.array([0]), np.arange(mode + 1, len(shape)))
-        )
-    )
-    return tensorInstance
-
-
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     """
     Helper function to reproduce functionality of MATLABS intersect(a,b,'rows')

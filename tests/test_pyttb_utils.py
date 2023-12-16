@@ -11,21 +11,6 @@ import pyttb as ttb
 import pyttb.pyttb_utils as ttb_utils
 
 
-def test_sptensor_from_dense_matrix():
-    tensorInstance = ttb.tensor(np.random.normal(size=(4, 4, 4)))
-    for mode in range(tensorInstance.ndims):
-        tensorCopy = tensorInstance.copy()
-        Xnt = tensorCopy.to_tenmat(np.array([mode]), copy=False).data.transpose()
-        Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 0)
-        assert tensorCopy.isequal(Ynt)
-
-    for mode in range(tensorInstance.ndims):
-        tensorCopy = tensorInstance.copy()
-        Xnt = tensorCopy.to_tenmat(np.array([mode]), copy=False).data
-        Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 1)
-        assert tensorCopy.isequal(Ynt)
-
-
 def test_tt_union_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6], [99, 0]])
     b = np.array([[1, 7], [1, 8], [2, 6]])
