@@ -30,6 +30,7 @@ class sptenmat:
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
         tshape: Tuple[int, ...] = (),
+        copy: bool = True,
     ):
         """
         Construct a :class:`pyttb.sptenmat` from a set of 2D subscripts (subs)
@@ -50,6 +51,9 @@ class sptenmat:
             Mapping of column indices.
         tshape:
             Shape of the original tensor.
+        copy:
+            Whether to make a copy of provided data or just reference it.
+            Skips error checking when just setting reference.
 
         Examples
         --------
@@ -121,11 +125,13 @@ class sptenmat:
         ), "Invalid column index."
 
         # Sum any duplicates
+        newsubs = subs
+        newvals = vals
         if vals.size == 0:
             assert vals.size == 0, "Empty subs requires empty vals"
             newsubs = np.array([])
             newvals = np.array([])
-        else:
+        elif copy:
             # Identify only the unique indices
             newsubs, loc = np.unique(subs, axis=0, return_inverse=True)
             # Sum the corresponding values
@@ -134,19 +140,26 @@ class sptenmat:
                 loc, np.squeeze(vals, axis=1), size=newsubs.shape[0], func=sum
             )
 
-        # Find the nonzero indices of the new values
-        nzidx = np.nonzero(newvals)
-        newsubs = newsubs[nzidx]
-        # None index to convert from row back to column vector
-        newvals = newvals[nzidx]
-        if newvals.size > 0:
-            newvals = newvals[:, None]
+        if copy:
+            # Find the nonzero indices of the new values
+            nzidx = np.nonzero(newvals)
+            newsubs = newsubs[nzidx]
+            # None index to convert from row back to column vector
+            newvals = newvals[nzidx]
+            if newvals.size > 0:
+                newvals = newvals[:, None]
 
-        self.tshape = tshape
-        self.rdims = rdims.copy().astype(int)
-        self.cdims = cdims.copy().astype(int)
-        self.subs = newsubs
-        self.vals = newvals
+            self.tshape = tshape
+            self.rdims = rdims.copy().astype(int)
+            self.cdims = cdims.copy().astype(int)
+            self.subs = newsubs
+            self.vals = newvals
+        else:
+            self.tshape = tshape
+            self.rdims = rdims
+            self.cdims = cdims
+            self.subs = newsubs
+            self.vals = newvals
 
     @classmethod
     def from_array(
@@ -227,11 +240,12 @@ class sptenmat:
         False
         """
         return sptenmat(
-            self.subs.copy(),
-            self.vals.copy(),
-            self.rdims.copy(),
-            self.cdims.copy(),
+            self.subs,
+            self.vals,
+            self.rdims,
+            self.cdims,
             self.tshape,
+            copy=True,
         )
 
     def __deepcopy__(self, memo):
