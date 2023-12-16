@@ -45,6 +45,10 @@ doc = [
     "myst-nb",
     "matplotlib",
 ]
+profiling = [
+    "gprof2dot",
+    "graphviz",
+]
 
 [tool.setuptools.packages.find]
 include = ["pyttb*"]
