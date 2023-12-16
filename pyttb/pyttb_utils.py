@@ -13,42 +13,6 @@ import numpy as np
 import pyttb as ttb
 
 
-def tt_to_dense_matrix(
-    tensorInstance: Union[ttb.tensor, ttb.ktensor], mode: int, transpose: bool = False
-) -> np.ndarray:
-    """
-    Helper function to unwrap tensor into dense matrix, should replace the core need
-    for tenmat
-
-    Parameters
-    ----------
-    tensorInstance:
-        Tensor to matricize
-    mode:
-        Mode around which to unwrap tensor
-    transpose:
-        Whether or not to tranpose unwrapped tensor
-
-    Returns
-    -------
-    Resultant matrix.
-    """
-    siz = np.array(tensorInstance.shape).astype(int)
-    old = np.setdiff1d(np.arange(tensorInstance.ndims), mode).astype(int)
-    permutation: np.ndarray = np.concatenate((np.array([mode]), old))
-    # This mimics how tenmat handles ktensors
-    # TODO check if full can be done after permutation and reshape for efficiency
-    if isinstance(tensorInstance, ttb.ktensor):
-        tensorInstance = tensorInstance.full()
-    tensorInstance = tensorInstance.permute(permutation).reshape(
-        (siz[mode], np.prod(siz[old]))
-    )
-    matrix = tensorInstance.data
-    if transpose:
-        matrix = np.transpose(matrix)
-    return matrix
-
-
 def tt_from_dense_matrix(
     matrix: np.ndarray,
     shape: Tuple[int, ...],
