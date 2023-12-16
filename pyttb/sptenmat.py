@@ -36,6 +36,8 @@ class sptenmat:
         and values (vals) along with the mappings of the row (rdims) and column
         indices (cdims) and the shape of the original tensor (tshape).
 
+        If you already have an sparse tensor see :method:`pyttb.sptensor.to_sptenmat`.
+
         Parameters
         ----------
         subs:
@@ -238,6 +240,23 @@ class sptenmat:
     def to_sptensor(self) -> ttb.sptensor:
         """
         Contruct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> S1 # doctest: +NORMALIZE_WHITESPACE
+        sparse tensor of shape (2, 2, 2) with 1 nonzeros
+        [0, 0, 0] = 1.0
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST1 # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [0, 0] = 1.0
+        >>> ST1.to_sptensor() # doctest: +NORMALIZE_WHITESPACE
+        sparse tensor of shape (2, 2, 2) with 1 nonzeros
+        [0, 0, 0] = 1.0
         """
         vals = None
         subs = None
@@ -256,7 +275,17 @@ class sptenmat:
     @property
     def shape(self) -> Tuple[int, ...]:
         """
-        Return the shape of a sptenmat
+        Return the shape of a :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        >>> ttb.sptenmat().shape # empty sptenmat
+        ()
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST1.shape
+        (2, 4)
         """
         if self.tshape == ():
             return ()
@@ -268,6 +297,17 @@ class sptenmat:
     def double(self) -> sparse.coo_matrix:
         """
         Convert a :class:`pyttb.sptenmat` to a COO :class:`scipy.sparse.coo_matrix`.
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST1.double() # doctest: +NORMALIZE_WHITESPACE
+        <2x4 sparse matrix of type '<class 'numpy.float64'>'
+            with 1 stored elements in COOrdinate format>
+        >>> print(ST1.double()) # doctest: +NORMALIZE_WHITESPACE
+        (0, 0)  1.0
         """
         if self.subs.size == 0:
             return sparse.coo_matrix(self.shape)
@@ -278,6 +318,19 @@ class sptenmat:
     def full(self) -> ttb.tenmat:
         """
         Convert a :class:`pyttb.sptenmat` to a (dense) :class:`pyttb.tenmat`.
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST1.full() # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[1. 0. 0. 0.]
+         [0. 0. 0. 0.]]
         """
         # Create empty dense tenmat
         result = ttb.tenmat(np.zeros(self.shape), self.rdims, self.cdims, self.tshape)
@@ -289,6 +342,14 @@ class sptenmat:
     def nnz(self) -> int:
         """
         Number of nonzero values in the :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST1.nnz
+        1
         """
         return len(self.vals)
 
@@ -296,12 +357,31 @@ class sptenmat:
         """
         Compute the norm (i.e., Frobenius norm, or square root of the sum of
         squares of entries) of the :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST1.norm()
+        1.0
         """
         return np.linalg.norm(self.vals)
 
     def isequal(self, other: sptenmat) -> bool:
         """
-        Exact equality for :class:`pyttb.sptenmat`
+        Exact equality for :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST2 = ttb.sptenmat()
+        >>> ST1.isequal(ST2)
+        False
+        >>> ST1.isequal(ST1)
+        True
         """
         if not isinstance(other, ttb.sptenmat):
             raise ValueError(
@@ -318,12 +398,34 @@ class sptenmat:
     def __pos__(self):
         """
         Unary plus operator (+).
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> +ST1 # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [0, 0] = 1.0
         """
         return self.copy()
 
     def __neg__(self):
         """
         Unary minus operator (-).
+
+        Examples
+        --------
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> -ST1 # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [0, 0] = -1.0
         """
         result = self.copy()
         result.vals *= -1
@@ -332,6 +434,34 @@ class sptenmat:
     def __setitem__(self, key, value):  # noqa: PLR0912
         """
         Subscripted assignment for the :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        Create an empty :class:`pyttb.sptenmat`.
+
+        >>> ST = ttb.sptenmat(rdims=np.array([0]), tshape=(2,2,2))
+        >>> ST # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (2, 4) with 0 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+
+        Insert a new value into it.
+
+        >>> ST[0, 0] = 1.0
+        >>> ST # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [0, 0] = 1.0
+
+        Update an existing value in it.
+
+        >>> ST[0, 0] = 2.0
+        >>> ST # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [0, 0] = 2.0
         """
         if not isinstance(key, tuple):
             raise IndexError("Sptenmat takes two arguments as a 2D array")
@@ -395,7 +525,22 @@ class sptenmat:
 
     def __repr__(self):
         """
-        String representation of a sptenmat.
+        String representation of a :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        >>> ttb.sptenmat() # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape () with 0 nonzeros
+        rdims = [  ] (modes of sptensor corresponding to rows)
+        cdims = [  ] (modes of sptensor corresponding to columns)
+        >>> S1 = ttb.sptensor(shape=(2,2,2))
+        >>> S1[0,0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST1 # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [0, 0] = 1.0
 
         Returns
         -------
