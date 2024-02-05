@@ -1137,7 +1137,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob( # noqa: PLR0913
     Data: ttb.sptensor,
     Model: ttb.ktensor,
     rank: int,
@@ -1150,7 +1150,7 @@ def tt_calcpi_prowsubprob(
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob( # noqa: PLR0913
     Data: ttb.tensor,
     Model: ttb.ktensor,
     rank: int,
