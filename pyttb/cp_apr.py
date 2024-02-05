@@ -1138,7 +1138,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: ttb.sptensor,
     Model: ttb.ktensor,
     rank: int,
@@ -1146,18 +1146,20 @@ def tt_calcpi_prowsubprob(
     ndims: int,
     isSparse: Literal[True],
     sparse_indices: np.ndarray,
-) -> np.ndarray: ...  # pragma: no cover see coveragepy/issues/970
+) -> np.ndarray:
+    ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
-def tt_calcpi_prowsubprob(
+def tt_calcpi_prowsubprob(  # noqa: PLR0913
     Data: ttb.tensor,
     Model: ttb.ktensor,
     rank: int,
     factorIndex: int,
     ndims: int,
     isSparse: Literal[False],
-) -> np.ndarray: ...  # pragma: no cover see coveragepy/issues/970
+) -> np.ndarray:
+    ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_calcpi_prowsubprob(  # noqa: PLR0913

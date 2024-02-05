@@ -893,14 +893,12 @@ class sptensor:
         return sptensor(subs, trueVector, self.shape)
 
     @overload
-    def logical_or(
-        self, other: Union[float, ttb.tensor]
-    ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
+    def logical_or(self, other: Union[float, ttb.tensor]) -> ttb.tensor:
+        ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def logical_or(
-        self, other: sptensor
-    ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
+    def logical_or(self, other: sptensor) -> sptensor:
+        ...  # pragma: no cover see coveragepy/issues/970
 
     def logical_or(
         self, other: Union[float, ttb.tensor, sptensor]
@@ -963,14 +961,12 @@ class sptensor:
         assert False, "Sptensor Logical Or argument must be scalar or sptensor"
 
     @overload
-    def logical_xor(
-        self, other: Union[float, ttb.tensor]
-    ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
+    def logical_xor(self, other: Union[float, ttb.tensor]) -> ttb.tensor:
+        ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def logical_xor(
-        self, other: sptensor
-    ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
+    def logical_xor(self, other: sptensor) -> sptensor:
+        ...  # pragma: no cover see coveragepy/issues/970
 
     def logical_xor(
         self, other: Union[float, ttb.tensor, sptensor]
@@ -3477,14 +3473,12 @@ class sptensor:
         return Ynt.to_tensor()
 
     @overload
-    def squash(
-        self, return_inverse: Literal[False]
-    ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
+    def squash(self, return_inverse: Literal[False]) -> sptensor:
+        ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def squash(
-        self, return_inverse: Literal[True]
-    ) -> Tuple[sptensor, Dict]: ...  # pragma: no cover see coveragepy/issues/970
+    def squash(self, return_inverse: Literal[True]) -> Tuple[sptensor, Dict]:
+        ...  # pragma: no cover see coveragepy/issues/970
 
     def squash(
         self, return_inverse: bool = False

@@ -17,7 +17,8 @@ def evaluate(
     weights: Optional[np.ndarray],
     function_handle: Literal[None],
     gradient_handle: function_type,
-) -> List[np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
+) -> List[np.ndarray]:
+    ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -27,7 +28,8 @@ def evaluate(
     weights: Optional[np.ndarray],
     function_handle: function_type,
     gradient_handle: Literal[None],
-) -> float: ...  # pragma: no cover see coveragepy/issues/970
+) -> float:
+    ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -37,7 +39,8 @@ def evaluate(
     weights: Optional[np.ndarray],
     function_handle: function_type,
     gradient_handle: function_type,
-) -> Tuple[float, List[np.ndarray]]: ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[float, List[np.ndarray]]:
+    ...  # pragma: no cover see coveragepy/issues/970
 
 
 def evaluate(
