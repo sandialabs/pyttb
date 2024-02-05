@@ -1,4 +1,5 @@
 """Optimizer Implementations for GCP"""
+
 from __future__ import annotations
 
 import logging

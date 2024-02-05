@@ -144,9 +144,7 @@ class GCPSampler:
         elif function_sampler == Samplers.UNIFORM:
             if function_samples is None:
                 tensor_size = int(np.prod(data.shape))
-                function_samples = min(
-                    max(ceil(tensor_size / 10), 10**6), tensor_size
-                )
+                function_samples = min(max(ceil(tensor_size / 10), 10**6), tensor_size)
             if not isinstance(function_samples, int):
                 raise ValueError(
                     "Uniform sampling only accepts integers for number of samples"

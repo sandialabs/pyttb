@@ -37,14 +37,13 @@ algorithms for computing low-rank tensor models.
 .. _Algorithms: algorithms.html
 
 
-Tutorials
-=========
+Getting Started
+===============
 
 .. toctree::
    :maxdepth: 1
 
-   tutorials.rst
-
+   getting_started.rst
 
 Python API
 ================

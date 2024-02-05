@@ -1,4 +1,5 @@
 """Tucker Tensor Implementation"""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -368,7 +369,7 @@ class ttensor:
         if (
             len(vector) > 0
             and isinstance(vector, np.ndarray)
-            and isinstance(vector[0], (int, float, np.int_, np.float_))
+            and isinstance(vector[0], (int, float, np.int_, np.float64))
         ):
             return self.ttv([vector], dims, exclude_dims)
 

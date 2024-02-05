@@ -1,4 +1,5 @@
 """Classes and functions for working with sparse tensors."""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -892,12 +893,14 @@ class sptensor:
         return sptensor(subs, trueVector, self.shape)
 
     @overload
-    def logical_or(self, other: Union[float, ttb.tensor]) -> ttb.tensor:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def logical_or(
+        self, other: Union[float, ttb.tensor]
+    ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def logical_or(self, other: sptensor) -> sptensor:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def logical_or(
+        self, other: sptensor
+    ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
     def logical_or(
         self, other: Union[float, ttb.tensor, sptensor]
@@ -960,12 +963,14 @@ class sptensor:
         assert False, "Sptensor Logical Or argument must be scalar or sptensor"
 
     @overload
-    def logical_xor(self, other: Union[float, ttb.tensor]) -> ttb.tensor:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def logical_xor(
+        self, other: Union[float, ttb.tensor]
+    ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def logical_xor(self, other: sptensor) -> sptensor:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def logical_xor(
+        self, other: sptensor
+    ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
     def logical_xor(
         self, other: Union[float, ttb.tensor, sptensor]
@@ -1797,7 +1802,7 @@ class sptensor:
 
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
-        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands
@@ -3472,12 +3477,14 @@ class sptensor:
         return Ynt.to_tensor()
 
     @overload
-    def squash(self, return_inverse: Literal[False]) -> sptensor:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def squash(
+        self, return_inverse: Literal[False]
+    ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def squash(self, return_inverse: Literal[True]) -> Tuple[sptensor, Dict]:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def squash(
+        self, return_inverse: Literal[True]
+    ) -> Tuple[sptensor, Dict]: ...  # pragma: no cover see coveragepy/issues/970
 
     def squash(
         self, return_inverse: bool = False
