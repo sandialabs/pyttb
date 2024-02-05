@@ -515,8 +515,7 @@ class tensor:
         grps: Optional[np.ndarray],
         version: Optional[Any],
         return_details: Literal[False],
-    ) -> bool:
-        ...  # pragma: no cover see coveragepy/issues/970
+    ) -> bool: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
     def issymmetric(
@@ -524,8 +523,9 @@ class tensor:
         grps: Optional[np.ndarray],
         version: Optional[Any],
         return_details: Literal[True],
-    ) -> Tuple[bool, np.ndarray, np.ndarray]:
-        ...  # pragma: no cover see coveragepy/issues/970
+    ) -> Tuple[
+        bool, np.ndarray, np.ndarray
+    ]: ...  # pragma: no cover see coveragepy/issues/970
 
     # TODO: We should probably always return details and let caller drop them
     def issymmetric(  # noqa: PLR0912

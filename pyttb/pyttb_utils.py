@@ -136,8 +136,7 @@ def tt_dimscheck(
     M: None = None,
     dims: Optional[np.ndarray] = None,
     exclude_dims: Optional[np.ndarray] = None,
-) -> Tuple[np.ndarray, None]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[np.ndarray, None]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -146,8 +145,7 @@ def tt_dimscheck(
     M: int,
     dims: Optional[np.ndarray] = None,
     exclude_dims: Optional[np.ndarray] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[np.ndarray, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_dimscheck(

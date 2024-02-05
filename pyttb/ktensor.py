@@ -970,12 +970,14 @@ class ktensor:
         return True
 
     @overload
-    def issymmetric(self, return_diffs: Literal[False]) -> bool:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def issymmetric(
+        self, return_diffs: Literal[False]
+    ) -> bool: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def issymmetric(self, return_diffs: Literal[True]) -> Tuple[bool, np.ndarray]:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def issymmetric(
+        self, return_diffs: Literal[True]
+    ) -> Tuple[bool, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
     def issymmetric(
         self, return_diffs: bool = False

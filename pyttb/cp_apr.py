@@ -1146,8 +1146,7 @@ def tt_calcpi_prowsubprob(  # noqa: PLR0913
     ndims: int,
     isSparse: Literal[True],
     sparse_indices: np.ndarray,
-) -> np.ndarray:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> np.ndarray: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -1158,8 +1157,7 @@ def tt_calcpi_prowsubprob(  # noqa: PLR0913
     factorIndex: int,
     ndims: int,
     isSparse: Literal[False],
-) -> np.ndarray:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> np.ndarray: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_calcpi_prowsubprob(  # noqa: PLR0913
