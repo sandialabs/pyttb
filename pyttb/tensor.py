@@ -365,7 +365,7 @@ class tensor:
         array([[1., 1.],
                [1., 1.]])
         """
-        return self.data.astype(np.float_).copy()
+        return self.data.astype(np.float64).copy()
 
     def exp(self) -> tensor:
         """
@@ -1523,7 +1523,7 @@ class tensor:
 
         # Check that vector is a list of vectors, if not place single vector as element
         # in list
-        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands

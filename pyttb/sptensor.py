@@ -1802,7 +1802,7 @@ class sptensor:
 
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
-        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands

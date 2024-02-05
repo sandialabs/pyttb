@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.284
+    rev: v0.2.0
     hooks:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
@@ -10,7 +10,7 @@ repos:
       - id: black
         language_version: python
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.6.1
+    rev: 0.7.1
     hooks:
       - id: nbstripout
         args: [

@@ -254,7 +254,7 @@ class tenmat:
         -------
         Copy of tenmat data.
         """
-        return self.data.astype(np.float_).copy()
+        return self.data.astype(np.float64).copy()
 
     @property
     def ndims(self) -> int:

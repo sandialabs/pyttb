@@ -369,7 +369,7 @@ class ttensor:
         if (
             len(vector) > 0
             and isinstance(vector, np.ndarray)
-            and isinstance(vector[0], (int, float, np.int_, np.float_))
+            and isinstance(vector[0], (int, float, np.int_, np.float64))
         ):
             return self.ttv([vector], dims, exclude_dims)
 
