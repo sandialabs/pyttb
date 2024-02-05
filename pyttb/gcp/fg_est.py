@@ -13,7 +13,7 @@ from pyttb.gcp.fg_setup import function_type
 
 
 @overload
-def estimate( # noqa: PLR0913
+def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -22,12 +22,11 @@ def estimate( # noqa: PLR0913
     gradient_handle: function_type,
     lambda_check: bool = True,
     crng: Optional[np.ndarray] = None,
-) -> List[np.ndarray]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> List[np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
-def estimate( # noqa: PLR0913
+def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -36,12 +35,11 @@ def estimate( # noqa: PLR0913
     gradient_handle: Literal[None] = None,
     lambda_check: bool = False,
     crng: Optional[np.ndarray] = None,
-) -> float:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> float: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
-def estimate( # noqa: PLR0913
+def estimate(  # noqa: PLR0913
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -50,8 +48,7 @@ def estimate( # noqa: PLR0913
     gradient_handle: function_type,
     lambda_check: bool,
     crng: Optional[np.ndarray],
-) -> Tuple[float, List[np.ndarray]]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[float, List[np.ndarray]]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def estimate(  # noqa: PLR0913
