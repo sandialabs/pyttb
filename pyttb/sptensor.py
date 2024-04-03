@@ -30,6 +30,7 @@ from scipy import sparse
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
+    gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
     tt_dimscheck,
@@ -686,6 +687,121 @@ class sptensor:
         # Copy the values of A into B using linear indices
         B[idx.astype(int)] = self.vals.transpose()[0]
         return B
+
+    def to_sptenmat(
+        self,
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        cdims_cyclic: Optional[
+            Union[Literal["fc"], Literal["bc"], Literal["t"]]
+        ] = None,
+    ) -> ttb.sptenmat:
+        """
+        Construct a :class:`pyttb.sptenmat` from a :class:`pyttb.sptensor` and
+        unwrapping details.
+
+        Parameters
+        ----------
+        rdims:
+            Mapping of row indices.
+        cdims:
+            Mapping of column indices.
+        cdims_cyclic:
+            When only rdims is specified maps a single rdim to the rows and
+                the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
+                in the order range(rdims,self.ndims()) followed by range(0, rdims).
+                _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
+                range(self.ndims(), rdims, -1).
+
+        Notes
+        -----
+        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+            De Lathauwer, De Moor, and Vandewalle [2]_.
+
+        References
+        ----------
+        .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology
+               in multiway analysis. J. Chemometrics 14, 105-122.
+        .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
+               rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order
+               tensors. SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+
+        Examples
+        --------
+        Create a :class:`pyttb.sptensor`.
+
+        >>> subs = np.array([[1, 2, 1], [1, 3, 1]])
+        >>> vals = np.array([[6], [7]])
+        >>> tshape = (4, 4, 4)
+        >>> S = ttb.sptensor(subs, vals, tshape)
+
+        Convert to a :class:`pyttb.sptenmat` unwrapping around the first dimension.
+            Either allow for implicit column or explicit column dimension
+            specification.
+
+        >>> ST1 = S.to_sptenmat(rdims=np.array([0]))
+        >>> ST2 = S.to_sptenmat(rdims=np.array([0]), cdims=np.array([1, 2]))
+        >>> ST1.isequal(ST2)
+        True
+
+        Convert using cyclic column ordering. For the three mode case _fc_ is the same
+            result.
+
+        >>> ST3 = S.to_sptenmat(rdims=np.array([0]), cdims_cyclic="fc")
+        >>> ST3 # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [1, 6] = 6
+            [1, 7] = 7
+
+        Backwards cyclic reverses the order.
+
+        >>> ST4 = S.to_sptenmat(rdims=np.array([0]), cdims_cyclic="bc")
+        >>> ST4 # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 2, 1 ] (modes of sptensor corresponding to columns)
+            [1, 9] = 6
+            [1, 13] = 7
+        """
+        n = self.ndims
+        alldims = np.array([range(n)])
+
+        rdims, cdims = gather_wrap_dims(self.ndims, rdims, cdims, cdims_cyclic)
+        dims = np.hstack([rdims, cdims], dtype=int)
+        if not len(dims) == n or not (alldims == np.sort(dims)).all():
+            assert False, (
+                "Incorrect specification of dimensions, the sorted "
+                "concatenation of rdims and cdims must be range(source.ndims)."
+            )
+
+        rsize = np.array(self.shape)[rdims]
+        csize = np.array(self.shape)[cdims]
+
+        if rsize.size == 0:
+            ridx = np.zeros((self.nnz, 1))
+        elif self.subs.size == 0:
+            ridx = np.array([], dtype=int)
+        else:
+            ridx = tt_sub2ind(rsize, self.subs[:, rdims])
+        ridx = ridx.reshape((ridx.size, 1)).astype(int)
+
+        if csize.size == 0:
+            cidx = np.zeros((self.nnz, 1))
+        elif self.subs.size == 0:
+            cidx = np.array([], dtype=int)
+        else:
+            cidx = tt_sub2ind(csize, self.subs[:, cdims])
+        cidx = cidx.reshape((cidx.size, 1)).astype(int)
+
+        return ttb.sptenmat(
+            np.hstack([ridx, cidx], dtype=int),
+            self.vals.copy(),
+            rdims.astype(int),
+            cdims.astype(int),
+            self.shape,
+        )
 
     def innerprod(
         self, other: Union[sptensor, ttb.tensor, ttb.ktensor, ttb.ttensor]
@@ -3460,9 +3576,7 @@ class sptensor:
         siz[final_dim] = matrices.shape[0]
 
         # Compute self[mode]'
-        Xnt = ttb.sptenmat.from_tensor_type(
-            self, np.array([final_dim]), cdims_cyclic="t"
-        )
+        Xnt = self.to_sptenmat(np.array([final_dim]), cdims_cyclic="t")
 
         # Convert to sparse matrix and do multiplication; generally result is sparse
         Z = Xnt.double().dot(matrices.transpose())

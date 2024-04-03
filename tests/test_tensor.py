@@ -1188,7 +1188,7 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert np.array_equal(T3.data, data3)
 
     # 3-way, matrix must be np.ndarray
-    Tmat = ttb.tenmat.from_data(M2, rdims=np.array([0]))
+    Tmat = ttb.tenmat(M2, rdims=np.array([0]))
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance3.ttm(Tmat, 0)
     assert "matrix must be of type numpy.ndarray" in str(excinfo)

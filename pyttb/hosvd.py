@@ -99,7 +99,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
     for k in dimorder:
         # Compute Gram matrix
-        Yk = ttb.tenmat.from_tensor_type(Y, np.array([k])).double()
+        Yk = Y.to_tenmat(np.array([k])).double()
         Z = np.dot(Yk, Yk.transpose())
 
         # Compute eigenvalue decomposition
