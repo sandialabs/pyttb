@@ -1,4 +1,5 @@
 """Classes and functions for working with dense tensors."""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -19,6 +20,7 @@ from scipy import sparse
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
+    gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
     tt_dimscheck,
@@ -258,7 +260,7 @@ class tensor:
         newshape = tuple(np.array(self.shape)[remdims])
 
         ## Convert to a matrix where each row is going to be collapsed
-        A = ttb.tenmat.from_data(self.data, remdims, dims).double()
+        A = self.to_tenmat(remdims, dims).double()
 
         ## Apply the collapse function
         B = np.zeros((A.shape[0], 1))
@@ -364,7 +366,7 @@ class tensor:
         array([[1., 1.],
                [1., 1.]])
         """
-        return self.data.astype(np.float_).copy()
+        return self.data.astype(np.float64).copy()
 
     def exp(self) -> tensor:
         """
@@ -451,6 +453,126 @@ class tensor:
         """
         return ttb.tensor(self.data)
 
+    def to_tenmat(
+        self,
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        cdims_cyclic: Optional[
+            Union[Literal["fc"], Literal["bc"], Literal["t"]]
+        ] = None,
+    ) -> ttb.tenmat:
+        """
+        Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor` and
+        unwrapping details.
+
+        Parameters
+        ----------
+        rdims:
+            Mapping of row indices.
+        cdims:
+            Mapping of column indices.
+        cdims_cyclic:
+            When only rdims is specified maps a single rdim to the rows and
+                the remaining dimensons span the columns. _fc_ (forward cyclic)
+                in the order range(rdims,self.ndims()) followed by range(0, rdims).
+                _bc_ (backward cyclic) range(rdims-1, -1, -1) then
+                range(self.ndims(), rdims, -1).
+
+        Notes
+        -----
+        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+            De Lathauwer, De Moor, and Vandewalle [2]_.
+
+        References
+        ----------
+        .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology
+               in multiway analysis. J. Chemometrics 14, 105-122.
+        .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
+               rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order
+               tensors. SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+
+        Examples
+        --------
+        Create a :class:`pyttb.tensor`.
+
+        >>> tshape = (2, 2, 2)
+        >>> data = np.reshape(np.arange(np.prod(tshape)), tshape)
+        >>> T = ttb.tensor(data)
+        >>> T # doctest: +NORMALIZE_WHITESPACE
+        tensor of shape (2, 2, 2)
+        data[0, :, :] =
+        [[0 1]
+         [2 3]]
+        data[1, :, :] =
+        [[4 5]
+         [6 7]]
+
+        Convert to a :class:`pyttb.tenmat` unwrapping around the first dimension.
+            Either allow for implicit column or explicit column dimension
+            specification.
+
+        >>> TM1 = T.to_tenmat(rdims=np.array([0]))
+        >>> TM2 = T.to_tenmat(rdims=np.array([0]), cdims=np.array([1, 2]))
+        >>> TM1.isequal(TM2)
+        True
+
+        Convert using cyclic column ordering. For the three mode case _fc_ is the same
+            result.
+
+        >>> TM3 = T.to_tenmat(rdims=np.array([0]), cdims_cyclic="fc")
+        >>> TM3 # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[0 2 1 3]
+         [4 6 5 7]]
+
+        Backwards cyclic reverses the order.
+
+        >>> TM4 = T.to_tenmat(rdims=np.array([0]), cdims_cyclic="bc")
+        >>> TM4 # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 2, 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[0 1 2 3]
+         [4 5 6 7]]
+        """
+        n = self.ndims
+        alldims = np.array([range(n)])
+        tshape = self.shape
+
+        # Verify inputs
+        if rdims is None and cdims is None:
+            assert False, "Either rdims or cdims or both must be specified."
+        if rdims is not None and not sum(np.in1d(rdims, alldims)) == len(rdims):
+            assert False, "Values in rdims must be in [0, source.ndims]."
+        if cdims is not None and not sum(np.in1d(cdims, alldims)) == len(cdims):
+            assert False, "Values in cdims must be in [0, source.ndims]."
+
+        rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
+        # if rdims or cdims is empty, hstack will output an array of float not int
+        if rdims.size == 0:
+            dims = cdims.copy()
+        elif cdims.size == 0:
+            dims = rdims.copy()
+        else:
+            dims = np.hstack([rdims, cdims])
+        if not len(dims) == n or not (alldims == np.sort(dims)).all():
+            assert False, (
+                "Incorrect specification of dimensions, the sorted concatenation "
+                "of rdims and cdims must be range(source.ndims)."
+            )
+        rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
+        cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
+        data = np.reshape(
+            self.permute(dims).data,
+            (rprod, cprod),
+            order="F",
+        )
+        return ttb.tenmat(data, rdims, cdims, tshape=tshape)
+
     def innerprod(
         self, other: Union[tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
@@ -514,8 +636,7 @@ class tensor:
         grps: Optional[np.ndarray],
         version: Optional[Any],
         return_details: Literal[False],
-    ) -> bool:
-        ...  # pragma: no cover see coveragepy/issues/970
+    ) -> bool: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
     def issymmetric(
@@ -523,8 +644,9 @@ class tensor:
         grps: Optional[np.ndarray],
         version: Optional[Any],
         return_details: Literal[True],
-    ) -> Tuple[bool, np.ndarray, np.ndarray]:
-        ...  # pragma: no cover see coveragepy/issues/970
+    ) -> Tuple[
+        bool, np.ndarray, np.ndarray
+    ]: ...  # pragma: no cover see coveragepy/issues/970
 
     # TODO: We should probably always return details and let caller drop them
     def issymmetric(  # noqa: PLR0912
@@ -933,7 +1055,7 @@ class tensor:
         array([[ 0.4045...,  0.9145...],
                [ 0.9145..., -0.4045...]])
         """
-        Xn = ttb.tenmat.from_tensor_type(self, rdims=np.array([n])).double()
+        Xn = self.to_tenmat(rdims=np.array([n])).double()
         y = Xn @ Xn.T
 
         if r < y.shape[0] - 1:
@@ -1078,16 +1200,11 @@ class tensor:
             factor = ttb.tensor(factor, copy=False)
         # TODO this should probably be doable directly as a numpy view
         #   where I think this is currently a copy
-        vector_factor = ttb.tenmat.from_tensor_type(
-            factor, np.arange(factor.ndims)
-        ).double()
-        vector_self = ttb.tenmat.from_tensor_type(self, dims, remdims).double()
+        vector_factor = factor.to_tenmat(np.arange(factor.ndims)).double()
+        vector_self = self.to_tenmat(dims, remdims).double()
         # Numpy broadcasting should be equivalent to bsxfun
         result = vector_self * vector_factor
-        # TODO why do we need this transpose for things to work?
-        if len(dims) == 1:
-            result = result.transpose()
-        return ttb.tenmat.from_data(result, dims, remdims, self.shape).to_tensor()
+        return ttb.tenmat(result, dims, remdims, self.shape).to_tensor()
 
     def squeeze(self) -> Union[tensor, float]:
         """
@@ -1452,8 +1569,8 @@ class tensor:
         # Compute the product
 
         # Avoid transpose by reshaping self and computing result = self * other
-        amatrix = ttb.tenmat.from_tensor_type(self, cdims=selfdims)
-        bmatrix = ttb.tenmat.from_tensor_type(other, rdims=otherdims)
+        amatrix = self.to_tenmat(cdims=selfdims)
+        bmatrix = other.to_tenmat(rdims=otherdims)
         cmatrix = amatrix * bmatrix
 
         # Check whether or not the result is a scalar
@@ -1522,7 +1639,7 @@ class tensor:
 
         # Check that vector is a list of vectors, if not place single vector as element
         # in list
-        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands

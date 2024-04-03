@@ -1,4 +1,5 @@
 """Tucker Tensor Implementation"""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -368,7 +369,7 @@ class ttensor:
         if (
             len(vector) > 0
             and isinstance(vector, np.ndarray)
-            and isinstance(vector[0], (int, float, np.int_, np.float_))
+            and isinstance(vector[0], (int, float, np.int_, np.float64))
         ):
             return self.ttv([vector], dims, exclude_dims)
 
@@ -625,20 +626,16 @@ class ttensor:
         H = self.core.ttm(V)
 
         if isinstance(H, ttb.sptensor):
-            HnT = ttb.sptenmat.from_tensor_type(
-                H, np.array([n]), cdims_cyclic="t"
-            ).double()
+            HnT = H.to_sptenmat(np.array([n]), cdims_cyclic="t").double()
         else:
-            HnT = ttb.tenmat.from_tensor_type(H.full(), cdims=np.array([n])).double()
+            HnT = H.full().to_tenmat(cdims=np.array([n])).double()
 
         G = self.core
 
         if isinstance(G, ttb.sptensor):
-            GnT = ttb.sptenmat.from_tensor_type(
-                G, np.array([n]), cdims_cyclic="t"
-            ).double()
+            GnT = G.to_sptenmat(np.array([n]), cdims_cyclic="t").double()
         else:
-            GnT = ttb.tenmat.from_tensor_type(G.full(), cdims=np.array([n])).double()
+            GnT = G.full().to_tenmat(cdims=np.array([n])).double()
 
         # Compute Xn * Xn'
         # Big hack because if RHS is sparse wrong dot product is used

@@ -1,4 +1,5 @@
 """Higher Order SVD Implementation"""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -98,7 +99,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
     for k in dimorder:
         # Compute Gram matrix
-        Yk = ttb.tenmat.from_tensor_type(Y, np.array([k])).double()
+        Yk = Y.to_tenmat(np.array([k])).double()
         Z = np.dot(Yk, Yk.transpose())
 
         # Compute eigenvalue decomposition

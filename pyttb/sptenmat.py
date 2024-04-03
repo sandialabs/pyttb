@@ -5,17 +5,17 @@
 """Classes and functions for working with Kruskal tensors."""
 from __future__ import annotations
 
-from typing import Literal, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
-from pyttb.pyttb_utils import tt_ind2sub, tt_sub2ind
+from pyttb.pyttb_utils import gather_wrap_dims, tt_ind2sub
 
 
-class sptenmat(object):
+class sptenmat:
     """
     SPTENMAT Store sparse tensor as a sparse matrix.
 
@@ -23,19 +23,8 @@ class sptenmat(object):
 
     __slots__ = ("tshape", "rdims", "cdims", "subs", "vals")
 
-    def __init__(self):
-        """
-        Construct an empty :class:`pyttb.sptenmat`
-        """
-        self.tshape = ()
-        self.rdims = np.array([])
-        self.cdims = np.array([])
-        self.subs = np.array([], ndmin=2, dtype=int)
-        self.vals = np.array([], ndmin=2)
-
-    @classmethod
-    def from_data(  # noqa: PLR0913
-        cls,
+    def __init__(  # noqa: PLR0913
+        self,
         subs: Optional[np.ndarray] = None,
         vals: Optional[np.ndarray] = None,
         rdims: Optional[np.ndarray] = None,
@@ -50,29 +39,74 @@ class sptenmat(object):
         Parameters
         ----------
         subs:
-            Location of non-zero entries
+            Location of non-zero entries, in sptenmat.
         vals:
-            Values for non-zero entries
+            Values for non-zero entries, in sptenmat.
         rdims:
-            Mapping of row indices
+            Mapping of row indices.
         cdims:
-            Mapping of column indices
+            Mapping of column indices.
         tshape:
-            Shape of the original tensor
+            Shape of the original tensor.
+
+        Examples
+        --------
+        Create an empty :class:`pyttb.sptenmat`:
+
+        >>> S = ttb.sptenmat()
+        >>> S # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape () with 0 nonzeros
+        rdims = [  ] (modes of sptensor corresponding to rows)
+        cdims = [  ] (modes of sptensor corresponding to columns)
+
+        Create a :class:`pyttb.sptenmat` from subscripts, values, and unwrapping
+            dimensions:
+
+        >>> subs = np.array([[1, 6], [1, 7]])
+        >>> vals = np.array([[6], [7]])
+        >>> tshape = (4, 4, 4)
+        >>> S = ttb.sptenmat(\
+            subs,\
+            vals,\
+            rdims=np.array([0]),\
+            cdims=np.array([1,2]),\
+            tshape=tshape\
+        )
+        >>> S # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [1, 6] = 6
+            [1, 7] = 7
         """
+        # Empty case
+        if rdims is None and cdims is None:
+            assert (
+                subs is None and vals is None
+            ), "Must provide rdims or cdims with values"
+            self.subs = np.array([], ndmin=2, dtype=int)
+            self.vals = np.array([], ndmin=2)
+            self.rdims = np.array([], dtype=int)
+            self.cdims = np.array([], dtype=int)
+            self.tshape: Union[Tuple[()], Tuple[int, ...]] = ()
+            return
+
         if subs is None:
             subs = np.array([], ndmin=2, dtype=int)
         if vals is None:
             vals = np.array([], ndmin=2)
-        if rdims is None:
-            rdims = np.array([], dtype=int)
-        if cdims is None:
-            cdims = np.array([], dtype=int)
 
         n = len(tshape)
         alldims = np.array([range(n)])
         # Error check
-        dims = np.hstack([rdims, cdims], dtype=int)
+        rdims, cdims = gather_wrap_dims(n, rdims, cdims)
+        # if rdims or cdims is empty, hstack will output an array of float not int
+        if rdims.size == 0:
+            dims = cdims.copy()
+        elif cdims.size == 0:
+            dims = rdims.copy()
+        else:
+            dims = np.hstack([rdims, cdims], dtype=int)
         assert len(dims) == n and (alldims == np.sort(dims)).all(), (
             "Incorrect specification of dimensions, the sorted concatenation of "
             "rdims and cdims must be range(len(tshape))."
@@ -94,7 +128,9 @@ class sptenmat(object):
             newsubs, loc = np.unique(subs, axis=0, return_inverse=True)
             # Sum the corresponding values
             # Squeeze to convert from column vector to row vector
-            newvals = accumarray(loc, np.squeeze(vals), size=newsubs.shape[0], func=sum)
+            newvals = accumarray(
+                loc, np.squeeze(vals, axis=1), size=newsubs.shape[0], func=sum
+            )
 
         # Find the nonzero indices of the new values
         nzidx = np.nonzero(newvals)
@@ -104,107 +140,11 @@ class sptenmat(object):
         if newvals.size > 0:
             newvals = newvals[:, None]
 
-        sptenmatInstance = cls()
-        sptenmatInstance.tshape = tshape
-        sptenmatInstance.rdims = rdims.copy().astype(int)
-        sptenmatInstance.cdims = cdims.copy().astype(int)
-        sptenmatInstance.subs = newsubs
-        sptenmatInstance.vals = newvals
-        return sptenmatInstance
-
-    @classmethod
-    def from_tensor_type(  # noqa: PLR0912
-        cls,
-        source: Union[ttb.sptensor, ttb.sptenmat],
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        cdims_cyclic: Optional[
-            Union[Literal["fc"], Literal["bc"], Literal["t"]]
-        ] = None,
-    ):
-        valid_sources = (sptenmat, ttb.sptensor)
-        assert isinstance(source, valid_sources), (
-            "Can only generate sptenmat from "
-            f"{[src.__name__ for src in valid_sources]} but received {type(source)}."
-        )
-        # Copy Constructor
-        if isinstance(source, sptenmat):
-            return cls().from_data(
-                source.subs.copy(),
-                source.vals.copy(),
-                source.rdims.copy(),
-                source.cdims.copy(),
-                source.tshape,
-            )
-
-        if isinstance(source, ttb.sptensor):
-            n = source.ndims
-            alldims = np.array([range(n)])
-
-            if rdims is not None and cdims is None:
-                # Single row mapping
-                if len(rdims) == 1 and cdims_cyclic is not None:
-                    if cdims_cyclic == "t":
-                        cdims = rdims
-                        rdims = np.setdiff1d(alldims, rdims)
-                    elif cdims_cyclic == "fc":
-                        # cdims = [rdims+1:n, 1:rdims-1];
-                        cdims = np.array(
-                            [i for i in range(rdims[0] + 1, n)]
-                            + [i for i in range(rdims[0])]
-                        )
-                    elif cdims_cyclic == "bc":
-                        # cdims = [rdims-1:-1:1, n:-1:rdims+1];
-                        cdims = np.array(
-                            [i for i in range(rdims[0] - 1, -1, -1)]
-                            + [i for i in range(n - 1, rdims[0], -1)]
-                        )
-                    else:
-                        assert False, (
-                            "Unrecognized value for cdims_cyclic pattern, "
-                            'must be "fc" or "bc".'
-                        )
-                else:
-                    # Multiple row mapping
-                    cdims = np.setdiff1d(alldims, rdims)
-
-            elif rdims is None and cdims is not None:
-                rdims = np.setdiff1d(alldims, cdims)
-
-            assert rdims is not None and cdims is not None
-            dims = np.hstack([rdims, cdims], dtype=int)
-            if not len(dims) == n or not (alldims == np.sort(dims)).all():
-                assert False, (
-                    "Incorrect specification of dimensions, the sorted "
-                    "concatenation of rdims and cdims must be range(source.ndims)."
-                )
-
-            rsize = np.array(source.shape)[rdims]
-            csize = np.array(source.shape)[cdims]
-
-            if rsize.size == 0:
-                ridx = np.zeros((source.nnz, 1))
-            elif source.subs.size == 0:
-                ridx = np.array([], dtype=int)
-            else:
-                ridx = tt_sub2ind(rsize, source.subs[:, rdims])
-            ridx = ridx.reshape((ridx.size, 1)).astype(int)
-
-            if csize.size == 0:
-                cidx = np.zeros((source.nnz, 1))
-            elif source.subs.size == 0:
-                cidx = np.array([], dtype=int)
-            else:
-                cidx = tt_sub2ind(csize, source.subs[:, cdims])
-            cidx = cidx.reshape((cidx.size, 1)).astype(int)
-
-            return cls().from_data(
-                np.hstack([ridx, cidx], dtype=int),
-                source.vals.copy(),
-                rdims.astype(int),
-                cdims.astype(int),
-                source.shape,
-            )
+        self.tshape = tshape
+        self.rdims = rdims.copy().astype(int)
+        self.cdims = cdims.copy().astype(int)
+        self.subs = newsubs
+        self.vals = newvals
 
     @classmethod
     def from_array(
@@ -229,6 +169,28 @@ class sptenmat(object):
             Mapping of column indices.
         tshape:
             Shape of the original tensor.
+
+        Examples
+        --------
+        Create a :class:`pyttb.sptenmat` from a sparse matrix and unwrapping
+            dimensions. Infer column dimensions from row dimensions specification.
+
+        >>> data = np.array([6, 7])
+        >>> rows = np.array([1, 1])
+        >>> cols = np.array([6, 7])
+        >>> sparse_matrix = sparse.coo_matrix((data, (rows, cols)))
+        >>> tshape = (4, 4, 4)
+        >>> S = ttb.sptenmat.from_array(\
+            sparse_matrix,\
+            rdims=np.array([0]),\
+            tshape=tshape\
+        )
+        >>> S # doctest: +NORMALIZE_WHITESPACE
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        rdims = [ 0 ] (modes of sptensor corresponding to rows)
+        cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
+            [1, 6] = 6
+            [1, 7] = 7
         """
         vals = None
         if isinstance(array, np.ndarray):
@@ -240,7 +202,38 @@ class sptenmat(object):
                 f"Expected sparse matrix or array but received: {type(array)}"
             )
         subs = np.vstack(array.nonzero()).transpose()
-        return ttb.sptenmat.from_data(subs, vals, rdims, cdims, tshape)
+        return ttb.sptenmat(subs, vals, rdims, cdims, tshape)
+
+    def copy(self) -> sptenmat:
+        """
+        Return a deep copy of the :class:`pyttb.sptenmat`.
+
+        Examples
+        --------
+        Create a :class:`pyttb.sptenmat` (ST1) and make a deep copy. Verify
+        the deep copy (ST3) is not just a reference (like ST2) to the original.
+
+        >>> S1 = ttb.sptensor(shape=(2,2))
+        >>> S1[0,0] = 1
+        >>> ST1 = S1.to_sptenmat(np.array([0]))
+        >>> ST2 = ST1
+        >>> ST3 = ST1.copy()
+        >>> ST1[0,0] = 3
+        >>> ST1.to_sptensor().isequal(ST2.to_sptensor())
+        True
+        >>> ST1.to_sptensor().isequal(ST3.to_sptensor())
+        False
+        """
+        return sptenmat(
+            self.subs.copy(),
+            self.vals.copy(),
+            self.rdims.copy(),
+            self.cdims.copy(),
+            self.tshape,
+        )
+
+    def __deepcopy__(self, memo):
+        return self.copy()
 
     def to_sptensor(self) -> ttb.sptensor:
         """
@@ -287,9 +280,7 @@ class sptenmat(object):
         Convert a :class:`pyttb.sptenmat` to a (dense) :class:`pyttb.tenmat`.
         """
         # Create empty dense tenmat
-        result = ttb.tenmat.from_data(
-            np.zeros(self.shape), self.rdims, self.cdims, self.tshape
-        )
+        result = ttb.tenmat(np.zeros(self.shape), self.rdims, self.cdims, self.tshape)
         # Assign nonzero values
         result[tuple(self.subs.transpose())] = np.squeeze(self.vals)
         return result
@@ -308,17 +299,33 @@ class sptenmat(object):
         """
         return np.linalg.norm(self.vals)
 
+    def isequal(self, other: sptenmat) -> bool:
+        """
+        Exact equality for :class:`pyttb.sptenmat`
+        """
+        if not isinstance(other, ttb.sptenmat):
+            raise ValueError(
+                f"Can only compares against other sptenmat but received: {type(other)}"
+            )
+        return (
+            np.array_equal(self.vals, other.vals)
+            and np.array_equal(self.subs, other.subs)
+            and self.tshape == other.tshape
+            and np.array_equal(self.cdims, other.cdims)
+            and np.array_equal(self.rdims, other.rdims)
+        )
+
     def __pos__(self):
         """
         Unary plus operator (+).
         """
-        return self.from_tensor_type(self)
+        return self.copy()
 
     def __neg__(self):
         """
         Unary minus operator (-).
         """
-        result = self.from_tensor_type(self)
+        result = self.copy()
         result.vals *= -1
         return result
 

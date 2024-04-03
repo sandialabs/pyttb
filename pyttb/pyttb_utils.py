@@ -1,4 +1,5 @@
 """PYTTB shared utilities across tensor types"""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -6,7 +7,7 @@ from __future__ import annotations
 
 from enum import Enum
 from inspect import signature
-from typing import List, Optional, Tuple, Union, get_args, overload
+from typing import List, Literal, Optional, Tuple, Union, get_args, overload
 
 import numpy as np
 
@@ -135,8 +136,7 @@ def tt_dimscheck(
     M: None = None,
     dims: Optional[np.ndarray] = None,
     exclude_dims: Optional[np.ndarray] = None,
-) -> Tuple[np.ndarray, None]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[np.ndarray, None]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -145,8 +145,7 @@ def tt_dimscheck(
     M: int,
     dims: Optional[np.ndarray] = None,
     exclude_dims: Optional[np.ndarray] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[np.ndarray, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_dimscheck(
@@ -880,3 +879,45 @@ def get_mttkrp_factors(
     assert len(U) == ndims, "List of factor matrices is the wrong length"
 
     return U
+
+
+def gather_wrap_dims(
+    ndims: int,
+    rdims: Optional[np.ndarray] = None,
+    cdims: Optional[np.ndarray] = None,
+    cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"], Literal["t"]]] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
+    alldims = np.array([range(ndims)])
+
+    if rdims is not None and cdims is None:
+        # Single row mapping
+        if len(rdims) == 1 and cdims_cyclic is not None:
+            # TODO we should be able to remove this since we can just specify
+            #   cdims alone
+            if cdims_cyclic == "t":
+                cdims = rdims
+                rdims = np.setdiff1d(alldims, rdims)
+            elif cdims_cyclic == "fc":
+                cdims = np.array(
+                    [i for i in range(rdims[0] + 1, ndims)]
+                    + [i for i in range(rdims[0])]
+                )
+            elif cdims_cyclic == "bc":
+                cdims = np.array(
+                    [i for i in range(rdims[0] - 1, -1, -1)]
+                    + [i for i in range(ndims - 1, rdims[0], -1)]
+                )
+            else:
+                assert False, (
+                    "Unrecognized value for cdims_cyclic pattern, "
+                    'must be "fc" or "bc".'
+                )
+        else:
+            # Multiple row mapping
+            cdims = np.setdiff1d(alldims, rdims)
+
+    elif rdims is None and cdims is not None:
+        rdims = np.setdiff1d(alldims, cdims)
+
+    assert rdims is not None and cdims is not None
+    return rdims.astype(int), cdims.astype(int)
