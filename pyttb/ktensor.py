@@ -1,4 +1,5 @@
 """Classes and functions for working with Kruskal tensors."""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -1041,12 +1042,14 @@ class ktensor:
         return True
 
     @overload
-    def issymmetric(self, return_diffs: Literal[False]) -> bool:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def issymmetric(
+        self, return_diffs: Literal[False]
+    ) -> bool: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
-    def issymmetric(self, return_diffs: Literal[True]) -> Tuple[bool, np.ndarray]:
-        ...  # pragma: no cover see coveragepy/issues/970
+    def issymmetric(
+        self, return_diffs: Literal[True]
+    ) -> Tuple[bool, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
     def issymmetric(
         self, return_diffs: bool = False
@@ -2033,7 +2036,7 @@ class ktensor:
         if (
             len(vector) > 0
             and isinstance(vector, np.ndarray)
-            and isinstance(vector.squeeze()[0], (int, float, np.int_, np.float_))
+            and isinstance(vector.squeeze()[0], (int, float, np.int_, np.float64))
         ):
             return self.ttv([vector], dims, exclude_dims)
 

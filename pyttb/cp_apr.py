@@ -1,4 +1,5 @@
 """Non-negative CP decomposition with alternating Poisson regression"""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -1144,8 +1145,7 @@ def tt_calcpi_prowsubprob(  # noqa: PLR0913
     ndims: int,
     isSparse: Literal[True],
     sparse_indices: np.ndarray,
-) -> np.ndarray:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> np.ndarray: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -1156,8 +1156,7 @@ def tt_calcpi_prowsubprob(  # noqa: PLR0913
     factorIndex: int,
     ndims: int,
     isSparse: Literal[False],
-) -> np.ndarray:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> np.ndarray: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_calcpi_prowsubprob(  # noqa: PLR0913

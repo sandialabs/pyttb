@@ -1,4 +1,5 @@
 """Classes and functions for working with dense tensors."""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -365,7 +366,7 @@ class tensor:
         array([[1., 1.],
                [1., 1.]])
         """
-        return self.data.astype(np.float_).copy()
+        return self.data.astype(np.float64).copy()
 
     def exp(self) -> tensor:
         """
@@ -638,8 +639,7 @@ class tensor:
         grps: Optional[np.ndarray],
         version: Optional[Any],
         return_details: Literal[False],
-    ) -> bool:
-        ...  # pragma: no cover see coveragepy/issues/970
+    ) -> bool: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
     def issymmetric(
@@ -647,8 +647,9 @@ class tensor:
         grps: Optional[np.ndarray],
         version: Optional[Any],
         return_details: Literal[True],
-    ) -> Tuple[bool, np.ndarray, np.ndarray]:
-        ...  # pragma: no cover see coveragepy/issues/970
+    ) -> Tuple[
+        bool, np.ndarray, np.ndarray
+    ]: ...  # pragma: no cover see coveragepy/issues/970
 
     # TODO: We should probably always return details and let caller drop them
     def issymmetric(  # noqa: PLR0912
@@ -1641,7 +1642,7 @@ class tensor:
 
         # Check that vector is a list of vectors, if not place single vector as element
         # in list
-        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float_)):
+        if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
             return self.ttv(np.array([vector]), dims, exclude_dims)
 
         # Get sorted dims and index for multiplicands

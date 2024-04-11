@@ -1,4 +1,5 @@
 """PYTTB shared utilities across tensor types"""
+
 # Copyright 2022 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
@@ -64,8 +65,7 @@ def tt_dimscheck(
     M: None = None,
     dims: Optional[np.ndarray] = None,
     exclude_dims: Optional[np.ndarray] = None,
-) -> Tuple[np.ndarray, None]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[np.ndarray, None]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -74,8 +74,7 @@ def tt_dimscheck(
     M: int,
     dims: Optional[np.ndarray] = None,
     exclude_dims: Optional[np.ndarray] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
-    ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[np.ndarray, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_dimscheck(
