@@ -2135,37 +2135,110 @@ class ktensor:
 
         return self
 
-    def vis(self, plots=None,
-        normalize=True, norm=2,
-        rel_weights=True,
-        rel_widths=None, rel_heights=None,
-        horz_space=None, vert_space=None,
-        left_space=None, right_space=None,
-        top_space=None,  bot_space=None,
-        xlabels=None, ylabels=None,
-        mode_titles=None, title=None,
-        margins=None):
+    def vis(  # noqa: PLR0912, PLR0913
+        self,
+        plots: Union[tuple, list],
+        show_figure: bool = True,
+        normalize: bool = True,
+        norm: Union[int, float] = 2,
+        rel_weights: bool = True,
+        rel_heights: Optional[Union[tuple, list]] = None,
+        rel_widths: Optional[Union[tuple, list]] = None,
+        horz_space: Optional[float] = None,
+        vert_space: Optional[float] = None,
+        left_space: Optional[float] = None,
+        right_space: Optional[float] = None,
+        top_space: Optional[float] = None,
+        bot_space: Optional[float] = None,
+        mode_titles: Optional[Union[tuple, list]] = None,
+        title=None,
+    ):
         """
-        Visualize factor for :class:`pyttb.ktensor`.
+        Visualize factors for :class:`pyttb.ktensor`.
+        The caller is repsonsible for providing a list of functions which plot the
+        respective factor of a component.
+
+        Parameters
+        ----------
+        plots:
+            List of functions (one per mode) which visualize the respective vectors
+            of a factor.
+            Function for mode i must have signature `f(v_i,ax)` where
+            `v_i` is :class:`numpy.ndarray` vector of dimension `n_i` and
+            `ax` is a :class:`matplotlib.axes.Axes' on which to plot.
+        show_figure:
+            Boolean determining if the resulting figure should be shown.
+        normalize:
+            Boolean controlling whether to normalize factors and generate
+            a compensating weight, then sort components by weight.
+        norm:
+            Norm used to normalize factors; 1 for 1-norm, 2 for 2-norm, etc.
+        rel_weights:
+            Boolean determining whether weights should be made relative by
+            dividing by largest weight.
+        rel_widths:
+            List of numbers (one per mode) specifying relative widths of each
+            plot column.
+        rel_heights:
+            List of numbers (one per component) specifying relative height of each
+            plot row.
+        horz/vert_space:
+            Number determining amount of space between subplots
+            (horizontally/vertically) as a fraction of the average axis width/height.
+        left/right/top/bot_space:
+            Extent of subplots as fraction of figure width or height.
+        mode_titles:
+            List of strings used as titles for each column (mode).
+        title:
+            String containing overall figure title.
+
+        Returns
+        -------
+        axs:
+            :class:`matplotlib.axes.Axes' for the generated figure
+
+        Examples
+        --------
+        Set up a :class:`pyttb.ktensor` to plot:
+
+        >>> K = ttb.ktensor.from_function(np.ones, (2, 15, 15), 2)
+
+        Define a list of simple plot functions and visualize.
+
+        >>> def line_plot(v,ax):
+                ax.plot(np.arange(v.shape), v)
+            plots = [line_plot]*3
+            K.vis(plots)
+
+        Define a more realistic plot fuctions with x labels,
+        control relative widths of each plot,
+        and set mode titles.
+
+        >>> def mode_1_plot(v,ax):
+                ax.bar([1,2],v,'k')
+                ax.set_xticks([1,2],labels=['neutron','electron'])
+        >>> def mode_2_plot(v,ax):
+                ax.plot(np.arange(v.shape, v))
+                ax.set_xlabel('$v$, [m/s]')
+        >>> def mode_3_plot(v,ax):
+                ax.semilogx(np.logspace(-2,2,np.arange(v.shape)),v)
+                ax.set_xlabel('$E$, [kJ]')
+        >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
+        >>> K.vis(plots,rel_widths=[3,1,1],
+                  mode_titles=['Particle','Velocity','Energy'])
         """
 
-        # notes: let user construct the arguments to subplots_adjust
-        #        instead of having 6 different arguments?
-        
         m = len(self.shape)  # number of modes
         r = self.ncomponents  # rank
 
         # booleans storing whether respective title/label should be rendered
         show_mode_titles = False
-        show_title       = False
-        show_xlabels = False
-        show_ylabels = False
-        
+        show_title = False
+
         # check input validity
-        assert plots is not None, "Must provide a plotting function for each mode"
-        assert len(plots) == m,   "Number of plot functions not equal to number of modes"
+        assert len(plots) == m, "Number of plot functions not equal to number of modes"
         if rel_widths is not None:
-            assert len(rel_widths) == m,  "Incorrect number of relative widths"
+            assert len(rel_widths) == m, "Incorrect number of relative widths"
         if rel_heights is not None:
             assert len(rel_heights) == m, "Incorrect number of relative heights"
         if mode_titles is not None:
@@ -2173,25 +2246,23 @@ class ktensor:
             show_mode_titles = True
         if title is not None:
             show_title = True
-        if xlabels is not None:
-            assert len(xlabels) == r, "Incorrect number of x labels"
-            show_xlabels = True
-        if ylabels is not None:
-            assert len(ylabels) == m, "Incorrect number of y labels"
-            show_ylabels = True
         if normalize:
-            self.normalize(normtype=norm,sort=True)
+            self.normalize(normtype=norm, sort=True)
 
         # compute factor weights (and optionally normalize)
         weights = self.weights
-        weight_labels = [f'{w:.2e}' for w in weights]
+        weight_labels = [format(w,'.2e') for w in weights]
         if rel_weights:
             weights /= np.max(weights)
-            weight_labels = [f'{w:.2}' for w in weights]
-        
+            weight_labels = [format(w,'.2f') for w in weights]
+
         # construct subplots
-        fig, axs = plt.subplots(nrows=r, ncols=m, sharex="col",
-                gridspec_kw={"width_ratios": rel_widths, "height_ratios": rel_heights})
+        fig, axs = plt.subplots(
+            nrows=r,
+            ncols=m,
+            sharex="col",
+            gridspec_kw={"width_ratios": rel_widths, "height_ratios": rel_heights},
+        )
 
         # plot data on each axis
         for k in range(m):  # loop over modes
@@ -2200,31 +2271,35 @@ class ktensor:
                 plots[k](U[j], ax=axs[j, k])
 
         # tune layout
-        plt.subplots_adjust(wspace=horz_space, hspace=vert_space,
-                left=left_space, right=right_space,
-                top=top_space, bottom=bot_space)
+        plt.subplots_adjust(
+            wspace=horz_space,
+            hspace=vert_space,
+            left=left_space,
+            right=right_space,
+            top=top_space,
+            bottom=bot_space,
+        )
 
         # handle titles and labels
         ## figure title
         if show_title:
             fig.suptitle(title)
-        ## mode
+        ## weights, mode labels
         for k in range(m):
-            is_first_col = (k == 0)
+            is_first_col = k == 0
             for j in range(r):
-                is_first_row = (j == 0)
-                is_last_row = (j == r-1)
-                # render (or don't) title/label
+                is_first_row = j == 0
+                # render (or don't) titles/labels
                 if is_first_col:
-                    axs[j,k].set_ylabel(weight_labels[j],
-                            rotation=0,ha='right',labelpad=10)  # may be absolute or relative weight
+                    axs[j, k].set_ylabel(
+                        weight_labels[j], rotation=0, ha="right", labelpad=10
+                    )  # may be absolute or relative weight
                 if is_first_row and show_mode_titles:
-                    axs[j,k].set_title(mode_titles[k])
-                if is_last_row and show_xlabels:
-                    axs[j,k].set_xlabel(xlabels[k])
+                    axs[j, k].set_title(mode_titles[k])
 
-        # show plot
-        plt.show()
+        if show_figure:
+            plt.show()
+        return axs
 
     def __add__(self, other):
         """
