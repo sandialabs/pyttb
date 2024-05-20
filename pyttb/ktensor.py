@@ -20,6 +20,7 @@ from typing import (
     overload,
 )
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse.linalg
 from typing_extensions import Self
@@ -2133,6 +2134,97 @@ class ktensor:
             warnings.warn("Failed to consume all of the input data")
 
         return self
+
+    def vis(self, plots=None,
+        normalize=True, norm=2,
+        rel_weights=True,
+        rel_widths=None, rel_heights=None,
+        horz_space=None, vert_space=None,
+        left_space=None, right_space=None,
+        top_space=None,  bot_space=None,
+        xlabels=None, ylabels=None,
+        mode_titles=None, title=None,
+        margins=None):
+        """
+        Visualize factor for :class:`pyttb.ktensor`.
+        """
+
+        # notes: let user construct the arguments to subplots_adjust
+        #        instead of having 6 different arguments?
+        
+        m = len(self.shape)  # number of modes
+        r = self.ncomponents  # rank
+
+        # booleans storing whether respective title/label should be rendered
+        show_mode_titles = False
+        show_title       = False
+        show_xlabels = False
+        show_ylabels = False
+        
+        # check input validity
+        assert plots is not None, "Must provide a plotting function for each mode"
+        assert len(plots) == m,   "Number of plot functions not equal to number of modes"
+        if rel_widths is not None:
+            assert len(rel_widths) == m,  "Incorrect number of relative widths"
+        if rel_heights is not None:
+            assert len(rel_heights) == m, "Incorrect number of relative heights"
+        if mode_titles is not None:
+            assert len(mode_titles) == m, "Incorrect number of mode titles"
+            show_mode_titles = True
+        if title is not None:
+            show_title = True
+        if xlabels is not None:
+            assert len(xlabels) == r, "Incorrect number of x labels"
+            show_xlabels = True
+        if ylabels is not None:
+            assert len(ylabels) == m, "Incorrect number of y labels"
+            show_ylabels = True
+        if normalize:
+            self.normalize(normtype=norm,sort=True)
+
+        # compute factor weights (and optionally normalize)
+        weights = self.weights
+        weight_labels = [f'{w:.2e}' for w in weights]
+        if rel_weights:
+            weights /= np.max(weights)
+            weight_labels = [f'{w:.2}' for w in weights]
+        
+        # construct subplots
+        fig, axs = plt.subplots(nrows=r, ncols=m, sharex="col",
+                gridspec_kw={"width_ratios": rel_widths, "height_ratios": rel_heights})
+
+        # plot data on each axis
+        for k in range(m):  # loop over modes
+            U = self.factor_matrices[k].T  # r x n_k
+            for j in range(r):  # loop over components (rows of U)
+                plots[k](U[j], ax=axs[j, k])
+
+        # tune layout
+        plt.subplots_adjust(wspace=horz_space, hspace=vert_space,
+                left=left_space, right=right_space,
+                top=top_space, bottom=bot_space)
+
+        # handle titles and labels
+        ## figure title
+        if show_title:
+            fig.suptitle(title)
+        ## mode
+        for k in range(m):
+            is_first_col = (k == 0)
+            for j in range(r):
+                is_first_row = (j == 0)
+                is_last_row = (j == r-1)
+                # render (or don't) title/label
+                if is_first_col:
+                    axs[j,k].set_ylabel(weight_labels[j],
+                            rotation=0,ha='right',labelpad=10)  # may be absolute or relative weight
+                if is_first_row and show_mode_titles:
+                    axs[j,k].set_title(mode_titles[k])
+                if is_last_row and show_xlabels:
+                    axs[j,k].set_xlabel(xlabels[k])
+
+        # show plot
+        plt.show()
 
     def __add__(self, other):
         """
