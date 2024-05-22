@@ -2220,7 +2220,7 @@ class ktensor:
                 ax.semilogx(np.logspace(-2,2,v.shape[0]),v)
                 ax.set_xlabel('$E$, [kJ]')
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
-        >>> K.vis(plots,
+        >>> K.vis(plots=plots,
                   rel_widths=[1,2,3],horz_space=0.4,
                   left_space=0.2,bot_space=0.2,
                   mode_titles=['Particle','Velocity','Energy'])
