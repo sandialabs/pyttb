@@ -2137,7 +2137,7 @@ class ktensor:
 
     def vis(  # noqa: PLR0912, PLR0913
         self,
-        plots: Union[tuple, list],
+        plots: Optional[Union[tuple, list]] = None,
         show_figure: bool = True,
         normalize: bool = True,
         norm: Union[int, float] = 2,
@@ -2155,8 +2155,6 @@ class ktensor:
     ):
         """
         Visualize factors for :class:`pyttb.ktensor`.
-        The caller is repsonsible for providing a list of functions which plot the
-        respective factor of a component.
 
         Parameters
         ----------
@@ -2201,32 +2199,35 @@ class ktensor:
         --------
         Set up a :class:`pyttb.ktensor` to plot:
 
-        >>> K = ttb.ktensor.from_function(np.ones, (2, 15, 15), 2)
+        >>> np.random.seed(1)
+        >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 10), 2)
 
-        Define a list of simple plot functions and visualize.
+        Use plot K using default behavior K.vis()
 
-        >>> def line_plot(v,ax):
-                ax.plot(np.arange(v.shape), v)
-            plots = [line_plot]*3
-            K.vis(plots)
+        >>> K.vis()
 
         Define a more realistic plot fuctions with x labels,
         control relative widths of each plot,
         and set mode titles.
 
         >>> def mode_1_plot(v,ax):
-                ax.bar([1,2],v,'k')
-                ax.set_xticks([1,2],labels=['neutron','electron'])
+                ax.bar([1,2],v,width=0.2)
+                ax.set_xticks([1,2],labels=['neutron','electron'],rotation=45)
         >>> def mode_2_plot(v,ax):
-                ax.plot(np.arange(v.shape, v))
+                ax.plot(np.arange(v.shape[0]), v)
                 ax.set_xlabel('$v$, [m/s]')
         >>> def mode_3_plot(v,ax):
-                ax.semilogx(np.logspace(-2,2,np.arange(v.shape)),v)
+                ax.semilogx(np.logspace(-2,2,v.shape[0]),v)
                 ax.set_xlabel('$E$, [kJ]')
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
-        >>> K.vis(plots,rel_widths=[3,1,1],
+        >>> K.vis(plots,
+                  rel_widths=[1,2,3],horz_space=0.4,
+                  left_space=0.2,bot_space=0.2,
                   mode_titles=['Particle','Velocity','Energy'])
         """
+
+        def line_plot(v, ax):
+            ax.plot(v)
 
         m = len(self.shape)  # number of modes
         r = self.ncomponents  # rank
@@ -2236,7 +2237,10 @@ class ktensor:
         show_title = False
 
         # check input validity
-        assert len(plots) == m, "Number of plot functions not equal to number of modes"
+        if plots is None:
+            plots = [line_plot] * m
+        else:
+            assert len(plots) == m, "Incorrect number of plot functions"
         if rel_widths is not None:
             assert len(rel_widths) == m, "Incorrect number of relative widths"
         if rel_heights is not None:
@@ -2251,10 +2255,10 @@ class ktensor:
 
         # compute factor weights (and optionally normalize)
         weights = self.weights
-        weight_labels = [format(w,'.2e') for w in weights]
+        weight_labels = [format(w, ".2e") for w in weights]
         if rel_weights:
             weights /= np.max(weights)
-            weight_labels = [format(w,'.2f') for w in weights]
+            weight_labels = [format(w, ".2f") for w in weights]
 
         # construct subplots
         fig, axs = plt.subplots(
@@ -2289,6 +2293,7 @@ class ktensor:
             is_first_col = k == 0
             for j in range(r):
                 is_first_row = j == 0
+                is_last_row = j == r - 1
                 # render (or don't) titles/labels
                 if is_first_col:
                     axs[j, k].set_ylabel(
@@ -2296,6 +2301,9 @@ class ktensor:
                     )  # may be absolute or relative weight
                 if is_first_row and show_mode_titles:
                     axs[j, k].set_title(mode_titles[k])
+                # remove duplicates of xlabels
+                if not is_last_row:
+                    axs[j, k].set_xlabel(None)
 
         if show_figure:
             plt.show()
