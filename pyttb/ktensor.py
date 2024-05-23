@@ -2268,32 +2268,20 @@ class ktensor:
             gridspec_kw={"width_ratios": rel_widths, "height_ratios": rel_heights},
         )
 
+        # compute y lims for each mode
+        y_lims = [[np.min(A), np.max(A)] for A in self.factor_matrices]
+
         # plot data on each axis
         for k in range(m):  # loop over modes
+            is_first_col = k == 0
             U = self.factor_matrices[k].T  # r x n_k
             for j in range(r):  # loop over components (rows of U)
-                plots[k](U[j], ax=axs[j, k])
-
-        # tune layout
-        plt.subplots_adjust(
-            wspace=horz_space,
-            hspace=vert_space,
-            left=left_space,
-            right=right_space,
-            top=top_space,
-            bottom=bot_space,
-        )
-
-        # handle titles and labels
-        ## figure title
-        if show_title:
-            fig.suptitle(title)
-        ## weights, mode labels
-        for k in range(m):
-            is_first_col = k == 0
-            for j in range(r):
                 is_first_row = j == 0
                 is_last_row = j == r - 1
+                # share y lims (unless user overrides with their plots)
+                axs[j, k].set_ylim(*y_lims[k])
+                # user defined plot (anything we do after may override them)
+                plots[k](U[j], ax=axs[j, k])
                 # render (or don't) titles/labels
                 if is_first_col:
                     axs[j, k].set_ylabel(
@@ -2304,6 +2292,20 @@ class ktensor:
                 # remove duplicates of xlabels
                 if not is_last_row:
                     axs[j, k].set_xlabel(None)
+
+        # figure title
+        if show_title:
+            fig.suptitle(title)
+
+        # tune layout
+        plt.subplots_adjust(
+            wspace=horz_space,
+            hspace=vert_space,
+            left=left_space,
+            right=right_space,
+            top=top_space,
+            bottom=bot_space,
+        )
 
         if show_figure:
             plt.show()
