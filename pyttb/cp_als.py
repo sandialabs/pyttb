@@ -18,6 +18,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     stoptol: float = 1e-4,
     maxiters: int = 1000,
     dimorder: Optional[List[int]] = None,
+    optdims: Optional[List[bool]] = None,
     init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
     printitn: int = 1,
     fixsigns: bool = True,
@@ -36,6 +37,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         in successive iterations drops below this value, the iterations terminate
     dimorder:
         Order to loop through dimensions (default: [range(tensor.ndims)])
+    optdims:
+        Whether factor for corresponding mode should be optimized or not.
+        Defaults to optimizing all modes.
     maxiters:
         Maximum number of iterations
     init:
@@ -136,6 +140,14 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     elif tuple(range(N)) != tuple(sorted(dimorder)):
         assert False, "Dimorder must be a list or permutation of range(tensor.ndims)"
 
+    #Set up optdims if not specified
+    if optdims is None:
+        optdims = [True]*N
+    elif not isinstance(optdims, list):
+        assert False, "optdims must be a list"
+    elif not any(optdims):
+        assert False, "optims must contain one True value"
+
     # Error checking
     assert rank > 0, "Number of components requested must be positive"
 
@@ -170,6 +182,10 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     # Set up for iterates and fit
     U = init.copy().factor_matrices
     fit = 0
+
+    # Reduce dimorder to only those modes we will optimize
+    dimorder_in = dimorder  # save for output
+    dimorder = [d for d in dimorder if optdims[d]] 
 
     # Store the last MTTKRP result to accelerate fitness computation
     U_mttkrp = np.zeros((input_tensor.shape[dimorder[-1]], rank))
@@ -273,7 +289,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         "params": {
             "stoptol": stoptol,
             "maxiters": maxiters,
-            "dimorder": dimorder,
+            "dimorder": dimorder_in,
+            "optdims": optdims,
             "printitn": printitn,
             "fixsigns": fixsigns,
         },
