@@ -888,7 +888,23 @@ class ktensor:
          [63. 85.]]
         <BLANKLINE>
         """
-        data = self.weights @ ttb.khatrirao(*self.factor_matrices, reverse=True).T
+
+        def min_split_dims(dims):
+            """
+            solve
+              min_{i in range(1,d)}  product(dims[:i]) + product(dims[i:])
+            to minimize the memory footprint of the intermediate matrix
+            """
+            sum_of_prods = [
+                np.prod(dims[:i]) + np.prod(dims[i:]) for i in range(1, len(dims))
+            ]
+            i_min = np.argmin(sum_of_prods) + 1  # note range above starts at 1
+            return i_min
+
+        i_split = min_split_dims(self.shape)
+        data = (
+            ttb.khatrirao(*self.factor_matrices[:i_split], reverse=True) * self.weights
+        ) @ ttb.khatrirao(*self.factor_matrices[i_split:], reverse=True).T
         return ttb.tensor(data, self.shape, copy=False)
 
     def innerprod(
