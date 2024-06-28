@@ -108,8 +108,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     [[0.1467... 0.0923...]
      [0.1862... 0.3455...]]
     >>> print(output["params"]) # doctest: +NORMALIZE_WHITESPACE
-    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1], 'printitn': 1,\
-     'fixsigns': True}
+    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1],\
+     'optdims': [0, 1], 'printitn': 1, 'fixsigns': True}
 
     Example using "nvecs" initialization:
 
@@ -181,7 +181,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
 
     # Reduce dimorder to only those modes we will optimize
     dimorder_in = dimorder  # save for output
-    dimorder = [d for d in dimorder if d in optdims] 
+    dimorder = [d for d in dimorder if d in optdims]
 
     # Store the last MTTKRP result to accelerate fitness computation
     U_mttkrp = np.zeros((input_tensor.shape[dimorder[-1]], rank))
