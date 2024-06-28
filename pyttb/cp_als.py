@@ -198,7 +198,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     for iteration in range(maxiters):
         fitold = fit
 
-        # Iterate over all N modes of the tensor
+        # Iterate over optimized modes in specified order
         for n in dimorder:
             # Calculate Unew = X_(n) * khatrirao(all U except n, 'r').
             Unew = input_tensor.mttkrp(U, n)
