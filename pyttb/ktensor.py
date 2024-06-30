@@ -29,6 +29,7 @@ from pyttb.pyttb_utils import (
     get_mttkrp_factors,
     isrow,
     isvector,
+    np_to_python,
     tt_dimscheck,
     tt_ind2sub,
 )
@@ -695,7 +696,8 @@ class ktensor:
                         invalid_entries.append(component)
                 if len(invalid_entries) > 0:
                     assert False, (
-                        f"Invalid component indices to be extracted: {invalid_entries} "
+                        f"Invalid component indices to be extracted: "
+                        f"{np_to_python(invalid_entries)} "
                         f"not in range({self.ncomponents})"
                     )
                 new_weights = self.weights[components]

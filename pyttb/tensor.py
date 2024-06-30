@@ -255,7 +255,10 @@ class tensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            return fun(self.data.flatten("F")).item()
+            result = fun(self.data.flatten("F"))
+            if isinstance(result, np.generic):
+                result = result.item()
+            return result
 
         ## Calculate the shape of the result
         newshape = tuple(np.array(self.shape)[remdims])

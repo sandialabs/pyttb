@@ -326,7 +326,10 @@ class sptensor:
             # Sum the corresponding values
             # Squeeze to convert from column vector to row vector
             newvals = accumarray(
-                loc.flatten(), np.squeeze(vals), size=newsubs.shape[0], func=function_handle
+                loc.flatten(),
+                np.squeeze(vals),
+                size=newsubs.shape[0],
+                func=function_handle,
             )
 
         # Find the nonzero indices of the new values
@@ -446,7 +449,10 @@ class sptensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            return function_handle(self.vals.transpose()[0]).item()
+            result = function_handle(self.vals.transpose()[0])
+            if isinstance(result, np.generic):
+                result = result.item()
+            return result
 
         # Calculate the size of the result
         newsize = np.array(self.shape)[remdims]
@@ -1320,7 +1326,7 @@ class sptensor:
             return 0
         return self.subs.shape[0]
 
-    def norm(self) -> np.floating:
+    def norm(self) -> float:
         """
         Compute the norm (i.e., Frobenius norm, or square root of the sum of
         squares of entries) of the :class:`pyttb.sptensor`.

@@ -13,7 +13,6 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 
 import pyttb as ttb
-
 from pyttb.pyttb_utils import np_to_python
 
 
@@ -117,7 +116,10 @@ class sumtensor:
         """
         if len(self.parts) == 0:
             return "Empty sumtensor"
-        s = f"sumtensor of shape {np_to_python(self.shape)} with {len(self.parts)} parts:"
+        s = (
+            f"sumtensor of shape {np_to_python(self.shape)} "
+            f"with {len(self.parts)} parts:"
+        )
         for i, part in enumerate(self.parts):
             s += f"\nPart {i}: \n"
             s += indent(str(part), prefix="\t")
