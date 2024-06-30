@@ -349,7 +349,7 @@ def zeros(
 
     # Select out just the zeros
     tmpidx = tt_sub2ind(data.shape, tmpsubs)
-    iszero = np.logical_not(np.in1d(tmpidx, nz_idx))
+    iszero = np.logical_not(np.isin(tmpidx, nz_idx))
     tmpsubs = tmpsubs[iszero, :]
 
     # Trim back to desired numb of samples

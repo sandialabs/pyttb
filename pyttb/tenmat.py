@@ -176,9 +176,12 @@ class tenmat:
         >>> TM2 = TM1
         >>> TM3 = TM1.copy()
         >>> TM1[0,0] = 3
-        >>> TM1[0,0] == TM2[0,0]
+
+        # Item to convert numpy boolean to python boolena for nicer printing
+
+        >>> (TM1[0,0] == TM2[0,0]).item()
         True
-        >>> TM1[0,0] == TM3[0,0]
+        >>> (TM1[0,0] == TM3[0,0]).item()
         False
         """
         # Create tenmat

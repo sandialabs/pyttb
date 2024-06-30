@@ -14,6 +14,8 @@ import numpy as np
 
 import pyttb as ttb
 
+from pyttb.pyttb_utils import np_to_python
+
 
 class sumtensor:
     """
@@ -115,7 +117,7 @@ class sumtensor:
         """
         if len(self.parts) == 0:
             return "Empty sumtensor"
-        s = f"sumtensor of shape {self.shape} with {len(self.parts)} parts:"
+        s = f"sumtensor of shape {np_to_python(self.shape)} with {len(self.parts)} parts:"
         for i, part in enumerate(self.parts):
             s += f"\nPart {i}: \n"
             s += indent(str(part), prefix="\t")
@@ -298,15 +300,15 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.array([[1, 0], [0, 4]]))
+        >>> T1 = ttb.tensor(np.array([[1., 0.], [0., 4.]]))
         >>> T2 = T1.to_sptensor()
         >>> S = ttb.sumtensor([T1, T2])
         >>> T1.innerprod(T1)
-        17
+        17.0
         >>> T1.innerprod(T2)
-        17
+        17.0
         >>> S.innerprod(T1)
-        34
+        34.0
         """
         result = self.parts[0].innerprod(other)
         for part in self.parts[1:]:

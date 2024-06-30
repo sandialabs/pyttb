@@ -1621,7 +1621,7 @@ class ktensor:
 
             # Rearrange the components of A according to the best matching
             foo = np.arange(RA)
-            tf = np.in1d(foo, best_perm)
+            tf = np.isin(foo, best_perm)
             best_perm[RB : RA + 1] = foo[~tf]
             A.arrange(permutation=best_perm)
             return best_score, A, flag, best_perm
