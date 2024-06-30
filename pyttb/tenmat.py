@@ -30,7 +30,7 @@ class tenmat:
     ):
         """
         Construct a :class:`pyttb.tenmat` from explicit components.
-        If you already have a tensor see :method:`pyttb.tensor.to_tenmat`.
+        If you already have a tensor see :meth:`pyttb.tensor.to_tenmat`.
 
         Parameters
         ----------
