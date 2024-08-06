@@ -22,7 +22,6 @@ from typing import (
 
 import numpy as np
 import scipy.sparse.linalg
-from typing_extensions import Self
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
@@ -708,7 +707,7 @@ class ktensor:
         else:
             assert False, "Input parameter must be an int, tuple, list or numpy.ndarray"
 
-    def fixsigns(self, other: Optional[ktensor] = None) -> Self:  # noqa: PLR0912
+    def fixsigns(self, other: Optional[ktensor] = None) -> ktensor:  # noqa: PLR0912
         """
         Change the elements of a :class:`pyttb.ktensor` in place so that the
         largest magnitude entries for each column vector in each factor
@@ -1186,7 +1185,7 @@ class ktensor:
         sort: Optional[bool] = False,
         normtype: float = 2,
         mode: Optional[int] = None,
-    ) -> Self:
+    ) -> ktensor:
         """
         Normalize the columns of the factor matrices of a
         :class:`pyttb.ktensor` in place, then optionally
@@ -1407,7 +1406,7 @@ class ktensor:
 
         return ttb.ktensor([self.factor_matrices[i] for i in order], self.weights)
 
-    def redistribute(self, mode: int) -> Self:
+    def redistribute(self, mode: int) -> ktensor:
         """
         Distribute weights of a :class:`pyttb.ktensor` to the specified mode.
         The redistribution is performed in place.
@@ -2001,7 +2000,7 @@ class ktensor:
             factor_matrices.append(self.factor_matrices[i])
         return ttb.ktensor(factor_matrices, new_weights, copy=False)
 
-    def update(self, modes: Union[int, Iterable[int]], data: np.ndarray) -> Self:
+    def update(self, modes: Union[int, Iterable[int]], data: np.ndarray) -> ktensor:
         """
         Updates a :class:`pyttb.ktensor` in the specific dimensions with the
         values in `data` (in vector or matrix form). The value of `modes` must
