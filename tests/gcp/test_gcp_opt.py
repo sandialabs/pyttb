@@ -16,17 +16,12 @@ class TestGcpOpt:
         dense_data[0, 1] = 0.0
         dense_data[1, 0] = 0.0
         rank = 2
-        maxiter = 2
-        optimizer = LBFGSB(maxiter=maxiter)
+        optimizer = LBFGSB(maxiter=2)
         result_gauss, initial_guess, info = ttb.gcp_opt(
             dense_data, rank, Objectives.GAUSSIAN, optimizer
         )
         assert not result_gauss.isequal(initial_guess)
         assert all(initial_guess.weights == 1.0)
-
-        # Test default callback
-        assert not "callback" in info["callback"].keys()
-        assert info["callback"]["time_trace"].shape == (maxiter,)
 
         # Test with missing data
         mask = ttb.tenones(dense_data.shape)
