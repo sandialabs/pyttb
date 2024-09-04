@@ -472,8 +472,10 @@ class LBFGSB:
         if "pgtol" not in self._solver_kwargs:
             self._solver_kwargs["pgtol"] = 1e-4 * np.prod(data.shape)
 
+        # Set callback function that returns time trace by default
         monitor = LBFGSB.Monitor(
-            self._solver_kwargs["maxiter"], self._solver_kwargs.get("callback", None)
+            self._solver_kwargs["maxiter"],
+            self._solver_kwargs.get("callback", None),  # callback may be pruned in ctor
         )
         self._solver_kwargs["callback"] = monitor
 
