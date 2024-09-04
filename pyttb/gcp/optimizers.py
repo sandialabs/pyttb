@@ -472,11 +472,10 @@ class LBFGSB:
         if "pgtol" not in self._solver_kwargs:
             self._solver_kwargs["pgtol"] = 1e-4 * np.prod(data.shape)
 
-        if "callback" not in self._solver_kwargs:
-            monitor = LBFGSB.Monitor(
-                self._solver_kwargs["maxiter"], self._solver_kwargs["callback"]
-            )
-            self._solver_kwargs["callback"] = monitor.func
+        monitor = LBFGSB.Monitor(
+            self._solver_kwargs["maxiter"], self._solver_kwargs.get("callback", None)
+        )
+        self._solver_kwargs["callback"] = monitor
 
         final_vector, final_f, lbfgsb_info = fmin_l_bfgs_b(
             lbfgsb_func_grad,
@@ -490,6 +489,9 @@ class LBFGSB:
 
         lbfgsb_info["final_f"] = final_f
         lbfgsb_info["callback"] = vars(monitor)
+        self._solver_kwargs.pop(
+            "callback", None
+        )  # Avoid IndexError if optimizer reused
 
         # TODO big print output
         return model, lbfgsb_info
@@ -501,8 +503,15 @@ class LBFGSB:
             self.iter = 0
             self._callback = callback
 
-        def func(self, xk, *args):
+        def __call__(self, xk, *args):
             if self._callback is not None:
-                self._callback()
+                self._callback(xk)
             self.time_trace[self.iter] = time.perf_counter() - self.startTime
             self.iter += 1
+
+        @property
+        def __dict__(self):
+            if not self._callback:
+                return {"time_trace": self.time_trace}
+            else:
+                return {"time_trace": self.time_trace, "callback": self._callback}
