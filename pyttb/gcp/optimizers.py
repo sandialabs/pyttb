@@ -499,13 +499,17 @@ class LBFGSB:
         return model, lbfgsb_info
 
     class Monitor(dict):
-        def __init__(self, maxiter: int, callback: Optional[Callable]):
+        def __init__(
+            self,
+            maxiter: int,
+            callback: Optional[Callable[[np.ndarray], None]] = None,  # type: ignore
+        ):
             self.startTime = time.perf_counter()
             self.time_trace = np.zeros((maxiter,))
             self.iter = 0
             self._callback = callback
 
-        def __call__(self, xk, *args):
+        def __call__(self, xk: np.ndarray) -> None:
             if self._callback is not None:
                 self._callback(xk)
             self.time_trace[self.iter] = time.perf_counter() - self.startTime
