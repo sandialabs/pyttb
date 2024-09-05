@@ -491,9 +491,7 @@ class LBFGSB:
 
         lbfgsb_info["final_f"] = final_f
         lbfgsb_info["callback"] = vars(monitor)
-        self._solver_kwargs.pop(
-            "callback", None
-        )  # Avoid IndexError if optimizer reused
+        self._solver_kwargs.pop("callback", None)  # Avoid TypeError if optimizer reused
 
         # TODO big print output
         return model, lbfgsb_info

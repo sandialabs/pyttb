@@ -109,8 +109,18 @@ def test_lbfgsb_callback(generate_problem):
     maxiter = 2
     solver = LBFGSB(maxiter=maxiter)
     _, info = solver.solve(model, dense_data, gaussian, gaussian_grad)
-    assert not "callback" in info["callback"].keys()
-    assert info["callback"]["time_trace"].shape == (maxiter,)
+    assert (
+        not "callback" in info["callback"].keys()
+    )  # No nested callback (wasn't defined)
+    assert info["callback"]["time_trace"].shape == (info["nit"],)
+    assert np.all(info["callback"]["time_trace"] > 0)
+
+    # Test reuse of optimizer with callback
+    assert not "callback" in solver._solver_kwargs.keys()  # Removed from previous call
+    # Inject non-empty callback structure from previous to solver kwargs
+    with pytest.raises(TypeError):
+        solver._solver_kwargs["callback"] = info["callback"]
+        _, info = solver.solve(model, dense_data, gaussian, gaussian_grad)
 
     # Test user-defined callback
     class Callback(object):
