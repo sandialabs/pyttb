@@ -116,7 +116,7 @@ def test_lbfgsb_callback(generate_problem):
     assert np.all(info["callback"]["time_trace"] > 0)
 
     # Test reuse of optimizer with callback
-    assert not "callback" in solver._solver_kwargs.keys()  # Removed from previous call
+    assert solver._solver_kwargs["callback"] is None  # Unregistered from previous call
     # Inject non-empty callback structure from previous to solver kwargs
     with pytest.raises(TypeError):
         solver._solver_kwargs["callback"] = info["callback"]
