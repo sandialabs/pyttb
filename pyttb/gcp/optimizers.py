@@ -494,8 +494,7 @@ class LBFGSB:
             self._solver_kwargs["maxiter"],
             self._solver_kwargs.get("callback", None),  # callback may be pruned in ctor
         )
-        # Unregister monitor in case of re-use
-        self._solver_kwargs["callback"] = monitor.callback
+        self._solver_kwargs["callback"] = monitor
 
         final_vector, final_f, lbfgsb_info = fmin_l_bfgs_b(
             lbfgsb_func_grad,
@@ -509,6 +508,7 @@ class LBFGSB:
 
         lbfgsb_info["final_f"] = final_f
         lbfgsb_info["callback"] = vars(monitor)
+        # Unregister monitor in case of re-use
         self._solver_kwargs = monitor.callback
 
         # TODO big print output
