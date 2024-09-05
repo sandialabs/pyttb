@@ -6,7 +6,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from math import inf
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
@@ -426,7 +426,22 @@ class LBFGSB:
         See scipy for details and standard defaults.
         A variety of defaults are set specifically for gcp opt.
         """
-        self._solver_kwargs = {
+        ArgType = TypedDict(
+            "ArgType",
+            {
+                "m": Optional[int],
+                "factr": float,
+                "pgtol": Optional[float],
+                "epsilon": Optional[float],
+                "iprint": Optional[int],
+                "disp": Optional[int],
+                "maxfun": Optional[int],
+                "maxiter": int,
+                "callback": Optional[Callable[[np.ndarray], None]],
+                "maxls": Optional[int],
+            },
+        )
+        self._solver_kwargs: ArgType = {
             "m": m,
             "factr": factr,
             "pgtol": pgtol,
@@ -438,8 +453,10 @@ class LBFGSB:
             "callback": callback,
             "maxls": maxls,
         }
+
+    def _non_empty_kwargs(self):
         # Prune None values so we don't have to maintain compatibility with scipy
-        self._solver_kwargs = {
+        return {
             key: value
             for key, value in self._solver_kwargs.items()
             if value is not None
@@ -477,7 +494,8 @@ class LBFGSB:
             self._solver_kwargs["maxiter"],
             self._solver_kwargs.get("callback", None),  # callback may be pruned in ctor
         )
-        self._solver_kwargs["callback"] = monitor
+        # Unregister monitor in case of re-use
+        self._solver_kwargs["callback"] = monitor.callback
 
         final_vector, final_f, lbfgsb_info = fmin_l_bfgs_b(
             lbfgsb_func_grad,
@@ -485,15 +503,13 @@ class LBFGSB:
             fprime=None,
             approx_grad=False,
             bounds=[(lower_bound, np.inf)] * len(x0),
-            **self._solver_kwargs,
+            **self._non_empty_kwargs(),
         )
         model.update(np.arange(initial_model.ndims), final_vector)
 
         lbfgsb_info["final_f"] = final_f
         lbfgsb_info["callback"] = vars(monitor)
-        self._solver_kwargs.pop(
-            "callback", None
-        )  # Avoid IndexError if optimizer reused
+        self._solver_kwargs = monitor.callback
 
         # TODO big print output
         return model, lbfgsb_info
@@ -514,6 +530,10 @@ class LBFGSB:
                 self._callback(xk)
             self.time_trace[self.iter] = time.perf_counter() - self.startTime
             self.iter += 1
+
+        @property
+        def callback(self):
+            return self._callback
 
         @property
         def __dict__(self):
