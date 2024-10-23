@@ -7,7 +7,16 @@ from __future__ import annotations
 
 from enum import Enum
 from inspect import signature
-from typing import List, Literal, Optional, Tuple, Union, get_args, overload
+from typing import (
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+    get_args,
+    overload,
+)
 
 import numpy as np
 
@@ -921,3 +930,22 @@ def gather_wrap_dims(
 
     assert rdims is not None and cdims is not None
     return rdims.astype(int), cdims.astype(int)
+
+
+def np_to_python(
+    iterable: Iterable,
+) -> Iterable:
+    """Convert a structure containing numpy scalars to pure python types.
+
+    Mostly useful for prettier printing post numpy 2.0.
+
+    Parameters
+    ----------
+    iterable:
+        Structure potentially containing numpy scalars.
+    """
+    output_type = type(iterable)
+    return output_type(  # type: ignore [call-arg]
+        element.item() if isinstance(element, np.generic) else element
+        for element in iterable
+    )
