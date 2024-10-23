@@ -317,11 +317,14 @@ class sptenmat:
         >>> S1 = ttb.sptensor(shape=(2,2,2))
         >>> S1[0,0,0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
-        >>> ST1.double() # doctest: +NORMALIZE_WHITESPACE
-        <2x4 sparse matrix of type '<class 'numpy.float64'>'
-            with 1 stored elements in COOrdinate format>
-        >>> print(ST1.double()) # doctest: +NORMALIZE_WHITESPACE
-        (0, 0)  1.0
+        >>> COO = ST1.double()
+        >>> type(COO) # doctest: +NORMALIZE_WHITESPACE
+        <class 'scipy.sparse._coo.coo_matrix'>
+        >>> COO.nnz # doctest: +NORMALIZE_WHITESPACE
+        1
+        >>> COO.toarray() # doctest: +NORMALIZE_WHITESPACE
+        array([[1., 0., 0., 0.],
+            [0., 0., 0., 0.]])
         """
         if self.subs.size == 0:
             return sparse.coo_matrix(self.shape)
