@@ -12,15 +12,19 @@ U.S. Government retains certain rights in this software.
 
 **Main Developers:**
 
-- [Danny Dunlavy](https://github.com/dmdunla) - original author, `sptensor`, `ktensor`, `tensor`, `tenmat`, `cp_als`, `cp_apr`, 
+- [Danny Dunlavy](https://github.com/dmdunla) - original author
 [PRs](https://github.com/sandialabs/pyttb/commits?author=dmdunla) 
-- [Nick Johnson](https://github.com/ntjohnson1) - original author, `sptensor`, `ktensor`, `tensor`, `ttensor`, `cp_als`, `cp_apr`, 
+- [Nick Johnson](https://github.com/ntjohnson1) - original author
 [PRs](https://github.com/sandialabs/pyttb/commits?author=ntjohnson1)
-- [Jordan Medina](https://github.com/DeepBlockDeepak) - documentation, tutorials,
-[PRs](https://github.com/sandialabs/pyttb/commits?author=DeepBlockDeepak)
+- [Jeremy Myers](https://github.com/jeremy-myers) - bug fixes, documentation
+[PRs](https://github.com/sandialabs/pyttb/commits?author=jeremy-myers)
 
 **Other Contributors:**
-- [Brian Kelley](https://github.com/brian-kelley) - `numpy` compatability, 
+- [Brian Kelley](https://github.com/brian-kelley) - dependencies 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=brian-kelley)
-- [Derek Tucker](https://github.com/jdtuck)[#1] - `tensor`, 
+- [Jordan Medina](https://github.com/DeepBlockDeepak) - bug fixes, documentation
+[PRs](https://github.com/sandialabs/pyttb/commits?author=DeepBlockDeepak)
+- [Eric Phipps](https://github.com/etphipp) - bug fixes
+[PRs](https://github.com/sandialabs/pyttb/commits?author=etphipp)
+- [Derek Tucker](https://github.com/jdtuck) - bug fixes
 [PRs](https://github.com/sandialabs/pyttb/commits?author=jdtuck)

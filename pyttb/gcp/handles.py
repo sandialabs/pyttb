@@ -115,15 +115,17 @@ def huber_grad(data: ttb.tensor, model: ttb.tensor, threshold: float) -> np.ndar
     ) * np.logical_not(below_threshold)
 
 
+# FIXME: Num trials should be enforced as integer here and in MATLAB
+# requires updating our regression test values to calculate MATLAB integer version
 def negative_binomial(
-    data: np.ndarray, model: np.ndarray, num_trials: int
+    data: np.ndarray, model: np.ndarray, num_trials: float
 ) -> np.ndarray:
     """Return objective function for negative binomial distributions"""
     return (num_trials + data) * np.log(model + 1) - data * np.log(model + EPS)
 
 
 def negative_binomial_grad(
-    data: np.ndarray, model: np.ndarray, num_trials: int
+    data: np.ndarray, model: np.ndarray, num_trials: float
 ) -> np.ndarray:
     """Return gradient function for negative binomial distributions"""
     return (num_trials + 1) / (1 + model) - data / (model + EPS)
