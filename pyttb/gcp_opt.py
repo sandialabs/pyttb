@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
@@ -109,6 +110,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
             )
         logging.info(welcome_msg)
 
+    main_start = time.perf_counter()
     if isinstance(optimizer, StochasticSolver):
         result, info = optimizer.solve(
             M0, data, function_handle, gradient_handle, lower_bound, sampler
@@ -120,6 +122,8 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
         result, info = optimizer.solve(
             M0, data, function_handle, gradient_handle, lower_bound, mask
         )
+    info["main_time"] = time.perf_counter() - main_start
+
     return result, M0, info
 
 
