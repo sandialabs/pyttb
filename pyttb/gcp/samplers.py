@@ -349,7 +349,7 @@ def zeros(
 
     # Select out just the zeros
     tmpidx = tt_sub2ind(data.shape, tmpsubs)
-    iszero = np.logical_not(np.in1d(tmpidx, nz_idx))
+    iszero = np.logical_not(np.isin(tmpidx, nz_idx))
     tmpsubs = tmpsubs[iszero, :]
 
     # Trim back to desired numb of samples
@@ -425,7 +425,7 @@ def semistrat(data: ttb.sptensor, num_nonzeros: int, num_zeros: int) -> sample_t
 
 
 def stratified(
-    data: ttb.sptensor,
+    data: Union[ttb.sptensor, ttb.tensor],
     nz_idx: np.ndarray,
     num_nonzeros: int,
     num_zeros: int,
@@ -450,6 +450,9 @@ def stratified(
     -------
     Subscripts, values, and weights of samples (Nonzeros then zeros).
     """
+    assert isinstance(
+        data, ttb.sptensor
+    ), "For stratified sampling Sparse Tensor must be provided"
     [nonzero_subs, nonzero_vals] = nonzeros(data, num_nonzeros, with_replacement=True)
     nonzero_weights = np.ones((num_nonzeros,))
     if num_nonzeros > 0:

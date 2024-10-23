@@ -137,7 +137,7 @@ class sptenmat:
             # Sum the corresponding values
             # Squeeze to convert from column vector to row vector
             newvals = accumarray(
-                loc, np.squeeze(vals, axis=1), size=newsubs.shape[0], func=sum
+                loc.flatten(), np.squeeze(vals, axis=1), size=newsubs.shape[0], func=sum
             )
 
         if copy:

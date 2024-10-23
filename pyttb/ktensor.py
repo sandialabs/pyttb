@@ -22,13 +22,13 @@ from typing import (
 
 import numpy as np
 import scipy.sparse.linalg
-from typing_extensions import Self
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     get_mttkrp_factors,
     isrow,
     isvector,
+    np_to_python,
     tt_dimscheck,
     tt_ind2sub,
 )
@@ -695,7 +695,8 @@ class ktensor:
                         invalid_entries.append(component)
                 if len(invalid_entries) > 0:
                     assert False, (
-                        f"Invalid component indices to be extracted: {invalid_entries} "
+                        f"Invalid component indices to be extracted: "
+                        f"{np_to_python(invalid_entries)} "
                         f"not in range({self.ncomponents})"
                     )
                 new_weights = self.weights[components]
@@ -706,7 +707,7 @@ class ktensor:
         else:
             assert False, "Input parameter must be an int, tuple, list or numpy.ndarray"
 
-    def fixsigns(self, other: Optional[ktensor] = None) -> Self:  # noqa: PLR0912
+    def fixsigns(self, other: Optional[ktensor] = None) -> ktensor:  # noqa: PLR0912
         """
         Change the elements of a :class:`pyttb.ktensor` in place so that the
         largest magnitude entries for each column vector in each factor
@@ -1256,7 +1257,7 @@ class ktensor:
         sort: Optional[bool] = False,
         normtype: float = 2,
         mode: Optional[int] = None,
-    ) -> Self:
+    ) -> ktensor:
         """
         Normalize the columns of the factor matrices of a
         :class:`pyttb.ktensor` in place, then optionally
@@ -1477,7 +1478,7 @@ class ktensor:
 
         return ttb.ktensor([self.factor_matrices[i] for i in order], self.weights)
 
-    def redistribute(self, mode: int) -> Self:
+    def redistribute(self, mode: int) -> ktensor:
         """
         Distribute weights of a :class:`pyttb.ktensor` to the specified mode.
         The redistribution is performed in place.
@@ -1693,7 +1694,7 @@ class ktensor:
 
             # Rearrange the components of A according to the best matching
             foo = np.arange(RA)
-            tf = np.in1d(foo, best_perm)
+            tf = np.isin(foo, best_perm)
             best_perm[RB : RA + 1] = foo[~tf]
             A.arrange(permutation=best_perm)
             return best_score, A, flag, best_perm
@@ -2071,7 +2072,7 @@ class ktensor:
             factor_matrices.append(self.factor_matrices[i])
         return ttb.ktensor(factor_matrices, new_weights, copy=False)
 
-    def update(self, modes: Union[int, Iterable[int]], data: np.ndarray) -> Self:
+    def update(self, modes: Union[int, Iterable[int]], data: np.ndarray) -> ktensor:
         """
         Updates a :class:`pyttb.ktensor` in the specific dimensions with the
         values in `data` (in vector or matrix form). The value of `modes` must

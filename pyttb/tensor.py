@@ -23,6 +23,7 @@ from pyttb.pyttb_utils import (
     gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
+    np_to_python,
     tt_dimscheck,
     tt_ind2sub,
     tt_sub2ind,
@@ -254,7 +255,10 @@ class tensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            return fun(self.data.flatten("F"))
+            result = fun(self.data.flatten("F"))
+            if isinstance(result, np.generic):
+                result = result.item()
+            return result
 
         ## Calculate the shape of the result
         newshape = tuple(np.array(self.shape)[remdims])
@@ -320,7 +324,7 @@ class tensor:
 
         # Easy case - returns a scalar
         if self.ndims == 2:
-            return np.trace(self.data)
+            return np.trace(self.data).item()
 
         # Remaining dimensions after trace
         remdims = np.setdiff1d(np.arange(0, self.ndims), np.array([i1, i2])).astype(int)
@@ -549,9 +553,9 @@ class tensor:
         # Verify inputs
         if rdims is None and cdims is None:
             assert False, "Either rdims or cdims or both must be specified."
-        if rdims is not None and not sum(np.in1d(rdims, alldims)) == len(rdims):
+        if rdims is not None and not sum(np.isin(rdims, alldims)) == len(rdims):
             assert False, "Values in rdims must be in [0, source.ndims]."
-        if cdims is not None and not sum(np.in1d(cdims, alldims)) == len(cdims):
+        if cdims is not None and not sum(np.isin(cdims, alldims)) == len(cdims):
             assert False, "Values in cdims must be in [0, source.ndims]."
 
         rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
@@ -590,19 +594,19 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 0], [0, 4]]))
+        >>> T = ttb.tensor(np.array([[1., 0.], [0., 4.]]))
         >>> T.innerprod(T)
-        17
+        17.0
         >>> S = T.to_sptensor()
         >>> T.innerprod(S)
-        17
+        17.0
         """
         if isinstance(other, ttb.tensor):
             if self.shape != other.shape:
                 assert False, "Inner product must be between tensors of the same size"
             x = np.reshape(self.data, (self.data.size,), order="F")
             y = np.reshape(other.data, (other.data.size,), order="F")
-            return x.dot(y)
+            return x.dot(y).item()
         if isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):
             # Reverse arguments and call specializer code
             return other.innerprod(self)
@@ -1021,7 +1025,7 @@ class tensor:
         # default of np.linalg.norm is to vectorize the data and compute the vector
         # norm, which is equivalent to the Frobenius norm for multidimensional arrays.
         # However, the argument 'fro' only works for 1-D and 2-D arrays currently.
-        return float(np.linalg.norm(self.data))
+        return np.linalg.norm(self.data).item()
 
     def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
@@ -1673,7 +1677,7 @@ class tensor:
         # If needed, convert the final result back to tensor
         if n > 0:
             return ttb.tensor(c, tuple(sz[0:n]), copy=False)
-        return c[0]
+        return c[0].item()
 
     def ttsv(
         self,
@@ -1981,7 +1985,7 @@ class tensor:
             # If the size is zero, then the result is returned as a scalar
             # otherwise, we convert the result to a tensor
             if newsiz.size == 0:
-                a = newdata
+                a = newdata.item()
             else:
                 a = ttb.tensor(newdata, copy=False)
             return a
@@ -2511,7 +2515,7 @@ class tensor:
             return s
 
         s = ""
-        s += f"tensor of shape {self.shape}"
+        s += f"tensor of shape {np_to_python(self.shape)}"
 
         if self.ndims == 1:
             s += "\ndata"

@@ -371,7 +371,7 @@ def test_tenmat_ctranspose(sample_tenmat_4way):
 def test_tenmat_double(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way
 
-    assert (tenmatInstance.double() == tenmatInstance.data.astype(np.float_)).all()
+    assert (tenmatInstance.double() == tenmatInstance.data.astype(np.float64)).all()
 
 
 def test_tenmat_ndims(sample_tenmat_4way):

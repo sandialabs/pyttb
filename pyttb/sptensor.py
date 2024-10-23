@@ -33,6 +33,7 @@ from pyttb.pyttb_utils import (
     gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
+    np_to_python,
     tt_dimscheck,
     tt_ind2sub,
     tt_intersect_rows,
@@ -325,7 +326,10 @@ class sptensor:
             # Sum the corresponding values
             # Squeeze to convert from column vector to row vector
             newvals = accumarray(
-                loc, np.squeeze(vals), size=newsubs.shape[0], func=function_handle
+                loc.flatten(),
+                np.squeeze(vals),
+                size=newsubs.shape[0],
+                func=function_handle,
             )
 
         # Find the nonzero indices of the new values
@@ -445,7 +449,10 @@ class sptensor:
 
         # Check for the case where we accumulate over *all* dimensions
         if remdims.size == 0:
-            return function_handle(self.vals.transpose()[0])
+            result = function_handle(self.vals.transpose()[0])
+            if isinstance(result, np.generic):
+                result = result.item()
+            return result
 
         # Calculate the size of the result
         newsize = np.array(self.shape)[remdims]
@@ -1319,7 +1326,7 @@ class sptensor:
             return 0
         return self.subs.shape[0]
 
-    def norm(self) -> np.floating:
+    def norm(self) -> float:
         """
         Compute the norm (i.e., Frobenius norm, or square root of the sum of
         squares of entries) of the :class:`pyttb.sptensor`.
@@ -1339,7 +1346,7 @@ class sptensor:
         >>> S.norm() # doctest: +ELLIPSIS
         5.47722557...
         """
-        return np.linalg.norm(self.vals)
+        return np.linalg.norm(self.vals).item()
 
     def nvecs(self, n: int, r: int, flipsign: bool = True) -> np.ndarray:
         """
@@ -1945,7 +1952,7 @@ class sptensor:
 
         # Case 0: If all dimensions were used, then just return the sum
         if remdims.size == 0:
-            return np.sum(newvals)
+            return np.sum(newvals).item()
 
         # Otherwise, figure out new subscripts and accumulate the results.
         newsiz = np.array(self.shape, dtype=int)[remdims]
@@ -3439,10 +3446,10 @@ class sptensor:
         """
         nz = self.nnz
         if nz == 0:
-            s = f"empty sparse tensor of shape {self.shape!r}"
+            s = f"empty sparse tensor of shape {np_to_python(self.shape)!r}"
             return s
 
-        s = f"sparse tensor of shape {self.shape!r}"
+        s = f"sparse tensor of shape {np_to_python(self.shape)!r}"
         s += f" with {nz} nonzeros\n"
 
         # Stop insane printouts
