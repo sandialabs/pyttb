@@ -106,9 +106,12 @@ class ttensor:
         >>> second = first
         >>> third = second.copy()
         >>> first.factor_matrices[0][0,0] = 2
-        >>> first.factor_matrices[0][0,0] == second.factor_matrices[0][0,0]
+
+        # Item to convert numpy boolean to python boolena for nicer printing
+
+        >>> (first.factor_matrices[0][0,0] == second.factor_matrices[0][0,0]).item()
         True
-        >>> first.factor_matrices[0][0,0] == third.factor_matrices[0][0,0]
+        >>> (first.factor_matrices[0][0,0] == third.factor_matrices[0][0,0]).item()
         False
         """
         return ttb.ttensor(self.core, self.factor_matrices, copy=True)

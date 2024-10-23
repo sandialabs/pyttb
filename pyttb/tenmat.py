@@ -30,7 +30,7 @@ class tenmat:
     ):
         """
         Construct a :class:`pyttb.tenmat` from explicit components.
-        If you already have a tensor see :method:`pyttb.tensor.to_tenmat`.
+        If you already have a tensor see :meth:`pyttb.tensor.to_tenmat`.
 
         Parameters
         ----------
@@ -176,9 +176,12 @@ class tenmat:
         >>> TM2 = TM1
         >>> TM3 = TM1.copy()
         >>> TM1[0,0] = 3
-        >>> TM1[0,0] == TM2[0,0]
+
+        # Item to convert numpy boolean to python boolena for nicer printing
+
+        >>> (TM1[0,0] == TM2[0,0]).item()
         True
-        >>> TM1[0,0] == TM3[0,0]
+        >>> (TM1[0,0] == TM3[0,0]).item()
         False
         """
         # Create tenmat
