@@ -100,3 +100,43 @@ def test_lbfgsb(generate_problem):
     assert isinstance(info, dict)
     assert not model.isequal(result)
     assert (model.full() - dense_data).norm() > (result.full() - dense_data).norm()
+
+
+def test_lbfgsb_callback(generate_problem):
+    dense_data, model, sampler = generate_problem
+
+    # Test default callback
+    maxiter = 2
+    solver = LBFGSB(maxiter=maxiter)
+    _, info = solver.solve(model, dense_data, gaussian, gaussian_grad)
+    assert (
+        not "callback" in info["callback"].keys()
+    )  # No nested callback (wasn't defined)
+    assert info["callback"]["time_trace"].shape == (info["nit"],)
+    assert np.all(info["callback"]["time_trace"] > 0)
+
+    # Test reuse of optimizer with callback
+    assert solver._solver_kwargs["callback"] is None  # Unregistered from previous call
+    # Inject non-empty callback structure from previous to solver kwargs
+    with pytest.raises(TypeError):
+        solver._solver_kwargs["callback"] = info["callback"]
+        _, info = solver.solve(model, dense_data, gaussian, gaussian_grad)
+
+    # Test user-defined callback
+    class Callback(object):
+        def __init__(self, rows: int = 0, cols: int = 0):
+            self.i = 0
+            self.xk = np.zeros((rows, cols))
+
+        def __call__(self, xk):
+            self.xk[self.i, :] = xk
+            self.i += 1
+
+    maxiter = 2
+    callback = Callback(maxiter, np.prod(model.shape) * model.ncomponents)
+    solver = LBFGSB(maxiter=maxiter, callback=callback)
+    _, info = solver.solve(model, dense_data, gaussian, gaussian_grad)
+    callback_external = vars(callback)
+    callback_internal = vars(info["callback"]["callback"])
+    assert callback_external["i"] == callback_internal["i"]
+    np.testing.assert_array_equal(callback_external["xk"], callback_internal["xk"])

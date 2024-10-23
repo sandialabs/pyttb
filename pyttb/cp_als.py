@@ -18,6 +18,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     stoptol: float = 1e-4,
     maxiters: int = 1000,
     dimorder: Optional[List[int]] = None,
+    optdims: Optional[List[int]] = None,
     init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
     printitn: int = 1,
     fixsigns: bool = True,
@@ -36,6 +37,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         in successive iterations drops below this value, the iterations terminate
     dimorder:
         Order to loop through dimensions (default: [range(tensor.ndims)])
+    optdims:
+        Whether factor for corresponding mode should be optimized or not.
+        Defaults to optimizing all modes ([range(tensor.ndims)]).
     maxiters:
         Maximum number of iterations
     init:
@@ -104,8 +108,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     [[0.1467... 0.0923...]
      [0.1862... 0.3455...]]
     >>> print(output["params"]) # doctest: +NORMALIZE_WHITESPACE
-    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1], 'printitn': 1,\
-     'fixsigns': True}
+    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1],\
+     'optdims': [0, 1], 'printitn': 1, 'fixsigns': True}
 
     Example using "nvecs" initialization:
 
@@ -135,6 +139,10 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         assert False, "Dimorder must be a list"
     elif tuple(range(N)) != tuple(sorted(dimorder)):
         assert False, "Dimorder must be a list or permutation of range(tensor.ndims)"
+
+    # Set up optdims if not specified
+    if optdims is None:
+        optdims = list(range(N))
 
     # Error checking
     assert rank > 0, "Number of components requested must be positive"
@@ -171,6 +179,10 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     U = init.copy().factor_matrices
     fit = 0
 
+    # Reduce dimorder to only those modes we will optimize
+    dimorder_in = dimorder  # save for output
+    dimorder = [d for d in dimorder if d in optdims]
+
     # Store the last MTTKRP result to accelerate fitness computation
     U_mttkrp = np.zeros((input_tensor.shape[dimorder[-1]], rank))
 
@@ -186,7 +198,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     for iteration in range(maxiters):
         fitold = fit
 
-        # Iterate over all N modes of the tensor
+        # Iterate over optimized modes in specified order
         for n in dimorder:
             # Calculate Unew = X_(n) * khatrirao(all U except n, 'r').
             Unew = input_tensor.mttkrp(U, n)
@@ -273,7 +285,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         "params": {
             "stoptol": stoptol,
             "maxiters": maxiters,
-            "dimorder": dimorder,
+            "dimorder": dimorder_in,
+            "optdims": optdims,
             "printitn": printitn,
             "fixsigns": fixsigns,
         },
