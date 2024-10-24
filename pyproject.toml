@@ -13,6 +13,7 @@ dependencies = [
     "numpy < 2",
     "numpy_groupies",
     "scipy",
+    "matplotlib",
 ]
 
 classifiers = [
@@ -43,7 +44,6 @@ doc = [
     "sphinx >= 4.0",
     "sphinx_rtd_theme",
     "myst-nb",
-    "matplotlib",
 ]
 profiling = [
     "gprof2dot",
