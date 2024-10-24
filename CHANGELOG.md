@@ -1,3 +1,16 @@
+# v1.8.0 (2024-10-23)
+- Added:
+  - Added `ktensor.vis` method for visualizing CP decompositions (https://github.com/sandialabs/pyttb/pull/301)
+  - Added support in `cp_als` to optimize only specific modes (https://github.com/sandialabs/pyttb/pull/302)
+  - Added dependency on `matplotlib` for visualization support (https://github.com/sandialabs/pyttb/pull/301)
+- Fixed:
+  - Fixed timings and output formatting in `gcp_opt` (https://github.com/sandialabs/pyttb/pull/314)
+- Improved:
+  - Improved performance of `ktensor.full` (https://github.com/sandialabs/pyttb/pull/300)
+- Deprecated:
+  - Replaced `tt_to_dense_matrix` and `tt_from_dense_matrix` with `tenmat` data class and methods (https://github.com/sandialabs/pyttb/pull/294)
+  - Removed support for Python 3.8 (end-of-life) (https://github.com/sandialabs/pyttb/pull/319)
+
 # v1.7.0 (2024-10-23)
 - **Breaking Changes:**
   - _API Change:_ Constructors (`__init__`) and helper functions have been combined for all data classes, leading to breaking changes; if you use `from_*` methods in your existing `pyttb` usage to create instances of data classes this will require changes. see the updated [documentation](https://pyttb.readthedocs.io) and [tutorials](https://pyttb.readthedocs.io/en/latest/tutorials.html) for examples of using the update APIs. (https://github.com/sandialabs/pyttb/pull/213, https://github.com/sandialabs/pyttb/pull/293)

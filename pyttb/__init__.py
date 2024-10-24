@@ -5,7 +5,7 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
-__version__ = "1.7.0"
+__version__ = "1.8.0"
 
 
 import warnings
