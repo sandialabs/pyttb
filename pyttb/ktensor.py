@@ -20,6 +20,7 @@ from typing import (
     overload,
 )
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse.linalg
 
@@ -889,8 +890,96 @@ class ktensor:
          [63. 85.]]
         <BLANKLINE>
         """
-        data = self.weights @ ttb.khatrirao(*self.factor_matrices, reverse=True).T
+
+        def min_split_dims(dims):
+            """
+            solve
+              min_{i in range(1,d)}  product(dims[:i]) + product(dims[i:])
+            to minimize the memory footprint of the intermediate matrix
+            """
+            sum_of_prods = [
+                np.prod(dims[:i]) + np.prod(dims[i:]) for i in range(1, len(dims))
+            ]
+            i_min = np.argmin(sum_of_prods) + 1  # note range above starts at 1
+            return i_min
+
+        i_split = min_split_dims(self.shape)
+        data = (
+            ttb.khatrirao(*self.factor_matrices[:i_split], reverse=True) * self.weights
+        ) @ ttb.khatrirao(*self.factor_matrices[i_split:], reverse=True).T
         return ttb.tensor(data, self.shape, copy=False)
+
+    def to_tenmat(
+        self,
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        cdims_cyclic: Optional[
+            Union[Literal["fc"], Literal["bc"], Literal["t"]]
+        ] = None,
+        copy: bool = True,
+    ) -> ttb.tenmat:
+        """
+        Construct a :class:`pyttb.tenmat` from a :class:`pyttb.ktensor` and
+        unwrapping details.
+
+        Parameters
+        ----------
+        rdims:
+            Mapping of row indices.
+        cdims:
+            Mapping of column indices.
+        cdims_cyclic:
+            When only rdims is specified maps a single rdim to the rows and
+                the remaining dimensons span the columns. _fc_ (forward cyclic)
+                in the order range(rdims,self.ndims()) followed by range(0, rdims).
+                _bc_ (backward cyclic) range(rdims-1, -1, -1) then
+                range(self.ndims(), rdims, -1).
+        copy:
+            Whether to make a copy of provided data or just reference it.
+
+        Notes
+        -----
+        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+            De Lathauwer, De Moor, and Vandewalle [2]_.
+
+        References
+        ----------
+        .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology
+               in multiway analysis. J. Chemometrics 14, 105-122.
+        .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
+               rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order
+               tensors. SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+
+        Examples
+        --------
+        >>> weights = np.array([1., 2.])
+        >>> fm0 = np.array([[1., 2.], [3., 4.]])
+        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> K = ttb.ktensor([fm0, fm1], weights)
+        >>> print(K)
+        ktensor of shape (2, 2)
+        weights=[1. 2.]
+        factor_matrices[0] =
+        [[1. 2.]
+         [3. 4.]]
+        factor_matrices[1] =
+        [[5. 6.]
+         [7. 8.]]
+        >>> K.full() # doctest: +NORMALIZE_WHITESPACE
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[29. 39.]
+         [63. 85.]]
+        >>> K.to_tenmat(np.array([0])) # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[29. 39.]
+         [63. 85.]]
+        """
+        # Simplest but slightly less efficient solution
+        return self.full().to_tenmat(rdims, cdims, cdims_cyclic, copy)
 
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ktensor, ttb.ttensor]
@@ -2134,6 +2223,184 @@ class ktensor:
             warnings.warn("Failed to consume all of the input data")
 
         return self
+
+    def vis(  # noqa: PLR0912, PLR0913
+        self,
+        plots: Optional[Union[tuple, list]] = None,
+        show_figure: bool = True,
+        normalize: bool = True,
+        norm: Union[int, float] = 2,
+        rel_weights: bool = True,
+        rel_heights: Optional[Union[tuple, list]] = None,
+        rel_widths: Optional[Union[tuple, list]] = None,
+        horz_space: Optional[float] = None,
+        vert_space: Optional[float] = None,
+        left_space: Optional[float] = None,
+        right_space: Optional[float] = None,
+        top_space: Optional[float] = None,
+        bot_space: Optional[float] = None,
+        mode_titles: Optional[Union[tuple, list]] = None,
+        title=None,
+    ):
+        """
+        Visualize factors for :class:`pyttb.ktensor`.
+
+        Parameters
+        ----------
+        plots:
+            List of functions (one per mode) which visualize the respective vectors
+            of a factor.
+            Function for mode i must have signature `f(v_i,ax)` where
+            `v_i` is :class:`numpy.ndarray` vector of dimension `n_i` and
+            `ax` is a :class:`matplotlib.axes.Axes' on which to plot.
+        show_figure:
+            Boolean determining if the resulting figure should be shown.
+        normalize:
+            Boolean controlling whether to normalize factors and generate
+            a compensating weight, then sort components by weight.
+        norm:
+            Norm used to normalize factors; 1 for 1-norm, 2 for 2-norm, etc.
+        rel_weights:
+            Boolean determining whether weights should be made relative by
+            dividing by largest weight.
+        rel_widths:
+            List of numbers (one per mode) specifying relative widths of each
+            plot column.
+        rel_heights:
+            List of numbers (one per component) specifying relative height of each
+            plot row.
+        horz/vert_space:
+            Number determining amount of space between subplots
+            (horizontally/vertically) as a fraction of the average axis width/height.
+        left/right/top/bot_space:
+            Extent of subplots as fraction of figure width or height.
+        mode_titles:
+            List of strings used as titles for each column (mode).
+        title:
+            String containing overall figure title.
+
+        Returns
+        -------
+        axs:
+            :class:`matplotlib.axes.Axes' for the generated figure
+
+        Examples
+        --------
+        Set up a :class:`pyttb.ktensor` to plot:
+
+        >>> np.random.seed(1)
+        >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 10), 2)
+
+        Use plot K using default behavior K.vis()
+
+        >>> K.vis() # doctest: +ELLIPSIS
+        array([[<Axes: ...
+
+        Define a more realistic plot fuctions with x labels,
+        control relative widths of each plot,
+        and set mode titles.
+
+        >>> def mode_1_plot(v,ax):
+        ...    ax.bar([1,2],v,width=0.2)
+        ...    ax.set_xticks([1,2],labels=['neutron','electron'],rotation=45)
+        >>> def mode_2_plot(v,ax):
+        ...    ax.plot(np.arange(v.shape[0]), v)
+        ...    ax.set_xlabel('$v$, [m/s]')
+        >>> def mode_3_plot(v,ax):
+        ...    ax.semilogx(np.logspace(-2,2,v.shape[0]),v)
+        ...    ax.set_xlabel('$E$, [kJ]')
+        >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
+        >>> K.vis(plots=plots,
+        ...    rel_widths=[1,2,3],horz_space=0.4,
+        ...    left_space=0.2,bot_space=0.2,
+        ...    mode_titles=['Particle','Velocity','Energy']) # doctest: +ELLIPSIS
+        array([[<Axes: ...
+        """
+
+        def line_plot(v, ax):
+            ax.plot(v)
+
+        m = len(self.shape)  # number of modes
+        r = self.ncomponents  # rank
+
+        # booleans storing whether respective title/label should be rendered
+        show_mode_titles = False
+        show_title = False
+
+        # check input validity
+        if plots is None:
+            plots = [line_plot] * m
+        else:
+            assert len(plots) == m, "Incorrect number of plot functions"
+        if rel_widths is not None:
+            assert len(rel_widths) == m, "Incorrect number of relative widths"
+        if rel_heights is not None:
+            assert len(rel_heights) == m, "Incorrect number of relative heights"
+        if mode_titles is not None:
+            assert len(mode_titles) == m, "Incorrect number of mode titles"
+            show_mode_titles = True
+        if title is not None:
+            show_title = True
+        if normalize:
+            self.normalize(normtype=norm, sort=True)
+
+        # compute factor weights (and optionally normalize)
+        weights = self.weights
+        weight_labels = [format(w, ".2e") for w in weights]
+        if rel_weights:
+            weights /= np.max(weights)
+            weight_labels = [format(w, ".2f") for w in weights]
+
+        # construct subplots
+        fig, axs = plt.subplots(
+            nrows=r,
+            ncols=m,
+            sharex="col",
+            gridspec_kw={"width_ratios": rel_widths, "height_ratios": rel_heights},
+        )
+
+        # compute y lims for each mode
+        y_lims = [[np.min(A), np.max(A)] for A in self.factor_matrices]
+
+        # plot data on each axis
+        for k in range(m):  # loop over modes
+            is_first_col = k == 0
+            U = self.factor_matrices[k].T  # r x n_k
+            for j in range(r):  # loop over components (rows of U)
+                is_first_row = j == 0
+                is_last_row = j == r - 1
+                # share y lims (unless user overrides with their plots)
+                axs[j, k].set_ylim(*y_lims[k])
+                # user defined plot (anything we do after may override them)
+                plots[k](U[j], ax=axs[j, k])
+                # render (or don't) titles/labels
+                if is_first_col:
+                    axs[j, k].set_ylabel(
+                        weight_labels[j], rotation=0, ha="right", labelpad=10
+                    )  # may be absolute or relative weight
+                if is_first_row and show_mode_titles and mode_titles:
+                    axs[j, k].set_title(mode_titles[k])
+                # remove duplicates of xlabels
+                if not is_last_row:
+                    axs[j, k].set_xlabel(None)
+
+        # figure title
+        if show_title:
+            fig.suptitle(title)
+
+        # tune layout
+        plt.subplots_adjust(
+            wspace=horz_space,
+            hspace=vert_space,
+            left=left_space,
+            right=right_space,
+            top=top_space,
+            bottom=bot_space,
+        )
+
+        if show_figure:
+            plt.show()
+        return axs
 
     def __add__(self, other):
         """

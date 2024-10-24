@@ -13,12 +13,12 @@ dependencies = [
     "numpy < 2",
     "numpy_groupies",
     "scipy",
+    "matplotlib",
 ]
 
 classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -44,7 +44,10 @@ doc = [
     "sphinx >= 4.0",
     "sphinx_rtd_theme",
     "myst-nb",
-    "matplotlib",
+]
+profiling = [
+    "gprof2dot",
+    "graphviz",
 ]
 
 [tool.setuptools.packages.find]

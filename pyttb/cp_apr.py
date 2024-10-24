@@ -13,7 +13,6 @@ import numpy as np
 from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
-from pyttb.pyttb_utils import tt_to_dense_matrix
 
 
 def cp_apr(  # noqa: PLR0913
@@ -524,7 +523,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
             if isinstance(input_tensor, ttb.tensor) and isSparse is False:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = tt_to_dense_matrix(input_tensor, n)
+                X_mat = input_tensor.to_tenmat(np.array([n]), copy=False).data
 
             num_rows = M.factor_matrices[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -879,7 +878,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
             if not isinstance(input_tensor, ttb.sptensor) and not isSparse:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = tt_to_dense_matrix(input_tensor, n)
+                X_mat = input_tensor.to_tenmat(np.array([n]), copy=False).data
 
             num_rows = M.factor_matrices[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -1786,7 +1785,7 @@ def calculate_phi(  # noqa: PLR0913
             )
             Phi[:, r] = Yr
     else:
-        Xn = tt_to_dense_matrix(Data, factorIndex)
+        Xn = Data.to_tenmat(np.array([factorIndex]), copy=False).data
         V = Model.factor_matrices[factorIndex].dot(Pi.transpose())
         W = Xn / np.maximum(V, epsilon)
         Y = W.dot(Pi)
@@ -1831,8 +1830,8 @@ def tt_loglikelihood(
             np.sum(Data.vals * np.log(np.sum(A, axis=1))[:, None])
             - np.sum(Model.factor_matrices[0])
         )
-    dX = tt_to_dense_matrix(Data, 1)
-    dM = tt_to_dense_matrix(Model, 1)
+    dX = Data.to_tenmat(np.array([1]), copy=False).data
+    dM = Model.to_tenmat(np.array([1]), copy=False).data
     f = 0
     for i in range(dX.shape[0]):
         for j in range(dX.shape[1]):

@@ -20,11 +20,13 @@ U.S. Government retains certain rights in this software.
 [PRs](https://github.com/sandialabs/pyttb/commits?author=jeremy-myers)
 
 **Other Contributors:**
+- [Gabriel Brown](https://github.com/ghbrown) - performance improvements, visualization
+[PRs](https://github.com/sandialabs/pyttb/commits?author=ghbrown)
 - [Brian Kelley](https://github.com/brian-kelley) - dependencies 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=brian-kelley)
 - [Jordan Medina](https://github.com/DeepBlockDeepak) - bug fixes, documentation
 [PRs](https://github.com/sandialabs/pyttb/commits?author=DeepBlockDeepak)
-- [Eric Phipps](https://github.com/etphipp) - bug fixes
+- [Eric Phipps](https://github.com/etphipp) - api changes, bug fixes
 [PRs](https://github.com/sandialabs/pyttb/commits?author=etphipp)
 - [Derek Tucker](https://github.com/jdtuck) - bug fixes
 [PRs](https://github.com/sandialabs/pyttb/commits?author=jdtuck)

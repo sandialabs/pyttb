@@ -1,3 +1,53 @@
+# v1.8.0 (2024-10-23)
+- Added:
+  - Added `ktensor.vis` method for visualizing CP decompositions (https://github.com/sandialabs/pyttb/pull/301)
+  - Added support in `cp_als` to optimize only specific modes (https://github.com/sandialabs/pyttb/pull/302)
+  - Added dependency on `matplotlib` for visualization support (https://github.com/sandialabs/pyttb/pull/301)
+- Fixed:
+  - Fixed timings and output formatting in `gcp_opt` (https://github.com/sandialabs/pyttb/pull/314)
+- Improved:
+  - Improved performance of `ktensor.full` (https://github.com/sandialabs/pyttb/pull/300)
+- Deprecated:
+  - Replaced `tt_to_dense_matrix` and `tt_from_dense_matrix` with `tenmat` data class and methods (https://github.com/sandialabs/pyttb/pull/294)
+  - Removed support for Python 3.8 (end-of-life) (https://github.com/sandialabs/pyttb/pull/319)
+
+# v1.7.0 (2024-10-23)
+- **Breaking Changes:**
+  - _API Change:_ Constructors (`__init__`) and helper functions have been combined for all data classes, leading to breaking changes; if you use `from_*` methods in your existing `pyttb` usage to create instances of data classes this will require changes. see the updated [documentation](https://pyttb.readthedocs.io) and [tutorials](https://pyttb.readthedocs.io/en/latest/tutorials.html) for examples of using the update APIs. (https://github.com/sandialabs/pyttb/pull/213, https://github.com/sandialabs/pyttb/pull/293)
+  - _API Change:_ Changed constructors of main data classes to allow use by external packages that wrap existing data in memory. This allows for use of `pyttb` data classes by external packages without making copies of the data. (https://github.com/sandialabs/pyttb/pull/182)
+  - API Change: `params` output of `cp_als` changed from `tuple` to `dict` (https://github.com/sandialabs/pyttb/pull/238)
+  - _Deprecation:_ Removed unused `end` methods from data classes (https://github.com/sandialabs/pyttb/pull/195)
+- New:
+  - Changed support of `numpy` to < version 2 for backwards compatibility; will update in future release (https://github.com/sandialabs/pyttb/pull/307)
+  - Added `gcp_opt` algorithm for Generalized CP decompositions (https://github.com/sandialabs/pyttb/pull/206)
+  - Added `sptenmat` data class (https://github.com/sandialabs/pyttb/pull/290)
+  - Added `sumtensor` data class (https://github.com/sandialabs/pyttb/pull/282)
+  - Added `sptensor.squash` method (https://github.com/sandialabs/pyttb/pull/175)
+  - Improved in `cp_apr` performance for `tensor`s (https://github.com/sandialabs/pyttb/pull/176)
+  - Added `tensor.scale`, providing support for `ttensor` input in `cp_als` (https://github.com/sandialabs/pyttb/pull/221)
+  - Added `teneye` (https://github.com/sandialabs/pyttb/pull/222)
+  - Added support for different index bases in `import_data` (https://github.com/sandialabs/pyttb/pull/144)
+- Documentation:
+  - Added tutorials that mirror those in the Tensor Toolbox for MATLAB
+  - Added documentatin for mapping between `pyttb` and Tensor Toolbox for MATLAB usage (https://github.com/sandialabs/pyttb/pull/291)
+  - Completed documentation for all methods and algorithms
+  - Improved RTD (readthedocs.io) support (https://github.com/sandialabs/pyttb/pull/178)
+  - Added citation information for `pyttb` (https://github.com/sandialabs/pyttb/pull/268)
+- Fixes/Completed:
+  - Fixed indexing/slicing in `tensor` (https://github.com/sandialabs/pyttb/pull/150)
+  - Fixed `sptensor.innerproduct` output (https://github.com/sandialabs/pyttb/pull/217)
+  - Fixed `export_data` to write `tensor`s using the correct ordering (https://github.com/sandialabs/pyttb/pull/143)
+  - Fixed ZeroDivisionError in `cp_als` (https://github.com/sandialabs/pyttb/pull/242)
+  - Fixed how initial guesses are generated in `tucker_als` (https://github.com/sandialabs/pyttb/pull/283)
+  - Fixed output formatting in `tucker_als` (https://github.com/sandialabs/pyttb/pull/265)
+  - Fixed `sptensor.mask` problem with invalid indices (https://github.com/sandialabs/pyttb/pull/259)
+  - Fixed `sptensor.logical_*` methods to generate correct output types (https://github.com/sandialabs/pyttb/pull/269)
+- Development: 
+  - Completed typing of all data classes and algorithms
+  - Adding pre-commit hooks 
+  - Added ruff usage to replace isort, pylint usage
+  - Updated GitHub Actiob versions, pypi.org upload action
+
 # v1.6.2 (2023-06-08)
 - Documentation:
   - Updated coverage testing (https://github.com/sandialabs/pyttb/pull/128, https://github.com/sandialabs/pyttb/pull/131, https://github.com/sandialabs/pyttb/pull/132, https://github.com/sandialabs/pyttb/pull/133)
