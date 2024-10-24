@@ -2294,6 +2294,7 @@ class ktensor:
         Use plot K using default behavior K.vis()
 
         >>> K.vis()
+        ...
 
         Define a more realistic plot fuctions with x labels,
         control relative widths of each plot,
@@ -2313,6 +2314,7 @@ class ktensor:
                   rel_widths=[1,2,3],horz_space=0.4,
                   left_space=0.2,bot_space=0.2,
                   mode_titles=['Particle','Velocity','Energy'])
+        ...
         """
 
         def line_plot(v, ax):
