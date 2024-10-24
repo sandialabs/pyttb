@@ -134,6 +134,11 @@ def test_tenmat_initialization_from_data(
     tenmatNdarray2 = ttb.tenmat(ndarrayInstance2, rdims, cdims, tshape)
     assert tenmatNdarray2.isequal(tenmatInstance)
 
+    # Reference instead of copy
+    tenmatNdarray2 = ttb.tenmat(ndarrayInstance2, rdims, cdims, tshape, copy=False)
+    assert tenmatNdarray2.isequal(tenmatInstance)
+    assert np.may_share_memory(ndarrayInstance2, tenmatNdarray2.data)
+
     # Exceptions
 
     ## data is not numpy.ndarray
@@ -279,6 +284,12 @@ def test_tenmat_initialization_from_tensor_type(
     assert tenmatTensorBC.shape == shapeBC
     assert tenmatTensorBC.tshape == tshapeBC
 
+    # Reference only
+    simple_tensor = ttb.tenones((2, 2))
+    rdims = np.array([0])
+    tenmat_reference = simple_tensor.to_tenmat(rdims=rdims, copy=False)
+    assert np.may_share_memory(tenmat_reference.data, simple_tensor.data)
+
     # Exceptions
 
     # cdims_cyclic has incorrect value
@@ -337,6 +348,11 @@ def test_tenmat_to_tensor():
     tenmatInstance4 = tensorInstance4.to_tenmat(np.array([3, 0]))
     tensorTenmatInstance4 = tenmatInstance4.to_tensor()
     assert tensorInstance4.isequal(tensorTenmatInstance4)
+    assert not np.may_share_memory(tensorTenmatInstance4.data, tenmatInstance4.data)
+
+    # Reference instead of copy
+    tensorTenmatInstance4_ref = tenmatInstance4.to_tensor(copy=False)
+    assert np.may_share_memory(tensorTenmatInstance4_ref.data, tenmatInstance4.data)
 
 
 def test_tenmat_ctranspose(sample_tenmat_4way):

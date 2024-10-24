@@ -908,6 +908,78 @@ class ktensor:
         ) @ ttb.khatrirao(*self.factor_matrices[i_split:], reverse=True).T
         return ttb.tensor(data, self.shape, copy=False)
 
+    def to_tenmat(
+        self,
+        rdims: Optional[np.ndarray] = None,
+        cdims: Optional[np.ndarray] = None,
+        cdims_cyclic: Optional[
+            Union[Literal["fc"], Literal["bc"], Literal["t"]]
+        ] = None,
+        copy: bool = True,
+    ) -> ttb.tenmat:
+        """
+        Construct a :class:`pyttb.tenmat` from a :class:`pyttb.ktensor` and
+        unwrapping details.
+
+        Parameters
+        ----------
+        rdims:
+            Mapping of row indices.
+        cdims:
+            Mapping of column indices.
+        cdims_cyclic:
+            When only rdims is specified maps a single rdim to the rows and
+                the remaining dimensons span the columns. _fc_ (forward cyclic)
+                in the order range(rdims,self.ndims()) followed by range(0, rdims).
+                _bc_ (backward cyclic) range(rdims-1, -1, -1) then
+                range(self.ndims(), rdims, -1).
+        copy:
+            Whether to make a copy of provided data or just reference it.
+
+        Notes
+        -----
+        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+            De Lathauwer, De Moor, and Vandewalle [2]_.
+
+        References
+        ----------
+        .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology
+               in multiway analysis. J. Chemometrics 14, 105-122.
+        .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
+               rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order
+               tensors. SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+
+        Examples
+        --------
+        >>> weights = np.array([1., 2.])
+        >>> fm0 = np.array([[1., 2.], [3., 4.]])
+        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> K = ttb.ktensor([fm0, fm1], weights)
+        >>> print(K)
+        ktensor of shape (2, 2)
+        weights=[1. 2.]
+        factor_matrices[0] =
+        [[1. 2.]
+         [3. 4.]]
+        factor_matrices[1] =
+        [[5. 6.]
+         [7. 8.]]
+        >>> K.full() # doctest: +NORMALIZE_WHITESPACE
+        tensor of shape (2, 2)
+        data[:, :] =
+        [[29. 39.]
+         [63. 85.]]
+        >>> K.to_tenmat(np.array([0])) # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape (2, 2)
+        rindices = [ 0 ] (modes of tensor corresponding to rows)
+        cindices = [ 1 ] (modes of tensor corresponding to columns)
+        data[:, :] =
+        [[29. 39.]
+         [63. 85.]]
+        """
+        # Simplest but slightly less efficient solution
+        return self.full().to_tenmat(rdims, cdims, cdims_cyclic, copy)
+
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ktensor, ttb.ttensor]
     ) -> float:

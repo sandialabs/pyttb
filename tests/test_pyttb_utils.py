@@ -6,48 +6,9 @@ import logging
 
 import numpy as np
 import pytest
-import scipy.sparse as sparse
 
 import pyttb as ttb
 import pyttb.pyttb_utils as ttb_utils
-
-
-def test_sptensor_to_dense_matrix():
-    subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3]])
-    vals = np.array([[0.5], [1.5], [2.5], [3.5]])
-    shape = (4, 4, 4)
-    mode0 = sparse.coo_matrix(
-        ([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3]))
-    ).toarray()
-    mode1 = sparse.coo_matrix(
-        ([0.5, 1.5, 2.5, 3.5], ([5, 13, 10, 15], [1, 1, 2, 3]))
-    ).toarray()
-    mode2 = sparse.coo_matrix(
-        ([0.5, 1.5, 2.5, 3.5], ([5, 5, 10, 15], [1, 3, 2, 3]))
-    ).toarray()
-    Ynt = [mode0, mode1, mode2]
-
-    sptensorInstance = ttb.sptensor(subs, vals, shape)
-    tensorInstance = sptensorInstance.full()
-
-    for mode in range(sptensorInstance.ndims):
-        Xnt = ttb_utils.tt_to_dense_matrix(tensorInstance, mode, True)
-        assert np.array_equal(Xnt, Ynt[mode])
-
-
-def test_sptensor_from_dense_matrix():
-    tensorInstance = ttb.tensor(np.random.normal(size=(4, 4, 4)))
-    for mode in range(tensorInstance.ndims):
-        tensorCopy = tensorInstance.copy()
-        Xnt = ttb_utils.tt_to_dense_matrix(tensorCopy, mode, True)
-        Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 0)
-        assert tensorCopy.isequal(Ynt)
-
-    for mode in range(tensorInstance.ndims):
-        tensorCopy = tensorInstance.copy()
-        Xnt = ttb_utils.tt_to_dense_matrix(tensorCopy, mode, False)
-        Ynt = ttb_utils.tt_from_dense_matrix(Xnt, tensorCopy.shape, mode, 1)
-        assert tensorCopy.isequal(Ynt)
 
 
 def test_tt_union_rows():

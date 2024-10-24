@@ -464,6 +464,7 @@ class tensor:
         cdims_cyclic: Optional[
             Union[Literal["fc"], Literal["bc"], Literal["t"]]
         ] = None,
+        copy: bool = True,
     ) -> ttb.tenmat:
         """
         Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor` and
@@ -481,6 +482,8 @@ class tensor:
                 in the order range(rdims,self.ndims()) followed by range(0, rdims).
                 _bc_ (backward cyclic) range(rdims-1, -1, -1) then
                 range(self.ndims(), rdims, -1).
+        copy:
+            Whether to make a copy of provided data or just reference it.
 
         Notes
         -----
@@ -575,7 +578,7 @@ class tensor:
             (rprod, cprod),
             order="F",
         )
-        return ttb.tenmat(data, rdims, cdims, tshape=tshape)
+        return ttb.tenmat(data, rdims, cdims, tshape=tshape, copy=copy)
 
     def innerprod(
         self, other: Union[tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
@@ -1208,7 +1211,7 @@ class tensor:
         vector_self = self.to_tenmat(dims, remdims).double()
         # Numpy broadcasting should be equivalent to bsxfun
         result = vector_self * vector_factor
-        return ttb.tenmat(result, dims, remdims, self.shape).to_tensor()
+        return ttb.tenmat(result, dims, remdims, self.shape, copy=False).to_tensor()
 
     def squeeze(self) -> Union[tensor, float]:
         """
