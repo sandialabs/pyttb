@@ -98,6 +98,11 @@ def test_sptenmat_initialization_from_data(sample_sptenmat):
     np.testing.assert_array_equal(S.tshape, tshape)
     np.testing.assert_array_equal(S.shape, shape)
 
+    # Constructor from data as reference
+    S = ttb.sptenmat(subs, vals, rdims, cdims, tshape, copy=False)
+    assert np.may_share_memory(S.subs, subs)
+    assert np.may_share_memory(S.vals, vals)
+
     # Constructor from data: rdims, cdims, and tshape
     S = ttb.sptenmat(rdims=rdims, cdims=cdims, tshape=tshape)
     np.testing.assert_array_equal(S.subs, np.array([]))

@@ -46,6 +46,10 @@ doc = [
     "sphinx_rtd_theme",
     "myst-nb",
 ]
+profiling = [
+    "gprof2dot",
+    "graphviz",
+]
 
 [tool.setuptools.packages.find]
 include = ["pyttb*"]

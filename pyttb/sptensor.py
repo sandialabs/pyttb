@@ -85,7 +85,7 @@ class sptensor:
         subs: Optional[np.ndarray] = None,
         vals: Optional[np.ndarray] = None,
         shape: Optional[Tuple[int, ...]] = None,
-        copy=True,
+        copy: bool = True,
     ):
         """
         Construct a :class:`pyttb.sptensor` from a set of `subs` (subscripts),
