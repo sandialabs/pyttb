@@ -2293,7 +2293,7 @@ class ktensor:
 
         Use plot K using default behavior K.vis()
 
-        >>> K.vis() # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        >>> K.vis() # doctest: +ELLIPSIS
         array([[<Axes: ...
 
         Define a more realistic plot fuctions with x labels,
@@ -2301,19 +2301,19 @@ class ktensor:
         and set mode titles.
 
         >>> def mode_1_plot(v,ax):
-                ax.bar([1,2],v,width=0.2)
-                ax.set_xticks([1,2],labels=['neutron','electron'],rotation=45)
+        ...    ax.bar([1,2],v,width=0.2)
+        ...    ax.set_xticks([1,2],labels=['neutron','electron'],rotation=45)
         >>> def mode_2_plot(v,ax):
-                ax.plot(np.arange(v.shape[0]), v)
-                ax.set_xlabel('$v$, [m/s]')
+        ...    ax.plot(np.arange(v.shape[0]), v)
+        ...    ax.set_xlabel('$v$, [m/s]')
         >>> def mode_3_plot(v,ax):
-                ax.semilogx(np.logspace(-2,2,v.shape[0]),v)
-                ax.set_xlabel('$E$, [kJ]')
+        ...    ax.semilogx(np.logspace(-2,2,v.shape[0]),v)
+        ...    ax.set_xlabel('$E$, [kJ]')
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
         >>> K.vis(plots=plots,
-                  rel_widths=[1,2,3],horz_space=0.4,
-                  left_space=0.2,bot_space=0.2,
-                  mode_titles=['Particle','Velocity','Energy']) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        ...    rel_widths=[1,2,3],horz_space=0.4,
+        ...    left_space=0.2,bot_space=0.2,
+        ...    mode_titles=['Particle','Velocity','Energy']) # doctest: +ELLIPSIS
         array([[<Axes: ...
         """
 
@@ -2378,7 +2378,7 @@ class ktensor:
                     axs[j, k].set_ylabel(
                         weight_labels[j], rotation=0, ha="right", labelpad=10
                     )  # may be absolute or relative weight
-                if is_first_row and show_mode_titles:
+                if is_first_row and show_mode_titles and mode_titles:
                     axs[j, k].set_title(mode_titles[k])
                 # remove duplicates of xlabels
                 if not is_last_row:
