@@ -6,7 +6,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from math import inf
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
@@ -119,7 +119,7 @@ class StochasticSolver(ABC):
         """
         if sampler is None:
             sampler = GCPSampler(data)
-        solver_start = time.monotonic()
+        solver_start = time.perf_counter()
 
         # Extract samples for estimating function value - these never change
         f_subs, f_vals, f_wgts = sampler.function_sample(data)
@@ -145,8 +145,8 @@ class StochasticSolver(ABC):
         if self._printitn > 0:
             logging.info("Begin Main loop\nInitial f-est: %e\n", f_est)
         # Note in MATLAB this time also includes the time for setting up samplers
-        time_trace[0] = time.monotonic() - solver_start
-        main_start = time.monotonic()
+        time_trace[0] = time.perf_counter() - solver_start
+        main_start = time.perf_counter()
 
         n_epoch = 0  # In case range short circuits
         for n_epoch in range(self._max_iters):
@@ -211,11 +211,11 @@ class StochasticSolver(ABC):
                 f_est_prev = f_est
 
             # Save time
-            time_trace[n_epoch + 1] = time.monotonic() - solver_start
+            time_trace[n_epoch + 1] = time.perf_counter() - solver_start
 
             if (self._nfails > self._max_fails) or f_est_tol_test:
                 break
-        main_time = time.monotonic() - main_start
+        main_time = time.perf_counter() - main_start
 
         info = {
             "f_est_trace": fest_trace[0 : n_epoch + 1],
@@ -294,7 +294,7 @@ class Adam(StochasticSolver):
         beta_2:
             Adam specific momentum parameter beta_2.
         epsilon:
-            Adam specifi momentum parameter to avoid division by zero.
+            Adam specific momentum parameter to avoid division by zero.
         """
         super().__init__(
             rate,
@@ -426,7 +426,22 @@ class LBFGSB:
         See scipy for details and standard defaults.
         A variety of defaults are set specifically for gcp opt.
         """
-        self._solver_kwargs = {
+        ArgType = TypedDict(
+            "ArgType",
+            {
+                "m": Optional[int],
+                "factr": float,
+                "pgtol": Optional[float],
+                "epsilon": Optional[float],
+                "iprint": Optional[int],
+                "disp": Optional[int],
+                "maxfun": Optional[int],
+                "maxiter": int,
+                "callback": Optional[Callable[[np.ndarray], None]],
+                "maxls": Optional[int],
+            },
+        )
+        self._solver_kwargs: ArgType = {
             "m": m,
             "factr": factr,
             "pgtol": pgtol,
@@ -438,8 +453,10 @@ class LBFGSB:
             "callback": callback,
             "maxls": maxls,
         }
+
+    def _non_empty_kwargs(self):
         # Prune None values so we don't have to maintain compatibility with scipy
-        self._solver_kwargs = {
+        return {
             key: value
             for key, value in self._solver_kwargs.items()
             if value is not None
@@ -471,16 +488,56 @@ class LBFGSB:
         x0 = model.tovec(False)
         if "pgtol" not in self._solver_kwargs:
             self._solver_kwargs["pgtol"] = 1e-4 * np.prod(data.shape)
+
+        # Set callback function that returns time trace by default
+        monitor = LBFGSB.Monitor(
+            self._solver_kwargs["maxiter"],
+            self._solver_kwargs.get("callback", None),  # callback may be pruned in ctor
+        )
+        self._solver_kwargs["callback"] = monitor
+
         final_vector, final_f, lbfgsb_info = fmin_l_bfgs_b(
             lbfgsb_func_grad,
             x0,
             fprime=None,
             approx_grad=False,
             bounds=[(lower_bound, np.inf)] * len(x0),
-            **self._solver_kwargs,
+            **self._non_empty_kwargs(),
         )
         model.update(np.arange(initial_model.ndims), final_vector)
+
         lbfgsb_info["final_f"] = final_f
+        lbfgsb_info["callback"] = vars(monitor)
+        # Unregister monitor in case of re-use
+        self._solver_kwargs["callback"] = monitor.callback
 
         # TODO big print output
         return model, lbfgsb_info
+
+    class Monitor(dict):
+        def __init__(
+            self,
+            maxiter: int,
+            callback: Optional[Callable[[np.ndarray], None]] = None,  # type: ignore
+        ):
+            self.startTime = time.perf_counter()
+            self.time_trace = np.zeros((maxiter,))
+            self.iter = 0
+            self._callback = callback
+
+        def __call__(self, xk: np.ndarray) -> None:
+            if self._callback is not None:
+                self._callback(xk)
+            self.time_trace[self.iter] = time.perf_counter() - self.startTime
+            self.iter += 1
+
+        @property
+        def callback(self):
+            return self._callback
+
+        @property
+        def __dict__(self):
+            if not self._callback:
+                return {"time_trace": self.time_trace}
+            else:
+                return {"time_trace": self.time_trace, "callback": self._callback}
