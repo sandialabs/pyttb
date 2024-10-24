@@ -2289,7 +2289,7 @@ class ktensor:
         Set up a :class:`pyttb.ktensor` to plot:
 
         >>> np.random.seed(1)
-        >>> K = ttb.ktensor(np.random.random_sample, (2, 3, 10), 2)
+        >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 10), 2)
 
         Use plot K using default behavior K.vis()
 
