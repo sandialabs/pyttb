@@ -2293,8 +2293,8 @@ class ktensor:
 
         Use plot K using default behavior K.vis()
 
-        >>> K.vis() # doctest: +ELLIPSIS
-        ...
+        >>> K.vis() # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        array([[<Axes: ...
 
         Define a more realistic plot fuctions with x labels,
         control relative widths of each plot,
@@ -2313,8 +2313,8 @@ class ktensor:
         >>> K.vis(plots=plots,
                   rel_widths=[1,2,3],horz_space=0.4,
                   left_space=0.2,bot_space=0.2,
-                  mode_titles=['Particle','Velocity','Energy']) # doctest: +ELLIPSIS
-        ...
+                  mode_titles=['Particle','Velocity','Energy']) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        array([[<Axes: ...
         """
 
         def line_plot(v, ax):
