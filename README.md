@@ -61,7 +61,9 @@ CP_ALS:
 - [Tutorials](https://pyttb.readthedocs.io/en/stable/tutorials.html)
 - [Info for users coming from MATLAB](https://pyttb.readthedocs.io/en/stable/for_matlab_users.html)
 - Learn about tensor decompositions: 
-[tensor paper](https://epubs.siam.org/doi/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
+<!-- markdown-link-check-disable -->
+[tensor paper](https://doi.org/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
+<!-- markdown-link-check-enable -->
 [tensor book](https://www.mathsci.ai/post/tensor-textbook/ "Tensor Decompositions for Data Science by Grey Balard and Tamara G. Kolda") 
 
 ### Contributing
