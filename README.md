@@ -28,11 +28,11 @@ low-rank tensor decompositions:
 [`sptenmat`](https://pyttb.readthedocs.io/en/stable/sptenmat.html "matricized sparse tensors"), 
 [`sumtensor`](https://pyttb.readthedocs.io/en/stable/sumtensor.html "implicit sum of tensors")
 - Algorithms:
-[`cp_als`](https://pyttb.readthedocs.io/en/stable/cp_als.html "CP decomposition via Alternating Least Squares"),
-[`cp_apr`](https://pyttb.readthedocs.io/en/stable/cp_apr.html "CP decomposition via Alternating Poisson Regression"), 
-[`gcp_opt`](https://pyttb.readthedocs.io/en/stable/gcp_opt.html "Generalized CP decomposition"), 
+[`cp_als`](https://pyttb.readthedocs.io/en/stable/cpals.html "CP decomposition via Alternating Least Squares"),
+[`cp_apr`](https://pyttb.readthedocs.io/en/stable/cpapr.html "CP decomposition via Alternating Poisson Regression"), 
+[`gcp_opt`](https://pyttb.readthedocs.io/en/stable/gcpopt.html "Generalized CP decomposition"), 
 [`hosvd`](https://pyttb.readthedocs.io/en/stable/hosvd.html "Tucker decomposition via Higher Order Singular Value Decomposition"),
-[`tucker_als`](https://pyttb.readthedocs.io/en/stable/tucker_als.html "Tucker decompostion via Alternating Least Squares")
+[`tucker_als`](https://pyttb.readthedocs.io/en/stable/tuckerals.html "Tucker decompostion via Alternating Least Squares")
 
 ## Quick Start
 
@@ -61,7 +61,7 @@ CP_ALS:
 - [Tutorials](https://pyttb.readthedocs.io/en/stable/tutorials.html)
 - [Info for users coming from MATLAB](https://pyttb.readthedocs.io/en/stable/for_matlab_users.html)
 - Learn about tensor decompositions: 
-[tensor paper](https://doi.org/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
+[tensor paper](https://epubs.siam.org/doi/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
 [tensor book](https://www.mathsci.ai/post/tensor-textbook/ "Tensor Decompositions for Data Science by Grey Balard and Tamara G. Kolda") 
 
 ### Contributing
