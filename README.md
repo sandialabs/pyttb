@@ -34,17 +34,49 @@ low-rank tensor decompositions:
 [`hosvd`](https://pyttb.readthedocs.io/en/stable/hosvd.html "Tucker decomposition via Higher Order Singular Value Decomposition"),
 [`tucker_als`](https://pyttb.readthedocs.io/en/stable/tucker_als.html "Tucker decompostion via Alternating Least Squares")
 
-## Getting Started
-- Install: 
-```pip install pyttb```
-- Learn: 
-[pyttb.readthedocs.io](https://pyttb.readthedocs.io), 
-[pyttb tutorials](https://pyttb.readthedocs.io/en/stable/tutorials.html),
-[pyttb for MATLAB users](https://pyttb.readthedocs.io/en/stable/for_matlab_users.html),
+## Quick Start
+
+### Installation
+```commandline
+python3 -m pip install pyttb
+```
+
+### Example
+```python
+>>> import pyttb as ttb
+>>> X = ttb.tenrand((2,2,2))
+>>> type(X)
+<class 'pyttb.tensor.tensor'>
+>>> M = ttb.cp_als(X, rank=1)
+CP_ALS:
+ Iter 0: f = 7.367245e-01 f-delta = 7.4e-01
+ Iter 1: f = 7.503069e-01 f-delta = 1.4e-02
+ Iter 2: f = 7.508240e-01 f-delta = 5.2e-04
+ Iter 3: f = 7.508253e-01 f-delta = 1.3e-06
+ Final f = 7.508253e-01
+ ```
+
+### Getting Help
+- [Documentation](https://pyttb.readthedocs.io)
+- [Tutorials](https://pyttb.readthedocs.io/en/stable/tutorials.html)
+- [Info for users coming from MATLAB](https://pyttb.readthedocs.io/en/stable/for_matlab_users.html)
+- Learn about tensor decompositions: 
 [tensor paper](https://doi.org/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
 [tensor book](https://www.mathsci.ai/post/tensor-textbook/ "Tensor Decompositions for Data Science by Grey Balard and Tamara G. Kolda") 
-- Contibute: 
-[guide](CONTRIBUTING.md), 
-[list of contributors](CONTRIBUTORS.md)
-- Cite: 
-[bibtex](CITATION.bib)
+
+### Contributing
+- [Report a bug](https://github.com/sandialabs/pyttb/issues/new)
+- [Guide for contributors](CONTRIBUTING.md)
+- [List of contributors](CONTRIBUTORS.md)
+
+### Citing pyttb in your work 
+If you use pyttb in your work, please cite it as follows:
+```bibtex
+@misc{pyttb,
+	author = {Dunlavy, Daniel M. and Johnson, Nicholas T. and others},
+	month = oct,
+	title = {{pyttb: Python Tensor Toolbox, v1.8.0}},
+	url = {https://github.com/sandialabs/pyttb},
+	year = {2024}
+}
+```
