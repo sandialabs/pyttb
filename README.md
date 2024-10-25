@@ -56,15 +56,15 @@ CP_ALS:
  Final f = 7.508253e-01
  ```
 
+<!-- markdown-link-check-disable -->
 ### Getting Help
 - [Documentation](https://pyttb.readthedocs.io)
 - [Tutorials](https://pyttb.readthedocs.io/en/stable/tutorials.html)
 - [Info for users coming from MATLAB](https://pyttb.readthedocs.io/en/stable/for_matlab_users.html)
 - Learn about tensor decompositions: 
-<!-- markdown-link-check-disable -->
 [tensor paper](https://doi.org/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
-<!-- markdown-link-check-enable -->
 [tensor book](https://www.mathsci.ai/post/tensor-textbook/ "Tensor Decompositions for Data Science by Grey Balard and Tamara G. Kolda") 
+<!-- markdown-link-check-enable -->
 
 ### Contributing
 - [Report a bug](https://github.com/sandialabs/pyttb/issues/new)
@@ -72,13 +72,4 @@ CP_ALS:
 - [List of contributors](CONTRIBUTORS.md)
 
 ### Citing pyttb in your work 
-If you use pyttb in your work, please cite it as follows:
-```bibtex
-@misc{pyttb,
-	author = {Dunlavy, Daniel M. and Johnson, Nicholas T. and others},
-	month = oct,
-	title = {{pyttb: Python Tensor Toolbox, v1.8.0}},
-	url = {https://github.com/sandialabs/pyttb},
-	year = {2024}
-}
-```
+If you use pyttb in your work, please cite it using the citation info [here](CITATION.bib).
