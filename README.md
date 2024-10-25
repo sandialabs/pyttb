@@ -1,5 +1,5 @@
 ```
-Copyright 2022 National Technology & Engineering Solutions of Sandia,
+Copyright 2024 National Technology & Engineering Solutions of Sandia,
 LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 U.S. Government retains certain rights in this software.
 ```
@@ -12,32 +12,39 @@ U.S. Government retains certain rights in this software.
 
 # pyttb: Python Tensor Toolbox
 
-Welcome to `pyttb`, a set of Python classes and methods functions for 
-manipulating dense, sparse, and structured tensors, along with algorithms 
-for computing low-rank tensor models.
+Welcome to `pyttb`, a refactor of the 
+[Tensor Toolbox for MATLAB](https://www.tensortoolbox.org) in Python.
 
-**Tensor Classes:**
-* `tensor`: dense tensors
-* `sptensor`: sparse tensors
-* `ktensor`: Kruskal tensors
-* `tenmat`: matricized tensors
-* `ttensor`: Tucker tensors
+This package contains data classes and methods for manipulating dense, 
+sparse, and structured tensors, along with algorithms for computing 
+low-rank tensor decompositions:
 
-**Tensor Algorithms:**
-* `cp_als`, `cp_apr`: Canonical Polyadic (CP) decompositions
-* `tucker_als`: Tucker decompostions
+- Data Classes: 
+[`tensor`](https://pyttb.readthedocs.io/en/stable/tensor.html "dense tensors"), 
+[`sptensor`](https://pyttb.readthedocs.io/en/stable/sptensor.html "sparse tensors"), 
+[`ktensor`](https://pyttb.readthedocs.io/en/stable/ktensor.html "Kruskal tensors"), 
+[`ttensor`](https://pyttb.readthedocs.io/en/stable/ttensor.html "Tucker tensors"), 
+[`tenmat`](https://pyttb.readthedocs.io/en/stable/tenmat.html "matricized dense tensors"), 
+[`sptenmat`](https://pyttb.readthedocs.io/en/stable/sptenmat.html "matricized sparse tensors"), 
+[`sumtensor`](https://pyttb.readthedocs.io/en/stable/sumtensor.html "implicit sum of tensors")
+- Algorithms:
+[`cp_als`](https://pyttb.readthedocs.io/en/stable/cp_als.html "CP decomposition via Alternating Least Squares"),
+[`cp_apr`](https://pyttb.readthedocs.io/en/stable/cp_apr.html "CP decomposition via Alternating Poisson Regression"), 
+[`gcp_opt`](https://pyttb.readthedocs.io/en/stable/gcp_opt.html "Generalized CP decomposition"), 
+[`hosvd`](https://pyttb.readthedocs.io/en/stable/hosvd.html "Tucker decomposition via Higher Order Singular Value Decomposition"),
+[`tucker_als`](https://pyttb.readthedocs.io/en/stable/tucker_als.html "Tucker decompostion via Alternating Least Squares")
 
-# Getting Started
-For full details see our [documentation](https://pyttb.readthedocs.io).
-## Quick Start
-We are on pypi
-```commandline
-pip install pyttb
-```
-or install from source
-```commandline
-pip install .
-```
-
-# Contributing
-Check out our [contributing guide](CONTRIBUTING.md).
+## Getting Started
+- Install: 
+```pip install pyttb```
+- Learn: 
+[pyttb.readthedocs.io](https://pyttb.readthedocs.io), 
+[pyttb tutorials](https://pyttb.readthedocs.io/en/stable/tutorials.html),
+[pyttb for MATLAB users](https://pyttb.readthedocs.io/en/stable/for_matlab_users.html),
+[tensor paper](https://doi.org/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
+[tensor book](https://www.mathsci.ai/post/tensor-textbook/ "Tensor Decompositions for Data Science by Grey Balard and Tamara G. Kolda") 
+- Contibute: 
+[guide](CONTRIBUTING.md), 
+[list of contributors](CONTRIBUTORS.md)
+- Cite: 
+[bibtex](CITATION.bib)
