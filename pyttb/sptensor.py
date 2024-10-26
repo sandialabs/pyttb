@@ -232,7 +232,7 @@ class sptensor:
             subs = np.unique(subs, axis=0)
             cnt += 1
 
-        nonzeros = min(nonzeros, subs.shape[0])
+        nonzeros = int(min(nonzeros, subs.shape[0]))
         subs = subs[0:nonzeros, :]
         vals = function_handle((nonzeros, 1))
 
