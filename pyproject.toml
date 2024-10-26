@@ -7,10 +7,10 @@ authors = [
 ]
 license = { text="BSD 2-Clause License" }
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 
 dependencies = [
-    "numpy < 2",
+    "numpy",
     "numpy_groupies",
     "scipy",
     "matplotlib",

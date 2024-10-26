@@ -13,7 +13,7 @@ from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
-from pyttb.pyttb_utils import gather_wrap_dims, tt_ind2sub
+from pyttb.pyttb_utils import gather_wrap_dims, np_to_python, tt_ind2sub
 
 
 class sptenmat:
@@ -307,7 +307,7 @@ class sptenmat:
         else:
             m = np.prod(np.array(self.tshape)[self.rdims])
             n = np.prod(np.array(self.tshape)[self.cdims])
-            return m, n
+            return int(m), int(n)
 
     def double(self) -> sparse.coo_matrix:
         """
@@ -371,7 +371,7 @@ class sptenmat:
         """
         return len(self.vals)
 
-    def norm(self) -> np.floating:
+    def norm(self) -> float:
         """
         Compute the norm (i.e., Frobenius norm, or square root of the sum of
         squares of entries) of the :class:`pyttb.sptenmat`.
@@ -384,7 +384,7 @@ class sptenmat:
         >>> ST1.norm()
         1.0
         """
-        return np.linalg.norm(self.vals)
+        return np.linalg.norm(self.vals).item()
 
     def isequal(self, other: sptenmat) -> bool:
         """
@@ -569,9 +569,9 @@ class sptenmat:
         s = ""
         s += "sptenmat corresponding to a sptensor of shape "
         if self.vals.size == 0:
-            s += str(self.shape)
+            s += str(np_to_python(self.shape))
         else:
-            s += f"{self.tshape!r}"
+            s += f"{np_to_python(self.tshape)!r}"
         s += " with " + str(self.vals.size) + " nonzeros"
         s += "\n"
 

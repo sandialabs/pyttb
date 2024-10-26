@@ -23,6 +23,8 @@ from typing import (
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse.linalg
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
@@ -2241,7 +2243,7 @@ class ktensor:
         bot_space: Optional[float] = None,
         mode_titles: Optional[Union[tuple, list]] = None,
         title=None,
-    ):
+    ) -> Tuple[Figure, Axes]:
         """
         Visualize factors for :class:`pyttb.ktensor`.
 
@@ -2281,6 +2283,8 @@ class ktensor:
 
         Returns
         -------
+        fig:
+            :class:`matplotlib.figure.Figure' handle for the generated figure
         axs:
             :class:`matplotlib.axes.Axes' for the generated figure
 
@@ -2293,8 +2297,8 @@ class ktensor:
 
         Use plot K using default behavior K.vis()
 
-        >>> K.vis() # doctest: +ELLIPSIS
-        array([[<Axes: ...
+        >>> fig, axs = K.vis() # doctest: +ELLIPSIS
+        >>> plt.close(fig)
 
         Define a more realistic plot fuctions with x labels,
         control relative widths of each plot,
@@ -2310,11 +2314,11 @@ class ktensor:
         ...    ax.semilogx(np.logspace(-2,2,v.shape[0]),v)
         ...    ax.set_xlabel('$E$, [kJ]')
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
-        >>> K.vis(plots=plots,
+        >>> fig, axs = K.vis(plots=plots,
         ...    rel_widths=[1,2,3],horz_space=0.4,
         ...    left_space=0.2,bot_space=0.2,
         ...    mode_titles=['Particle','Velocity','Energy']) # doctest: +ELLIPSIS
-        array([[<Axes: ...
+        >>> plt.close(fig)
         """
 
         def line_plot(v, ax):
@@ -2389,7 +2393,7 @@ class ktensor:
             fig.suptitle(title)
 
         # tune layout
-        plt.subplots_adjust(
+        fig.subplots_adjust(
             wspace=horz_space,
             hspace=vert_space,
             left=left_space,
@@ -2399,8 +2403,8 @@ class ktensor:
         )
 
         if show_figure:
-            plt.show()
-        return axs
+            fig.show()
+        return fig, axs
 
     def __add__(self, other):
         """
