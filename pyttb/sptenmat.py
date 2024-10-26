@@ -1,4 +1,4 @@
-"""Classes and functions for working with matricized representations of sparse tensors."""
+"""Classes and functions for working with matricized sparse tensors."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
