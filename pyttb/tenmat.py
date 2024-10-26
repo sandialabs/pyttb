@@ -11,7 +11,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 import pyttb as ttb
-from pyttb.pyttb_utils import gather_wrap_dims
+from pyttb.pyttb_utils import gather_wrap_dims, np_to_python
 
 
 class tenmat:
@@ -430,7 +430,7 @@ class tenmat:
         Examples
         --------
         >>> TM = ttb.tenones((2,2,2)).to_tenmat(np.array([0]))
-        >>> TM[0, 0]
+        >>> print(TM[0, 0])
         1.0
 
         Returns
@@ -761,7 +761,7 @@ class tenmat:
         """
         s = ""
         s += "matrix corresponding to a tensor of shape "
-        s += str(self.tshape)
+        s += str(np_to_python(self.tshape))
         s += "\n"
 
         s += "rindices = "
