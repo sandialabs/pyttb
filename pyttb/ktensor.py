@@ -2283,6 +2283,8 @@ class ktensor:
 
         Returns
         -------
+        fig:
+            :class:`matplotlib.figure.Figure' handle for the generated figure
         axs:
             :class:`matplotlib.axes.Axes' for the generated figure
 
