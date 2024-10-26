@@ -4,6 +4,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+
 class symktensor:
     """
     SYMKTENSOR Class for symmetric Kruskal tensors (decomposed).
