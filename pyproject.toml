@@ -32,12 +32,11 @@ documentation = "https://pyttb.readthedocs.io"
 
 [project.optional-dependencies]
 dev = [
-    "black[jupyter]",
-    "mypy",
+    "mypy<1.14.0",
     "nbstripout",
     "pytest",
     "pytest-cov",
-    "ruff==0.0.284",
+    "ruff<0.8",
     "pre-commit",
 ]
 doc = [
@@ -65,7 +64,7 @@ version = {attr = "pyttb.__version__"}
 requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.ruff]
+[tool.ruff.lint]
 select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
 ignore = [
     # Ignored in conversion to ruff since not previously enforced
@@ -83,13 +82,16 @@ ignore = [
     # There is ongoing discussion about logging/warning etc
     "B028",
 ]
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # See  see https://github.com/astral-sh/ruff/issues/3172 for details on this becoming simpler
 
 # Everything but I, F (to catch import mess and potential logic errors)
 "tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF", "B"]
 # Ignore everything for now
 "docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.mypy]
 warn_unused_configs = true

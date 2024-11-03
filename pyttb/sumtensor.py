@@ -46,8 +46,8 @@ class sumtensor:
         -------
         Create an empty :class:`pyttb.tensor`:
 
-        >>> T1 = ttb.tenones((3,4,5))
-        >>> T2 = ttb.sptensor(shape=(3,4,5))
+        >>> T1 = ttb.tenones((3, 4, 5))
+        >>> T2 = ttb.sptensor(shape=(3, 4, 5))
         >>> S = ttb.sumtensor([T1, T2])
         """
         if tensors is None:
@@ -72,14 +72,14 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.ones((3,2)))
+        >>> T1 = ttb.tensor(np.ones((3, 2)))
         >>> S1 = ttb.sumtensor([T1, T1])
         >>> S2 = S1
         >>> S3 = S2.copy()
-        >>> S1.parts[0][0,0] = 3
-        >>> S1.parts[0][0,0] == S2.parts[0][0,0]
+        >>> S1.parts[0][0, 0] = 3
+        >>> S1.parts[0][0, 0] == S2.parts[0][0, 0]
         True
-        >>> S1.parts[0][0,0] == S3.parts[0][0,0]
+        >>> S1.parts[0][0, 0] == S3.parts[0][0, 0]
         False
         """
         return ttb.sumtensor(self.parts, copy=True)
@@ -103,9 +103,9 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tenones((2,2))
-        >>> T2 = ttb.sptensor(shape=(2,2))
-        >>> ttb.sumtensor([T1, T2]) # doctest: +NORMALIZE_WHITESPACE
+        >>> T1 = ttb.tenones((2, 2))
+        >>> T2 = ttb.sptensor(shape=(2, 2))
+        >>> ttb.sumtensor([T1, T2])  # doctest: +NORMALIZE_WHITESPACE
         sumtensor of shape (2, 2) with 2 parts:
         Part 0:
             tensor of shape (2, 2)
@@ -136,7 +136,7 @@ class sumtensor:
         Examples
         --------
         >>> T1 = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T1,T1])
+        >>> S = ttb.sumtensor([T1, T1])
         >>> S.ndims
         2
         """
@@ -192,7 +192,7 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tenones((2,2))
+        >>> T = ttb.tenones((2, 2))
         >>> S = ttb.sumtensor([T])
         >>> len(S.parts)
         1
@@ -234,7 +234,7 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tenones((2,2))
+        >>> T = ttb.tenones((2, 2))
         >>> S = ttb.sumtensor([T])
         >>> len(S.parts)
         1
@@ -257,9 +257,9 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tenones((2,2))
+        >>> T = ttb.tenones((2, 2))
         >>> S = ttb.sumtensor([T, T])
-        >>> print(S.full()) # doctest: +NORMALIZE_WHITESPACE
+        >>> print(S.full())  # doctest: +NORMALIZE_WHITESPACE
         tensor of shape (2, 2)
         data[:, :] =
         [[2. 2.]
@@ -281,7 +281,7 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tenones((2,2))
+        >>> T = ttb.tenones((2, 2))
         >>> S = ttb.sumtensor([T, T])
         >>> S.double()
         array([[2., 2.],
@@ -303,7 +303,7 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.array([[1., 0.], [0., 4.]]))
+        >>> T1 = ttb.tensor(np.array([[1.0, 0.0], [0.0, 4.0]]))
         >>> T2 = T1.to_sptensor()
         >>> S = ttb.sumtensor([T1, T2])
         >>> T1.innerprod(T1)
@@ -337,10 +337,10 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tenones((2,2,2))
+        >>> T1 = ttb.tenones((2, 2, 2))
         >>> T2 = T1.to_sptensor()
         >>> S = ttb.sumtensor([T1, T2])
-        >>> U = [np.ones((2,2))] * 3
+        >>> U = [np.ones((2, 2))] * 3
         >>> T1.mttkrp(U, 2)
         array([[4., 4.],
                [4., 4.]])
@@ -395,11 +395,11 @@ class sumtensor:
         --------
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
         >>> S = ttb.sumtensor([T, T])
-        >>> T.ttv(np.ones(2),0)
+        >>> T.ttv(np.ones(2), 0)
         tensor of shape (2,)
         data[:] =
         [4. 6.]
-        >>> S.ttv(np.ones(2),0)  # doctest: +NORMALIZE_WHITESPACE
+        >>> S.ttv(np.ones(2), 0)  # doctest: +NORMALIZE_WHITESPACE
         sumtensor of shape (2,) with 2 parts:
         Part 0:
              tensor of shape (2,)

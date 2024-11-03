@@ -229,12 +229,12 @@ class sptenmat:
         Create a :class:`pyttb.sptenmat` (ST1) and make a deep copy. Verify
         the deep copy (ST3) is not just a reference (like ST2) to the original.
 
-        >>> S1 = ttb.sptensor(shape=(2,2))
-        >>> S1[0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2))
+        >>> S1[0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST2 = ST1
         >>> ST3 = ST1.copy()
-        >>> ST1[0,0] = 3
+        >>> ST1[0, 0] = 3
         >>> ST1.to_sptensor().isequal(ST2.to_sptensor())
         True
         >>> ST1.to_sptensor().isequal(ST3.to_sptensor())
@@ -258,18 +258,18 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
-        >>> S1 # doctest: +NORMALIZE_WHITESPACE
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
+        >>> S1  # doctest: +NORMALIZE_WHITESPACE
         sparse tensor of shape (2, 2, 2) with 1 nonzeros
         [0, 0, 0] = 1.0
         >>> ST1 = S1.to_sptenmat(np.array([0]))
-        >>> ST1 # doctest: +NORMALIZE_WHITESPACE
+        >>> ST1  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
             [0, 0] = 1.0
-        >>> ST1.to_sptensor() # doctest: +NORMALIZE_WHITESPACE
+        >>> ST1.to_sptensor()  # doctest: +NORMALIZE_WHITESPACE
         sparse tensor of shape (2, 2, 2) with 1 nonzeros
         [0, 0, 0] = 1.0
         """
@@ -294,10 +294,10 @@ class sptenmat:
 
         Examples
         --------
-        >>> ttb.sptenmat().shape # empty sptenmat
+        >>> ttb.sptenmat().shape  # empty sptenmat
         ()
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST1.shape
         (2, 4)
@@ -315,15 +315,15 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> COO = ST1.double()
-        >>> type(COO) # doctest: +NORMALIZE_WHITESPACE
+        >>> type(COO)  # doctest: +NORMALIZE_WHITESPACE
         <class 'scipy.sparse._coo.coo_matrix'>
-        >>> COO.nnz # doctest: +NORMALIZE_WHITESPACE
+        >>> COO.nnz  # doctest: +NORMALIZE_WHITESPACE
         1
-        >>> COO.toarray() # doctest: +NORMALIZE_WHITESPACE
+        >>> COO.toarray()  # doctest: +NORMALIZE_WHITESPACE
         array([[1., 0., 0., 0.],
             [0., 0., 0., 0.]])
         """
@@ -339,10 +339,10 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
-        >>> ST1.full() # doctest: +NORMALIZE_WHITESPACE
+        >>> ST1.full()  # doctest: +NORMALIZE_WHITESPACE
         matrix corresponding to a tensor of shape (2, 2, 2)
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
@@ -363,8 +363,8 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST1.nnz
         1
@@ -378,8 +378,8 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST1.norm()
         1.0
@@ -392,8 +392,8 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST2 = ttb.sptenmat()
         >>> ST1.isequal(ST2)
@@ -419,10 +419,10 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
-        >>> +ST1 # doctest: +NORMALIZE_WHITESPACE
+        >>> +ST1  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
@@ -436,10 +436,10 @@ class sptenmat:
 
         Examples
         --------
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
-        >>> -ST1 # doctest: +NORMALIZE_WHITESPACE
+        >>> -ST1  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
@@ -457,8 +457,8 @@ class sptenmat:
         --------
         Create an empty :class:`pyttb.sptenmat`.
 
-        >>> ST = ttb.sptenmat(rdims=np.array([0]), tshape=(2,2,2))
-        >>> ST # doctest: +NORMALIZE_WHITESPACE
+        >>> ST = ttb.sptenmat(rdims=np.array([0]), tshape=(2, 2, 2))
+        >>> ST  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape (2, 4) with 0 nonzeros
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
@@ -466,7 +466,7 @@ class sptenmat:
         Insert a new value into it.
 
         >>> ST[0, 0] = 1.0
-        >>> ST # doctest: +NORMALIZE_WHITESPACE
+        >>> ST  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
@@ -475,7 +475,7 @@ class sptenmat:
         Update an existing value in it.
 
         >>> ST[0, 0] = 2.0
-        >>> ST # doctest: +NORMALIZE_WHITESPACE
+        >>> ST  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
@@ -547,14 +547,14 @@ class sptenmat:
 
         Examples
         --------
-        >>> ttb.sptenmat() # doctest: +NORMALIZE_WHITESPACE
+        >>> ttb.sptenmat()  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape () with 0 nonzeros
         rdims = [  ] (modes of sptensor corresponding to rows)
         cdims = [  ] (modes of sptensor corresponding to columns)
-        >>> S1 = ttb.sptensor(shape=(2,2,2))
-        >>> S1[0,0,0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
-        >>> ST1 # doctest: +NORMALIZE_WHITESPACE
+        >>> ST1  # doctest: +NORMALIZE_WHITESPACE
         sptenmat corresponding to a sptensor of shape (2, 2, 2) with 1 nonzeros
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)

@@ -46,7 +46,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
     Example
     -------
-    >>> data = np.array([[29, 39.], [63., 85.]])
+    >>> data = np.array([[29, 39.0], [63.0, 85.0]])
     >>> tol = 1e-4
     >>> disable_printing = -1
     >>> tensorInstance = ttb.tensor(data)
