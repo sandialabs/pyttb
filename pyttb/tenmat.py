@@ -22,7 +22,7 @@ class tenmat:
 
     __slots__ = ("tshape", "rindices", "cindices", "data")
 
-    def __init__(  # noqa: PLR0912, PLR0913
+    def __init__(  # noqa: PLR0912
         self,
         data: Optional[np.ndarray] = None,
         rdims: Optional[np.ndarray] = None,

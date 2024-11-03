@@ -89,6 +89,8 @@ ignore = [
 "tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF", "B"]
 # Ignore everything for now
 "docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+"docs/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+"profiling/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
 
 [tool.ruff.format]
 docstring-code-format = true

@@ -830,7 +830,7 @@ class sptensor:
 
         >>> S = ttb.sptensor()
         >>> S[0, 0] = 1
-        ... S[1, 1] = 2
+        >>> S[1, 1] = 2
         >>> S
         sparse tensor of shape (2, 2) with 2 nonzeros
         [0, 0] = 1.0
@@ -899,7 +899,7 @@ class sptensor:
 
         >>> S = ttb.sptensor()
         >>> S[0, 0] = 1
-        ... S[1, 1] = 2
+        >>> S[1, 1] = 2
         >>> S
         sparse tensor of shape (2, 2) with 2 nonzeros
         [0, 0] = 1.0
@@ -940,7 +940,7 @@ class sptensor:
 
         >>> S = ttb.sptensor()
         >>> S[0, 0] = 1
-        ... S[1, 1] = 2
+        >>> S[1, 1] = 2
         >>> S
         sparse tensor of shape (2, 2) with 2 nonzeros
         [0, 0] = 1.0
@@ -1005,7 +1005,7 @@ class sptensor:
 
         >>> S = ttb.sptensor()
         >>> S[0, 0] = 1
-        ... S[1, 1] = 2
+        >>> S[1, 1] = 2
         >>> S
         sparse tensor of shape (2, 2) with 2 nonzeros
         [0, 0] = 1.0
@@ -1048,7 +1048,7 @@ class sptensor:
 
         >>> S = ttb.sptensor()
         >>> S[0, 0] = 1
-        ... S[1, 1] = 2
+        >>> S[1, 1] = 2
         >>> S.logical_or(S)
         sparse tensor of shape (2, 2) with 2 nonzeros
         [0, 0] = 1.0
@@ -1119,7 +1119,7 @@ class sptensor:
 
         >>> S = ttb.sptensor()
         >>> S[0, 0] = 1
-        ... S[1, 1] = 2
+        >>> S[1, 1] = 2
         >>> S.logical_xor(S)
         empty sparse tensor of shape (2, 2)
 
@@ -1178,7 +1178,7 @@ class sptensor:
 
         >>> S = ttb.sptensor()
         >>> S[0, 0] = 1
-        ... S[1, 1] = 2
+        >>> S[1, 1] = 2
         >>> S
         sparse tensor of shape (2, 2) with 2 nonzeros
         [0, 0] = 1.0
@@ -1189,7 +1189,7 @@ class sptensor:
 
         >>> W = ttb.sptensor()
         >>> W[0, 0] = 1
-        ... W[1, 1] = 1
+        >>> W[1, 1] = 1
         >>> S.mask(W)
         array([[1.],
                [2.]])
@@ -1199,7 +1199,7 @@ class sptensor:
 
         >>> W = ttb.sptensor()
         >>> W[0, 0] = 1
-        ... W[1, 0] = 1
+        >>> W[1, 0] = 1
         >>> S.mask(W)
         array([[1.],
                [0.]])
