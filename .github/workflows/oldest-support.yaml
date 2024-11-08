@@ -33,8 +33,8 @@ jobs:
 
       - name: Install dependencies with minimum versions
         run: |
-          uv pip install .[dev] --resolution lowest-direct
+          uv sync --resolution lowest-direct --extra dev 
 
       - name: Run tests
         run: |
-          uv run pytest tests
+          uv run --resolution lowest-direct pytest ./tests
