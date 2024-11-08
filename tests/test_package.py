@@ -40,6 +40,17 @@ def test_formatting():
 
 def test_typing():
     """Run type checker on package"""
+    import matplotlib
+    from packaging.version import Version
+
+    skip_untyped = ""
+    # Hack to support backwards compatibility testing
+    if Version(matplotlib.__version__) < Version("3.8.0"):
+        skip_untyped = "--disable-error-code=import-untyped"
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
-    subprocess.run(f"mypy -p pyttb  --config-file {toml_file}", check=True, shell=True)
+    subprocess.run(
+        f"mypy -p pyttb  --config-file {toml_file} {skip_untyped}",
+        check=True,
+        shell=True,
+    )

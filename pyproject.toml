@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 
 dependencies = [
-    "numpy",
+    "numpy<3.0,>=1.24",
     "numpy_groupies",
     "scipy",
     "matplotlib",
@@ -33,9 +33,11 @@ documentation = "https://pyttb.readthedocs.io"
 [project.optional-dependencies]
 dev = [
     "mypy<1.14.0",
-    "nbstripout",
+    # Also in pre-commit
+    "nbstripout<0.9",
     "pytest",
     "pytest-cov",
+    # Also in pre-commit
     "ruff<0.8",
     "pre-commit",
 ]
