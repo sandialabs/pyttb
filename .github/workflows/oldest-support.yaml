@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies with minimum versions
         run: |
-          uv sync --resolution lowest --extra dev
+          uv pip install .[dev] --resolution lowest-direct
 
       - name: Run tests
         run: |
