@@ -880,6 +880,11 @@ def test_sptensor__sub__(sample_sptensor):
     subSptensor = sptensorInstance - 0
     assert np.array_equal(subSptensor.data, sptensorInstance.to_tensor().data)
 
+    # Sptensor - empty
+    assert sptensorInstance.isequal(
+        sptensorInstance - ttb.sptensor(shape=sptensorInstance.shape)
+    )
+
 
 def test_sptensor__add__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
@@ -919,6 +924,12 @@ def test_sptensor_isequal(sample_sptensor):
 
     # Sptensor equality with not sptensor or tensor
     assert not sptensorInstance.isequal(np.ones(data["shape"]))
+
+    # Empty tensor
+    empty_tensor = ttb.sptensor(shape=(2, 2))
+    not_empty_tensor = empty_tensor.copy()
+    not_empty_tensor[0, 0] = 1
+    assert not empty_tensor.isequal(not_empty_tensor)
 
 
 def test_sptensor__pos__(sample_sptensor):

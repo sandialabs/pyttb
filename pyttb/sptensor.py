@@ -2817,6 +2817,10 @@ class sptensor:
         if not isinstance(other, ttb.sptensor) or self.shape != other.shape:
             assert False, "Must be two sparse tensors of the same shape"
 
+        if self.nnz == 0:
+            return -other.copy()
+        elif other.nnz == 0:
+            return self.copy()
         return ttb.sptensor.from_aggregator(
             np.vstack((self.subs, other.subs)),
             np.vstack((self.vals, -1 * other.vals)),
