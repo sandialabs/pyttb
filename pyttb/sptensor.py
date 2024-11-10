@@ -3134,8 +3134,6 @@ class sptensor:
         >>> S <= -1
         empty sparse tensor of shape (2, 2)
         """
-        # TODO le,lt,ge,gt have a lot of code duplication, look at generalizing them
-        #  for future maintainabilty
         return self._compare(other, le, ge, True)
 
     def __lt__(self, other):
