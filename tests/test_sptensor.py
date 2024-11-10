@@ -1039,6 +1039,10 @@ def test_sptensor__le__(sample_sptensor):
     # With a shape then all implicit zeros match
     assert cmp.isequal(empty_sptensor.logical_not())
 
+    cmp = empty_sptensor <= empty_sptensor.to_tensor()
+    # With a shape then all implicit zeros match
+    assert cmp.isequal(empty_sptensor.logical_not())
+
 
 def test_sptensor__ge__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
@@ -1080,6 +1084,10 @@ def test_sptensor__ge__(sample_sptensor):
 
     empty_sptensor = ttb.sptensor(shape=(2, 2))
     cmp = empty_sptensor >= empty_sptensor
+    # With a shape then all implicit zeros match
+    assert cmp.isequal(empty_sptensor.logical_not())
+
+    cmp = empty_sptensor >= empty_sptensor.to_tensor()
     # With a shape then all implicit zeros match
     assert cmp.isequal(empty_sptensor.logical_not())
 
@@ -1126,6 +1134,9 @@ def test_sptensor__gt__(sample_sptensor):
     cmp = empty_sptensor > empty_sptensor
     assert cmp.isequal(empty_sptensor)
 
+    cmp = empty_sptensor > empty_sptensor.to_tensor()
+    assert cmp.isequal(empty_sptensor)
+
 
 def test_sptensor__lt__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
@@ -1165,6 +1176,10 @@ def test_sptensor__lt__(sample_sptensor):
 
     empty_sptensor = ttb.sptensor(shape=(2, 2))
     cmp = empty_sptensor < empty_sptensor
+    assert cmp.isequal(empty_sptensor)
+
+    empty_sptensor = ttb.sptensor(shape=(2, 2))
+    cmp = empty_sptensor < empty_sptensor.to_tensor()
     assert cmp.isequal(empty_sptensor)
 
 

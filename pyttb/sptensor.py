@@ -3063,7 +3063,11 @@ class sptensor:
             subs1 = subs1[tt_setdiff_rows(subs1, self.subs), :]
 
             # self nonzero
-            subs2 = self.subs[operator(self.vals.transpose()[0], other[self.subs]), :]
+            subs2 = np.empty(shape=(0, self.ndims), dtype=int)
+            if self.nnz > 0:
+                subs2 = self.subs[
+                    operator(self.vals.transpose()[0], other[self.subs]), :
+                ]
 
             # assemble
             subs = np.vstack((subs1, subs2))
