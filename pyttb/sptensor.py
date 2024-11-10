@@ -931,6 +931,8 @@ class sptensor:
         if self.shape != other.shape:
             return False
         if isinstance(other, ttb.sptensor):
+            if self.nnz != other.nnz:
+                return False
             return (self - other).nnz == 0
         if isinstance(other, ttb.tensor):
             return other.isequal(self)
@@ -2582,25 +2584,28 @@ class sptensor:
         >>> S[1, 1] = 1.0
         >>> S == S
         sparse tensor of shape (2, 2) with 4 nonzeros
-        [0, 0] = True
-        [0, 1] = True
-        [1, 0] = True
-        [1, 1] = True
+        [0, 0] = 1.0
+        [0, 1] = 1.0
+        [1, 0] = 1.0
+        [1, 1] = 1.0
 
         Compare with a scalar value, returning only a single `True` value:
 
         >>> S == 1
         sparse tensor of shape (2, 2) with 1 nonzeros
-        [1, 1] = True
+        [1, 1] = 1.0
         """
         # Case 1: other is a scalar
         if isinstance(other, (float, int)):
             if other == 0:
                 return self.logical_not()
             idx = self.vals == other
+            subs = np.empty(shape=(0, self.ndims), dtype=int)
+            if self.nnz > 0:
+                subs = self.subs[idx.transpose()[0]]
             return sptensor(
-                self.subs[idx.transpose()[0]],
-                True * np.ones((self.subs.shape[0], 1)).astype(bool),
+                subs,
+                True * np.ones((self.subs.shape[0], 1)).astype(self.vals.dtype),
                 self.shape,
             )
 
@@ -2626,16 +2631,17 @@ class sptensor:
             nzsubsIdx = tt_intersect_rows(self.subs, other.subs)
             nzsubs = self.subs[nzsubsIdx]
             iother = tt_intersect_rows(other.subs, self.subs)
-            znzsubs = nzsubs[
-                (self.vals[nzsubsIdx] == other.vals[iother]).transpose()[0], :
-            ]
+            equal_subs = self.vals[nzsubsIdx] == other.vals[iother]
+            znzsubs = np.empty(shape=(0, other.ndims), dtype=int)
+            if equal_subs.size > 0:
+                znzsubs = nzsubs[(equal_subs).transpose()[0], :]
 
             return sptensor(
                 np.vstack((zzerosubs, znzsubs)),
                 True
-                * np.ones((zzerosubs.shape[0] + znzsubs.shape[0])).astype(bool)[
-                    :, None
-                ],
+                * np.ones((zzerosubs.shape[0] + znzsubs.shape[0])).astype(
+                    self.vals.dtype
+                )[:, None],
                 self.shape,
             )
 
@@ -2646,18 +2652,23 @@ class sptensor:
             zzerosubs = otherzerosubs[(self[otherzerosubs] == 0).transpose()[0], :]
 
             # Find where their nonzeros intersect
-            othervals = other[self.subs]
-            znzsubs = self.subs[(othervals[:, None] == self.vals).transpose()[0], :]
+            znzsubs = np.empty(shape=(0, other.ndims), dtype=int)
+            if self.nnz > 0:
+                othervals = other[self.subs]
+                znzsubs = self.subs[(othervals[:, None] == self.vals).transpose()[0], :]
 
             return sptensor(
                 np.vstack((zzerosubs, znzsubs)),
-                True * np.ones((zzerosubs.shape[0] + znzsubs.shape[0])).astype(bool),
+                True
+                * np.ones((zzerosubs.shape[0] + znzsubs.shape[0], 1)).astype(
+                    self.vals.dtype
+                ),
                 self.shape,
             )
 
         assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
-    def __ne__(self, other):
+    def __ne__(self, other):  # noqa: PLR0912
         """
         Element-wise not equal operator (!=).
 
@@ -2679,9 +2690,9 @@ class sptensor:
 
         >>> S != 1
         sparse tensor of shape (2, 2) with 3 nonzeros
-        [0, 0] = True
-        [0, 1] = True
-        [1, 0] = True
+        [0, 0] = 1.0
+        [0, 1] = 1.0
+        [1, 0] = 1.0
         """
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
@@ -2689,12 +2700,14 @@ class sptensor:
                 return ttb.sptensor(
                     self.subs, True * np.ones((self.subs.shape[0], 1)), self.shape
                 )
-            subs1 = self.subs[self.vals.transpose()[0] != other, :]
+            subs1 = np.empty(shape=(0, self.ndims), dtype=int)
+            if self.nnz > 0:
+                subs1 = self.subs[self.vals.transpose()[0] != other, :]
             subs2Idx = tt_setdiff_rows(self.allsubs(), self.subs)
             subs2 = self.allsubs()[subs2Idx, :]
             return ttb.sptensor(
                 np.vstack((subs1, subs2)),
-                True * np.ones((subs2.shape[0], 1)).astype(bool),
+                True * np.ones((subs2.shape[0], 1)).astype(self.vals.dtype),
                 self.shape,
             )
 
@@ -2712,19 +2725,28 @@ class sptensor:
             nonUniqueOther = tt_intersect_rows(other.subs, self.subs)
             otherIdx = True * np.ones(other.subs.shape[0], dtype=bool)
             otherIdx[nonUniqueOther] = False
-            subs1 = np.concatenate((self.subs[selfIdx], other.subs[otherIdx]))
+            self_subs = np.empty(shape=(0, other.ndims), dtype=int)
+            if selfIdx.size > 0 and self.nnz > 0:
+                self_subs = self.subs[selfIdx]
+            other_subs = np.empty(shape=(0, other.ndims), dtype=int)
+            if otherIdx.size > 0 and other.nnz > 0:
+                other_subs = other.subs[otherIdx]
+            subs1 = np.concatenate((self_subs, other_subs))
             # subs1 = setxor(self.subs, other.subs,'rows')
             # find entries where both are nonzero, but inequal
-            subs2 = tt_intersect_rows(self.subs, other.subs)
-            subs_pad = np.zeros((self.subs.shape[0],)).astype(bool)
-            subs_pad[subs2] = (
-                self.extract(self.subs[subs2]) != other.extract(self.subs[subs2])
-            ).transpose()[0]
-            subs2 = self.subs[subs_pad, :]
+            subs2 = np.empty(shape=(0, other.ndims), dtype=int)
+            if self.nnz != 0 and other.nnz != 0:
+                subs2 = tt_intersect_rows(self.subs, other.subs)
+                subs_pad = np.zeros((self.subs.shape[0],)).astype(bool)
+                subs_pad[subs2] = (
+                    self.extract(self.subs[subs2]) != other.extract(self.subs[subs2])
+                ).transpose()[0]
+                subs2 = self.subs[subs_pad, :]
             # put it all together
             return ttb.sptensor(
                 np.vstack((subs1, subs2)),
-                True * np.ones((subs1.shape[0] + subs2.shape[0], 1)).astype(bool),
+                True
+                * np.ones((subs1.shape[0] + subs2.shape[0], 1)).astype(self.vals.dtype),
                 self.shape,
             )
 
@@ -2738,15 +2760,18 @@ class sptensor:
                 subs1Idx = tt_setdiff_rows(self.allsubs(), unionSubs)
                 subs1 = self.allsubs()[subs1Idx]
             else:
-                subs1 = np.empty((0, self.subs.shape[1]))
+                subs1 = np.empty((0, self.ndims))
             # find entries where x is nonzero but not equal to y
-            subs2 = self.subs[self.vals.transpose()[0] != other[self.subs], :]
+            subs2 = np.empty((0, self.ndims))
+            if self.nnz > 0:
+                subs2 = self.subs[self.vals.transpose()[0] != other[self.subs], :]
             if subs2.size == 0:
-                subs2 = np.empty((0, self.subs.shape[1]))
+                subs2 = np.empty((0, self.ndims))
             # put it all together
             return ttb.sptensor(
                 np.vstack((subs1, subs2)),
-                True * np.ones((subs1.shape[0] + subs2.shape[0], 1)).astype(bool),
+                True
+                * np.ones((subs1.shape[0] + subs2.shape[0], 1)).astype(self.vals.dtype),
                 self.shape,
             )
 
@@ -2982,7 +3007,9 @@ class sptensor:
             )
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
-            subs1 = self.subs[(operator(self.vals, other)).transpose()[0], :]
+            subs1 = np.empty(shape=(0, self.ndims), dtype=int)
+            if self.nnz > 0:
+                subs1 = self.subs[(operator(self.vals, other)).transpose()[0], :]
             if opposite_operator(other, 0):
                 subs2 = self.allsubs()[tt_setdiff_rows(self.allsubs(), self.subs), :]
                 subs = np.vstack((subs1, subs2))
