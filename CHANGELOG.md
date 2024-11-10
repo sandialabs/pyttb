@@ -135,7 +135,7 @@
 # v1.3.3 (2022-07-11)
 - Fixed indexing bug in `tensor.mttkrp` (Issue #35, PR #36)
 - Updated LICENSE to compliant format (Issue #33 , PR #34)
-- Now using [coveralls.io](https://coveralls.io/github/sandialabs/pyttb) for coverage reporting
+- Now using [coveralls.io](https://coveralls.io/github/sandialabs/pyttb?branch=main) for coverage reporting
 - Now using [readthedocs.io](https://pyttb.readthedocs.io/en/latest/) for documentation
 
 # v1.3.2 (2022-07-06)
