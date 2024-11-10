@@ -39,7 +39,7 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
    1. Run autoformatters and linting from root of project (they will change your code)
        ```commandline
        ruff check . --fix
-       black .
+       ruff format
        ```
       1. Ruff's `--fix` won't necessarily address everything and may point out issues that need manual attention
       1. [We](./.pre-commit-config.yaml) optionally support [pre-commit hooks](https://pre-commit.com/) for this
