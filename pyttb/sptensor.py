@@ -147,6 +147,13 @@ class sptensor:
                 f"max subscripts are "
                 f"{tuple(np.max(subs, axis=0) + 1)}"
             )
+        else:
+            # In case user provides an empty array in weird format
+            subs = np.array([], ndmin=2, dtype=int)
+
+        if vals.size == 0:
+            # In case user provides an empty array in weird format
+            vals = np.array([], dtype=vals.dtype, ndmin=2)
 
         if copy:
             self.subs = subs.copy()
@@ -386,6 +393,9 @@ class sptensor:
                [1, 1]])
         """
         # Preallocate (discover any memory issues here!)
+        if len(self.shape) == 0:
+            return np.empty(shape=(1, 0), dtype=int)
+
         s = np.zeros(shape=(np.prod(self.shape), self.ndims))
 
         # Generate appropriately sized ones vectors
@@ -3001,7 +3011,7 @@ class sptensor:
                         :,
                     ]
             else:
-                subs1 = np.empty(shape=(0, other.subs.shape[1]))
+                subs1 = np.empty(shape=(0, other.ndims), dtype=int)
 
             # self zero, other not zero
             if other.subs.size > 0:
@@ -3014,7 +3024,7 @@ class sptensor:
                         :,
                     ]
             else:
-                subs2 = np.empty(shape=(0, self.subs.shape[1]))
+                subs2 = np.empty(shape=(0, self.ndims), dtype=int)
 
             # self and other not zero
             if self.subs.size > 0:
@@ -3027,7 +3037,7 @@ class sptensor:
                         :,
                     ]
             else:
-                subs3 = np.empty(shape=(0, other.subs.shape[1]))
+                subs3 = np.empty(shape=(0, other.ndims), dtype=int)
 
             if include_zero:
                 # self and other zero
@@ -3040,10 +3050,10 @@ class sptensor:
                 subs4 = xzerosubs[tt_intersect_rows(xzerosubs, yzerosubs), :]
 
                 # assemble
-                subs = np.vstack((subs1, subs2, subs3, subs4))
+                subs = np.vstack((subs1, subs2, subs3, subs4), dtype=int)
             else:
                 # assemble
-                subs = np.vstack((subs1, subs2, subs3))
+                subs = np.vstack((subs1, subs2, subs3), dtype=int)
             return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2b: One dense tensor

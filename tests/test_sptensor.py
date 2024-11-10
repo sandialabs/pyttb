@@ -57,6 +57,13 @@ def test_sptensor_initialization_from_data(sample_sptensor):
     with pytest.raises(ValueError):
         ttb.sptensor(vals=data["vals"])
 
+    # Make sure an explicit empty tensor matches an implicit one
+    explicitEmptySptensor = ttb.sptensor(np.array([]), np.array([]), data["shape"])
+    implicitEmptySptensor = ttb.sptensor(shape=data["shape"])
+    assert np.array_equal(explicitEmptySptensor.subs, implicitEmptySptensor.subs)
+    assert np.array_equal(explicitEmptySptensor.vals, implicitEmptySptensor.vals)
+    assert explicitEmptySptensor.shape == implicitEmptySptensor.shape
+
     with pytest.raises(AssertionError):
         shape = (3, 3, 1)
         invalid_subs = np.array([[1, 1, 1], [1, 3, 2], [2, 2, 2]])
@@ -665,6 +672,9 @@ def test_sptensor_allsubs(sample_sptensor):
                 result.append([i, j, k])
     assert np.array_equal(sptensorInstance.allsubs(), np.array(result))
 
+    empty_sptensor = ttb.sptensor()
+    assert empty_sptensor.allsubs().size == 0
+
 
 def test_sptensor_logical_not(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
@@ -968,6 +978,15 @@ def test_sptensor_double(sample_sptensor):
     assert sptensorInstance.double().shape == data["shape"]
 
 
+def test_sptensor_compare(sample_sptensor):
+    # This is kind of a test just for coverage sake
+    # mostly make clear that the operator check was intentional
+    empty_sptensor = ttb.sptensor()
+    arbitrary_value = 1
+    with pytest.raises(ValueError):
+        empty_sptensor._compare(arbitrary_value, "bad_operator", "bad_operator")
+
+
 def test_sptensor__le__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1009,6 +1028,17 @@ def test_sptensor__le__(sample_sptensor):
         sptensorInstance <= "string"
     assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
+    # Test comparisons of empty sptensors
+    empty_sptensor = ttb.sptensor()
+    cmp = empty_sptensor <= empty_sptensor
+    # With no shape there is no size so must remain empty
+    assert cmp.isequal(empty_sptensor)
+
+    empty_sptensor = ttb.sptensor(shape=(2, 2))
+    cmp = empty_sptensor <= empty_sptensor
+    # With a shape then all implicit zeros match
+    assert cmp.isequal(empty_sptensor.logical_not())
+
 
 def test_sptensor__ge__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
@@ -1041,6 +1071,17 @@ def test_sptensor__ge__(sample_sptensor):
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance >= "string"
     assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
+
+    # Test comparisons of empty sptensors
+    empty_sptensor = ttb.sptensor()
+    cmp = empty_sptensor >= empty_sptensor
+    # With no shape there is no size so must remain empty
+    assert cmp.isequal(empty_sptensor)
+
+    empty_sptensor = ttb.sptensor(shape=(2, 2))
+    cmp = empty_sptensor >= empty_sptensor
+    # With a shape then all implicit zeros match
+    assert cmp.isequal(empty_sptensor.logical_not())
 
 
 def test_sptensor__gt__(sample_sptensor):
@@ -1076,6 +1117,15 @@ def test_sptensor__gt__(sample_sptensor):
         sptensorInstance > "string"
     assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
 
+    # Test comparisons of empty sptensors
+    empty_sptensor = ttb.sptensor()
+    cmp = empty_sptensor > empty_sptensor
+    assert cmp.isequal(empty_sptensor)
+
+    empty_sptensor = ttb.sptensor(shape=(2, 2))
+    cmp = empty_sptensor > empty_sptensor
+    assert cmp.isequal(empty_sptensor)
+
 
 def test_sptensor__lt__(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
@@ -1107,6 +1157,15 @@ def test_sptensor__lt__(sample_sptensor):
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance < "string"
     assert "Comparison allowed with sptensor, tensor, or scalar only." in str(excinfo)
+
+    # Test comparisons of empty sptensors
+    empty_sptensor = ttb.sptensor()
+    cmp = empty_sptensor < empty_sptensor
+    assert cmp.isequal(empty_sptensor)
+
+    empty_sptensor = ttb.sptensor(shape=(2, 2))
+    cmp = empty_sptensor < empty_sptensor
+    assert cmp.isequal(empty_sptensor)
 
 
 def test_sptensor_innerprod(sample_sptensor):
