@@ -2952,8 +2952,24 @@ class sptensor:
             return self.__mul__(other)
         assert False, "This object cannot be multiplied by sptensor"
 
-    def __cmp__(self, other, operator, opposite_operator):
-        """Generalized Comparison operation"""
+    def _compare(self, other, operator, opposite_operator, include_zero=False):  # noqa: PLR0912
+        """Generalized Comparison operation
+
+        Parameters
+        ----------
+        operator:
+            Primary comparison.
+        opposite_operator:
+            There is some symmetry around zero encoded in the logic.
+            This isn't just logical not.
+        include_zero:
+            Whether or not to treat matching zeros as true.
+        """
+        if operator not in (ge, gt, le, lt):
+            raise ValueError(
+                "Internal comparison operator called for unsupported operator"
+                f" {operator=}"
+            )
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
             subs1 = self.subs[(operator(self.vals, other)).transpose()[0], :]
@@ -2967,8 +2983,8 @@ class sptensor:
         # Case 2: Both x and y are tensors of some sort
         # Check that the sizes match
         if (
-                isinstance(other, (ttb.sptensor, ttb.tensor, ttb.ktensor))
-                and self.shape != other.shape
+            isinstance(other, (ttb.sptensor, ttb.tensor, ttb.ktensor))
+            and self.shape != other.shape
         ):
             assert False, "Size mismatch"
 
@@ -2978,7 +2994,12 @@ class sptensor:
             if self.subs.size > 0:
                 subs1 = self.subs[tt_setdiff_rows(self.subs, other.subs), :]
                 if subs1.size > 0:
-                    subs1 = subs1[np.logical_not(opposite_operator(self.extract(subs1), 0)).transpose()[0], :]
+                    subs1 = subs1[
+                        np.logical_not(
+                            opposite_operator(self.extract(subs1), 0)
+                        ).transpose()[0],
+                        :,
+                    ]
             else:
                 subs1 = np.empty(shape=(0, other.subs.shape[1]))
 
@@ -2986,7 +3007,12 @@ class sptensor:
             if other.subs.size > 0:
                 subs2 = other.subs[tt_setdiff_rows(other.subs, self.subs), :]
                 if subs2.size > 0:
-                    subs2 = subs2[np.logical_not(operator(other.extract(subs2), 0)).transpose()[0], :]
+                    subs2 = subs2[
+                        np.logical_not(operator(other.extract(subs2), 0)).transpose()[
+                            0
+                        ],
+                        :,
+                    ]
             else:
                 subs2 = np.empty(shape=(0, self.subs.shape[1]))
 
@@ -2995,18 +3021,29 @@ class sptensor:
                 subs3 = self.subs[tt_intersect_rows(self.subs, other.subs), :]
                 if subs3.size > 0:
                     subs3 = subs3[
-                            operator(self.extract(subs3), other.extract(subs3)).transpose()[0], :
-                            ]
+                        operator(self.extract(subs3), other.extract(subs3)).transpose()[
+                            0
+                        ],
+                        :,
+                    ]
             else:
                 subs3 = np.empty(shape=(0, other.subs.shape[1]))
 
-            # self and other zero
-            xzerosubs = self.allsubs()[tt_setdiff_rows(self.allsubs(), self.subs), :]
-            yzerosubs = other.allsubs()[tt_setdiff_rows(other.allsubs(), other.subs), :]
-            subs4 = xzerosubs[tt_intersect_rows(xzerosubs, yzerosubs), :]
+            if include_zero:
+                # self and other zero
+                xzerosubs = self.allsubs()[
+                    tt_setdiff_rows(self.allsubs(), self.subs), :
+                ]
+                yzerosubs = other.allsubs()[
+                    tt_setdiff_rows(other.allsubs(), other.subs), :
+                ]
+                subs4 = xzerosubs[tt_intersect_rows(xzerosubs, yzerosubs), :]
 
-            # assemble
-            subs = np.vstack((subs1, subs2, subs3, subs4))
+                # assemble
+                subs = np.vstack((subs1, subs2, subs3, subs4))
+            else:
+                # assemble
+                subs = np.vstack((subs1, subs2, subs3))
             return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
 
         # Case 2b: One dense tensor
@@ -3025,7 +3062,7 @@ class sptensor:
         # Otherwise
         assert False, "Comparison allowed with sptensor, tensor, or scalar only."
 
-    def __le__(self, other):  # noqa: PLR0912
+    def __le__(self, other):
         """
         Less than or equal operator (<=).
 
@@ -3054,10 +3091,9 @@ class sptensor:
         """
         # TODO le,lt,ge,gt have a lot of code duplication, look at generalizing them
         #  for future maintainabilty
-        return self.__cmp__(other, le, ge)
+        return self._compare(other, le, ge, True)
 
-
-    def __lt__(self, other):  # noqa: PLR0912
+    def __lt__(self, other):
         """
         Less than operator (<).
 
@@ -3083,71 +3119,7 @@ class sptensor:
         [0, 1] = 1.0
         [1, 0] = 1.0
         """
-        # Case 1: One argument is a scalar
-        if isinstance(other, (float, int)):
-            subs1 = self.subs[(self.vals < other).transpose()[0], :]
-            if other > 0:
-                subs2 = self.allsubs()[tt_setdiff_rows(self.allsubs(), self.subs), :]
-                subs = np.vstack((subs1, subs2))
-            else:
-                subs = subs1
-            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
-
-        # Case 2: Both x and y are tensors of some sort
-        # Check that the sizes match
-        if (
-            isinstance(other, (ttb.sptensor, ttb.tensor, ttb.ktensor))
-            and self.shape != other.shape
-        ):
-            assert False, "Size mismatch"
-
-        # Case 2a: Two sparse tensors
-        if isinstance(other, ttb.sptensor):
-            # self not zero, other zero
-            if self.subs.size > 0:
-                subs1 = self.subs[tt_setdiff_rows(self.subs, other.subs), :]
-                if subs1.size > 0:
-                    subs1 = subs1[(self.extract(subs1) < 0).transpose()[0], :]
-            else:
-                subs1 = np.empty(shape=(0, other.subs.shape[1]))
-
-            # self zero, other not zero
-            if other.subs.size > 0:
-                subs2 = other.subs[tt_setdiff_rows(other.subs, self.subs), :]
-                if subs2.size > 0:
-                    subs2 = subs2[(other.extract(subs2) > 0).transpose()[0], :]
-            else:
-                subs2 = np.empty(shape=(0, self.subs.shape[1]))
-
-            # self and other not zero
-            if self.subs.size > 0:
-                subs3 = self.subs[tt_intersect_rows(self.subs, other.subs), :]
-                if subs3.size > 0:
-                    subs3 = subs3[
-                        (self.extract(subs3) < other.extract(subs3)).transpose()[0], :
-                    ]
-            else:
-                subs3 = np.empty(shape=(0, other.subs.shape[1]))
-
-            # assemble
-            subs = np.vstack((subs1, subs2, subs3))
-            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
-
-        # Case 2b: One dense tensor
-        if isinstance(other, ttb.tensor):
-            # self zero
-            subs1, _ = (other > 0).find()
-            subs1 = subs1[tt_setdiff_rows(subs1, self.subs), :]
-
-            # self nonzero
-            subs2 = self.subs[self.vals.transpose()[0] < other[self.subs], :]
-
-            # assemble
-            subs = np.vstack((subs1, subs2))
-            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
-
-        # Otherwise
-        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
+        return self._compare(other, lt, gt)
 
     def __ge__(self, other):
         """
@@ -3177,7 +3149,7 @@ class sptensor:
         sparse tensor of shape (2, 2) with 1 nonzeros
         [1, 1] = 1.0
         """
-        return self.__cmp__(other, ge, le)
+        return self._compare(other, ge, le, True)
 
     def __gt__(self, other):
         """
@@ -3203,50 +3175,7 @@ class sptensor:
         sparse tensor of shape (2, 2) with 1 nonzeros
         [1, 1] = 1.0
         """
-        # Case 1: Argument is a scalar
-        if isinstance(other, (float, int)):
-            subs1 = self.subs[(self.vals > other).transpose()[0], :]
-            if other < 0:
-                subs2 = tt_setdiff_rows(self.allsubs(), self.subs)
-                subs = np.vstack((subs1, self.allsubs()[subs2]))
-            else:
-                subs = subs1
-            return ttb.sptensor(subs, True * np.ones((len(subs), 1)), self.shape)
-
-        # Case 2: Both x and y are tensors of some sort
-        # Check that the sizes match
-        if (
-            isinstance(other, (ttb.sptensor, ttb.tensor, ttb.ktensor))
-            and self.shape != other.shape
-        ):
-            assert False, "Size mismatch"
-
-        # Case 2a: Two sparse tensors
-        if isinstance(other, ttb.sptensor):
-            return other.__lt__(self)
-
-        # Case 2b: One dense tensor
-        if isinstance(other, ttb.tensor):
-            # self zero and other < 0
-            subs1, _ = (other < 0).find()
-            if subs1.size > 0:
-                subs1 = subs1[tt_setdiff_rows(subs1, self.subs), :]
-
-            # self and other nonzero
-            subs2 = self.subs[
-                (self.vals > other[self.subs][:, None]).transpose()[0],
-                :,
-            ]
-
-            # assemble
-            return ttb.sptensor(
-                np.vstack((subs1, subs2)),
-                True * np.ones((len(subs1) + len(subs2), 1)),
-                self.shape,
-            )
-
-        # Otherwise
-        assert False, "Comparison allowed with sptensor, tensor, or scalar only."
+        return self._compare(other, gt, lt)
 
     def __truediv__(self, other):  # noqa: PLR0912, PLR0915
         """
