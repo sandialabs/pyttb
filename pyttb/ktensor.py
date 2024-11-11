@@ -104,9 +104,9 @@ class ktensor:
         Create a :class:`pyttb.ktensor` from weights and a list of factor
         matrices:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
         ktensor of shape (2, 2)
@@ -121,8 +121,8 @@ class ktensor:
         Create a :class:`pyttb.ktensor` from a :class:`list` of factor
         matrices (without providing weights):
 
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor([fm0, fm1])
         >>> print(K)
@@ -325,7 +325,7 @@ class ktensor:
 
         >>> rank = 2
         >>> shape = (2, 3, 4)
-        >>> data = np.arange(1, rank*sum(shape)+1).astype(float)
+        >>> data = np.arange(1, rank * sum(shape) + 1).astype(float)
         >>> K = ttb.ktensor.from_vector(data[:], shape, False)
         >>> print(K)
         ktensor of shape (2, 3, 4)
@@ -438,9 +438,9 @@ class ktensor:
         --------
         Create the initial :class:`pyttb.ktensor`:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
         ktensor of shape (2, 2)
@@ -454,7 +454,7 @@ class ktensor:
 
         Arrange the columns of the factor matrices using a permutation:
 
-        >>> p = [1,0]
+        >>> p = [1, 0]
         >>> K.arrange(permutation=p)
         >>> print(K)
         ktensor of shape (2, 2)
@@ -470,7 +470,7 @@ class ktensor:
         decreasing order:
 
         >>> K.arrange()
-        >>> print(K) # doctest: +ELLIPSIS
+        >>> print(K)  # doctest: +ELLIPSIS
         ktensor of shape (2, 2)
         weights=[89.4427... 27.2029...]
         factor_matrices[0] =
@@ -483,7 +483,7 @@ class ktensor:
         Absorb the weights into the second factor:
 
         >>> K.arrange(weight_factor=1)
-        >>> print(K) # doctest: +ELLIPSIS
+        >>> print(K)  # doctest: +ELLIPSIS
         ktensor of shape (2, 2)
         weights=[1. 1.]
         factor_matrices[0] =
@@ -563,7 +563,7 @@ class ktensor:
         Create a copy of the :class:`pyttb.ktensor` and change the weights:
 
         >>> K2 = K.copy()
-        >>> K2.weights = np.array([2., 3.])
+        >>> K2.weights = np.array([2.0, 3.0])
         >>> print(K2)  # doctest: +ELLIPSIS
         ktensor of shape (2, 3, 4)
         weights=[2. 3.]
@@ -613,9 +613,9 @@ class ktensor:
 
         Examples
         --------
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> K.double()
@@ -649,9 +649,9 @@ class ktensor:
         --------
         Create a :class:`pyttb.ktensor`:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
         ktensor of shape (2, 2)
@@ -734,9 +734,9 @@ class ktensor:
         --------
         Create a :class:`pyttb.ktensor` with negative large magnitude entries:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> K.factor_matrices[0][1, 1] = -K.factor_matrices[0][1, 1]
         >>> K.factor_matrices[1][1, 1] = -K.factor_matrices[1][1, 1]
@@ -872,9 +872,9 @@ class ktensor:
 
         Examples
         --------
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
         ktensor of shape (2, 2)
@@ -885,7 +885,7 @@ class ktensor:
         factor_matrices[1] =
         [[5. 6.]
          [7. 8.]]
-        >>> print(K.full()) # doctest: +NORMALIZE_WHITESPACE
+        >>> print(K.full())  # doctest: +NORMALIZE_WHITESPACE
         tensor of shape (2, 2)
         data[:, :] =
         [[29. 39.]
@@ -954,9 +954,9 @@ class ktensor:
 
         Examples
         --------
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
         ktensor of shape (2, 2)
@@ -967,12 +967,12 @@ class ktensor:
         factor_matrices[1] =
         [[5. 6.]
          [7. 8.]]
-        >>> K.full() # doctest: +NORMALIZE_WHITESPACE
+        >>> K.full()  # doctest: +NORMALIZE_WHITESPACE
         tensor of shape (2, 2)
         data[:, :] =
         [[29. 39.]
          [63. 85.]]
-        >>> K.to_tenmat(np.array([0])) # doctest: +NORMALIZE_WHITESPACE
+        >>> K.to_tenmat(np.array([0]))  # doctest: +NORMALIZE_WHITESPACE
         matrix corresponding to a tensor of shape (2, 2)
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
@@ -1007,7 +1007,7 @@ class ktensor:
 
         Examples
         --------
-        >>> K = ttb.ktensor.from_function(np.ones, (2,3,4), 2)
+        >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
         >>> print(K.innerprod(K))
         96.0
         """
@@ -1043,7 +1043,7 @@ class ktensor:
 
         Examples
         --------
-        >>> K1 = ttb.ktensor.from_function(np.ones, (2,3,4), 2)
+        >>> K1 = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
         >>> weights = np.ones((2,))
         >>> factor_matrices = [np.ones((2, 2)), np.ones((3, 2)), np.ones((4, 2))]
         >>> K2 = ttb.ktensor(factor_matrices, weights)
@@ -1148,9 +1148,9 @@ class ktensor:
         --------
         Create a :class:`pyttb.ktensor`:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
 
         Create a mask :class:`pyttb.tensor` and extract the elements of the
@@ -1261,7 +1261,7 @@ class ktensor:
         Examples
         --------
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> K.norm() # doctest: +ELLIPSIS
+        >>> K.norm()  # doctest: +ELLIPSIS
         9.79795897...
         """
         # Compute the matrix of correlation coefficients
@@ -1304,7 +1304,7 @@ class ktensor:
         Examples
         --------
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
-        >>> print(K.normalize()) # doctest: +ELLIPSIS
+        >>> print(K.normalize())  # doctest: +ELLIPSIS
         ktensor of shape (2, 3, 4)
         weights=[4.898... 4.898...]
         factor_matrices[0] =
@@ -1405,14 +1405,14 @@ class ktensor:
 
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
         >>> nvecs1 = K.nvecs(0, 1)
-        >>> print(nvecs1) # doctest: +ELLIPSIS
+        >>> print(nvecs1)  # doctest: +ELLIPSIS
         [[0.70710678...]
          [0.70710678...]]
 
         Compute first 2 leading eigenvectors for dimension 0:
 
         >>> nvecs2 = K.nvecs(0, 2)
-        >>> print(nvecs2) # doctest: +ELLIPSIS
+        >>> print(nvecs2)  # doctest: +ELLIPSIS
         [[ 0.70710678...  0.70710678...]
          [ 0.70710678... -0.70710678...]]
         """
@@ -1463,9 +1463,9 @@ class ktensor:
 
         Examples
         --------
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
@@ -1515,9 +1515,9 @@ class ktensor:
         -------
         Create a :class:`pyttb.ktensor`:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
@@ -1621,13 +1621,13 @@ class ktensor:
         Create two :class:`pyttb.ktensor` instances and compute the score
         between them:
 
-        >>> factors = [np.ones((3,3)), np.ones((4,3)), np.ones((5,3))]
-        >>> weights = np.array([2., 1., 3.])
+        >>> factors = [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))]
+        >>> weights = np.array([2.0, 1.0, 3.0])
         >>> K = ttb.ktensor(factors, weights)
-        >>> factors_2 = [np.ones((3,2)), np.ones((4,2)), np.ones((5,2))]
-        >>> weights_2 = np.array([2., 4.])
+        >>> factors_2 = [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))]
+        >>> weights_2 = np.array([2.0, 4.0])
         >>> K2 = ttb.ktensor(factors_2, weights_2)
-        >>> score,Kperm,flag,perm = K.score(K2)
+        >>> score, Kperm, flag, perm = K.score(K2)
         >>> print(score)
         0.875
         >>> print(perm)
@@ -1635,7 +1635,7 @@ class ktensor:
 
         Compute score without using weights:
 
-        >>> score,Kperm,flag,perm = K.score(K2,weight_penalty=False)
+        >>> score, Kperm, flag, perm = K.score(K2, weight_penalty=False)
         >>> print(score)
         1.0
         >>> print(perm)
@@ -1735,9 +1735,9 @@ class ktensor:
         --------
         Create a :class:`pyttb.ktensor`:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
@@ -1754,7 +1754,7 @@ class ktensor:
         respect to any permutation of the factor matrices:
 
         >>> K1 = K.symmetrize()
-        >>> print(K1) # doctest: +ELLIPSIS
+        >>> print(K1)  # doctest: +ELLIPSIS
         ktensor of shape (2, 2)
         weights=[1. 1.]
         factor_matrices[0] =
@@ -1815,9 +1815,9 @@ class ktensor:
         --------
         Create a :class:`pyttb.ktensor` of all ones:
 
-        >>> weights = np.array([1., 2.])
-        >>> fm0 = np.array([[1., 2.], [3., 4.]])
-        >>> fm1 = np.array([[5., 6.], [7., 8.]])
+        >>> weights = np.array([1.0, 2.0])
+        >>> fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
@@ -1834,7 +1834,8 @@ class ktensor:
         matrices:
 
         >>> fm_list = K.tolist()
-        >>> for fm in fm_list: print(fm) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        >>> for fm in fm_list:
+        ...     print(fm)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
         [[1. 2.8284...]
          [3. 5.6568...]]
         [[ 5. 8.4852...]
@@ -1844,7 +1845,8 @@ class ktensor:
         matrices:
 
         >>> fm_list = K.tolist(0)
-        >>> for fm in fm_list: print(fm)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        >>> for fm in fm_list:
+        ...     print(fm)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
         [[ 8.6023... 40. ]
          [25.8069... 80. ]]
         [[0.5812... 0.6...]
@@ -2004,11 +2006,11 @@ class ktensor:
 
         >>> rank = 2
         >>> shape = (2, 3, 4)
-        >>> data = np.arange(1, rank*sum(shape)+1)
+        >>> data = np.arange(1, rank * sum(shape) + 1)
         >>> weights = 2 * np.ones(rank)
         >>> weights_and_data = np.concatenate((weights, data), axis=0)
         >>> K = ttb.ktensor.from_vector(weights_and_data[:], shape, True)
-        >>> K0 = K.ttv(np.array([1, 1, 1]),dims=1) # compute along a single dimension
+        >>> K0 = K.ttv(np.array([1, 1, 1]), dims=1)  # compute along a single dimension
         >>> print(K0)
         ktensor of shape (2, 4)
         weights=[36. 54.]
@@ -2034,7 +2036,7 @@ class ktensor:
         Compute the product of a :class:`pyttb.ktensor` and multiple vectors
         out of order (results in a :class:`pyttb.ktensor`):
 
-        >>> K2 = K.ttv([vec4, vec3],np.array([2, 1]))
+        >>> K2 = K.ttv([vec4, vec3], np.array([2, 1]))
         >>> print(K2)
         ktensor of shape (2,)
         weights=[1800. 3564.]
@@ -2297,27 +2299,31 @@ class ktensor:
 
         Use plot K using default behavior K.vis()
 
-        >>> fig, axs = K.vis() # doctest: +ELLIPSIS
+        >>> fig, axs = K.vis()  # doctest: +ELLIPSIS
         >>> plt.close(fig)
 
         Define a more realistic plot fuctions with x labels,
         control relative widths of each plot,
         and set mode titles.
 
-        >>> def mode_1_plot(v,ax):
-        ...    ax.bar([1,2],v,width=0.2)
-        ...    ax.set_xticks([1,2],labels=['neutron','electron'],rotation=45)
-        >>> def mode_2_plot(v,ax):
-        ...    ax.plot(np.arange(v.shape[0]), v)
-        ...    ax.set_xlabel('$v$, [m/s]')
-        >>> def mode_3_plot(v,ax):
-        ...    ax.semilogx(np.logspace(-2,2,v.shape[0]),v)
-        ...    ax.set_xlabel('$E$, [kJ]')
+        >>> def mode_1_plot(v, ax):
+        ...     ax.bar([1, 2], v, width=0.2)
+        ...     ax.set_xticks([1, 2], labels=["neutron", "electron"], rotation=45)
+        >>> def mode_2_plot(v, ax):
+        ...     ax.plot(np.arange(v.shape[0]), v)
+        ...     ax.set_xlabel("$v$, [m/s]")
+        >>> def mode_3_plot(v, ax):
+        ...     ax.semilogx(np.logspace(-2, 2, v.shape[0]), v)
+        ...     ax.set_xlabel("$E$, [kJ]")
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
-        >>> fig, axs = K.vis(plots=plots,
-        ...    rel_widths=[1,2,3],horz_space=0.4,
-        ...    left_space=0.2,bot_space=0.2,
-        ...    mode_titles=['Particle','Velocity','Energy']) # doctest: +ELLIPSIS
+        >>> fig, axs = K.vis(
+        ...     plots=plots,
+        ...     rel_widths=[1, 2, 3],
+        ...     horz_space=0.4,
+        ...     left_space=0.2,
+        ...     bot_space=0.2,
+        ...     mode_titles=["Particle", "Velocity", "Energy"],
+        ... )  # doctest: +ELLIPSIS
         >>> plt.close(fig)
         """
 

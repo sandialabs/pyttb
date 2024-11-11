@@ -60,9 +60,9 @@ class ttensor:
         Set up input data
         # Create ttensor with explicit data description
 
-        >>> core_values = np.ones((2,2,2))
+        >>> core_values = np.ones((2, 2, 2))
         >>> core = ttb.tensor(core_values)
-        >>> factors = [np.ones((1,2))] * len(core_values.shape)
+        >>> factors = [np.ones((1, 2))] * len(core_values.shape)
         >>> K0 = ttb.ttensor(core, factors)
         """
         if core is None and factors is None:
@@ -99,19 +99,19 @@ class ttensor:
 
         Examples
         --------
-        >>> core_values = np.ones((2,2,2))
+        >>> core_values = np.ones((2, 2, 2))
         >>> core = ttb.tensor(core_values)
-        >>> factors = [np.ones((1,2))] * len(core_values.shape)
+        >>> factors = [np.ones((1, 2))] * len(core_values.shape)
         >>> first = ttb.ttensor(core, factors)
         >>> second = first
         >>> third = second.copy()
-        >>> first.factor_matrices[0][0,0] = 2
+        >>> first.factor_matrices[0][0, 0] = 2
 
         # Item to convert numpy boolean to python boolena for nicer printing
 
-        >>> (first.factor_matrices[0][0,0] == second.factor_matrices[0][0,0]).item()
+        >>> (first.factor_matrices[0][0, 0] == second.factor_matrices[0][0, 0]).item()
         True
-        >>> (first.factor_matrices[0][0,0] == third.factor_matrices[0][0,0]).item()
+        >>> (first.factor_matrices[0][0, 0] == third.factor_matrices[0][0, 0]).item()
         False
         """
         return ttb.ttensor(self.core, self.factor_matrices, copy=True)

@@ -25,13 +25,13 @@ def khatrirao(*matrices: np.ndarray, reverse: bool = False) -> np.ndarray:
 
     Examples
     --------
-    >>> A = np.random.normal(size=(5,2))
-    >>> B = np.random.normal(size=(5,2))
-    >>> _ = khatrirao(A,B) #<-- Khatri-Rao of A and B
-    >>> _ = khatrirao(B,A,reverse=True) #<-- same thing as above
-    >>> _ = khatrirao(A,A,B) #<-- passing multiple items
-    >>> _ = khatrirao(B,A,A,reverse = True) #<-- same as above
-    >>> _ = khatrirao(*[A,A,B]) #<-- passing a list via unpacking items
+    >>> A = np.random.normal(size=(5, 2))
+    >>> B = np.random.normal(size=(5, 2))
+    >>> _ = khatrirao(A, B)  # <-- Khatri-Rao of A and B
+    >>> _ = khatrirao(B, A, reverse=True)  # <-- same thing as above
+    >>> _ = khatrirao(A, A, B)  # <-- passing multiple items
+    >>> _ = khatrirao(B, A, A, reverse=True)  # <-- same as above
+    >>> _ = khatrirao(*[A, A, B])  # <-- passing a list via unpacking items
     """
     # Determine if list of matrices of multiple matrix arguments
     if len(matrices) == 1 and isinstance(matrices[0], list):

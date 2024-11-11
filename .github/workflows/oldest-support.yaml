@@ -1,0 +1,40 @@
+# This should mirror regression tests. Ideally we find a way in the future to fold the two together
+
+name: Test Oldest Dependencies
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  UV_SYSTEM_PYTHON: 1
+
+jobs:
+  test-oldest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Use uv since it has easy lowest resolution
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'  # Find a way to globally define our minimum python once
+
+      - name: Install dependencies with minimum versions
+        run: |
+          uv sync --resolution lowest-direct --extra dev 
+
+      - name: Run tests
+        run: |
+          uv run --resolution lowest-direct pytest ./tests

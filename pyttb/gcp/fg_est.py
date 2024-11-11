@@ -17,7 +17,7 @@ from pyttb.gcp.fg_setup import function_type
 
 
 @overload
-def estimate(  # noqa: PLR0913
+def estimate(
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -30,7 +30,7 @@ def estimate(  # noqa: PLR0913
 
 
 @overload
-def estimate(  # noqa: PLR0913
+def estimate(
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,
@@ -43,7 +43,7 @@ def estimate(  # noqa: PLR0913
 
 
 @overload
-def estimate(  # noqa: PLR0913
+def estimate(
     model: ttb.ktensor,
     data_subs: np.ndarray,
     data_vals: np.ndarray,

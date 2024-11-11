@@ -10,10 +10,10 @@ readme = "README.md"
 requires-python = ">=3.9"
 
 dependencies = [
-    "numpy",
-    "numpy_groupies",
-    "scipy",
-    "matplotlib",
+    "numpy<3.0,>=1.24",
+    "numpy_groupies>0.11",
+    "scipy>1.9",
+    "matplotlib>3.7",
 ]
 
 classifiers = [
@@ -32,18 +32,19 @@ documentation = "https://pyttb.readthedocs.io"
 
 [project.optional-dependencies]
 dev = [
-    "black[jupyter]",
-    "mypy",
-    "nbstripout",
-    "pytest",
-    "pytest-cov",
-    "ruff==0.0.284",
-    "pre-commit",
+    "mypy>=1.10,<1.14.0",
+    # Also in pre-commit
+    "nbstripout>=0.8,<0.9",
+    "pytest>8.0",
+    "pytest-cov>5.0",
+    # Also in pre-commit
+    "ruff>=0.7,<0.8",
+    "pre-commit>=4.0,<5.0",
 ]
 doc = [
     "sphinx >= 4.0",
-    "sphinx_rtd_theme",
-    "myst-nb",
+    "sphinx_rtd_theme>2.0",
+    "myst-nb>1.0",
 ]
 profiling = [
     "gprof2dot",
@@ -65,7 +66,7 @@ version = {attr = "pyttb.__version__"}
 requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.ruff]
+[tool.ruff.lint]
 select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
 ignore = [
     # Ignored in conversion to ruff since not previously enforced
@@ -83,13 +84,18 @@ ignore = [
     # There is ongoing discussion about logging/warning etc
     "B028",
 ]
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # See  see https://github.com/astral-sh/ruff/issues/3172 for details on this becoming simpler
 
 # Everything but I, F (to catch import mess and potential logic errors)
 "tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF", "B"]
 # Ignore everything for now
 "docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+"docs/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+"profiling/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.mypy]
 warn_unused_configs = true

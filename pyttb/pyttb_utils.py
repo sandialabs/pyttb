@@ -42,9 +42,9 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Examples
     --------
-    >>> a = np.array([[1,2],[3,4]])
-    >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>> tt_union_rows(a,b)
+    >>> a = np.array([[1, 2], [3, 4]])
+    >>> b = np.array([[0, 0], [1, 2], [3, 4], [0, 0]])
+    >>> tt_union_rows(a, b)
     array([[0, 0],
            [1, 2],
            [3, 4]])
@@ -312,11 +312,11 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Examples
     --------
-    >>> a = np.array([[1,2],[3,4]])
-    >>> b = np.array([[0,0],[1,2],[3,4],[0,0]])
-    >>> tt_intersect_rows(a,b)
+    >>> a = np.array([[1, 2], [3, 4]])
+    >>> b = np.array([[0, 0], [1, 2], [3, 4], [0, 0]])
+    >>> tt_intersect_rows(a, b)
     array([0, 1])
-    >>> tt_intersect_rows(b,a)
+    >>> tt_intersect_rows(b, a)
     array([1, 2])
     """
     # TODO ismember and unique are very similar in function
@@ -481,8 +481,8 @@ def tt_ismember_rows(
     Examples
     --------
     >>> a = np.array([[4, 6], [1, 9], [2, 6]])
-    >>> b = np.array([[2, 6],[2, 1],[2, 4],[4, 6],[4, 7],[5, 9],[5, 2],[5, 1]])
-    >>> matched, results = tt_ismember_rows(a,b)
+    >>> b = np.array([[2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]])
+    >>> matched, results = tt_ismember_rows(a, b)
     >>> print(results)
     [ 3 -1  0]
     >>> print(matched)
