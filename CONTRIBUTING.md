@@ -52,15 +52,15 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
 1. Run tests (at desired fidelity)
    1. Just doctests (enabled by default)
         ```commandline
-        pytest
+        pytest .
         ```
    1. Functional tests
         ```commandline
-        pytest .
+        pytest tests
         ```
    1. With coverage
         ```commandline
-        pytest . --cov=pyttb --cov-report=term-missing
+        pytest tests --cov=pyttb --cov-report=term-missing
         ```
 
 1. (Optionally) Building documentation and tutorials
