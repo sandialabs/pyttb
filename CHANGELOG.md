@@ -1,3 +1,11 @@
+# v1.8.1 (2024-11-11)
+- Fixed: 
+  - Aligning comparison operator output for data classes (https://github.com/sandialabs/pyttb/pull/331)
+- Improved:
+  - Getting starting documentation (https://github.com/sandialabs/pyttb/pull/324)
+  - Development enviroment (https://github.com/sandialabs/pyttb/pull/329, https://github.com/sandialabs/pyttb/pull/330)
+  - Documentation (https://github.com/sandialabs/pyttb/pull/328, https://github.com/sandialabs/pyttb/pull/334)
+
 # v1.8.0 (2024-10-23)
 - Added:
   - Added `ktensor.vis` method for visualizing CP decompositions (https://github.com/sandialabs/pyttb/pull/301)
