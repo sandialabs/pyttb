@@ -915,11 +915,15 @@ def parse_shape(shape: Shape) -> Tuple[int, ...]:
     if isinstance(shape, np.ndarray):
         if not np.issubdtype(shape.dtype, np.integer):
             raise ValueError("Numpy arrays used as shapes must be integer valued")
-        if shape.squeeze().ndim != 1:
+        squeezed_shape = shape.squeeze()
+        if squeezed_shape.ndim == 0:
+            # If it's an array containing a single scalar
+            return (int(squeezed_shape),)
+        if squeezed_shape.ndim > 1:
             raise ValueError(
                 "Numpy arrays used as shapes can only have one non-trivial dimension"
             )
-        return tuple(map(int, shape.squeeze()))
+        return tuple(map(int, squeezed_shape))
 
     shape = tuple(shape)
     if not all(isinstance(ele, (int, np.integer)) for ele in shape):
