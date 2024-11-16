@@ -17,7 +17,7 @@ from scipy import sparse
 
 import pyttb as ttb
 from pyttb import pyttb_utils as ttb_utils
-from pyttb.pyttb_utils import OneDArray
+from pyttb.pyttb_utils import OneDArray, parse_one_d
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/sptensor."
 
@@ -441,7 +441,7 @@ class ttensor:
             return np.sqrt(tmp)
         return self.full().norm()
 
-    def permute(self, order: np.ndarray) -> ttensor:
+    def permute(self, order: OneDArray) -> ttensor:
         """
         Permute :class:`pyttb.ttensor` dimensions.
 
@@ -459,6 +459,7 @@ class ttensor:
         -------
         Permuted :class:`pyttb.ttensor`.
         """
+        order = parse_one_d(order)
         if not np.array_equal(np.arange(0, self.ndims), np.sort(order)):
             raise ValueError("Invalid permutation")
         new_core = self.core.permute(order)

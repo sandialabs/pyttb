@@ -38,6 +38,7 @@ from pyttb.pyttb_utils import (
     get_index_variant,
     get_mttkrp_factors,
     np_to_python,
+    parse_one_d,
     parse_shape,
     tt_dimscheck,
     tt_ind2sub,
@@ -1484,7 +1485,7 @@ class sptensor:
         oneVals.fill(1)
         return ttb.sptensor(self.subs, oneVals, self.shape)
 
-    def permute(self, order: np.ndarray) -> sptensor:
+    def permute(self, order: OneDArray) -> sptensor:
         """
         Permute the :class:`pyttb.sptensor` dimensions. The result is a new
         sparse tensor that has the same values, but the order of the
@@ -1519,6 +1520,7 @@ class sptensor:
         [1, 0] = 2.0
         [0, 1] = 3.0
         """
+        order = parse_one_d(order)
         # Error check
         if self.ndims != order.size or np.any(
             np.sort(order) != np.arange(0, self.ndims)
@@ -3653,7 +3655,7 @@ def sptenrand(
     return ttb.sptensor.from_function(unit_uniform, shape, valid_nonzeros)
 
 
-def sptendiag(elements: np.ndarray, shape: Optional[Shape] = None) -> sptensor:
+def sptendiag(elements: OneDArray, shape: Optional[Shape] = None) -> sptensor:
     """
     Creates a :class:`pyttb.sptensor` with elements along the super diagonal.
     If provided shape is too small the sparse tensor will be enlarged to
@@ -3683,7 +3685,7 @@ def sptendiag(elements: np.ndarray, shape: Optional[Shape] = None) -> sptensor:
     True
     """
     # Flatten provided elements
-    elements = np.ravel(elements)
+    elements = parse_one_d(elements)
     N = len(elements)
     if shape is None:
         constructed_shape = (N,) * N

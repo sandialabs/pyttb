@@ -11,7 +11,6 @@ import warnings
 from math import prod
 from typing import (
     Callable,
-    Iterable,
     List,
     Literal,
     Optional,
@@ -35,6 +34,7 @@ from pyttb.pyttb_utils import (
     isrow,
     isvector,
     np_to_python,
+    parse_one_d,
     parse_shape,
     tt_dimscheck,
     tt_ind2sub,
@@ -1445,7 +1445,7 @@ class ktensor:
                     v[:, i] *= -1
         return v
 
-    def permute(self, order: np.ndarray) -> ktensor:
+    def permute(self, order: OneDArray) -> ktensor:
         """
         Permute :class:`pyttb.ktensor` dimensions.
 
@@ -1493,6 +1493,7 @@ class ktensor:
         [[1. 2.]
          [3. 4.]]
         """
+        order = parse_one_d(order)
         # Check that the permutation is valid
         if tuple(range(self.ndims)) != tuple(sorted(order.tolist())):
             assert False, "Invalid permutation"
@@ -2086,7 +2087,7 @@ class ktensor:
             factor_matrices.append(self.factor_matrices[i])
         return ttb.ktensor(factor_matrices, new_weights, copy=False)
 
-    def update(self, modes: Union[int, Iterable[int]], data: np.ndarray) -> ktensor:
+    def update(self, modes: OneDArray, data: np.ndarray) -> ktensor:
         """
         Updates a :class:`pyttb.ktensor` in the specific dimensions with the
         values in `data` (in vector or matrix form). The value of `modes` must
@@ -2184,13 +2185,10 @@ class ktensor:
          [4. 4.]]
 
         """
-        if not isinstance(modes, int):
-            modes = np.array(modes)
-            assert np.all(
-                modes[:-1] <= modes[1:]
-            ), "Modes must be sorted in ascending order"
-        else:
-            modes = np.array([modes])
+        modes = parse_one_d(modes)
+        assert np.all(
+            modes[:-1] <= modes[1:]
+        ), "Modes must be sorted in ascending order"
 
         loc = 0  # Location in data array
         for k in modes:

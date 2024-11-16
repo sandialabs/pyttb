@@ -26,6 +26,7 @@ from pyttb.pyttb_utils import (
     get_index_variant,
     get_mttkrp_factors,
     np_to_python,
+    parse_one_d,
     parse_shape,
     tt_dimscheck,
     tt_ind2sub,
@@ -1086,7 +1087,7 @@ class tensor:
                     v[:, i] *= -1
         return v
 
-    def permute(self, order: np.ndarray) -> tensor:
+    def permute(self, order: OneDArray) -> tensor:
         """
         Permute tensor dimensions. The result is a tensor that has the
         same values, but the order of the subscripts needed to access
@@ -1115,6 +1116,7 @@ class tensor:
         [[1 3]
          [2 4]]
         """
+        order = parse_one_d(order)
         if self.ndims != order.size:
             assert False, "Invalid permutation order"
 
@@ -1675,7 +1677,7 @@ class tensor:
 
     def ttsv(
         self,
-        vector: np.ndarray,
+        vector: OneDArray,
         skip_dim: Optional[int] = None,
         version: Optional[int] = None,
     ) -> Union[float, np.ndarray, tensor]:
@@ -1704,6 +1706,7 @@ class tensor:
         array([[1, 2],
                [3, 4]])
         """
+        vector = parse_one_d(vector)
         # Only two simple cases are supported
         if skip_dim is None:
             exclude_dims = None
@@ -2638,7 +2641,7 @@ def tenrand(shape: Shape) -> tensor:
     return tensor.from_function(unit_uniform, shape)
 
 
-def tendiag(elements: np.ndarray, shape: Optional[Shape] = None) -> tensor:
+def tendiag(elements: OneDArray, shape: Optional[Shape] = None) -> tensor:
     """
     Creates a tensor with elements along super diagonal. If provided shape is too
     small the tensor will be enlarged to accomodate.
@@ -2664,7 +2667,7 @@ def tendiag(elements: np.ndarray, shape: Optional[Shape] = None) -> tensor:
     True
     """
     # Flatten provided elements
-    elements = np.ravel(elements)
+    elements = parse_one_d(elements)
     N = len(elements)
     if shape is None:
         constructed_shape = (N,) * N
