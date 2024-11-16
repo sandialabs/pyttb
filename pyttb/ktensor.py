@@ -8,12 +8,13 @@ from __future__ import annotations
 
 import logging
 import warnings
+from math import prod
 from typing import (
     Callable,
-    Iterable,
     List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Union,
     cast,
@@ -28,10 +29,14 @@ from matplotlib.figure import Figure
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
+    OneDArray,
+    Shape,
     get_mttkrp_factors,
     isrow,
     isvector,
     np_to_python,
+    parse_one_d,
+    parse_shape,
     tt_dimscheck,
     tt_ind2sub,
 )
@@ -71,7 +76,7 @@ class ktensor:
 
     def __init__(
         self,
-        factor_matrices: Optional[List[np.ndarray]] = None,
+        factor_matrices: Optional[Sequence[np.ndarray]] = None,
         weights: Optional[np.ndarray] = None,
         copy: bool = True,
     ):
@@ -147,8 +152,8 @@ class ktensor:
             return
 
         # 'factor_matrices' must be a list
-        if not isinstance(factor_matrices, list):
-            assert False, "Input 'factor_matrices' must be a list."
+        if not isinstance(factor_matrices, Sequence):
+            assert False, "Input 'factor_matrices' must be a sequence."
         # each factor matrix should be a np.ndarray
         if not (
             all(isinstance(fm, np.ndarray) for fm in factor_matrices)
@@ -189,13 +194,16 @@ class ktensor:
         if copy:
             self.factor_matrices = [fm.copy() for fm in factor_matrices]
         else:
+            if not isinstance(factor_matrices, list):
+                logging.warning("Must provide factor matrices as list to avoid copy")
+                factor_matrices = list(factor_matrices)
             self.factor_matrices = factor_matrices
 
     @classmethod
     def from_function(
         cls,
         function_handle: Callable[[Tuple[int, ...]], np.ndarray],
-        shape: Tuple[int, ...],
+        shape: Shape,
         num_components: int,
     ):
         """
@@ -282,7 +290,7 @@ class ktensor:
         """
         # CONSTRUCTOR FROM FUNCTION HANDLE
         assert callable(function_handle), "Input parameter 'fun' must be a function."
-        assert isinstance(shape, tuple), "Input parameter 'shape' must be a tuple."
+        shape = parse_shape(shape)
         assert isinstance(
             num_components, int
         ), "Input parameter 'num_components' must be an int."
@@ -294,9 +302,7 @@ class ktensor:
         return cls(factor_matrices, weights, copy=False)
 
     @classmethod
-    def from_vector(
-        cls, data: np.ndarray, shape: Tuple[int, ...], contains_weights: bool
-    ):
+    def from_vector(cls, data: np.ndarray, shape: Shape, contains_weights: bool):
         """
         Construct a :class:`pyttb.ktensor` from a vector and shape. The rank of the
         :class:`pyttb.ktensor` is inferred from the shape and length of the vector.
@@ -366,7 +372,7 @@ class ktensor:
          [14. 18.]]
         """
         assert isvector(data), "Input parameter 'data' must be a numpy.array vector."
-        assert isinstance(shape, tuple), "Input parameter 'shape' must be a tuple."
+        shape = parse_shape(shape)
         assert isinstance(
             contains_weights, bool
         ), "Input parameter 'contains_weights' must be a bool."
@@ -893,14 +899,14 @@ class ktensor:
         <BLANKLINE>
         """
 
-        def min_split_dims(dims):
+        def min_split_dims(dims: Tuple[int, ...]):
             """
             solve
               min_{i in range(1,d)}  product(dims[:i]) + product(dims[i:])
             to minimize the memory footprint of the intermediate matrix
             """
             sum_of_prods = [
-                np.prod(dims[:i]) + np.prod(dims[i:]) for i in range(1, len(dims))
+                prod(dims[:i]) + prod(dims[i:]) for i in range(1, len(dims))
             ]
             i_min = np.argmin(sum_of_prods) + 1  # note range above starts at 1
             return i_min
@@ -1181,7 +1187,7 @@ class ktensor:
             vals = vals + tmpvals
         return vals
 
-    def mttkrp(self, U: Union[ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(self, U: Union[ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for :class:`pyttb.ktensor`.
 
@@ -1443,7 +1449,7 @@ class ktensor:
                     v[:, i] *= -1
         return v
 
-    def permute(self, order: np.ndarray) -> ktensor:
+    def permute(self, order: OneDArray) -> ktensor:
         """
         Permute :class:`pyttb.ktensor` dimensions.
 
@@ -1491,6 +1497,7 @@ class ktensor:
         [[1. 2.]
          [3. 4.]]
         """
+        order = parse_one_d(order)
         # Check that the permutation is valid
         if tuple(range(self.ndims)) != tuple(sorted(order.tolist())):
             assert False, "Invalid permutation"
@@ -1702,7 +1709,7 @@ class ktensor:
             best_perm = -1 * np.ones((RA), dtype=int)
             best_score = 0.0
             for _ in range(RB):
-                idx = np.argmax(C.reshape(np.prod(C.shape), order="F"))
+                idx = np.argmax(C.reshape(prod(C.shape), order="F"))
                 ij = tt_ind2sub((RA, RB), np.array(idx))
                 best_score = best_score + C[ij[0], ij[1]]
                 C[ij[0], :] = -10
@@ -1951,9 +1958,9 @@ class ktensor:
 
     def ttv(
         self,
-        vector: Union[List[np.ndarray], np.ndarray],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        vector: Union[Sequence[np.ndarray], np.ndarray],
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, ktensor]:
         """
         Tensor times vector for a :class:`pyttb.ktensor`.
@@ -2044,15 +2051,6 @@ class ktensor:
         [[1. 3.]
          [2. 4.]]
         """
-
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check vector is a list of vectors
         # if not place single vector as element in list
         if (
@@ -2093,7 +2091,7 @@ class ktensor:
             factor_matrices.append(self.factor_matrices[i])
         return ttb.ktensor(factor_matrices, new_weights, copy=False)
 
-    def update(self, modes: Union[int, Iterable[int]], data: np.ndarray) -> ktensor:
+    def update(self, modes: OneDArray, data: np.ndarray) -> ktensor:
         """
         Updates a :class:`pyttb.ktensor` in the specific dimensions with the
         values in `data` (in vector or matrix form). The value of `modes` must
@@ -2191,13 +2189,10 @@ class ktensor:
          [4. 4.]]
 
         """
-        if not isinstance(modes, int):
-            modes = np.array(modes)
-            assert np.all(
-                modes[:-1] <= modes[1:]
-            ), "Modes must be sorted in ascending order"
-        else:
-            modes = np.array([modes])
+        modes = parse_one_d(modes)
+        assert np.all(
+            modes[:-1] <= modes[1:]
+        ), "Modes must be sorted in ascending order"
 
         loc = 0  # Location in data array
         for k in modes:
@@ -2299,7 +2294,7 @@ class ktensor:
 
         Use plot K using default behavior K.vis()
 
-        >>> fig, axs = K.vis()  # doctest: +ELLIPSIS
+        >>> fig, axs = K.vis(show_figure=False)  # doctest: +ELLIPSIS
         >>> plt.close(fig)
 
         Define a more realistic plot fuctions with x labels,
@@ -2317,6 +2312,7 @@ class ktensor:
         ...     ax.set_xlabel("$E$, [kJ]")
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
         >>> fig, axs = K.vis(
+        ...     show_figure=False,
         ...     plots=plots,
         ...     rel_widths=[1, 2, 3],
         ...     horz_space=0.4,

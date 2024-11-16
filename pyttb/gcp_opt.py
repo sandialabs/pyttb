@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from math import prod
+from typing import Dict, Literal, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -24,7 +25,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
     rank: int,
     objective: Union[Objectives, Tuple[function_type, function_type, float]],
     optimizer: Union[StochasticSolver, LBFGSB],
-    init: Union[Literal["random"], ttb.ktensor, List[np.ndarray]] = "random",
+    init: Union[Literal["random"], ttb.ktensor, Sequence[np.ndarray]] = "random",
     mask: Optional[Union[ttb.tensor, np.ndarray]] = None,
     sampler: Optional[GCPSampler] = None,
     printitn: int = 1,
@@ -74,7 +75,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
     if not isinstance(data, (ttb.tensor, ttb.sptensor)):
         raise ValueError("Input data must be tensor or sptensor.")
 
-    tensor_size = int(np.prod(data.shape))
+    tensor_size = prod(data.shape)
 
     if isinstance(data, ttb.tensor) and isinstance(mask, ttb.tensor):
         data *= mask
@@ -134,7 +135,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
 def _get_initial_guess(
     data: Union[ttb.tensor, ttb.sptensor],
     rank: int,
-    init: Union[Literal["random"], ttb.ktensor, List[np.ndarray]],
+    init: Union[Literal["random"], ttb.ktensor, Sequence[np.ndarray]],
 ) -> ttb.ktensor:
     """Get initial guess for gcp_opt
 
@@ -143,7 +144,7 @@ def _get_initial_guess(
         Normalized ktensor.
     """
     # TODO might be nice to merge with ALS/other CP methods
-    if isinstance(init, list):
+    if isinstance(init, Sequence) and not isinstance(init, str):
         return ttb.ktensor(init).normalize("all")
     if isinstance(init, ttb.ktensor):
         init.normalize("all")
