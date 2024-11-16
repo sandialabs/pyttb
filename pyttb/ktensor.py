@@ -2299,7 +2299,7 @@ class ktensor:
 
         Use plot K using default behavior K.vis()
 
-        >>> fig, axs = K.vis()  # doctest: +ELLIPSIS
+        >>> fig, axs = K.vis(show_figure=False)  # doctest: +ELLIPSIS
         >>> plt.close(fig)
 
         Define a more realistic plot fuctions with x labels,
@@ -2317,6 +2317,7 @@ class ktensor:
         ...     ax.set_xlabel("$E$, [kJ]")
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
         >>> fig, axs = K.vis(
+        ...     show_figure=False,
         ...     plots=plots,
         ...     rel_widths=[1, 2, 3],
         ...     horz_space=0.4,
