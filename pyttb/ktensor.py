@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import warnings
+from math import prod
 from typing import (
     Callable,
     Iterable,
@@ -28,10 +29,12 @@ from matplotlib.figure import Figure
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
+    Shape,
     get_mttkrp_factors,
     isrow,
     isvector,
     np_to_python,
+    parse_shape,
     tt_dimscheck,
     tt_ind2sub,
 )
@@ -195,7 +198,7 @@ class ktensor:
     def from_function(
         cls,
         function_handle: Callable[[Tuple[int, ...]], np.ndarray],
-        shape: Tuple[int, ...],
+        shape: Shape,
         num_components: int,
     ):
         """
@@ -282,7 +285,7 @@ class ktensor:
         """
         # CONSTRUCTOR FROM FUNCTION HANDLE
         assert callable(function_handle), "Input parameter 'fun' must be a function."
-        assert isinstance(shape, tuple), "Input parameter 'shape' must be a tuple."
+        shape = parse_shape(shape)
         assert isinstance(
             num_components, int
         ), "Input parameter 'num_components' must be an int."
@@ -294,9 +297,7 @@ class ktensor:
         return cls(factor_matrices, weights, copy=False)
 
     @classmethod
-    def from_vector(
-        cls, data: np.ndarray, shape: Tuple[int, ...], contains_weights: bool
-    ):
+    def from_vector(cls, data: np.ndarray, shape: Shape, contains_weights: bool):
         """
         Construct a :class:`pyttb.ktensor` from a vector and shape. The rank of the
         :class:`pyttb.ktensor` is inferred from the shape and length of the vector.
@@ -366,7 +367,7 @@ class ktensor:
          [14. 18.]]
         """
         assert isvector(data), "Input parameter 'data' must be a numpy.array vector."
-        assert isinstance(shape, tuple), "Input parameter 'shape' must be a tuple."
+        shape = parse_shape(shape)
         assert isinstance(
             contains_weights, bool
         ), "Input parameter 'contains_weights' must be a bool."
@@ -893,14 +894,14 @@ class ktensor:
         <BLANKLINE>
         """
 
-        def min_split_dims(dims):
+        def min_split_dims(dims: Tuple[int, ...]):
             """
             solve
               min_{i in range(1,d)}  product(dims[:i]) + product(dims[i:])
             to minimize the memory footprint of the intermediate matrix
             """
             sum_of_prods = [
-                np.prod(dims[:i]) + np.prod(dims[i:]) for i in range(1, len(dims))
+                prod(dims[:i]) + prod(dims[i:]) for i in range(1, len(dims))
             ]
             i_min = np.argmin(sum_of_prods) + 1  # note range above starts at 1
             return i_min
@@ -1702,7 +1703,7 @@ class ktensor:
             best_perm = -1 * np.ones((RA), dtype=int)
             best_score = 0.0
             for _ in range(RB):
-                idx = np.argmax(C.reshape(np.prod(C.shape), order="F"))
+                idx = np.argmax(C.reshape(prod(C.shape), order="F"))
                 ij = tt_ind2sub((RA, RB), np.array(idx))
                 best_score = best_score + C[ij[0], ij[1]]
                 C[ij[0], :] = -10

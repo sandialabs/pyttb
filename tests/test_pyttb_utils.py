@@ -9,6 +9,7 @@ import pytest
 
 import pyttb as ttb
 import pyttb.pyttb_utils as ttb_utils
+from pyttb.pyttb_utils import parse_shape
 
 
 def test_tt_union_rows():
@@ -492,3 +493,10 @@ def test_get_index_variant_subtensor():
 
 def test_get_index_variant_unknown():
     assert ttb_utils.get_index_variant("a") == ttb_utils.IndexVariant.UNKNOWN
+
+
+def test_parse_shape():
+    with pytest.raises(ValueError):
+        parse_shape(np.ones((4,), dtype=float))
+    with pytest.raises(ValueError):
+        parse_shape(np.ones((4, 2), dtype=int))

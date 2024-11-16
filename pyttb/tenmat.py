@@ -6,12 +6,13 @@
 
 from __future__ import annotations
 
+from math import prod
 from typing import Optional, Tuple, Union
 
 import numpy as np
 
 import pyttb as ttb
-from pyttb.pyttb_utils import gather_wrap_dims, np_to_python
+from pyttb.pyttb_utils import Shape, gather_wrap_dims, np_to_python, parse_shape
 
 
 class tenmat:
@@ -27,7 +28,7 @@ class tenmat:
         data: Optional[np.ndarray] = None,
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
-        tshape: Optional[Tuple[int, ...]] = None,
+        tshape: Optional[Shape] = None,
         copy: bool = True,
     ):
         """
@@ -60,7 +61,7 @@ class tenmat:
         Create tensor shaped data.
 
         >>> tshape = (2, 2, 2)
-        >>> data = np.reshape(np.arange(np.prod(tshape), dtype=np.double), tshape)
+        >>> data = np.reshape(np.arange(prod(tshape), dtype=np.double), tshape)
         >>> data  # doctest: +NORMALIZE_WHITESPACE
         array([[[0., 1.],
                 [2., 3.]],
@@ -125,11 +126,10 @@ class tenmat:
         # use data.shape for tshape if not provided
         if tshape is None:
             tshape = data.shape
-        elif not isinstance(tshape, tuple):
-            assert False, "tshape must be a tuple."
+        tshape = parse_shape(tshape)
 
         # check that data.shape and tshape agree
-        if np.prod(data.shape) != np.prod(tshape):
+        if prod(data.shape) != prod(tshape):
             assert False, (
                 "Incorrect dimensions specified: products of data.shape and tuple do "
                 "not match"
@@ -142,7 +142,7 @@ class tenmat:
         # check that data.shape and product of dimensions agree
         if not np.prod(np.array(tshape)[rdims]) * np.prod(
             np.array(tshape)[cdims]
-        ) == np.prod(data.shape):
+        ) == prod(data.shape):
             assert (
                 False
             ), "data.shape does not match shape specified by rdims, cdims, and tshape."

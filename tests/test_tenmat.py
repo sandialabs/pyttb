@@ -174,12 +174,6 @@ def test_tenmat_initialization_from_data(
         ttb.tenmat(ndarrayInstance1, rdims, cdims, None)
     assert exc in str(excinfo)
 
-    # tshape is not a tuple
-    exc = "tshape must be a tuple."
-    with pytest.raises(AssertionError) as excinfo:
-        ttb.tenmat(ndarrayInstance2, rdims, cdims, list(tshape))
-    assert exc in str(excinfo)
-
     # products of tshape and data.shape do not match
     exc = (
         "Incorrect dimensions specified: products of data.shape and tuple do not match"

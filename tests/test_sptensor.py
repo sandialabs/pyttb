@@ -142,7 +142,7 @@ def test_sptensor_initialization_from_aggregator(sample_sptensor):
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_aggregator(
-            np.concatenate((subs, np.ones((6, 1))), axis=1), vals, shape
+            np.concatenate((subs, np.ones((6, 1), dtype=int)), axis=1), vals, shape
         )
     assert "More subscripts than specified by shape" in str(excinfo)
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from enum import Enum
 from inspect import signature
+from math import prod
 from typing import (
     Iterable,
     List,
@@ -22,6 +23,8 @@ from typing import (
 import numpy as np
 
 import pyttb as ttb
+
+Shape = Union[int, Iterable[int]]
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
@@ -255,9 +258,9 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
         X = inputs[0].data
         X = np.reshape(X, (1, -1))
     else:
-        X = np.zeros((len(inputs), np.prod(sz)))
+        X = np.zeros((len(inputs), prod(sz)))
         for i, an_input in enumerate(inputs):
-            X[i, :] = np.reshape(an_input.data, (np.prod(sz)))
+            X[i, :] = np.reshape(an_input.data, (prod(sz)))
     data = function_handle(X)
     data = np.reshape(data, sz)
     Z = ttb.tensor(data, copy=False)
@@ -516,7 +519,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     """
     if idx.size == 0:
         return np.empty(shape=(0, len(shape)), dtype=int)
-    idx[idx < 0] += np.prod(shape)  # Handle negative indexing as simply as possible
+    idx[idx < 0] += prod(shape)  # Handle negative indexing as simply as possible
     return np.array(np.unravel_index(idx, shape, order="F")).transpose()
 
 
@@ -698,7 +701,7 @@ def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
     else:
         ok = False
     if not ok and not nargout:
-        assert False, "Values must be in array"
+        assert False, f"Values must be in array but got {vals}"
     return ok
 
 
@@ -879,3 +882,40 @@ def np_to_python(
         element.item() if isinstance(element, np.generic) else element
         for element in iterable
     )
+
+
+def parse_shape(shape: Shape) -> Tuple[int, ...]:
+    """Provides more flexible shape support
+
+
+    Examples
+    --------
+    >>> integer_shape = 4
+    >>> parse_shape(integer_shape)
+    (4,)
+    >>> flat_numpy_shape = np.ones((4,), dtype=int)
+    >>> parse_shape(flat_numpy_shape)
+    (1, 1, 1, 1)
+    >>> stacked_numpy_shape = np.ones((4, 1, 1), dtype=int)
+    >>> parse_shape(stacked_numpy_shape)
+    (1, 1, 1, 1)
+    >>> list_shape = [1, 1, 1, 1]
+    >>> parse_shape(list_shape)
+    (1, 1, 1, 1)
+    """
+    # FIXME do we care to map numpy ints to python ints?
+    if isinstance(shape, (int, np.integer)):
+        return (shape,)
+    if isinstance(shape, np.ndarray):
+        if not np.issubdtype(shape.dtype, np.integer):
+            raise ValueError("Numpy arrays used as shapes must be integer valued")
+        if shape.squeeze().ndim != 1:
+            raise ValueError(
+                "Numpy arrays used as shapes can only have one non-trivial dimension"
+            )
+        return tuple(map(int, shape.squeeze()))
+
+    shape = tuple(shape)
+    if not all(isinstance(ele, (int, np.integer)) for ele in shape):
+        raise ValueError("Shapes entries must be integers")
+    return shape
