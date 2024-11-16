@@ -32,6 +32,7 @@ from scipy import sparse
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
+    OneDArray,
     Shape,
     gather_wrap_dims,
     get_index_variant,
@@ -422,7 +423,7 @@ class sptensor:
 
     def collapse(
         self,
-        dims: Optional[np.ndarray] = None,
+        dims: Optional[OneDArray] = None,
         function_handle: Callable[[np.ndarray], Union[float, np.ndarray]] = sum,
     ) -> Union[float, np.ndarray, sptensor]:
         """
@@ -463,9 +464,6 @@ class sptensor:
         >>> S.collapse(dims=np.array([0, 2]))
         array([6., 7.])
         """
-        if dims is None:
-            dims = np.arange(0, self.ndims)
-
         dims, _ = tt_dimscheck(self.ndims, dims=dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
 
@@ -1636,7 +1634,7 @@ class sptensor:
     def scale(
         self,
         factor: Union[np.ndarray, ttb.tensor, ttb.sptensor],
-        dims: Union[float, np.ndarray],
+        dims: OneDArray,
     ) -> sptensor:
         """
         Scale the :class:`pyttb.sptensor` along specified dimensions.
@@ -1681,8 +1679,6 @@ class sptensor:
         [0, 1, 2] = 24
         [0, 2, 2] = 27
         """
-        if isinstance(dims, (float, int)):
-            dims = np.array([dims])
         dims, _ = tt_dimscheck(self.ndims, dims=dims)
 
         if isinstance(factor, ttb.tensor):
@@ -1871,11 +1867,11 @@ class sptensor:
 
         return loc
 
-    def ttv(  # noqa: PLR0912
+    def ttv(
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[sptensor, ttb.tensor, float]:
         """
         Multiplication of the :class:`pyttb.sptensor` with a vector.
@@ -1949,14 +1945,6 @@ class sptensor:
         >>> S1.ttv(vectors)
         36.0
         """
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
@@ -3429,8 +3417,8 @@ class sptensor:
     def ttm(
         self,
         matrices: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[float, np.ndarray]] = None,
-        exclude_dims: Optional[Union[float, np.ndarray]] = None,
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
         transpose: bool = False,
     ) -> Union[ttb.tensor, sptensor]:
         """
@@ -3492,16 +3480,6 @@ class sptensor:
         data[1, 1, :, :] =
         [[0.]]
         """
-        if dims is None and exclude_dims is None:
-            dims = np.arange(self.ndims)
-        elif isinstance(dims, list):
-            dims = np.array(dims)
-        elif isinstance(dims, (float, int, np.generic)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Handle list of matrices
         if isinstance(matrices, list):
             # Check dimensions are valid
@@ -3520,9 +3498,9 @@ class sptensor:
         if transpose:
             matrices = matrices.transpose()
 
-        # FIXME: This made typing happy but shouldn't be possible
-        if not isinstance(dims, np.ndarray):  # pragma: no cover
-            raise ValueError("Dims should be an array here")
+        # This is slightly inefficient for the looping above
+        # consider short circuit
+        dims, _ = tt_dimscheck(self.ndims, None, dims, exclude_dims)
 
         # Ensure this is the terminal single dimension case
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):

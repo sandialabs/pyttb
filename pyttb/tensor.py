@@ -20,6 +20,7 @@ from scipy import sparse
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
+    OneDArray,
     Shape,
     gather_wrap_dims,
     get_index_variant,
@@ -1589,8 +1590,8 @@ class tensor:
     def ttv(
         self,
         vector: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, tensor]:
         """
         Tensor times vector.
@@ -1613,7 +1614,7 @@ class tensor:
         Parameters
         ----------
         vector:
-            Vector or vectors to multiple by.
+            Vector or vectors to multiply by.
         dims:
             Dimensions to multiply against.
         exclude_dims:
@@ -1637,14 +1638,6 @@ class tensor:
         >>> T.ttv([np.ones(2), np.ones(2)])
         10.0
         """
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check that vector is a list of vectors, if not place single vector as element
         # in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):

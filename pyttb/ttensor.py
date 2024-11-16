@@ -17,6 +17,7 @@ from scipy import sparse
 
 import pyttb as ttb
 from pyttb import pyttb_utils as ttb_utils
+from pyttb.pyttb_utils import OneDArray
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/sptensor."
 
@@ -343,8 +344,8 @@ class ttensor:
     def ttv(
         self,
         vector: Union[List[np.ndarray], np.ndarray],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, ttensor]:
         """
         TTensor times vector
@@ -358,15 +359,6 @@ class ttensor:
         exclude_dims:
             Alternative multiply by all dimensions but these.
         """
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        # TODO make helper function to check scalar since re-used many places
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
         if (

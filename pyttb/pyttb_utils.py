@@ -25,6 +25,7 @@ import numpy as np
 import pyttb as ttb
 
 Shape = Union[int, Iterable[int]]
+OneDArray = Union[int, float, Iterable[int], Iterable[float], np.ndarray]
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
@@ -76,8 +77,8 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 def tt_dimscheck(
     N: int,
     M: None = None,
-    dims: Optional[np.ndarray] = None,
-    exclude_dims: Optional[np.ndarray] = None,
+    dims: Optional[OneDArray] = None,
+    exclude_dims: Optional[OneDArray] = None,
 ) -> Tuple[np.ndarray, None]: ...  # pragma: no cover see coveragepy/issues/970
 
 
@@ -85,16 +86,16 @@ def tt_dimscheck(
 def tt_dimscheck(
     N: int,
     M: int,
-    dims: Optional[np.ndarray] = None,
-    exclude_dims: Optional[np.ndarray] = None,
+    dims: Optional[OneDArray] = None,
+    exclude_dims: Optional[OneDArray] = None,
 ) -> Tuple[np.ndarray, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
-def tt_dimscheck(
+def tt_dimscheck(  # noqa: PLR0912
     N: int,
     M: Optional[int] = None,
-    dims: Optional[np.ndarray] = None,
-    exclude_dims: Optional[np.ndarray] = None,
+    dims: Optional[OneDArray] = None,
+    exclude_dims: Optional[OneDArray] = None,
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """
     Used to preprocess dimensions for tensor dimensions
@@ -108,6 +109,10 @@ def tt_dimscheck(
     """
     if dims is not None and exclude_dims is not None:
         raise ValueError("Either specify dims to include or exclude, but not both")
+    if dims is not None:
+        dims = parse_one_d(dims)
+    if exclude_dims is not None:
+        exclude_dims = parse_one_d(exclude_dims)
 
     dim_array: np.ndarray = np.empty((1,))
 
@@ -125,7 +130,8 @@ def tt_dimscheck(
         dim_array = np.setdiff1d(np.arange(0, N), exclude_dims)
 
     # Fix empty case
-    if (dims is None or dims.size == 0) and exclude_dims is None:
+    # if (dims is None or dims.size == 0) and exclude_dims is None:
+    if dims is None and exclude_dims is None:
         dim_array = np.arange(0, N)
     elif isinstance(dims, np.ndarray):
         dim_array = dims
@@ -919,3 +925,44 @@ def parse_shape(shape: Shape) -> Tuple[int, ...]:
     if not all(isinstance(ele, (int, np.integer)) for ele in shape):
         raise ValueError("Shapes entries must be integers")
     return shape
+
+
+def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
+    """Provides more flexible vector support
+
+    Examples
+    --------
+    >>> int_scalar = 1
+    >>> parse_one_d(int_scalar)
+    array([1])
+    >>> np_int_scalar = np.int8(1)
+    >>> parse_one_d(np_int_scalar)
+    array([1], dtype=int8)
+    >>> float_scalar = 1.0
+    >>> parse_one_d(float_scalar)
+    array([1.])
+    >>> np_float_scalar = 1.0
+    >>> parse_one_d(np_float_scalar)
+    array([1.])
+    >>> example_list = [1.0, 1.0]
+    >>> parse_one_d(example_list)
+    array([1., 1.])
+    >>> extra_dims = np.array([[1, 1]])
+    >>> parse_one_d(extra_dims)
+    array([1, 1])
+    """
+    if isinstance(maybe_vector, (int, float, np.integer, np.floating)):
+        return np.array([maybe_vector])
+    if isinstance(maybe_vector, np.ndarray):
+        squeezed_vector = maybe_vector.squeeze()
+        if squeezed_vector.ndim == 1:
+            return squeezed_vector
+        elif squeezed_vector.ndim == 0:
+            # Squeezed to scalar so force vector
+            return squeezed_vector[None]
+        else:
+            raise ValueError(
+                "Vector can have at most one non-trivial dimension but "
+                f"had shape {maybe_vector.shape}"
+            )
+    return np.array(maybe_vector)

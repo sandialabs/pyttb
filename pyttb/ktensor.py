@@ -29,6 +29,7 @@ from matplotlib.figure import Figure
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
+    OneDArray,
     Shape,
     get_mttkrp_factors,
     isrow,
@@ -1953,8 +1954,8 @@ class ktensor:
     def ttv(
         self,
         vector: Union[List[np.ndarray], np.ndarray],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, ktensor]:
         """
         Tensor times vector for a :class:`pyttb.ktensor`.
@@ -2045,15 +2046,6 @@ class ktensor:
         [[1. 3.]
          [2. 4.]]
         """
-
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check vector is a list of vectors
         # if not place single vector as element in list
         if (
