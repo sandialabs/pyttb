@@ -14,6 +14,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Union,
     cast,
@@ -75,7 +76,7 @@ class ktensor:
 
     def __init__(
         self,
-        factor_matrices: Optional[List[np.ndarray]] = None,
+        factor_matrices: Optional[Sequence[np.ndarray]] = None,
         weights: Optional[np.ndarray] = None,
         copy: bool = True,
     ):
@@ -151,8 +152,8 @@ class ktensor:
             return
 
         # 'factor_matrices' must be a list
-        if not isinstance(factor_matrices, list):
-            assert False, "Input 'factor_matrices' must be a list."
+        if not isinstance(factor_matrices, Sequence):
+            assert False, "Input 'factor_matrices' must be a sequence."
         # each factor matrix should be a np.ndarray
         if not (
             all(isinstance(fm, np.ndarray) for fm in factor_matrices)
@@ -193,6 +194,9 @@ class ktensor:
         if copy:
             self.factor_matrices = [fm.copy() for fm in factor_matrices]
         else:
+            if not isinstance(factor_matrices, list):
+                logging.warning("Must provide factor matrices as list to avoid copy")
+                factor_matrices = list(factor_matrices)
             self.factor_matrices = factor_matrices
 
     @classmethod
@@ -1183,7 +1187,7 @@ class ktensor:
             vals = vals + tmpvals
         return vals
 
-    def mttkrp(self, U: Union[ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(self, U: Union[ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for :class:`pyttb.ktensor`.
 
@@ -1954,7 +1958,7 @@ class ktensor:
 
     def ttv(
         self,
-        vector: Union[List[np.ndarray], np.ndarray],
+        vector: Union[Sequence[np.ndarray], np.ndarray],
         dims: Optional[OneDArray] = None,
         exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, ktensor]:

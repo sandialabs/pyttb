@@ -1745,8 +1745,8 @@ def test_sptensor_mttkrp(sample_sptensor):
     assert "List of factor matrices is the wrong length" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.mttkrp("string", 0)
-    assert "Second argument must be list of numpy.ndarray's or a ktensor" in str(
+        sptensorInstance.mttkrp(5, 0)
+    assert "Second argument must be a sequence of numpy.ndarray's or a ktensor" in str(
         excinfo
     )
 

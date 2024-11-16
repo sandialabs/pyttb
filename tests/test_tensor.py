@@ -1616,7 +1616,7 @@ def test_tensor_mttkrp(sample_tensor_2way):
     # second argument not a ktensor or list
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance.mttkrp(5, 0)
-    assert "Second argument must be list of numpy.ndarray's or a ktensor" in str(
+    assert "Second argument must be a sequence of numpy.ndarray's or a ktensor" in str(
         excinfo
     )
 

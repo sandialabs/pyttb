@@ -15,7 +15,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    List,
     Literal,
     Optional,
     Tuple,
@@ -1244,7 +1243,7 @@ class sptensor:
         vals[matching_indices] = self.vals[matching_indices]
         return vals
 
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product using the
         :class:`pyttb.sptensor`. This is an efficient form of the matrix
@@ -1871,7 +1870,7 @@ class sptensor:
 
     def ttv(
         self,
-        vector: Union[np.ndarray, List[np.ndarray]],
+        vector: Union[np.ndarray, Sequence[np.ndarray]],
         dims: Optional[OneDArray] = None,
         exclude_dims: Optional[OneDArray] = None,
     ) -> Union[sptensor, ttb.tensor, float]:
@@ -3418,7 +3417,7 @@ class sptensor:
 
     def ttm(
         self,
-        matrices: Union[np.ndarray, List[np.ndarray]],
+        matrices: Union[np.ndarray, Sequence[np.ndarray]],
         dims: Optional[OneDArray] = None,
         exclude_dims: Optional[OneDArray] = None,
         transpose: bool = False,
@@ -3483,7 +3482,7 @@ class sptensor:
         [[0.]]
         """
         # Handle list of matrices
-        if isinstance(matrices, list):
+        if isinstance(matrices, Sequence):
             # Check dimensions are valid
             [dims, vidx] = tt_dimscheck(self.ndims, len(matrices), dims, exclude_dims)
             # Calculate individual products

@@ -11,9 +11,9 @@ from inspect import signature
 from math import prod
 from typing import (
     Iterable,
-    List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Union,
     get_args,
@@ -806,8 +806,8 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 
 
 def get_mttkrp_factors(
-    U: Union[ttb.ktensor, List[np.ndarray]], n: int, ndims: int
-) -> List[np.ndarray]:
+    U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int, ndims: int
+) -> Sequence[np.ndarray]:
     """Apply standard checks and type conversions for mttkrp factors"""
     if isinstance(U, ttb.ktensor):
         U = U.copy()
@@ -821,8 +821,8 @@ def get_mttkrp_factors(
         U = U.factor_matrices
 
     assert isinstance(
-        U, (list, np.ndarray)
-    ), "Second argument must be list of numpy.ndarray's or a ktensor"
+        U, (Sequence, np.ndarray)
+    ), "Second argument must be a sequence of numpy.ndarray's or a ktensor"
 
     assert len(U) == ndims, "List of factor matrices is the wrong length"
 

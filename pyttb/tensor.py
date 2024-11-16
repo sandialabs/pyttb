@@ -10,7 +10,17 @@ import logging
 from collections.abc import Iterable
 from itertools import combinations_with_replacement, permutations
 from math import factorial, prod
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union, overload
+from typing import (
+    Any,
+    Callable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    overload,
+)
 
 import numpy as np
 import scipy.sparse.linalg
@@ -871,7 +881,7 @@ class tensor:
         # Extract those non-zero values
         return self.data[tuple(wsubs.transpose())]
 
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product. The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
@@ -940,7 +950,7 @@ class tensor:
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
             return V
 
-    def mttkrps(self, U: Union[ttb.ktensor, List[np.ndarray]]) -> List[np.ndarray]:
+    def mttkrps(self, U: Union[ttb.ktensor, Sequence[np.ndarray]]) -> List[np.ndarray]:
         """
         Sequence of MTTKRP calculations for a tensor.
 
@@ -1390,9 +1400,9 @@ class tensor:
 
     def ttm(
         self,
-        matrix: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[float, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        matrix: Union[np.ndarray, Sequence[np.ndarray]],
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
         transpose: bool = False,
     ) -> tensor:
         """
@@ -1448,17 +1458,7 @@ class tensor:
         data[1, 1, :, :] =
         [[16.]]
         """
-        if dims is None and exclude_dims is None:
-            dims = np.arange(self.ndims)
-        elif isinstance(dims, list):
-            dims = np.array(dims)
-        elif isinstance(dims, (float, int, np.generic)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
-        if isinstance(matrix, list):
+        if isinstance(matrix, Sequence):
             # Check that the dimensions are valid
             dims, vidx = tt_dimscheck(self.ndims, len(matrix), dims, exclude_dims)
 
@@ -1591,7 +1591,7 @@ class tensor:
 
     def ttv(
         self,
-        vector: Union[np.ndarray, List[np.ndarray]],
+        vector: Union[np.ndarray, Sequence[np.ndarray]],
         dims: Optional[OneDArray] = None,
         exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, tensor]:
@@ -2756,7 +2756,7 @@ def mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
     return W_out
 
 
-def mttv_mid(W_in: np.ndarray, U_mid: List[np.ndarray]) -> np.ndarray:
+def mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
     """
     Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
 
