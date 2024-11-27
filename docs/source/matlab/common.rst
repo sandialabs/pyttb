@@ -1,6 +1,14 @@
 General key differences
 -----------------------
 
+Python Conventions
+^^^^^^^^^^^^^^^^^^
+We make extensive use of NumPy throughout the library so please see their
+`documentation for MATLAB users <https://numpy.org/doc/stable/user/numpy-for-matlab-users.html>`_.
+Otherwise some highlights are:
+
+* 0-indexing in python vs 1-indexing in MATLAB
+
 Data members
 ^^^^^^^^^^^^
 +-----------------+----------------------+------------------------------------------------------------------------+
