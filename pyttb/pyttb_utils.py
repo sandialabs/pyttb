@@ -9,10 +9,12 @@ from __future__ import annotations
 from enum import Enum
 from inspect import signature
 from typing import (
+    Any,
     Iterable,
     List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Union,
     get_args,
@@ -49,7 +51,7 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
            [1, 2],
            [3, 4]])
     """
-    # TODO ismember and uniqe are very similar in function
+    # TODO ismember and unique are very similar in function
     if MatrixA.size > 0:
         MatrixAUnique, idxA = np.unique(MatrixA, axis=0, return_index=True)
     else:
@@ -165,6 +167,7 @@ def tt_dimscheck(
     return sdims, vidx
 
 
+# Fixme: Needs types
 def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
     """
     Apply a function to each element in a tensor
@@ -334,7 +337,9 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     return location[valid]
 
 
-def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.ndarray:
+def tt_irenumber(
+    t: ttb.sptensor, shape: Tuple[int, ...], number_range: Sequence[IndexType]
+) -> np.ndarray:
     """
     RENUMBER indices for sptensor subsasgn
 
@@ -366,14 +371,14 @@ def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.nd
             # This appears to be inserting new keys as rows to our subs here
             newsubs = np.insert(newsubs, obj=i, values=r, axis=1)
         else:
-            if isinstance(r, list):
+            if not isinstance(r, np.ndarray):
                 r = np.array(r)  # noqa: PLW2901
             newsubs[:, i] = r[newsubs[:, i]]
     return newsubs
 
 
 def tt_renumber(
-    subs: np.ndarray, shape: Tuple[int, ...], number_range
+    subs: np.ndarray, shape: Tuple[int, ...], number_range: Sequence[IndexType]
 ) -> Tuple[np.ndarray, Tuple[int, ...]]:
     """
     RENUMBER indices for sptensor subsref
@@ -407,10 +412,18 @@ def tt_renumber(
                     if isinstance(number_range[i], (int, float, np.integer)):
                         newshape[i] = number_range[i]
                     else:
-                        newshape[i] = len(number_range[i])
+                        # This should be statically determinable but mypy unhappy
+                        # without assert
+                        number_range_i = number_range[i]
+                        assert not isinstance(number_range_i, (int, slice, np.integer))
+                        newshape[i] = len(number_range_i)
                 else:
                     # TODO get this length without generating the range
-                    newshape[i] = len(range(0, shape[i])[number_range[i]])
+                    #   This should be statically determinable but mypy unhappy
+                    #   without assert
+                    number_range_i = number_range[i]
+                    assert isinstance(number_range_i, slice)
+                    newshape[i] = len(range(0, shape[i])[number_range_i])
             else:
                 newsubs[:, i], newshape[i] = tt_renumberdim(
                     subs[:, i], shape[i], number_range[i]
@@ -419,7 +432,9 @@ def tt_renumber(
     return newsubs, tuple(newshape)
 
 
-def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]:
+def tt_renumberdim(
+    idx: np.ndarray, shape: int, number_range: IndexType
+) -> Tuple[int, int]:
     """
     RENUMBERDIM helper function for RENUMBER
 
@@ -436,12 +451,15 @@ def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]
     """
     # Determine the size of the new range
     if isinstance(number_range, (int, np.integer)):
+        number_range = [int(number_range)]
         newshape = 0
     elif isinstance(number_range, slice):
-        number_range = range(0, shape)[number_range]
+        number_range = list(range(0, shape))[number_range]
+        newshape = len(number_range)
+    elif isinstance(number_range, (Sequence, np.ndarray)):
         newshape = len(number_range)
     else:
-        newshape = len(number_range)
+        raise ValueError(f"Bad number range: {number_range}")
 
     # Create map from old range to the new range
     idx_map = np.zeros(shape=shape)
@@ -520,7 +538,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     return np.array(np.unravel_index(idx, shape, order="F")).transpose()
 
 
-def tt_subsubsref(obj, s):
+def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
     """
     Helper function for tensor toolbox subsref.
 
@@ -770,8 +788,8 @@ class IndexVariant(Enum):
 
 
 # We probably want to create a specific file for utility types
-LinearIndexType = Union[int, float, np.generic, slice]
-IndexType = Union[LinearIndexType, list, np.ndarray]
+LinearIndexType = Union[int, np.integer, slice]
+IndexType = Union[LinearIndexType, Sequence[int], np.ndarray]
 
 
 def get_index_variant(indices: IndexType) -> IndexVariant:
@@ -788,7 +806,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
             variant = IndexVariant.SUBSCRIPTS
     elif isinstance(indices, tuple):
         variant = IndexVariant.SUBTENSOR
-    elif isinstance(indices, list):
+    elif isinstance(indices, Sequence) and isinstance(indices[0], int):
         # TODO this is slightly redundant/inefficient
         key = np.array(indices)
         if len(key.shape) == 1 or key.shape[1] == 1:

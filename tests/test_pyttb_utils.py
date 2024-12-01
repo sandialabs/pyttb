@@ -469,7 +469,7 @@ def test_islogical_invalid():
 
 def test_get_index_variant_linear():
     assert ttb_utils.get_index_variant(1) == ttb_utils.IndexVariant.LINEAR
-    assert ttb_utils.get_index_variant(1.0) == ttb_utils.IndexVariant.LINEAR
+    assert ttb_utils.get_index_variant(1.0) == ttb_utils.IndexVariant.UNKNOWN
     assert ttb_utils.get_index_variant(slice(1, 5)) == ttb_utils.IndexVariant.LINEAR
     assert ttb_utils.get_index_variant(np.int32(2)) == ttb_utils.IndexVariant.LINEAR
     assert (
