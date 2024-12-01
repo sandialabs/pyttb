@@ -115,7 +115,7 @@ def test_tt_tenfun():
     # Scalar argument not in first two positions
     with pytest.raises(AssertionError) as excinfo:
         ttb_utils.tt_tenfun(tensor_max, t1, t1, 1)
-    assert "Argument 2 is a scalar but expected a tensor" in str(excinfo)
+    assert "Invalid input to ten fun" in str(excinfo)
 
     # Tensors of different sizes
     with pytest.raises(AssertionError) as excinfo:

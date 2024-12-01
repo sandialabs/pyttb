@@ -10,6 +10,7 @@ from enum import Enum
 from inspect import signature
 from typing import (
     Any,
+    Callable,
     Iterable,
     List,
     Literal,
@@ -17,6 +18,7 @@ from typing import (
     Sequence,
     Tuple,
     Union,
+    cast,
     get_args,
     overload,
 )
@@ -167,93 +169,135 @@ def tt_dimscheck(
     return sdims, vidx
 
 
-# Fixme: Needs types
-def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
+def tt_tenfun(
+    function_handle: Union[
+        Callable[[np.ndarray, np.ndarray], np.ndarray],
+        Callable[[np.ndarray], np.ndarray],
+    ],
+    *inputs: Union[
+        float,
+        int,
+        np.ndarray,
+        ttb.tensor,
+        ttb.ktensor,
+        ttb.ttensor,
+        ttb.sptensor,
+        ttb.sumtensor,
+    ],
+) -> ttb.tensor:
     """
-    Apply a function to each element in a tensor
+    Apply a function to each element in a tensor or tensors
 
-    Parameters
-    ----------
-    function_handle:
-        callable
-    inputs:
-        tensor type, or np.array
-
-    Returns
-    -------
-    :class:`pyttb.tensor`
+    See :meth:`tt_tenfun_binary` and :meth:`tt_tenfun_binary_unary` for supported
+    options.
     """
-    # Allow inputs to be mutable in case of type conversion
-    inputs = list(inputs)
-
     if len(inputs) == 0:
         assert False, "Must provide element(s) to perform operation on"
 
     assert callable(function_handle), "function_handle must be callable"
-
-    # Convert inputs to tensors if they aren't already
-    for i, an_input in enumerate(inputs):
-        if isinstance(an_input, (ttb.tensor, float, int)):
-            continue
-        if isinstance(an_input, np.ndarray):
-            inputs[i] = ttb.tensor(an_input)
-        elif isinstance(
-            an_input,
-            (
-                ttb.ktensor,
-                ttb.ttensor,
-                ttb.sptensor,
-                ttb.sumtensor,
-                ttb.symtensor,
-                ttb.symktensor,
-            ),
-        ):
-            inputs[i] = an_input.to_tensor()
-        else:
-            assert False, "Invalid input to ten fun"
-
-    # It's ok if there are two input and one is a scalar; otherwise all inputs have to
-    # be the same size
-    if (
-        (len(inputs) == 2)
-        and isinstance(inputs[0], (float, int))
-        and isinstance(inputs[1], ttb.tensor)
-    ):
-        sz = inputs[1].shape
-    elif (
-        (len(inputs) == 2)
-        and isinstance(inputs[1], (float, int))
-        and isinstance(inputs[0], ttb.tensor)
-    ):
-        sz = inputs[0].shape
-    else:
-        for i, an_input in enumerate(inputs):
-            if isinstance(an_input, (float, int)):
-                assert False, f"Argument {i} is a scalar but expected a tensor"
-            elif i == 0:
-                sz = an_input.shape
-            elif sz != an_input.shape:
-                assert (
-                    False
-                ), f"Tensor {i} is not the same size as the first tensor input"
 
     # Number of inputs for function handle
     nfunin = len(signature(function_handle).parameters)
 
     # Case I: Binary function
     if len(inputs) == 2 and nfunin == 2:
+        # We manually inspected the function handle for the parameters
+        # maybe there is a more clever way to convince mypy
+        binary_function_handle = cast(
+            Callable[[np.ndarray, np.ndarray], np.ndarray], function_handle
+        )
         X = inputs[0]
+        if not isinstance(X, (int, float)):
+            X = _tt_to_tensor(X)
         Y = inputs[1]
-        if not isinstance(X, (float, int)):
-            X = X.data
-        if not isinstance(Y, (float, int)):
-            Y = Y.data
+        if not isinstance(Y, (int, float)):
+            Y = _tt_to_tensor(Y)
+        return tt_tenfun_binary(binary_function_handle, X, Y)
 
-        data = function_handle(X, Y)
-        Z = ttb.tensor(data, copy=False)
-        return Z
+    # Convert inputs to tensors if they aren't already
+    # Allow inputs to be mutable in case of type conversion
+    input_tensors: list[Union[ttb.tensor]] = []
+    for an_input in inputs:
+        if not isinstance(
+            an_input,
+            (
+                np.ndarray,
+                ttb.tensor,
+                ttb.ktensor,
+                ttb.ttensor,
+                ttb.sptensor,
+                ttb.sumtensor,
+            ),
+        ):
+            assert (
+                False
+            ), f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
+        input_tensors.append(_tt_to_tensor(an_input))
 
     # Case II: Expects input to be matrix and applies operation on each columns
+    if nfunin != 1:
+        raise ValueError(
+            "Tenfun only supports binary and unary function handles but provided "
+            "function handle takes {nfunin} arguments."
+        )
+    unary_function_handle = cast(Callable[[np.ndarray], np.ndarray], function_handle)
+    return tt_tenfun_unary(unary_function_handle, *input_tensors)
+
+
+def tt_tenfun_binary(
+    function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray],
+    first: Union[ttb.tensor, int, float],
+    second: Union[ttb.tensor, int, float],
+) -> ttb.tensor:
+    """Apply a binary operation to two tensors or a tensor and a scalar.
+
+    Example
+    -------
+    >>> add = lambda x, y: x + y
+    >>> t0 = ttb.tenones((2, 2))
+    >>> t1 = tt_tenfun_binary(add, t0, t0)
+    >>> t1.isequal(t0 * 2)
+    True
+    >>> t2 = tt_tenfun_binary(add, t0, 1)
+    >>> t2.isequal(t1)
+    True
+    """
+    if not isinstance(first, (float, int)):
+        X = first.data
+    else:
+        X = np.array(first)
+    if not isinstance(second, (float, int)):
+        Y = second.data
+    else:
+        Y = np.array(second)
+
+    data = function_handle(X, Y)
+    Z = ttb.tensor(data, copy=False)
+    return Z
+
+
+def tt_tenfun_unary(
+    function_handle: Callable[[np.ndarray], np.ndarray], *inputs: ttb.tensor
+) -> ttb.tensor:
+    """Apply a unary operation to multiple tensors columnwise.
+
+    Example
+    -------
+    >>> tensor_max = lambda x: np.max(x, axis=0)
+    >>> data = np.array([[1, 2, 3], [4, 5, 6]])
+    >>> t0 = ttb.tensor(data)
+    >>> t1 = ttb.tensor(data)
+    >>> t2 = tt_tenfun_unary(tensor_max, t0, t1)
+    >>> t2.isequal(t1)
+    True
+    """
+    for i, an_input in enumerate(inputs):
+        if isinstance(an_input, (float, int)):
+            assert False, f"Argument {i} is a scalar but expected a tensor"
+        elif i == 0:
+            sz = an_input.shape
+        elif sz != an_input.shape:
+            assert False, f"Tensor {i} is not the same size as the first tensor input"
     if len(inputs) == 1:
         X = inputs[0].data
         X = np.reshape(X, (1, -1))
@@ -265,6 +309,23 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
     data = np.reshape(data, sz)
     Z = ttb.tensor(data, copy=False)
     return Z
+
+
+def _tt_to_tensor(
+    some_tensor: Union[
+        np.ndarray,
+        ttb.tensor,
+        ttb.ktensor,
+        ttb.ttensor,
+        ttb.sptensor,
+        ttb.sumtensor,
+    ],
+) -> ttb.tensor:
+    if isinstance(some_tensor, np.ndarray):
+        return ttb.tensor(some_tensor)
+    elif isinstance(some_tensor, ttb.tensor):
+        return some_tensor
+    return some_tensor.to_tensor()
 
 
 def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:

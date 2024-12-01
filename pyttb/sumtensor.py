@@ -247,6 +247,12 @@ class sumtensor:
         """
         return self.__add__(other)
 
+    def to_tensor(self) -> ttb.tensor:
+        """
+        Same as :meth:`pyttb.sumtensor.full`.
+        """
+        return self.full()
+
     def full(self) -> ttb.tensor:
         """
         Convert a :class:`pyttb.sumtensor` to a :class:`pyttb.tensor`.
