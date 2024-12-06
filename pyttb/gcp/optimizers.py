@@ -244,7 +244,7 @@ class StochasticSolver(ABC):
 class SGD(StochasticSolver):
     """General Stochastic Gradient Descent."""
 
-    def update_step( #noqa: D102
+    def update_step(  # noqa: D102
         self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
     ) -> Tuple[List[np.ndarray], float]:
         step = self._decay**self._nfails * self._rate
@@ -254,7 +254,7 @@ class SGD(StochasticSolver):
         ]
         return factor_matrices, step
 
-    def set_failed_epoch(self): #noqa: D102
+    def set_failed_epoch(self):  # noqa: D102
         # No additional internal state for SGD
         pass
 
@@ -318,14 +318,14 @@ class Adam(StochasticSolver):
         self._v: List[np.ndarray] = []
         self._v_prev: List[np.ndarray] = []
 
-    def set_failed_epoch( #noqa: D102
+    def set_failed_epoch(  # noqa: D102
         self,
     ):
         self._total_iterations -= self._epoch_iters
         self._m = self._m_prev.copy()
         self._v = self._v_prev.copy()
 
-    def update_step( #noqa: D102
+    def update_step(  # noqa: D102
         self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
     ) -> Tuple[List[np.ndarray], float]:
         if self._total_iterations == 0:
@@ -387,12 +387,12 @@ class Adagrad(StochasticSolver):
         )
         self._gnormsum = 0.0
 
-    def set_failed_epoch( #noqa: D102
+    def set_failed_epoch(  # noqa: D102
         self,
     ):
         self._gnormsum = 0.0
 
-    def update_step( #noqa: D102
+    def update_step(  # noqa: D102
         self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
     ) -> Tuple[List[np.ndarray], float]:
         self._gnormsum += np.sum([np.sum(gk**2) for gk in gradient])

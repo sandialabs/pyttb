@@ -481,7 +481,7 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
     Returns
     -------
     Still uncertain to this functionality
-    """ # noqa: D401
+    """  # noqa: D401
     # TODO figure out when subsref yields key of length>1 for now ignore this logic and
     #  just return
     # if len(s) == 1:

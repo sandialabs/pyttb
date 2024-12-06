@@ -1699,6 +1699,7 @@ def calc_grad(
     grad_row = (np.ones(phi_row.shape) - phi_row).transpose()
     return grad_row, phi_row
 
+
 # TODO verify what pi is
 # Mu helper functions
 def calculate_pi(
