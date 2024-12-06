@@ -62,8 +62,7 @@ class tensor:
         shape: Optional[Tuple[int, ...]] = None,
         copy: bool = True,
     ):
-        """
-        Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
+        """Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`.
 
         Note that 1D tensors (i.e., when len(shape)==1) contains a data
         array that follow the Numpy convention of being a row vector.
@@ -78,7 +77,7 @@ class tensor:
             Whether to make a copy of provided data or just reference it.
 
         Examples
-        -------
+        --------
         Create an empty :class:`pyttb.tensor`:
 
         >>> T = ttb.tensor()
@@ -142,9 +141,7 @@ class tensor:
         function_handle: Callable[[Tuple[int, ...]], np.ndarray],
         shape: Tuple[int, ...],
     ) -> tensor:
-        """
-        Construct a :class:`pyttb.tensor` whose data entries are set using
-        a function.
+        """Construct a :class:`pyttb.tensor` with data from a function.
 
         Parameters
         ----------
@@ -206,6 +203,7 @@ class tensor:
         return ttb.tensor(self.data, self.shape, copy=True)
 
     def __deepcopy__(self, memo):
+        """Return deep copy of this tensor."""
         return self.copy()
 
     def collapse(
@@ -422,8 +420,7 @@ class tensor:
         return subs, vals
 
     def to_sptensor(self) -> ttb.sptensor:
-        """
-        Contruct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`
+        """Contruct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`.
 
         Returns
         -------
@@ -466,9 +463,7 @@ class tensor:
         ] = None,
         copy: bool = True,
     ) -> ttb.tenmat:
-        """
-        Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor` and
-        unwrapping details.
+        """Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor`.
 
         Parameters
         ----------
@@ -583,9 +578,7 @@ class tensor:
     def innerprod(
         self, other: Union[tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
-        """
-        Efficient inner product between a tensor and other `pyttb` tensors
-        (`tensor`, `sptensor`, `ktensor`, or `ttensor`).
+        """Efficient inner product between a tensor and other `pyttb` tensors.
 
         Parameters
         ----------
@@ -870,8 +863,9 @@ class tensor:
         return self.data[tuple(wsubs.transpose())]
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
-        """
-        Matricized tensor times Khatri-Rao product. The matrices used in the
+        """Matricized tensor times Khatri-Rao product.
+
+        The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
         factor matrices are used) or as a list of :class:`numpy.ndarray` objects.
 
@@ -894,7 +888,6 @@ class tensor:
         array([[4., 4.],
                [4., 4.]])
         """
-
         # check that we have a tensor that can perform mttkrp
         if self.ndims < 2:
             assert False, "MTTKRP is invalid for tensors with fewer than 2 dimensions"
@@ -1012,8 +1005,9 @@ class tensor:
         return np.count_nonzero(self.data)
 
     def norm(self) -> float:
-        """
-        Frobenius norm of the tensor, defined as the square root of the sum of the
+        """Frobenius norm of the tensor.
+
+        Defined as the square root of the sum of the
         squares of the elements of the tensor.
 
         Examples
@@ -1086,8 +1080,9 @@ class tensor:
         return v
 
     def permute(self, order: np.ndarray) -> tensor:
-        """
-        Permute tensor dimensions. The result is a tensor that has the
+        """Permute tensor dimensions.
+
+        The result is a tensor that has the
         same values, but the order of the subscripts needed to access
         any particular element are rearranged as specified by `order`.
 
@@ -1214,8 +1209,7 @@ class tensor:
         return ttb.tenmat(result, dims, remdims, self.shape, copy=False).to_tensor()
 
     def squeeze(self) -> Union[tensor, float]:
-        """
-        Removes singleton dimensions from the tensor.
+        """Remove singleton dimensions from the tensor.
 
         Returns
         -------
@@ -1773,8 +1767,7 @@ class tensor:
             ttb.sumtensor,
         ],
     ) -> ttb.tensor:
-        """
-        Apply a function to each element in a tensor or tensors
+        """Apply a function to each element in a tensor or tensors.
 
         See :meth:`pyttb.tensor.tenfun_binary` and
         :meth:`pyttb.tensor.tenfun_binary_unary` for supported
@@ -2441,8 +2434,7 @@ class tensor:
         return self.tenfun(tensor_add, other)
 
     def __radd__(self, other):
-        """
-        Right binary addition (+) for tensors
+        """Right binary addition (+) for tensors.
 
         Parameters
         ----------
@@ -2491,8 +2483,7 @@ class tensor:
         return self.tenfun(tensor_pow, power)
 
     def __mul__(self, other):
-        """
-        Element-wise multiplication (*) for tensors, self*other
+        """Element-wise multiplication (*) for tensors, self*other.
 
         Parameters
         ----------
@@ -2526,8 +2517,7 @@ class tensor:
         return self.tenfun(mul, other)
 
     def __rmul__(self, other):
-        """
-        Element wise right multiplication (*) for tensors, other*self
+        """Element wise right multiplication (*) for tensors, other*self.
 
         Parameters
         ----------
@@ -2549,8 +2539,7 @@ class tensor:
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        """
-        Element-wise left division (/) for tensors, self/other
+        """Element-wise left division (/) for tensors, self/other.
 
         Parameters
         ----------
@@ -2584,8 +2573,7 @@ class tensor:
         return self.tenfun(div, other)
 
     def __rtruediv__(self, other):
-        """
-        Element wise right division (/) for tensors, other/self
+        """Element wise right division (/) for tensors, other/self.
 
         Parameters
         ----------
@@ -2650,12 +2638,10 @@ class tensor:
         [[-1 -2]
          [-3 -4]]
         """
-
         return ttb.tensor(-1 * self.data)
 
     def __repr__(self):
-        """
-        String representation of the tensor.
+        """Return string representation of the tensor.
 
         Returns
         -------
@@ -2714,8 +2700,7 @@ class tensor:
 
 
 def tenones(shape: Tuple[int, ...]) -> tensor:
-    """
-    Creates a tensor of all ones.
+    """Create a tensor of all ones.
 
     Parameters
     ----------
@@ -2745,8 +2730,7 @@ def tenones(shape: Tuple[int, ...]) -> tensor:
 
 
 def tenzeros(shape: Tuple[int, ...]) -> tensor:
-    """
-    Creates a tensor of all zeros.
+    """Create a tensor of all zeros.
 
     Parameters
     ----------
@@ -2776,9 +2760,7 @@ def tenzeros(shape: Tuple[int, ...]) -> tensor:
 
 
 def tenrand(shape: Tuple[int, ...]) -> tensor:
-    """
-    Creates a tensor with entries drawn from a uniform
-    distribution on the unit interval.
+    """Create a tensor with entries drawn from a uniform distribution on [0, 1].
 
     Parameters
     ----------
@@ -2808,9 +2790,9 @@ def tenrand(shape: Tuple[int, ...]) -> tensor:
 
 
 def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> tensor:
-    """
-    Creates a tensor with elements along super diagonal. If provided shape is too
-    small the tensor will be enlarged to accomodate.
+    """Create a tensor with elements along super diagonal.
+
+    If provided shape is too small the tensor will be enlarged to accomodate.
 
     Parameters
     ----------
@@ -2893,8 +2875,8 @@ def teneye(order: int, size: int) -> tensor:
 
 
 def mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
-    """
-    Contract leading mode in partial MTTKRP W_in using factor matrix U1.
+    """Contract leading mode in partial MTTKRP W_in using factor matrix U1.
+
     The leading mode is the mode for which consecutive increases in index address
     elements at consecutive increases in the memory offset.
 

@@ -1,4 +1,4 @@
-"""Tucker Tensor Implementation"""
+"""Tucker Tensor Implementation."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -22,9 +22,7 @@ ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/spte
 
 
 class ttensor:
-    """
-    TTENSOR Class for Tucker tensors (decomposed).
-    """
+    """Class for Tucker tensors (decomposed)."""
 
     __slots__ = ("core", "factor_matrices")
 
@@ -117,10 +115,11 @@ class ttensor:
         return ttb.ttensor(self.core, self.factor_matrices, copy=True)
 
     def __deepcopy__(self, memo):
+        """Return deepcopy of class."""
         return self.copy()
 
     def _validate_ttensor(self):
-        """Verifies the validity of constructed ttensor"""
+        """Verify constructed ttensor."""
         # Confirm all factors are matrices
         for factor_idx, factor in enumerate(self.factor_matrices):
             if not isinstance(factor, (np.ndarray, sparse.coo_matrix)):
@@ -154,8 +153,7 @@ class ttensor:
         return tuple(factor.shape[0] for factor in self.factor_matrices)
 
     def __repr__(self):  # pragma: no cover
-        """
-        String representation of a tucker tensor.
+        """Return string representation of a tucker tensor.
 
         Returns
         -------
@@ -174,7 +172,8 @@ class ttensor:
     __str__ = __repr__
 
     def to_tensor(self) -> ttb.tensor:
-        """Convenience method to convert to tensor.
+        """Convert to tensor.
+
         Same as :meth:`pyttb.ttensor.full`
         """
         return self.full()
@@ -189,8 +188,7 @@ class ttensor:
         return recomposed_tensor
 
     def double(self) -> np.ndarray:
-        """
-        Convert ttensor to an array of doubles
+        """Convert ttensor to an array of doubles.
 
         Returns
         -------
@@ -210,8 +208,7 @@ class ttensor:
         return len(self.factor_matrices)
 
     def isequal(self, other: ttensor) -> bool:
-        """
-        Component equality for ttensors
+        """Component equality for ttensors.
 
         Parameters
         ----------
@@ -241,12 +238,10 @@ class ttensor:
         -------
         :class:`pyttb.ttensor`, copy of tensor
         """
-
         return self.copy()
 
     def __neg__(self):
-        """
-        Unary minus (-) for ttensors
+        """Unary minus (-) for ttensors.
 
         Returns
         -------
@@ -257,8 +252,7 @@ class ttensor:
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
-        """
-        Efficient inner product with a ttensor
+        """Efficient inner product with a ttensor.
 
         Parameters
         ----------
@@ -306,8 +300,7 @@ class ttensor:
         )
 
     def __mul__(self, other):
-        """
-        Element wise multiplication (*) for ttensors (only scalars supported)
+        """Element wise multiplication (*) for ttensors (only scalars supported).
 
         Parameters
         ----------
@@ -325,8 +318,7 @@ class ttensor:
         )
 
     def __rmul__(self, other):
-        """
-        Element wise right multiplication (*) for ttensors (only scalars supported)
+        """Element wise right multiplication (*) for ttensors (only scalars supported).
 
         Parameters
         ----------
@@ -346,8 +338,7 @@ class ttensor:
         dims: Optional[Union[int, np.ndarray]] = None,
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
     ) -> Union[float, ttensor]:
-        """
-        TTensor times vector
+        """TTensor times vector.
 
         Parameters
         ----------
@@ -436,6 +427,7 @@ class ttensor:
     def norm(self) -> float:
         """
         Compute the norm of a ttensor.
+
         Returns
         -------
         Frobenius norm of Tensor.
@@ -480,8 +472,7 @@ class ttensor:
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
         transpose: bool = False,
     ) -> ttensor:
-        """
-        Tensor times matrix for ttensor
+        """Tensor times matrix for ttensor.
 
         Parameters
         ----------

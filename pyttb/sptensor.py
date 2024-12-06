@@ -87,8 +87,9 @@ class sptensor:
         shape: Optional[Tuple[int, ...]] = None,
         copy: bool = True,
     ):
-        """
-        Construct a :class:`pyttb.sptensor` from a set of `subs` (subscripts),
+        """Construct a :class:`pyttb.sptensor`.
+
+         Constructed from a set of `subs` (subscripts),
         `vals` (values), and `shape`. No validation is performed. For
         initializer with error checking see :meth:`from_aggregator`.
 
@@ -171,8 +172,9 @@ class sptensor:
         shape: Tuple[int, ...],
         nonzeros: float,
     ) -> sptensor:
-        """
-        Construct a :class:`pyttb.sptensor` whose nonzeros are set using a
+        """Construct a :class:`pyttb.sptensor`.
+
+        Constructed with nonzeros set using a
         function. The subscripts of the nonzero elements of the sparse tensor
         are generated randomly using `numpy`, so calling `numpy.random.seed()`
         before using this method will provide reproducible results.
@@ -254,8 +256,9 @@ class sptensor:
         shape: Optional[Tuple[int, ...]] = None,
         function_handle: Union[str, Callable[[Any], Union[float, np.ndarray]]] = "sum",
     ) -> sptensor:
-        """
-        Construct a :class:`pyttb.sptensor` from a set of `subs` (subscripts),
+        """Construct a :class:`pyttb.sptensor`.
+
+         Constructed from a set of `subs` (subscripts),
         `vals` (values), and `shape` after an aggregation function is applied
         to the values.
 
@@ -374,6 +377,7 @@ class sptensor:
         return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
 
     def __deepcopy__(self, memo):
+        """Return deep copy of this sptensor."""
         return self.copy()
 
     def allsubs(self) -> np.ndarray:
@@ -488,8 +492,9 @@ class sptensor:
         return ttb.sptensor(np.array([]), np.array([]), tuple(newsize), copy=False)
 
     def contract(self, i_0: int, i_1: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
-        """
-        Contract the :class:`pyttb.sptensor` along two dimensions. If the
+        """Contract the :class:`pyttb.sptensor` along two dimensions.
+
+        If the
         result is sufficiently dense, it is returned as a
         :class:`pyttb.tensor`.
 
@@ -585,9 +590,9 @@ class sptensor:
         return a
 
     def elemfun(self, function_handle: Callable[[np.ndarray], np.ndarray]) -> sptensor:
-        """
-        Apply a function to the nonzero elements of the
-        :class:`pyttb.sptensor`. Returns a copy of the sparse tensor, with the
+        """Apply a function to the nonzero elements of the :class:`pyttb.sptensor`.
+
+        Returns a copy of the sparse tensor, with the
         updated values.
 
         Parameters
@@ -668,7 +673,8 @@ class sptensor:
         return self.subs, self.vals
 
     def to_tensor(self) -> ttb.tensor:
-        """
+        """Convert to dense tensor.
+
         Same as :meth:`pyttb.sptensor.full`.
         """
         return self.full()
@@ -715,9 +721,7 @@ class sptensor:
             Union[Literal["fc"], Literal["bc"], Literal["t"]]
         ] = None,
     ) -> ttb.sptenmat:
-        """
-        Construct a :class:`pyttb.sptenmat` from a :class:`pyttb.sptensor` and
-        unwrapping details.
+        """Construct a :class:`pyttb.sptenmat` from a :class:`pyttb.sptensor`.
 
         Parameters
         ----------
@@ -825,9 +829,7 @@ class sptensor:
     def innerprod(
         self, other: Union[sptensor, ttb.tensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
-        """
-        Compute inner product of the :class:`pyttb.sptensor` with another
-        tensor.
+        """Compute inner product of the :class:`pyttb.sptensor` with another tensor.
 
         Parameters
         ----------
@@ -894,9 +896,9 @@ class sptensor:
         assert False, f"Inner product between sptensor and {type(other)} not supported"
 
     def isequal(self, other: Union[sptensor, ttb.tensor]) -> bool:
-        """
-        Determine if the :class:`pyttb.sptensor` is equal to another tensor,
-        where all elements are exactly the same in both tensors.
+        """Determine if the :class:`pyttb.sptensor` is equal to another tensor.
+
+        Equal when all elements are exactly the same in both tensors.
 
         Parameters
         ----------
@@ -1174,8 +1176,8 @@ class sptensor:
         assert False, "The argument must be an sptensor, tensor or scalar"
 
     def mask(self, W: sptensor) -> np.ndarray:
-        """
-        Extract values of the :class:`pyttb.sptensor` as specified by `W`.
+        """Extract values of the :class:`pyttb.sptensor` as specified by `W`.
+
         The values in the sparse tensor corresponding to ones (1) in `W`
         will be returned as a column vector.
 
@@ -1236,9 +1238,9 @@ class sptensor:
         return vals
 
     def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
-        """
-        Matricized tensor times Khatri-Rao product using the
-        :class:`pyttb.sptensor`. This is an efficient form of the matrix
+        """Matricized tensor times Khatri-Rao product using :class:`pyttb.sptensor`.
+
+        This is an efficient form of the matrix
         product that avoids explicitly computing the matricized sparse tensor
         and the large intermediate Khatri-Rao product arrays.
 
@@ -1350,9 +1352,10 @@ class sptensor:
         return self.subs.shape[0]
 
     def norm(self) -> float:
-        """
-        Compute the norm (i.e., Frobenius norm, or square root of the sum of
-        squares of entries) of the :class:`pyttb.sptensor`.
+        """Compute the norm of the :class:`pyttb.sptensor`.
+
+        Frobenius norm, or square root of the sum of
+        squares of entries.
 
         Examples
         --------
@@ -1477,8 +1480,9 @@ class sptensor:
         return ttb.sptensor(self.subs, oneVals, self.shape)
 
     def permute(self, order: np.ndarray) -> sptensor:
-        """
-        Permute the :class:`pyttb.sptensor` dimensions. The result is a new
+        """Permute the :class:`pyttb.sptensor` dimensions.
+
+        The result is a new
         sparse tensor that has the same values, but the order of the
         subscripts needed to access any particular element are rearranged
         as specified by `order`.
@@ -1529,9 +1533,9 @@ class sptensor:
         new_shape: Tuple[int, ...],
         old_modes: Optional[Union[np.ndarray, int]] = None,
     ) -> sptensor:
-        """
-        Reshape the :class:`pyttb.sptensor` to the have shape specified in
-        `new_shape`. If `old_modes` is specified, reshape only those modes of
+        """Reshape the :class:`pyttb.sptensor` to the `new_shape`.
+
+        If `old_modes` is specified, reshape only those modes of
         the sparse tensor, moving newly reshaped modes to the end of the
         subscripts; otherwise use all modes. The product of the new shape
         must equal the product of the old shape.
@@ -1702,9 +1706,7 @@ class sptensor:
         assert False, "Invalid scaling factor"
 
     def spmatrix(self) -> sparse.coo_matrix:
-        """
-        Converts a 2-way :class:`pyttb.sptensor` to a
-        :class:`scipy.sparse.coo_matrix`.
+        """Convert 2-way :class:`pyttb.sptensor` to :class:`scipy.sparse.coo_matrix`.
 
         Examples
         --------
@@ -1735,8 +1737,7 @@ class sptensor:
         )
 
     def squeeze(self) -> Union[sptensor, float]:
-        """
-        Removes singleton dimensions from the :class:`pyttb.sptensor`.
+        """Remove singleton dimensions from the :class:`pyttb.sptensor`.
 
         Examples
         --------
@@ -2991,7 +2992,7 @@ class sptensor:
         assert False, "This object cannot be multiplied by sptensor"
 
     def _compare(self, other, operator, opposite_operator, include_zero=False):  # noqa: PLR0912
-        """Generalized Comparison operation
+        """Generalized Comparison operation.
 
         Parameters
         ----------
@@ -3220,8 +3221,8 @@ class sptensor:
         return self._compare(other, gt, lt)
 
     def __truediv__(self, other):  # noqa: PLR0912, PLR0915
-        """
-        Element-wise left division operator (/).
+        """Element-wise left division operator (/).
+
         Comparisons with empty tensors raise an exception.
 
         Parameters
@@ -3250,7 +3251,6 @@ class sptensor:
         sparse tensor of shape (2, 2) with 1 nonzeros
         [1, 1] = 0.66666...
         """
-
         # Divide by a scalar -> result is sparse
         if isinstance(other, (float, int)):
             # Inline mrdivide
@@ -3374,8 +3374,7 @@ class sptensor:
         assert False, "Dividing that object by an sptensor is not supported"
 
     def __repr__(self):  # pragma: no cover
-        """
-        String representation of a :class:`pyttb.sptensor`.
+        """Return string representation of a :class:`pyttb.sptensor`.
 
         Examples
         --------
@@ -3611,8 +3610,9 @@ def sptenrand(
     density: Optional[float] = None,
     nonzeros: Optional[float] = None,
 ) -> sptensor:
-    """
-    Create a :class:`pyttb.sptensor` with entries drawn from a uniform
+    """Create a :class:`pyttb.sptensor` with random entries and indices.
+
+    Entries drawn from a uniform
     distribution on the unit interval and indices selected using a uniform
     distribution. You can specify the density or number of nonzeros in the
     resulting sparse tensor but not both.
@@ -3665,8 +3665,8 @@ def sptenrand(
 def sptendiag(
     elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None
 ) -> sptensor:
-    """
-    Creates a :class:`pyttb.sptensor` with elements along the super diagonal.
+    """Create a :class:`pyttb.sptensor` with elements along the super diagonal.
+
     If provided shape is too small the sparse tensor will be enlarged to
     accommodate.
 

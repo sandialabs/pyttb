@@ -1,4 +1,4 @@
-"""Utilities for importing tensor data"""
+"""Utilities for importing tensor data."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -17,8 +17,7 @@ import pyttb as ttb
 def import_data(
     filename: str, index_base: int = 1
 ) -> Union[ttb.sptensor, ttb.ktensor, ttb.tensor, np.ndarray]:
-    """
-    Import tensor data
+    """Import tensor data.
 
     Parameters
     ----------
@@ -73,12 +72,12 @@ def import_data(
 
 
 def import_type(fp: TextIO) -> str:
-    """Extract IO data type"""
+    """Extract IO data type."""
     return fp.readline().strip().split(" ")[0]
 
 
 def import_shape(fp: TextIO) -> Tuple[int, ...]:
-    """Extract the shape of something from a file"""
+    """Extract the shape of something from a file."""
     n = int(fp.readline().strip().split(" ")[0])
     shape = [int(d) for d in fp.readline().strip().split(" ")]
     if len(shape) != n:
@@ -87,19 +86,19 @@ def import_shape(fp: TextIO) -> Tuple[int, ...]:
 
 
 def import_nnz(fp: TextIO) -> int:
-    """Extract the number of non-zeros of something from a file"""
+    """Extract the number of non-zeros of something from a file."""
     return int(fp.readline().strip().split(" ")[0])
 
 
 def import_rank(fp: TextIO) -> int:
-    """Extract the rank of something from a file"""
+    """Extract the rank of something from a file."""
     return int(fp.readline().strip().split(" ")[0])
 
 
 def import_sparse_array(
     fp: TextIO, n: int, nz: int, index_base: int = 1
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Extract sparse data subs and vals from coordinate format data"""
+    """Extract sparse data subs and vals from coordinate format data."""
     subs = np.zeros((nz, n), dtype="int64")
     vals = np.zeros((nz, 1))
     for k in range(nz):
@@ -110,5 +109,5 @@ def import_sparse_array(
 
 
 def import_array(fp: TextIO, n: Union[int, np.integer]) -> np.ndarray:
-    """Extract numpy array from file"""
+    """Extract numpy array from file."""
     return np.fromfile(fp, count=n, sep=" ")

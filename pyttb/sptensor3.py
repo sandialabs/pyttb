@@ -1,4 +1,4 @@
-"""Sparse Tensor 3 Class Placeholder"""
+"""Sparse Tensor 3 Class Placeholder."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -6,10 +6,7 @@
 
 
 class sptensor3:
-    """
-    SPTENSOR3 a sparse tensor variant.
-
-    """
+    """A sparse tensor variant."""
 
     def __init__(self):
         assert False, "SPTENSOR3 class not yet implemented"

@@ -1,4 +1,4 @@
-"""PYTTB shared utilities across tensor types"""
+"""PYTTB shared utilities across tensor types."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -26,8 +26,7 @@ import pyttb as ttb
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
-    """
-    Helper function to reproduce functionality of MATLABS intersect(a,b,'rows')
+    """Reproduce functionality of MATLABS intersect(a,b,'rows').
 
     Parameters
     ----------
@@ -94,8 +93,7 @@ def tt_dimscheck(
     dims: Optional[np.ndarray] = None,
     exclude_dims: Optional[np.ndarray] = None,
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-    """
-    Used to preprocess dimensions for tensor dimensions
+    """Preprocess dimensions for tensor operations.
 
     Parameters
     ----------
@@ -194,8 +192,7 @@ def tt_dimscheck(
 
 
 def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
-    """
-    Helper function to reproduce functionality of MATLABS setdiff(a,b,'rows')
+    """Reproduce functionality of MATLABS setdiff(a,b,'rows').
 
     Parameters
     ----------
@@ -224,8 +221,7 @@ def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
 
 def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
-    """
-    Helper function to reproduce functionality of MATLABS intersect(a,b,'rows')
+    """Reproduce functionality of MATLABS intersect(a,b,'rows').
 
     Parameters
     ----------
@@ -266,8 +262,7 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 def tt_irenumber(
     t: ttb.sptensor, shape: Tuple[int, ...], number_range: Sequence[IndexType]
 ) -> np.ndarray:
-    """
-    RENUMBER indices for sptensor __setitem__
+    """Renumber indices for sptensor __setitem__.
 
     Parameters
     ----------
@@ -306,8 +301,7 @@ def tt_irenumber(
 def tt_renumber(
     subs: np.ndarray, shape: Tuple[int, ...], number_range: Sequence[IndexType]
 ) -> Tuple[np.ndarray, Tuple[int, ...]]:
-    """
-    RENUMBER indices for sptensor __getitem__
+    """Renumber indices for sptensor __getitem__.
 
     [NEWSUBS,NEWSZ] = RENUMBER(SUBS,SZ,RANGE) takes a set of
     original subscripts SUBS with entries from a tensor of size
@@ -363,8 +357,9 @@ def tt_renumber(
 def tt_renumberdim(
     idx: np.ndarray, shape: int, number_range: IndexType
 ) -> Tuple[int, int]:
-    """
-    RENUMBERDIM helper function for RENUMBER
+    """Renumber a single dimension.
+
+    Helper function for RENUMBER.
 
     Parameters
     ----------
@@ -405,8 +400,7 @@ def tt_renumberdim(
 def tt_ismember_rows(
     search: np.ndarray, source: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Find location of search rows in source array
+    """Find location of search rows in source array.
 
     Parameters
     ----------
@@ -475,8 +469,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
 
 
 def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
-    """
-    Helper function for tensor toolbox subsref.
+    """Helper function for tensor toolbox subsref.
 
     Parameters
     ----------
@@ -488,7 +481,7 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
     Returns
     -------
     Still uncertain to this functionality
-    """
+    """ # noqa: D401
     # TODO figure out when subsref yields key of length>1 for now ignore this logic and
     #  just return
     # if len(s) == 1:
@@ -501,8 +494,7 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
 
 
 def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
-    """
-    Converts multidimensional subscripts to linear indices.
+    """Convert multidimensional subscripts to linear indices.
 
     Parameters
     ----------
@@ -520,7 +512,6 @@ def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
 
     See Also
     --------
-
     :func:`tt_ind2sub`:
     """
     if subs.size == 0:
@@ -557,7 +548,6 @@ def tt_sizecheck(shape: Tuple[int, ...], nargout: bool = True) -> bool:
 
     See Also
     --------
-
     :func:`tt_subscheck`:
     """
     siz = np.array(shape)
@@ -606,7 +596,6 @@ def tt_subscheck(subs: np.ndarray, nargout: bool = True) -> bool:
 
     See Also
     --------
-
     :func:`tt_sizecheck`:
     :func:`tt_valscheck`:
     """
@@ -654,7 +643,6 @@ def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
 
     See Also
     --------
-
     :func:`tt_sizecheck`:
     :func:`tt_subscheck`:
     """
@@ -731,7 +719,7 @@ def islogical(a: np.ndarray) -> bool:
 
 
 class IndexVariant(Enum):
-    """Methods for indexing entries of tensors"""
+    """Methods for indexing entries of tensors."""
 
     UNKNOWN = 0
     LINEAR = 1
@@ -773,7 +761,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 def get_mttkrp_factors(
     U: Union[ttb.ktensor, List[np.ndarray]], n: int, ndims: int
 ) -> List[np.ndarray]:
-    """Apply standard checks and type conversions for mttkrp factors"""
+    """Apply standard checks and type conversions for mttkrp factors."""
     if isinstance(U, ttb.ktensor):
         U = U.copy()
         # Absorb lambda into one of the factors but not the one that is skipped
@@ -800,7 +788,7 @@ def gather_wrap_dims(
     cdims: Optional[np.ndarray] = None,
     cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"], Literal["t"]]] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Utility to extract tensor modes mapped to rows and columns for matricized tensor.
+    """Extract tensor modes mapped to rows and columns for matricized tensors.
 
     Parameters
     ----------

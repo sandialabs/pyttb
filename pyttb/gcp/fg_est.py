@@ -1,4 +1,4 @@
-"""Evaluate Functions And Gradients based on Subsamples"""
+"""Evaluate Functions And Gradients based on Subsamples."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -65,7 +65,7 @@ def estimate(  # noqa: PLR0913
     lambda_check: bool = True,
     crng: Optional[np.ndarray] = None,
 ) -> Union[float, List[np.ndarray], Tuple[float, List[np.ndarray]]]:
-    """Estimate the GCP function and gradient with a subsample
+    """Estimate the GCP function and gradient with a subsample.
 
     Parameters
     ----------
@@ -142,7 +142,7 @@ def estimate(  # noqa: PLR0913
 def estimate_helper(
     factors: List[np.ndarray], subs: np.ndarray
 ) -> Tuple[np.ndarray, List[np.ndarray]]:
-    """Extract model values at sample locations and exploded Zk's
+    """Extract model values at sample locations and exploded Zk's.
 
     Parameters
     ----------
