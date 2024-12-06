@@ -38,7 +38,6 @@ from pyttb.pyttb_utils import (
     tt_dimscheck,
     tt_ind2sub,
     tt_intersect_rows,
-    tt_intvec2str,
     tt_irenumber,
     tt_ismember_rows,
     tt_renumber,
@@ -641,7 +640,7 @@ class sptensor:
             error_msg = "The following subscripts are invalid: \n"
             badsubs = searchsubs[badloc, :]
             for i in np.arange(0, badloc[0].size):
-                error_msg += f"\tsubscript = {tt_intvec2str(badsubs[i, :])} \n"
+                error_msg += f"\tsubscript = {np.array2string(badsubs[i, :])} \n"
             assert False, f"{error_msg}" "Invalid subscripts"
 
         # Set the default answer to zero

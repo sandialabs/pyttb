@@ -338,12 +338,6 @@ def test_tt_subsubsref_valid():
     assert True
 
 
-def test_tt_intvec2str_valid():
-    """This function is slotted to be removed because it is probably unnecessary in python"""
-    v = np.array([1, 2, 3])
-    assert ttb_utils.tt_intvec2str(v) == "[1 2 3]"
-
-
 def test_tt_sizecheck_empty():
     assert ttb_utils.tt_sizecheck(())
 
