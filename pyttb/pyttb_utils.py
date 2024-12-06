@@ -907,9 +907,12 @@ LinearIndexType = Union[int, np.integer, slice]
 IndexType = Union[LinearIndexType, Sequence[int], np.ndarray]
 
 
-# Fixme improve doc string
 def get_index_variant(indices: IndexType) -> IndexVariant:
-    """Decide on intended indexing variant. No correctness checks."""
+    """Decide on intended indexing variant. No correctness checks.
+
+    See getitem or setitem in :class:`pyttb.tensor` for elaboration of the
+    various indexing options.
+    """
     variant = IndexVariant.UNKNOWN
     if isinstance(indices, get_args(LinearIndexType)):
         variant = IndexVariant.LINEAR
@@ -930,7 +933,6 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
     return variant
 
 
-# Fixme improve doc string
 def get_mttkrp_factors(
     U: Union[ttb.ktensor, List[np.ndarray]], n: int, ndims: int
 ) -> List[np.ndarray]:
@@ -955,13 +957,42 @@ def get_mttkrp_factors(
     return U
 
 
-# Fixme improve doc string
 def gather_wrap_dims(
     ndims: int,
     rdims: Optional[np.ndarray] = None,
     cdims: Optional[np.ndarray] = None,
     cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"], Literal["t"]]] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """Utility to extract tensor modes mapped to rows and columns for matricized tensor.
+
+    Parameters
+    ----------
+    ndims:
+        Number of dimensions.
+    rdims:
+        Mapping of row indices.
+    cdims:
+        Mapping of column indices.
+    cdims_cyclic:
+        When only rdims is specified maps a single rdim to the rows and
+            the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
+            in the order range(rdims,self.ndims()) followed by range(0, rdims).
+            _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
+            range(self.ndims(), rdims, -1).
+
+    Notes
+    -----
+    Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+        De Lathauwer, De Moor, and Vandewalle [2]_.
+
+    References
+    ----------
+    .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology
+           in multiway analysis. J. Chemometrics 14, 105-122.
+    .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
+           rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order
+           tensors. SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+    """
     alldims = np.array([range(ndims)])
 
     if rdims is not None and cdims is None:
