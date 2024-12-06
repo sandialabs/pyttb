@@ -17,10 +17,7 @@ from pyttb.pyttb_utils import gather_wrap_dims, np_to_python, tt_ind2sub
 
 
 class sptenmat:
-    """
-    SPTENMAT Store sparse tensor as a sparse matrix.
-
-    """
+    """Store sparse tensor as a sparse matrix."""
 
     __slots__ = ("tshape", "rdims", "cdims", "subs", "vals")
 
@@ -33,8 +30,9 @@ class sptenmat:
         tshape: Tuple[int, ...] = (),
         copy: bool = True,
     ):
-        """
-        Construct a :class:`pyttb.sptenmat` from a set of 2D subscripts (subs)
+        """Construct a :class:`pyttb.sptenmat`.
+
+        Constructed from a set of 2D subscripts (subs)
         and values (vals) along with the mappings of the row (rdims) and column
         indices (cdims) and the shape of the original tensor (tshape).
 
@@ -170,8 +168,9 @@ class sptenmat:
         cdims: Optional[np.ndarray] = None,
         tshape: Tuple[int, ...] = (),
     ):
-        """
-        Construct a :class:`pyttb.sptenmat` from a coo_matrix
+        """Construct a :class:`pyttb.sptenmat`.
+
+        Constructed from a coo_matrix
         along with the mappings of the row (rdims) and column
         indices (cdims) and the shape of the original tensor (tshape).
 
@@ -250,11 +249,11 @@ class sptenmat:
         )
 
     def __deepcopy__(self, memo):
+        """Return deepcopy of this sptenmat."""
         return self.copy()
 
     def to_sptensor(self) -> ttb.sptensor:
-        """
-        Contruct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`
+        """Contruct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`.
 
         Examples
         --------
@@ -372,9 +371,10 @@ class sptenmat:
         return len(self.vals)
 
     def norm(self) -> float:
-        """
-        Compute the norm (i.e., Frobenius norm, or square root of the sum of
-        squares of entries) of the :class:`pyttb.sptenmat`.
+        """Compute the norm of the :class:`pyttb.sptenmat`.
+
+        Frobenius norm, or square root of the sum of
+        squares of entries.
 
         Examples
         --------
@@ -542,8 +542,7 @@ class sptenmat:
             self.vals = self.vals[sort_idx]
 
     def __repr__(self):
-        """
-        String representation of a :class:`pyttb.sptenmat`.
+        """Return string representation of a :class:`pyttb.sptenmat`.
 
         Examples
         --------

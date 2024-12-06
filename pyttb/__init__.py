@@ -1,4 +1,4 @@
-"""pyttb: Python Tensor Toolbox"""
+"""pyttb: Python Tensor Toolbox."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -32,7 +32,7 @@ from pyttb.tucker_als import tucker_als
 
 
 def ignore_warnings(ignore=True):
-    """Helper to disable warnings"""
+    """Disable warnings."""
     if ignore:
         warnings.simplefilter("ignore")
     else:

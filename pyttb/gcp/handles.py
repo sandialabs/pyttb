@@ -1,4 +1,4 @@
-"""Implementation of the different function and gradient handles for GCP OPT"""
+"""Implementation of the different function and gradient handles for GCP OPT."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -17,7 +17,7 @@ EPS = 1e-10
 
 
 class Objectives(Enum):
-    """Valid objective functions for GCP"""
+    """Valid objective functions for GCP."""
 
     GAUSSIAN = 0
     BERNOULLI_ODDS = 1
@@ -32,77 +32,77 @@ class Objectives(Enum):
 
 
 def gaussian(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return objective function for gaussian distributions"""
+    """Return objective function for gaussian distributions."""
     return (model - data) ** 2
 
 
 def gaussian_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return gradient function for gaussian distributions"""
+    """Return gradient function for gaussian distributions."""
     return 2 * (model - data)
 
 
 def bernoulli_odds(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return objective function for bernoulli distributions"""
+    """Return objective function for bernoulli distributions."""
     return np.log(model + 1) - data * np.log(model + EPS)
 
 
 def bernoulli_odds_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return gradient function for bernoulli distributions"""
+    """Return gradient function for bernoulli distributions."""
     return 1.0 / (model + 1) - data / (model + EPS)
 
 
 def bernoulli_logit(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return objective function for bernoulli logit distributions"""
+    """Return objective function for bernoulli logit distributions."""
     return np.log(np.exp(model) + 1) - data * model
 
 
 def bernoulli_logit_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return gradient function for bernoulli logit distributions"""
+    """Return gradient function for bernoulli logit distributions."""
     return np.exp(model) / (np.exp(model) + 1) - data
 
 
 def poisson(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return objective function for poisson distributions"""
+    """Return objective function for poisson distributions."""
     return model - data * np.log(model + EPS)
 
 
 def poisson_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return gradient function for poisson distributions"""
+    """Return gradient function for poisson distributions."""
     return 1 - data / (model + EPS)
 
 
 def poisson_log(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return objective function for log poisson distributions"""
+    """Return objective function for log poisson distributions."""
     return np.exp(model) - data * model
 
 
 def poisson_log_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return gradient function for log poisson distributions"""
+    """Return gradient function for log poisson distributions."""
     return np.exp(model) - data
 
 
 def rayleigh(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return objective function for rayleigh distributions"""
+    """Return objective function for rayleigh distributions."""
     return 2 * np.log(model + EPS) + (np.pi / 4) * (data / (model + EPS)) ** 2
 
 
 def rayleigh_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return gradient function for rayleigh distributions"""
+    """Return gradient function for rayleigh distributions."""
     return 2 / (model + EPS) - (np.pi / 2) * data**2 / (model + EPS) ** 3
 
 
 def gamma(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return objective function for gamma distributions"""
+    """Return objective function for gamma distributions."""
     return data / (model + EPS) + np.log(model + EPS)
 
 
 def gamma_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
-    """Return gradient function for gamma distributions"""
+    """Return gradient function for gamma distributions."""
     return -data / (model + EPS) ** 2 + 1 / (model + EPS)
 
 
 def huber(data: ttb.tensor, model: ttb.tensor, threshold: float) -> np.ndarray:
-    """Return objective function for huber loss"""
+    """Return objective function for huber loss."""
     abs_diff = np.abs(data - model)
     below_threshold = abs_diff < threshold
     return abs_diff**2 * below_threshold + (
@@ -111,7 +111,7 @@ def huber(data: ttb.tensor, model: ttb.tensor, threshold: float) -> np.ndarray:
 
 
 def huber_grad(data: ttb.tensor, model: ttb.tensor, threshold: float) -> np.ndarray:
-    """Return gradient function for huber loss"""
+    """Return gradient function for huber loss."""
     abs_diff = np.abs(data - model)
     below_threshold = abs_diff < threshold
     return -2 * (data - model) * below_threshold - (
@@ -124,24 +124,24 @@ def huber_grad(data: ttb.tensor, model: ttb.tensor, threshold: float) -> np.ndar
 def negative_binomial(
     data: np.ndarray, model: np.ndarray, num_trials: float
 ) -> np.ndarray:
-    """Return objective function for negative binomial distributions"""
+    """Return objective function for negative binomial distributions."""
     return (num_trials + data) * np.log(model + 1) - data * np.log(model + EPS)
 
 
 def negative_binomial_grad(
     data: np.ndarray, model: np.ndarray, num_trials: float
 ) -> np.ndarray:
-    """Return gradient function for negative binomial distributions"""
+    """Return gradient function for negative binomial distributions."""
     return (num_trials + 1) / (1 + model) - data / (model + EPS)
 
 
 def beta(data: np.ndarray, model: np.ndarray, b: float) -> np.ndarray:
-    """Return objective function for beta distributions"""
+    """Return objective function for beta distributions."""
     return (1 / b) * (model + EPS) ** b - (1 / (b - 1)) * data * (model + EPS) ** (
         b - 1
     )
 
 
 def beta_grad(data: np.ndarray, model: np.ndarray, b: float) -> np.ndarray:
-    """Return gradient function for beta distributions"""
+    """Return gradient function for beta distributions."""
     return (model + EPS) ** (b - 1) - data * (model + EPS) ** (b - 2)

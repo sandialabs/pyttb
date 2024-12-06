@@ -1,4 +1,4 @@
-"""Generalized CP Decomposition"""
+"""Generalized CP Decomposition."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -136,7 +136,7 @@ def _get_initial_guess(
     rank: int,
     init: Union[Literal["random"], ttb.ktensor, List[np.ndarray]],
 ) -> ttb.ktensor:
-    """Get initial guess for gcp_opt
+    """Get initial guess for gcp_opt.
 
     Returns
     -------

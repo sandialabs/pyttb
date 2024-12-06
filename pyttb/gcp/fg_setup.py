@@ -1,4 +1,4 @@
-"""Prepare Function and Gradient Handles for GCP OPT"""
+"""Prepare Function and Gradient Handles for GCP OPT."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -24,7 +24,7 @@ def setup(  # noqa: PLR0912,PLR0915
     data: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
     additional_parameter: Optional[float] = None,
 ) -> fg_return:
-    """Collects the function and gradient handles for GCP
+    """Collect the function and gradient handles for GCP.
 
     Parameters
     ----------
@@ -116,21 +116,21 @@ def setup(  # noqa: PLR0912,PLR0915
 
 
 def valid_nonneg(data: Union[ttb.tensor, ttb.sptensor]) -> bool:
-    """Check if provided data is valid non-negative tensor"""
+    """Check if provided data is valid non-negative tensor."""
     if isinstance(data, ttb.sptensor):
         return bool(np.all(data.vals > 0))
     return bool(np.all(data.data > 0))
 
 
 def valid_binary(data: Union[ttb.tensor, ttb.sptensor]) -> bool:
-    """Check if provided data is valid binary tensor"""
+    """Check if provided data is valid binary tensor."""
     if isinstance(data, ttb.sptensor):
         return bool(np.all(data.vals == 1))
     return bool(np.all(np.isin(np.unique(data.data), [0, 1])))
 
 
 def valid_natural(data: Union[ttb.tensor, ttb.sptensor]) -> bool:
-    """Check if provided data is valid natural number tensor"""
+    """Check if provided data is valid natural number tensor."""
     if isinstance(data, ttb.sptensor):
         vals = data.vals
     else:

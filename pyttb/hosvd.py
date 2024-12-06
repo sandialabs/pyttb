@@ -1,4 +1,4 @@
-"""Higher Order SVD Implementation"""
+"""Higher Order SVD Implementation."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the

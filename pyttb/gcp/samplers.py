@@ -1,4 +1,4 @@
-"""Implementation of various sampling approaches for GCP OPT"""
+"""Implementation of various sampling approaches for GCP OPT."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -26,14 +26,14 @@ sampler_type = Callable[[Union[tensor, sptensor]], sample_type]
 
 @dataclass
 class StratifiedCount:
-    """Contains stratified sampling counts"""
+    """Contains stratified sampling counts."""
 
     num_zeros: int
     num_nonzeros: int
 
 
 class Samplers(Enum):
-    """Implemented Samplers"""
+    """Implemented Samplers."""
 
     UNIFORM = 0
     SEMISTRATIFIED = 1
@@ -41,7 +41,7 @@ class Samplers(Enum):
 
 
 class GCPSampler:
-    """Contains Gradient and Function Sampling Details"""
+    """Contains Gradient and Function Sampling Details."""
 
     def __init__(  # noqa: PLR0913
         self,
@@ -237,16 +237,16 @@ class GCPSampler:
             raise ValueError("Invalid choice for function_sampler")
 
     def function_sample(self, data: Union[ttb.tensor, ttb.sptensor]) -> sample_type:
-        """Draw a sample from the objective function"""
+        """Draw a sample from the objective function."""
         return self._fsampler(data)
 
     def gradient_sample(self, data: Union[ttb.tensor, ttb.sptensor]) -> sample_type:
-        """Draw a sample from the gradient function"""
+        """Draw a sample from the gradient function."""
         return self._gsampler(data)
 
     @property
     def crng(self) -> np.ndarray:
-        """Correction Range for possibly miss-sampled zeros"""
+        """Correction Range for possibly miss-sampled zeros."""
         return self._crng
 
 
@@ -289,7 +289,7 @@ def zeros(
     over_sample_rate: float = 1.1,
     with_replacement=True,
 ) -> np.ndarray:
-    """Samples zeros from a sparse tensor
+    """Sample zeros from a sparse tensor.
 
     Parameters
     ----------
@@ -372,7 +372,7 @@ def zeros(
 
 
 def uniform(data: ttb.tensor, samples: int) -> sample_type:
-    """Uniformly samples indices from a tensor
+    """Uniformly samples indices from a tensor.
 
     Parameters
     ----------
@@ -397,7 +397,7 @@ def uniform(data: ttb.tensor, samples: int) -> sample_type:
 
 
 def semistrat(data: ttb.sptensor, num_nonzeros: int, num_zeros: int) -> sample_type:
-    """Sample nonzero and zero entries from a sparse tensor
+    """Sample nonzero and zero entries from a sparse tensor.
 
     Parameters
     ----------
@@ -435,7 +435,7 @@ def stratified(
     num_zeros: int,
     over_sample_rate: float = 1.1,
 ) -> sample_type:
-    """Sample nonzero and zero entries from a sparse tensor
+    """Sample nonzero and zero entries from a sparse tensor.
 
     Parameters
     ----------

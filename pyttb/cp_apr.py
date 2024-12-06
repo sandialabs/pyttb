@@ -1,4 +1,4 @@
-"""Non-negative CP decomposition with alternating Poisson regression"""
+"""Non-negative CP decomposition with alternating Poisson regression."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -230,9 +230,6 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     kappatol:
         MU ALGORITHM PARAMETER: Tolerance on complementary slackness
 
-    Returns
-    -------
-
     Notes
     -----
     REFERENCE: E. C. Chi and T. G. Kolda. On Tensors, Sparsity, and
@@ -405,9 +402,9 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     precompinds: bool,
     inexact: bool,
 ) -> Tuple[ttb.ktensor, Dict]:
-    """
-    Compute nonnegative CP with alternating Poisson regression
-    computes an estimate of the best rank-R
+    """Compute nonnegative CP with alternating Poisson regression.
+
+    Computes an estimate of the best rank-R
     CP model of a tensor X using an alternating Poisson regression.
     The algorithm solves "row subproblems" in each alternating subproblem,
     using a Hessian of size R^2.
@@ -1272,9 +1269,7 @@ def get_search_dir_pdnr(  # noqa: PLR0913
     mu: float,
     epsActSet: float,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Compute the search direction for PDNR using a two-metric projection with
-    damped Hessian
+    """Compute the search direction using a two-metric projection with damped Hessian.
 
     Parameters
     ----------
@@ -1372,8 +1367,7 @@ def tt_linesearch_prowsubprob(  # noqa: PLR0913
     phi_row: np.ndarray,
     display_warning: bool,
 ) -> Tuple[np.ndarray, float, float, float, int]:
-    """
-    Perform a line search on a row subproblem
+    """Perform a line search on a row subproblem.
 
     Parameters
     ----------
@@ -1488,9 +1482,9 @@ def tt_linesearch_prowsubprob(  # noqa: PLR0913
 def get_hessian(
     upsilon: np.ndarray, Pi: np.ndarray, free_indices: np.ndarray
 ) -> np.ndarray:
-    """
-    Return the Hessian for one PDNR row subproblem of Model[n], for just the rows and
-    columns corresponding to the free variables
+    """Return the Hessian for one PDNR row subproblem of Model[n].
+
+    Only for just the rows and columns corresponding to the free variables.
 
     Parameters
     ----------
@@ -1505,7 +1499,6 @@ def get_hessian(
         Sub-block of full Hessian identified by free-indices
 
     """
-
     num_free = len(free_indices)
     H = np.zeros((num_free, num_free))
     for i in range(num_free):
@@ -1523,8 +1516,7 @@ def tt_loglikelihood_row(
     model_row: np.ndarray,
     Pi: np.ndarray,
 ) -> float:
-    """
-    Compute log-likelihood of one row subproblem
+    """Compute log-likelihood of one row subproblem.
 
     Parameters
     ----------
@@ -1618,7 +1610,6 @@ def get_search_dir_pqnr(  # noqa: PLR0913
     URL: http://arxiv.org/abs/1304.4964. Submitted for publication.
 
     """
-
     lbfgsSize = delta_model.shape[1]
 
     # Determine active and free variables.
@@ -1679,8 +1670,7 @@ def calc_grad(
     data_row: np.ndarray,
     model_row: np.ndarray,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Compute the gradient for a PQNR row subproblem
+    """Compute the gradient for a PQNR row subproblem.
 
     Parameters
     ----------
@@ -1710,6 +1700,7 @@ def calc_grad(
     return grad_row, phi_row
 
 
+# TODO verify what pi is
 # Mu helper functions
 def calculate_pi(
     Data: Union[ttb.sptensor, ttb.tensor],
@@ -1718,9 +1709,7 @@ def calculate_pi(
     factorIndex: int,
     ndims: int,
 ) -> np.ndarray:
-    """
-    Helper function to calculate Pi matrix
-    # TODO verify what pi is
+    """Calculate Pi matrix.
 
     Parameters
     ----------
@@ -1758,7 +1747,7 @@ def calculate_phi(  # noqa: PLR0913
     Pi: np.ndarray,
     epsilon: float,
 ) -> np.ndarray:
-    """
+    """Calcualte Phi.
 
     Parameters
     ----------
@@ -1768,9 +1757,6 @@ def calculate_phi(  # noqa: PLR0913
     factorIndex:
     Pi:
     epsilon:
-
-    Returns
-    -------
 
     """
     if isinstance(Data, ttb.sptensor):
@@ -1846,8 +1832,7 @@ def tt_loglikelihood(
 
 
 def vectorize_for_mu(matrix: np.ndarray) -> np.ndarray:
-    """
-    Helper Function to unravel matrix into vector
+    """Unravel matrix into vector.
 
     Parameters
     ----------

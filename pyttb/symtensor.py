@@ -1,4 +1,4 @@
-"""Symmetric Tensor Class Placeholder"""
+"""Symmetric Tensor Class Placeholder."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -6,10 +6,7 @@
 
 
 class symtensor:
-    """
-    SYMTENSOR Class for storing only unique entries of symmetric tensor.
-
-    """
+    """Class for storing only unique entries of symmetric tensor."""
 
     def __init__(self):
         assert False, "SYMTENSOR class not yet implemented"

@@ -15,10 +15,7 @@ from pyttb.pyttb_utils import gather_wrap_dims, np_to_python
 
 
 class tenmat:
-    """
-    TENMAT Store tensor as a matrix.
-
-    """
+    """Store tensor as a matrix."""
 
     __slots__ = ("tshape", "rindices", "cindices", "data")
 
@@ -30,8 +27,8 @@ class tenmat:
         tshape: Optional[Tuple[int, ...]] = None,
         copy: bool = True,
     ):
-        """
-        Construct a :class:`pyttb.tenmat` from explicit components.
+        """Construct a :class:`pyttb.tenmat` from explicit components.
+
         If you already have a tensor see :meth:`pyttb.tensor.to_tenmat`.
 
         Parameters
@@ -86,7 +83,6 @@ class tenmat:
                [[4., 5.],
                 [6., 7.]]])
         """
-
         # Case 0a: Empty Contructor
         # data is empty, return empty tenmat unless rdims, cdims, or tshape are
         # not empty
@@ -197,6 +193,7 @@ class tenmat:
         )
 
     def __deepcopy__(self, memo):
+        """Return deep copy of this tenmat."""
         return self.copy()
 
     def to_tensor(self, copy: bool = True) -> ttb.tensor:
@@ -333,8 +330,7 @@ class tenmat:
         return len(self.shape)
 
     def norm(self) -> float:
-        """
-        Frobenius norm of a :class:`pyttb.tenmat`.
+        """Frobenius norm of a :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -551,7 +547,6 @@ class tenmat:
         -------
         :class:`pyttb.tenmat`
         """
-
         # One argument is a scalar
         if np.isscalar(other):
             Z = self.copy()
@@ -622,7 +617,6 @@ class tenmat:
         -------
         :class:`pyttb.tenmat`
         """
-
         # One argument is a scalar
         if np.isscalar(other):
             Z = self.copy()
@@ -661,7 +655,6 @@ class tenmat:
         -------
         :class:`pyttb.tenmat`
         """
-
         # One argument is a scalar
         if np.isscalar(other):
             Z = self.copy()
@@ -697,7 +690,6 @@ class tenmat:
         :class:`pyttb.tenmat`
             copy of tenmat
         """
-
         T = self.copy()
 
         return T
@@ -722,15 +714,13 @@ class tenmat:
         :class:`pyttb.tenmat`
             Copy of original tenmat with negated data.
         """
-
         T = self.copy()
         T.data = -1 * T.data
 
         return T
 
     def __repr__(self):
-        """
-        String representation of a :class:`pyttb.tenmat`.
+        """Return string representation of a :class:`pyttb.tenmat`.
 
         Examples
         --------
