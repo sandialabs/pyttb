@@ -1513,20 +1513,20 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape} with order F"
-    for i in range(data.shape[0]):
+    for i in range(data.shape[-1]):
         s += "\ndata"
-        s += "[{}, :, :] =\n".format(i)
-        s += data[i, :, :].__str__()
+        s += "[:, :, {}] =\n".format(i)
+        s += data[:, :, i].__str__()
     assert s == tensorInstance.__str__()
 
     data = np.random.normal(size=(2, 3, 4))
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape} with order F"
-    for i in range(data.shape[0]):
+    for i in range(data.shape[-1]):
         s += "\ndata"
-        s += "[{}, :, :] =\n".format(i)
-        s += data[i, :, :].__str__()
+        s += "[:, :, {}] =\n".format(i)
+        s += data[:, :, i].__str__()
     assert s == tensorInstance.__str__()
 
     # Test 4D
@@ -1534,11 +1534,11 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape} with order F"
-    for i in range(data.shape[0]):
-        for j in range(data.shape[1]):
+    for i in range(data.shape[-1]):
+        for j in range(data.shape[-2]):
             s += "\ndata"
-            s += "[{}, {}, :, :] =\n".format(j, i)
-            s += data[j, i, :, :].__str__()
+            s += "[:, :, {}, {}] =\n".format(j, i)
+            s += data[:, :, j, i].__str__()
     assert s == tensorInstance.__str__()
 
     # Test 5D
@@ -1546,12 +1546,12 @@ def test_tensor__str__(sample_tensor_2way):
     tensorInstance = ttb.tensor(data)
     s = ""
     s += f"tensor of shape {tensorInstance.shape} with order F"
-    for i in range(data.shape[0]):
-        for j in range(data.shape[1]):
-            for k in range(data.shape[2]):
+    for i in range(data.shape[-1]):
+        for j in range(data.shape[-2]):
+            for k in range(data.shape[-3]):
                 s += "\ndata"
-                s += "[{}, {}, {}, :, :] =\n".format(k, j, i)
-                s += data[k, j, i, :, :].__str__()
+                s += "[:, :, {}, {}, {}] =\n".format(k, j, i)
+                s += data[:, :, k, j, i].__str__()
     assert s == tensorInstance.__str__()
 
 

@@ -197,14 +197,18 @@ class tensor:
         >>> T = ttb.tensor.from_function(np.ones, (2, 3, 4))
         >>> print(T)
         tensor of shape (2, 3, 4) with order F
-        data[0, :, :] =
-        [[1. 1. 1. 1.]
-         [1. 1. 1. 1.]
-         [1. 1. 1. 1.]]
-        data[1, :, :] =
-        [[1. 1. 1. 1.]
-         [1. 1. 1. 1.]
-         [1. 1. 1. 1.]]
+        data[:, :, 0] =
+        [[1. 1. 1.]
+         [1. 1. 1.]]
+        data[:, :, 1] =
+        [[1. 1. 1.]
+         [1. 1. 1.]]
+        data[:, :, 2] =
+        [[1. 1. 1.]
+         [1. 1. 1.]]
+        data[:, :, 3] =
+        [[1. 1. 1.]
+         [1. 1. 1.]]
         """
         # Check size
         shape = parse_shape(shape)
@@ -327,12 +331,12 @@ class tensor:
         >>> T = ttb.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
         >>> print(T)
         tensor of shape (2, 2, 2) with order F
-        data[0, :, :] =
-        [[1 2]
-         [3 4]]
-        data[1, :, :] =
-        [[5 6]
-         [7 8]]
+        data[:, :, 0] =
+        [[1 3]
+         [5 7]]
+        data[:, :, 1] =
+        [[2 4]
+         [6 8]]
         >>> T.contract(0, 1)
         tensor of shape (2,) with order F
         data[:] =
@@ -537,12 +541,12 @@ class tensor:
         >>> T = ttb.tensor(data)
         >>> T  # doctest: +NORMALIZE_WHITESPACE
         tensor of shape (2, 2, 2) with order F
-        data[0, :, :] =
-        [[0 1]
-         [2 3]]
-        data[1, :, :] =
-        [[4 5]
-         [6 7]]
+        data[:, :, 0] =
+        [[0 2]
+         [4 6]]
+        data[:, :, 1] =
+        [[1 3]
+         [5 7]]
 
         Convert to a :class:`pyttb.tenmat` unwrapping around the first dimension.
             Either allow for implicit column or explicit column dimension
@@ -1296,10 +1300,10 @@ class tensor:
         >>> T = ttb.tenones((2, 2, 2))
         >>> T.symmetrize(np.array([0, 2]))
         tensor of shape (2, 2, 2) with order F
-        data[0, :, :] =
+        data[:, :, 0] =
         [[1. 1.]
          [1. 1.]]
-        data[1, :, :] =
+        data[:, :, 1] =
         [[1. 1.]
          [1. 1.]]
         """
@@ -1462,19 +1466,19 @@ class tensor:
         >>> A = 2 * np.ones((2, 1))
         >>> T.ttm([A, A], dims=[0, 1], transpose=True)
         tensor of shape (1, 1, 2, 2) with order F
-        data[0, 0, :, :] =
-        [[16. 16.]
-         [16. 16.]]
+        data[:, :, 0, 0] =
+        [[16.]]
+        data[:, :, 1, 0] =
+        [[16.]]
+        data[:, :, 0, 1] =
+        [[16.]]
+        data[:, :, 1, 1] =
+        [[16.]]
         >>> T.ttm([A, A], exclude_dims=[0, 1], transpose=True)
         tensor of shape (2, 2, 1, 1) with order F
-        data[0, 0, :, :] =
-        [[16.]]
-        data[1, 0, :, :] =
-        [[16.]]
-        data[0, 1, :, :] =
-        [[16.]]
-        data[1, 1, :, :] =
-        [[16.]]
+        data[:, :, 0, 0] =
+        [[16. 16.]
+         [16. 16.]]
         """
         if isinstance(matrix, Sequence):
             # Check that the dimensions are valid
@@ -1552,16 +1556,16 @@ class tensor:
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
         >>> T.ttt(T)
         tensor of shape (2, 2, 2, 2) with order F
-        data[0, 0, :, :] =
+        data[:, :, 0, 0] =
         [[1 2]
          [3 4]]
-        data[1, 0, :, :] =
+        data[:, :, 1, 0] =
         [[ 3  6]
          [ 9 12]]
-        data[0, 1, :, :] =
+        data[:, :, 0, 1] =
         [[2 4]
          [6 8]]
-        data[1, 1, :, :] =
+        data[:, :, 1, 1] =
         [[ 4  8]
          [12 16]]
         >>> T.ttt(T, 0)
@@ -1951,12 +1955,9 @@ class tensor:
         >>> # produces a tensor of size 2 x 2 x 1
         >>> T[0:2, [2, 3], 1, :]  # doctest: +NORMALIZE_WHITESPACE
         tensor of shape (2, 2, 1) with order F
-        data[0, :, :] =
-        [[1.]
-         [1.]]
-        data[1, :, :] =
-        [[1.]
-         [1.]]
+        data[:, :, 0] =
+        [[1. 1.]
+         [1. 1.]]
         >>> # returns a vector of length 2
         >>> # Equivalent to selecting [0,0,0,0] and [1,1,1,0] separately
         >>> T[np.array([[0, 0, 0, 0], [1, 1, 1, 0]])]
@@ -2543,22 +2544,22 @@ class tensor:
                 s += " =\n"
                 s += str(self.data)
                 return s
-        for i in np.arange(np.prod(self.shape[:-2])):
+        for i in np.arange(np.prod(self.shape[2:])):
             s += "\ndata"
             if self.ndims == 2:
                 s += "[:, :]"
                 s += " =\n"
                 s += str(self.data)
             elif self.ndims > 2:
-                idx = tt_ind2sub(self.shape[:-2], np.array([i]))
-                s += str(idx[0].tolist())[0:-1]
-                s += ", :, :]"
+                idx = tt_ind2sub(self.shape[2:], np.array([i]))
+                s += "[:, :, "
+                s += str(idx[0].tolist())[1:]
                 s += " =\n"
                 s += str(
                     self.data[
                         tuple(
                             np.concatenate(
-                                (idx[0], np.array([slice(None), slice(None)]))
+                                (np.array([slice(None), slice(None)]), idx[0])
                             )
                         )
                     ]
