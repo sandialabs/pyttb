@@ -3464,23 +3464,23 @@ class sptensor:
         >>> A = 2 * np.ones((2, 1))
         >>> S.ttm([A, A], dims=[0, 1], transpose=True)
         tensor of shape (1, 1, 2, 2) with order F
-        data[0, 0, :, :] =
-        [[8. 0.]
-         [8. 0.]]
+        data[:, :, 0, 0] =
+        [[8.]]
+        data[:, :, 1, 0] =
+        [[8.]]
+        data[:, :, 0, 1] =
+        [[0.]]
+        data[:, :, 1, 1] =
+        [[0.]]
 
         Compute sparse tensor matrix product specifying which two tensor
         dimensions to exclude in the multiplication:
 
         >>> S.ttm([A, A], exclude_dims=[0, 1], transpose=True)
         tensor of shape (2, 2, 1, 1) with order F
-        data[0, 0, :, :] =
-        [[8.]]
-        data[1, 0, :, :] =
-        [[8.]]
-        data[0, 1, :, :] =
-        [[0.]]
-        data[1, 1, :, :] =
-        [[0.]]
+        data[:, :, 0, 0] =
+        [[8. 0.]
+         [8. 0.]]
         """
         if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)

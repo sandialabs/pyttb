@@ -240,12 +240,12 @@ class tenmat:
 
         >>> tm.to_tensor()  # doctest: +NORMALIZE_WHITESPACE
         tensor of shape (2, 2, 2) with order F
-        data[0, :, :] =
-        [[0. 1.]
-         [2. 3.]]
-        data[1, :, :] =
-        [[4. 5.]
-         [6. 7.]]
+        data[:, :, 0] =
+        [[0. 2.]
+         [4. 6.]]
+        data[:, :, 1] =
+        [[1. 3.]
+         [5. 7.]]
         """
         # RESHAPE TENSOR-AS-MATRIX
         # Here we just reverse what was done in the tenmat constructor.
