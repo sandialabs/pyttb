@@ -1228,5 +1228,5 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
 
 def test_ktensor__str__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
-    s = """ktensor of shape (2, 2)\nweights=[1. 2.]\nfactor_matrices[0] =\n[[1. 2.]\n [3. 4.]]\nfactor_matrices[1] =\n[[5. 6.]\n [7. 8.]]"""
+    s = """ktensor of shape (2, 2) with order F\nweights=[1. 2.]\nfactor_matrices[0] =\n[[1. 2.]\n [3. 4.]]\nfactor_matrices[1] =\n[[5. 6.]\n [7. 8.]]"""
     assert K0.__str__() == s

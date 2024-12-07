@@ -92,7 +92,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
      Iter 1: f = ... f-delta = ...
      Final f = ...
     >>> print(M) # doctest: +ELLIPSIS
-    ktensor of shape (2, 2)
+    ktensor of shape (2, 2) with order F
     weights=[108.4715... 8.6114...]
     factor_matrices[0] =
     [[0.4187... 0.3989...]
@@ -101,7 +101,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     [[0.6188... 0.2581...]
      [0.7854... 0.9661...]]
     >>> print(Minit) # doctest: +ELLIPSIS
-    ktensor of shape (2, 2)
+    ktensor of shape (2, 2) with order F
     weights=[1. 1.]
     factor_matrices[0] =
     [[4.1702...e-01 7.2032...e-01]

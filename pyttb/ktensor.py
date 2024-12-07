@@ -102,7 +102,7 @@ class ktensor:
 
         >>> K = ttb.ktensor()
         >>> print(K)
-        ktensor of shape ()
+        ktensor of shape () with order F
         weights=[]
         factor_matrices=[]
 
@@ -114,7 +114,7 @@ class ktensor:
         >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -131,7 +131,7 @@ class ktensor:
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor([fm0, fm1])
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[1. 2.]
@@ -235,7 +235,7 @@ class ktensor:
         >>> np.random.seed(1)
         >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 4), 2)
         >>> print(K)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[4.1702...e-01 7.2032...e-01]
@@ -254,7 +254,7 @@ class ktensor:
 
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
         >>> print(K)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[1. 1.]
@@ -273,7 +273,7 @@ class ktensor:
 
         >>> K = ttb.ktensor.from_function(np.zeros, (2, 3, 4), 2)
         >>> print(K)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[0. 0.]
@@ -334,7 +334,7 @@ class ktensor:
         >>> data = np.arange(1, rank * sum(shape) + 1).astype(float)
         >>> K = ttb.ktensor.from_vector(data[:], shape, False)
         >>> print(K)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[1. 3.]
@@ -356,7 +356,7 @@ class ktensor:
         >>> weights_and_data = np.concatenate((weights, data), axis=0)
         >>> K = ttb.ktensor.from_vector(weights_and_data[:], shape, True)
         >>> print(K)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[2. 2.]
         factor_matrices[0] =
         [[1. 3.]
@@ -412,6 +412,11 @@ class ktensor:
 
         return cls(factor_matrices, weights, copy=False)
 
+    @property
+    def order(self) -> Literal["F"]:
+        """Return the data layout of the underlying storage."""
+        return "F"
+
     def arrange(
         self,
         weight_factor: Optional[int] = None,
@@ -449,7 +454,7 @@ class ktensor:
         >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -463,7 +468,7 @@ class ktensor:
         >>> p = [1, 0]
         >>> K.arrange(permutation=p)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[2. 1.]
         factor_matrices[0] =
         [[2. 1.]
@@ -477,7 +482,7 @@ class ktensor:
 
         >>> K.arrange()
         >>> print(K)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[89.4427... 27.2029...]
         factor_matrices[0] =
         [[0.4472... 0.3162...]
@@ -490,7 +495,7 @@ class ktensor:
 
         >>> K.arrange(weight_factor=1)
         >>> print(K)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[0.4472... 0.3162...]
@@ -551,7 +556,7 @@ class ktensor:
         >>> np.random.seed(1)
         >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 4), 2)
         >>> print(K)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[4.1702...e-01 7.2032...e-01]
@@ -571,7 +576,7 @@ class ktensor:
         >>> K2 = K.copy()
         >>> K2.weights = np.array([2.0, 3.0])
         >>> print(K2)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[2. 3.]
         factor_matrices[0] =
         [[4.1702...e-01 7.2032...e-01]
@@ -589,7 +594,7 @@ class ktensor:
         Show that the original :class:`pyttb.ktensor` is unchanged:
 
         >>> print(K)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[4.1702...e-01 7.2032...e-01]
@@ -660,7 +665,7 @@ class ktensor:
         >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -673,7 +678,7 @@ class ktensor:
         component from each factor of the original :class:`pyttb.ktensor`:
 
         >>> K.extract([1])
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[2.]
         factor_matrices[0] =
         [[2.]
@@ -747,7 +752,7 @@ class ktensor:
         >>> K.factor_matrices[0][1, 1] = -K.factor_matrices[0][1, 1]
         >>> K.factor_matrices[1][1, 1] = -K.factor_matrices[1][1, 1]
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[ 1.  2.]
@@ -759,7 +764,7 @@ class ktensor:
         Fix the signs of the largest magnitude entries:
 
         >>> print(K.fixsigns())
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[ 1. -2.]
@@ -776,7 +781,7 @@ class ktensor:
         >>> K2.factor_matrices[1][1, 1] = -K2.factor_matrices[1][1, 1]
         >>> K = K.fixsigns(K2)
         >>> print(K)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[27.2029... 89.4427...]
         factor_matrices[0] =
         [[ 0.3162... -0.4472...]
@@ -883,7 +888,7 @@ class ktensor:
         >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -892,7 +897,7 @@ class ktensor:
         [[5. 6.]
          [7. 8.]]
         >>> print(K.full())  # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[29. 39.]
          [63. 85.]]
@@ -965,7 +970,7 @@ class ktensor:
         >>> fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
         >>> K = ttb.ktensor([fm0, fm1], weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -974,12 +979,12 @@ class ktensor:
         [[5. 6.]
          [7. 8.]]
         >>> K.full()  # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[29. 39.]
          [63. 85.]]
         >>> K.to_tenmat(np.array([0]))  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -1311,7 +1316,7 @@ class ktensor:
         --------
         >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
         >>> print(K.normalize())  # doctest: +ELLIPSIS
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[4.898... 4.898...]
         factor_matrices[0] =
         [[0.7071... 0.7071...]
@@ -1475,7 +1480,7 @@ class ktensor:
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -1488,7 +1493,7 @@ class ktensor:
 
         >>> K1 = K.permute(np.array([1, 0]))
         >>> print(K1)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[5. 6.]
@@ -1528,7 +1533,7 @@ class ktensor:
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -1540,7 +1545,7 @@ class ktensor:
         Distribute weights of that :class:`pyttb.ktensor` to mode 0:
 
         >>> K.redistribute(0)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[1. 4.]
@@ -1709,7 +1714,7 @@ class ktensor:
             best_perm = -1 * np.ones((RA), dtype=int)
             best_score = 0.0
             for _ in range(RB):
-                idx = np.argmax(C.reshape(prod(C.shape), order="F"))
+                idx = np.argmax(C.reshape(prod(C.shape), order=self.order))
                 ij = tt_ind2sub((RA, RB), np.array(idx))
                 best_score = best_score + C[ij[0], ij[1]]
                 C[ij[0], :] = -10
@@ -1748,7 +1753,7 @@ class ktensor:
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -1762,7 +1767,7 @@ class ktensor:
 
         >>> K1 = K.symmetrize()
         >>> print(K1)  # doctest: +ELLIPSIS
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[2.3404... 4.9519...]
@@ -1828,7 +1833,7 @@ class ktensor:
         >>> factor_matrices = [fm0, fm1]
         >>> K = ttb.ktensor(factor_matrices, weights)
         >>> print(K)
-        ktensor of shape (2, 2)
+        ktensor of shape (2, 2) with order F
         weights=[1. 2.]
         factor_matrices[0] =
         [[1. 2.]
@@ -1906,7 +1911,7 @@ class ktensor:
         >>> weights_and_data = np.concatenate((weights, data), axis=0)
         >>> K = ttb.ktensor.from_vector(weights_and_data[:], shape, True)
         >>> print(K)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[2. 2.]
         factor_matrices[0] =
         [[1. 3.]
@@ -1926,7 +1931,7 @@ class ktensor:
 
         >>> K2 = ttb.ktensor.from_vector(K.tovec(), shape, True)
         >>> print(K2)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[2. 2.]
         factor_matrices[0] =
         [[1. 3.]
@@ -2019,7 +2024,7 @@ class ktensor:
         >>> K = ttb.ktensor.from_vector(weights_and_data[:], shape, True)
         >>> K0 = K.ttv(np.array([1, 1, 1]), dims=1)  # compute along a single dimension
         >>> print(K0)
-        ktensor of shape (2, 4)
+        ktensor of shape (2, 4) with order F
         weights=[36. 54.]
         factor_matrices[0] =
         [[1. 3.]
@@ -2045,7 +2050,7 @@ class ktensor:
 
         >>> K2 = K.ttv([vec4, vec3], np.array([2, 1]))
         >>> print(K2)
-        ktensor of shape (2,)
+        ktensor of shape (2,) with order F
         weights=[1800. 3564.]
         factor_matrices[0] =
         [[1. 3.]
@@ -2131,7 +2136,7 @@ class ktensor:
         >>> K1 = K.copy()
         >>> K1 = K1.update(0, vec0)
         >>> print(K1)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[2. 2.]
@@ -2152,7 +2157,7 @@ class ktensor:
         >>> vec_all = np.concatenate((vec0, vec1, vec2))
         >>> K2 = K2.update([0, 1, 2], vec_all)
         >>> print(K2)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[2. 2.]
@@ -2173,7 +2178,7 @@ class ktensor:
         >>> vec_some = np.concatenate((vec0, vec2))
         >>> K3 = K3.update([0, 2], vec_some)
         >>> print(K3)
-        ktensor of shape (2, 3, 4)
+        ktensor of shape (2, 3, 4) with order F
         weights=[1. 1.]
         factor_matrices[0] =
         [[2. 2.]
@@ -2211,7 +2216,7 @@ class ktensor:
                 self.factor_matrices[k] = np.reshape(
                     data[loc:endloc].copy(),
                     (self.shape[k], self.ncomponents),
-                    order="F",
+                    order=self.order,
                 )
                 loc = endloc
             else:
@@ -2533,7 +2538,7 @@ class ktensor:
         -------
         str:
         """
-        s = f"ktensor of shape {self.shape}\n"
+        s = f"ktensor of shape {self.shape} with order {self.order}\n"
         s += f"weights={self.weights}"
         if len(self.shape) == 0:
             s += "\nfactor_matrices=[]"
