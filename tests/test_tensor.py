@@ -1500,7 +1500,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4,))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     s += "\ndata"
     s += "[:] =\n"
     s += data.__str__()
@@ -1510,7 +1510,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 3))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     s += "\ndata"
     s += "[:, :] =\n"
     s += data.__str__()
@@ -1520,7 +1520,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 3, 2))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     for i in range(data.shape[0]):
         s += "\ndata"
         s += "[{}, :, :] =\n".format(i)
@@ -1530,7 +1530,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(2, 3, 4))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     for i in range(data.shape[0]):
         s += "\ndata"
         s += "[{}, :, :] =\n".format(i)
@@ -1541,7 +1541,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 4, 3, 2))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
             s += "\ndata"
@@ -1553,7 +1553,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(2, 2, 2, 2, 2))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
             for k in range(data.shape[2]):

@@ -509,7 +509,7 @@ class sptensor:
         >>> T = ttb.tensor(np.ones((2, 2, 2)))
         >>> S = T.to_sptensor()
         >>> S.contract(0, 1)
-        tensor of shape (2,)
+        tensor of shape (2,) with order F
         data[:] =
         [2. 2.]
 
@@ -686,7 +686,7 @@ class sptensor:
         >>> S = ttb.sptensor()
         >>> S[1, 1] = 1
         >>> S.to_tensor()
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 0.]
          [0. 1.]]
@@ -1072,7 +1072,7 @@ class sptensor:
 
         >>> T = S.to_tensor()
         >>> S.logical_or(T)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 0.]
          [0. 1.]]
@@ -1080,7 +1080,7 @@ class sptensor:
         Compute logical OR with a scalar value:
 
         >>> S.logical_or(1)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 1.]
          [1. 1.]]
@@ -1142,7 +1142,7 @@ class sptensor:
         >>> T = S.to_tensor()
         >>> T[1, 0] = 1.0
         >>> S.logical_xor(T)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 0.]
          [1. 0.]]
@@ -1150,7 +1150,7 @@ class sptensor:
         Compute logical XOR with a scalar value:
 
         >>> S.logical_xor(1)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 1.]
          [1. 0.]]
@@ -1910,7 +1910,7 @@ class sptensor:
         result is a :class:`pyttb.tensor`:
 
         >>> S.ttv(np.ones(2), 0)
-        tensor of shape (2,)
+        tensor of shape (2,) with order F
         data[:] =
         [4. 2.]
 
@@ -2800,7 +2800,7 @@ class sptensor:
         Subtract a scalar value, returning a dense tensor:
 
         >>> S - 1
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[-1. -1.]
          [-1.  0.]]
@@ -2849,7 +2849,7 @@ class sptensor:
         Add a scalar value, returning a dense tensor:
 
         >>> S + 1
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 1.]
          [1. 2.]]
@@ -3364,7 +3364,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[:, :] = 2.0
         >>> 1 / S
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0.5 0.5]
          [0.5 0.5]]
@@ -3463,7 +3463,7 @@ class sptensor:
 
         >>> A = 2 * np.ones((2, 1))
         >>> S.ttm([A, A], dims=[0, 1], transpose=True)
-        tensor of shape (1, 1, 2, 2)
+        tensor of shape (1, 1, 2, 2) with order F
         data[0, 0, :, :] =
         [[8. 0.]
          [8. 0.]]
@@ -3472,7 +3472,7 @@ class sptensor:
         dimensions to exclude in the multiplication:
 
         >>> S.ttm([A, A], exclude_dims=[0, 1], transpose=True)
-        tensor of shape (2, 2, 1, 1)
+        tensor of shape (2, 2, 1, 1) with order F
         data[0, 0, :, :] =
         [[8.]]
         data[1, 0, :, :] =
