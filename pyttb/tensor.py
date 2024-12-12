@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
-from functools import partial
 from itertools import combinations_with_replacement, permutations
 from math import factorial, prod
 from typing import (
@@ -20,6 +19,7 @@ from typing import (
     Sequence,
     Tuple,
     Union,
+    cast,
     overload,
 )
 
@@ -734,9 +734,8 @@ class tensor:
         sz = np.array(self.shape)
 
         if grps is None:
-            grps = np.arange(0, n)
-
-        if len(grps.shape) == 1:
+            grps = np.arange(0, n)[None, :]
+        elif len(grps.shape) == 1:
             grps = np.array([grps])
 
         # Substantially different routines are called depending on whether the user
@@ -903,7 +902,9 @@ class tensor:
         # Extract those non-zero values
         return self.data[tuple(wsubs.transpose())]
 
-    def mttkrp(self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product. The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
@@ -1272,7 +1273,9 @@ class tensor:
         else:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
-                return self.data.item()
+                # Why is item annotated as str?
+                single_item: float = cast(float, self.data.item())
+                return single_item
             return ttb.tensor(np.squeeze(self.data))
 
     def symmetrize(  # noqa: PLR0912,PLR0915
@@ -1518,7 +1521,7 @@ class tensor:
         newshape = np.array(
             [p, *list(shape[range(0, n)]), *list(shape[range(n + 1, self.ndims)])]
         )
-        Y_data = np.reshape(newdata, newshape, order=self.order)
+        Y_data: np.ndarray = np.reshape(newdata, newshape, order=self.order)
         Y_data = np.transpose(Y_data, np.argsort(order))
         return ttb.tensor(Y_data, copy=False)
 
@@ -1774,7 +1777,7 @@ class tensor:
 
             # extract scalar if needed
             if len(y) == 1:
-                y = y.item()
+                return cast(float, y.item())
 
             return y
         assert False, "Invalid value for version; should be None, 1, or 2"
@@ -2600,7 +2603,10 @@ def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
      [1. 1. 1.]
      [1. 1. 1.]]
     """
-    ones = partial(np.ones, order=order)
+
+    def ones(shape: Tuple[int, ...]) -> np.ndarray:
+        return np.ones(shape, order=order)
+
     return tensor.from_function(ones, shape)
 
 
@@ -2634,7 +2640,10 @@ def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> te
      [0. 0. 0.]
      [0. 0. 0.]]
     """
-    zeros = partial(np.zeros, order=order)
+
+    def zeros(shape: Tuple[int, ...]) -> np.ndarray:
+        return np.zeros(shape, order=order)
+
     return tensor.from_function(zeros, shape)
 
 

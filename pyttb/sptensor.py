@@ -415,7 +415,7 @@ class sptensor:
 
         # Generate each column of the subscripts in turn
         for n in range(0, self.ndims):
-            i = o.copy()
+            i: list[np.ndarray] = o.copy()
             i[n] = np.expand_dims(np.arange(0, self.shape[n]), axis=1)
             s[:, n] = np.squeeze(ttb.khatrirao(*i))
 
@@ -807,7 +807,9 @@ class sptensor:
         csize = np.array(self.shape)[cdims]
 
         if rsize.size == 0:
-            ridx = np.zeros((self.nnz, 1))
+            ridx: np.ndarray[tuple[int, ...], np.dtype[Any]] = np.zeros(
+                (self.nnz, 1), dtype=int
+            )
         elif self.subs.size == 0:
             ridx = np.array([], dtype=int)
         else:
@@ -815,7 +817,9 @@ class sptensor:
         ridx = ridx.reshape((ridx.size, 1)).astype(int)
 
         if csize.size == 0:
-            cidx = np.zeros((self.nnz, 1))
+            cidx: np.ndarray[tuple[int, ...], np.dtype[Any]] = np.zeros(
+                (self.nnz, 1), dtype=int
+            )
         elif self.subs.size == 0:
             cidx = np.array([], dtype=int)
         else:
@@ -1243,7 +1247,9 @@ class sptensor:
         vals[matching_indices] = self.vals[matching_indices]
         return vals
 
-    def mttkrp(self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product using the
         :class:`pyttb.sptensor`. This is an efficient form of the matrix
@@ -1312,7 +1318,7 @@ class sptensor:
                 else:
                     Z.append(np.array([]))
             # Perform ttv multiplication
-            ttv = self.ttv(Z, exclude_dims=n)
+            ttv = self.ttv(Z, exclude_dims=int(n))
             # TODO is is possible to hit the float condition here?
             if isinstance(ttv, float):  # pragma: no cover
                 V[:, r] = ttv

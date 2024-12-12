@@ -318,7 +318,9 @@ class sumtensor:
             result += part.innerprod(other)
         return result
 
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ttb.ktensor, List[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product. The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the

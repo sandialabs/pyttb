@@ -816,7 +816,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 
 
 def get_mttkrp_factors(
-    U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int, ndims: int
+    U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer], ndims: int
 ) -> Sequence[np.ndarray]:
     """Apply standard checks and type conversions for mttkrp factors"""
     if isinstance(U, ttb.ktensor):

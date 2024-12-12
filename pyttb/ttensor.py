@@ -401,7 +401,9 @@ class ttensor:
         assert not isinstance(newcore, float)
         return ttensor(newcore, [self.factor_matrices[dim] for dim in remdims])
 
-    def mttkrp(self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for ttensors.
 

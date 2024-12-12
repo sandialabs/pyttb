@@ -162,7 +162,7 @@ def estimate_helper(
     ndim = subs.shape[1]
 
     # Create exploded U's from the model factor matrices
-    Uexp = [np.empty(())] * ndim
+    Uexp = [np.empty((), dtype=factors[0].dtype)] * ndim
     for k in range(ndim):
         Uexp[k] = factors[k][subs[:, k], :]
 

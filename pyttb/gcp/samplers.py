@@ -272,7 +272,7 @@ def nonzeros(
 
     # Select nonzeros
     if samples == nnz:
-        nidx = np.arange(0, nnz)
+        nidx: np.ndarray = np.arange(0, nnz, dtype=int)
     elif with_replacement or samples < nnz:
         nidx = np.random.choice(nnz, size=samples, replace=with_replacement)
     else:

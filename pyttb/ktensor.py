@@ -1192,7 +1192,9 @@ class ktensor:
             vals = vals + tmpvals
         return vals
 
-    def mttkrp(self, U: Union[ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for :class:`pyttb.ktensor`.
 
