@@ -2570,9 +2570,7 @@ class tensor:
     __str__ = __repr__
 
 
-def tenones(
-        shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F"
-) -> tensor:
+def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
     """
     Creates a tensor of all ones.
 
@@ -2606,9 +2604,7 @@ def tenones(
     return tensor.from_function(ones, shape)
 
 
-def tenzeros(
-        shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F"
-) -> tensor:
+def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
     """
     Creates a tensor of all zeros.
 
@@ -2642,9 +2638,7 @@ def tenzeros(
     return tensor.from_function(zeros, shape)
 
 
-def tenrand(
-        shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F"
-) -> tensor:
+def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
     """
     Creates a tensor with entries drawn from a uniform
     distribution on the unit interval.
@@ -2682,9 +2676,9 @@ def tenrand(
 
 
 def tendiag(
-        elements: OneDArray,
-        shape: Optional[Shape] = None,
-        order: Union[Literal["F"], Literal["C"]] = "F"
+    elements: OneDArray,
+    shape: Optional[Shape] = None,
+    order: Union[Literal["F"], Literal["C"]] = "F",
 ) -> tensor:
     """
     Creates a tensor with elements along super diagonal. If provided shape is too

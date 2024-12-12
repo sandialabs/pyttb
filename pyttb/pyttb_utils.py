@@ -530,7 +530,7 @@ def tt_ind2sub(
     if idx.size == 0:
         return np.empty(shape=(0, len(shape)), dtype=int)
     idx[idx < 0] += prod(shape)  # Handle negative indexing as simply as possible
-    return np.array(np.unravel_index(idx, shape, order=self.order)).transpose()
+    return np.array(np.unravel_index(idx, shape, order=order)).transpose()
 
 
 def tt_subsubsref(obj, s):

@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from math import prod
-from typing import Optional, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 
