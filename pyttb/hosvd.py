@@ -129,7 +129,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
         # Shrink!
         if sequential:
-            Y = Y.ttm(factor_matrices[k].transpose(), k)
+            Y = Y.ttm(factor_matrices[k].transpose(), int(k))
     # Extract final core
     if sequential:
         G = Y

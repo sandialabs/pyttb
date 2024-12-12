@@ -415,7 +415,7 @@ class sptensor:
 
         # Generate each column of the subscripts in turn
         for n in range(0, self.ndims):
-            i = o.copy()
+            i: list[np.ndarray] = o.copy()
             i[n] = np.expand_dims(np.arange(0, self.shape[n]), axis=1)
             s[:, n] = np.squeeze(ttb.khatrirao(*i))
 
@@ -516,7 +516,7 @@ class sptensor:
         >>> T = ttb.tensor(np.ones((2, 2, 2)))
         >>> S = T.to_sptensor()
         >>> S.contract(0, 1)
-        tensor of shape (2,)
+        tensor of shape (2,) with order F
         data[:] =
         [2. 2.]
 
@@ -693,7 +693,7 @@ class sptensor:
         >>> S = ttb.sptensor()
         >>> S[1, 1] = 1
         >>> S.to_tensor()
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 0.]
          [0. 1.]]
@@ -807,7 +807,9 @@ class sptensor:
         csize = np.array(self.shape)[cdims]
 
         if rsize.size == 0:
-            ridx = np.zeros((self.nnz, 1))
+            ridx: np.ndarray[tuple[int, ...], np.dtype[Any]] = np.zeros(
+                (self.nnz, 1), dtype=int
+            )
         elif self.subs.size == 0:
             ridx = np.array([], dtype=int)
         else:
@@ -815,7 +817,9 @@ class sptensor:
         ridx = ridx.reshape((ridx.size, 1)).astype(int)
 
         if csize.size == 0:
-            cidx = np.zeros((self.nnz, 1))
+            cidx: np.ndarray[tuple[int, ...], np.dtype[Any]] = np.zeros(
+                (self.nnz, 1), dtype=int
+            )
         elif self.subs.size == 0:
             cidx = np.array([], dtype=int)
         else:
@@ -1079,7 +1083,7 @@ class sptensor:
 
         >>> T = S.to_tensor()
         >>> S.logical_or(T)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 0.]
          [0. 1.]]
@@ -1087,7 +1091,7 @@ class sptensor:
         Compute logical OR with a scalar value:
 
         >>> S.logical_or(1)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 1.]
          [1. 1.]]
@@ -1149,7 +1153,7 @@ class sptensor:
         >>> T = S.to_tensor()
         >>> T[1, 0] = 1.0
         >>> S.logical_xor(T)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 0.]
          [1. 0.]]
@@ -1157,7 +1161,7 @@ class sptensor:
         Compute logical XOR with a scalar value:
 
         >>> S.logical_xor(1)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 1.]
          [1. 0.]]
@@ -1243,7 +1247,9 @@ class sptensor:
         vals[matching_indices] = self.vals[matching_indices]
         return vals
 
-    def mttkrp(self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product using the
         :class:`pyttb.sptensor`. This is an efficient form of the matrix
@@ -1312,7 +1318,7 @@ class sptensor:
                 else:
                     Z.append(np.array([]))
             # Perform ttv multiplication
-            ttv = self.ttv(Z, exclude_dims=n)
+            ttv = self.ttv(Z, exclude_dims=int(n))
             # TODO is is possible to hit the float condition here?
             if isinstance(ttv, float):  # pragma: no cover
                 V[:, r] = ttv
@@ -1917,7 +1923,7 @@ class sptensor:
         result is a :class:`pyttb.tensor`:
 
         >>> S.ttv(np.ones(2), 0)
-        tensor of shape (2,)
+        tensor of shape (2,) with order F
         data[:] =
         [4. 2.]
 
@@ -2799,7 +2805,7 @@ class sptensor:
         Subtract a scalar value, returning a dense tensor:
 
         >>> S - 1
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[-1. -1.]
          [-1.  0.]]
@@ -2848,7 +2854,7 @@ class sptensor:
         Add a scalar value, returning a dense tensor:
 
         >>> S + 1
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 1.]
          [1. 2.]]
@@ -3363,7 +3369,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[:, :] = 2.0
         >>> 1 / S
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0.5 0.5]
          [0.5 0.5]]
@@ -3462,24 +3468,24 @@ class sptensor:
 
         >>> A = 2 * np.ones((2, 1))
         >>> S.ttm([A, A], dims=[0, 1], transpose=True)
-        tensor of shape (1, 1, 2, 2)
-        data[0, 0, :, :] =
-        [[8. 0.]
-         [8. 0.]]
+        tensor of shape (1, 1, 2, 2) with order F
+        data[:, :, 0, 0] =
+        [[8.]]
+        data[:, :, 1, 0] =
+        [[8.]]
+        data[:, :, 0, 1] =
+        [[0.]]
+        data[:, :, 1, 1] =
+        [[0.]]
 
         Compute sparse tensor matrix product specifying which two tensor
         dimensions to exclude in the multiplication:
 
         >>> S.ttm([A, A], exclude_dims=[0, 1], transpose=True)
-        tensor of shape (2, 2, 1, 1)
-        data[0, 0, :, :] =
-        [[8.]]
-        data[1, 0, :, :] =
-        [[8.]]
-        data[0, 1, :, :] =
-        [[0.]]
-        data[1, 1, :, :] =
-        [[0.]]
+        tensor of shape (2, 2, 1, 1) with order F
+        data[:, :, 0, 0] =
+        [[8. 0.]
+         [8. 0.]]
         """
         # Handle list of matrices
         if isinstance(matrices, Sequence):

@@ -510,7 +510,11 @@ def tt_ismember_rows(
     return matched, results.astype(int)
 
 
-def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
+def tt_ind2sub(
+    shape: Tuple[int, ...],
+    idx: np.ndarray,
+    order: Union[Literal["F"], Literal["C"]] = "F",
+) -> np.ndarray:
     """
     Multiple subscripts from linear indices.
 
@@ -526,7 +530,7 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     if idx.size == 0:
         return np.empty(shape=(0, len(shape)), dtype=int)
     idx[idx < 0] += prod(shape)  # Handle negative indexing as simply as possible
-    return np.array(np.unravel_index(idx, shape, order="F")).transpose()
+    return np.array(np.unravel_index(idx, shape, order=order)).transpose()
 
 
 def tt_subsubsref(obj, s):
@@ -572,7 +576,11 @@ def tt_intvec2str(v: np.ndarray) -> str:
     return np.array2string(v)
 
 
-def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
+def tt_sub2ind(
+    shape: Tuple[int, ...],
+    subs: np.ndarray,
+    order: Union[Literal["F"], Literal["C"]] = "F",
+) -> np.ndarray:
     """
     Converts multidimensional subscripts to linear indices.
 
@@ -582,6 +590,8 @@ def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
         Shape of tensor
     subs:
         Subscripts for tensor
+    order:
+        Memory layout
 
     Returns
     -------
@@ -594,7 +604,7 @@ def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
     """
     if subs.size == 0:
         return np.array([])
-    idx = np.ravel_multi_index(tuple(subs.transpose()), shape, order="F")
+    idx = np.ravel_multi_index(tuple(subs.transpose()), shape, order=order)
     return idx
 
 
@@ -806,7 +816,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 
 
 def get_mttkrp_factors(
-    U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int, ndims: int
+    U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer], ndims: int
 ) -> Sequence[np.ndarray]:
     """Apply standard checks and type conversions for mttkrp factors"""
     if isinstance(U, ttb.ktensor):
