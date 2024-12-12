@@ -9,8 +9,18 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 from itertools import combinations_with_replacement, permutations
-from math import factorial
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union, overload
+from math import factorial, prod
+from typing import (
+    Any,
+    Callable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    overload,
+)
 
 import numpy as np
 import scipy.sparse.linalg
@@ -20,10 +30,14 @@ from scipy import sparse
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
+    OneDArray,
+    Shape,
     gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
     np_to_python,
+    parse_one_d,
+    parse_shape,
     tt_dimscheck,
     tt_ind2sub,
     tt_sub2ind,
@@ -59,7 +73,7 @@ class tensor:
     def __init__(
         self,
         data: Optional[np.ndarray] = None,
-        shape: Optional[Tuple[int, ...]] = None,
+        shape: Optional[Shape] = None,
         copy: bool = True,
     ):
         """
@@ -110,15 +124,14 @@ class tensor:
         # Create or check second argument
         if shape is None:
             shape = data.shape
-        elif not isinstance(shape, tuple):
-            assert False, "Second argument must be a tuple."
+        shape = parse_shape(shape)
 
         # Make sure the number of elements matches what's been specified
         if len(shape) == 0:
             if data.size > 0:
                 assert False, "Empty tensor cannot contain any elements"
 
-        elif np.prod(shape) != data.size:
+        elif prod(shape) != data.size:
             assert (
                 False
             ), "TTB:WrongSize, Size of data does not match specified size of tensor"
@@ -140,7 +153,7 @@ class tensor:
     def from_function(
         cls,
         function_handle: Callable[[Tuple[int, ...]], np.ndarray],
-        shape: Tuple[int, ...],
+        shape: Shape,
     ) -> tensor:
         """
         Construct a :class:`pyttb.tensor` whose data entries are set using
@@ -176,8 +189,7 @@ class tensor:
          [1. 1. 1. 1.]]
         """
         # Check size
-        if not isinstance(shape, tuple):
-            assert False, "TTB:BadInput, Shape must be a tuple"
+        shape = parse_shape(shape)
 
         # Generate data
         data = function_handle(shape)
@@ -333,7 +345,7 @@ class tensor:
         newsize = tuple(np.array(self.shape)[remdims])
 
         # Total size of remainder
-        m = np.prod(newsize)
+        m = prod(newsize)
 
         # Number of items to add for trace
         n = self.shape[i1]
@@ -350,7 +362,7 @@ class tensor:
             newdata += data[:, idx, idx][:, None]
 
         # Reshape result
-        if np.prod(newsize) > 1:
+        if prod(newsize) > 1:
             newdata = np.reshape(newdata, newsize, order="F")
 
         return ttb.tensor(newdata, newsize, copy=False)
@@ -503,7 +515,7 @@ class tensor:
         Create a :class:`pyttb.tensor`.
 
         >>> tshape = (2, 2, 2)
-        >>> data = np.reshape(np.arange(np.prod(tshape)), tshape)
+        >>> data = np.reshape(np.arange(prod(tshape)), tshape)
         >>> T = ttb.tensor(data)
         >>> T  # doctest: +NORMALIZE_WHITESPACE
         tensor of shape (2, 2, 2)
@@ -869,7 +881,7 @@ class tensor:
         # Extract those non-zero values
         return self.data[tuple(wsubs.transpose())]
 
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: int) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product. The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
@@ -913,8 +925,8 @@ class tensor:
             if U[i].shape[0] != self.shape[i]:
                 assert False, f"Entry {i} of list of arrays is wrong size"
 
-        szl = int(np.prod(self.shape[0:n]))
-        szr = int(np.prod(self.shape[n + 1 :]))
+        szl = prod(self.shape[0:n])
+        szr = prod(self.shape[n + 1 :])
         szn = self.shape[n]
 
         if n == 0:
@@ -938,7 +950,7 @@ class tensor:
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
             return V
 
-    def mttkrps(self, U: Union[ttb.ktensor, List[np.ndarray]]) -> List[np.ndarray]:
+    def mttkrps(self, U: Union[ttb.ktensor, Sequence[np.ndarray]]) -> List[np.ndarray]:
         """
         Sequence of MTTKRP calculations for a tensor.
 
@@ -1085,7 +1097,7 @@ class tensor:
                     v[:, i] *= -1
         return v
 
-    def permute(self, order: np.ndarray) -> tensor:
+    def permute(self, order: OneDArray) -> tensor:
         """
         Permute tensor dimensions. The result is a tensor that has the
         same values, but the order of the subscripts needed to access
@@ -1114,6 +1126,7 @@ class tensor:
         [[1 3]
          [2 4]]
         """
+        order = parse_one_d(order)
         if self.ndims != order.size:
             assert False, "Invalid permutation order"
 
@@ -1128,7 +1141,7 @@ class tensor:
         # Np transpose does error checking on order, acts as permutation
         return ttb.tensor(np.transpose(self.data, order), copy=False)
 
-    def reshape(self, shape: Tuple[int, ...]) -> tensor:
+    def reshape(self, shape: Shape) -> tensor:
         """
         Reshape the tensor.
 
@@ -1146,7 +1159,8 @@ class tensor:
         >>> T2.shape
         (4, 1)
         """
-        if np.prod(self.shape) != np.prod(shape):
+        shape = parse_shape(shape)
+        if prod(self.shape) != prod(shape):
             assert False, "Reshaping a tensor cannot change number of elements"
 
         return ttb.tensor(np.reshape(self.data, shape, order="F"), shape)
@@ -1351,7 +1365,7 @@ class tensor:
 
             # Create all the permuations to be averaged
             combo_lengths = [len(perm) for perm in combos]
-            total_perms = int(np.prod(combo_lengths))
+            total_perms = prod(combo_lengths)
             sym_perms = np.tile(np.arange(0, n), [total_perms, 1])
             for i in range(0, ngrps):
                 ntimes = np.prod(combo_lengths[0:i], dtype=int)
@@ -1386,9 +1400,9 @@ class tensor:
 
     def ttm(
         self,
-        matrix: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[float, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        matrix: Union[np.ndarray, Sequence[np.ndarray]],
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
         transpose: bool = False,
     ) -> tensor:
         """
@@ -1444,17 +1458,7 @@ class tensor:
         data[1, 1, :, :] =
         [[16.]]
         """
-        if dims is None and exclude_dims is None:
-            dims = np.arange(self.ndims)
-        elif isinstance(dims, list):
-            dims = np.array(dims)
-        elif isinstance(dims, (float, int, np.generic)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
-        if isinstance(matrix, list):
+        if isinstance(matrix, Sequence):
             # Check that the dimensions are valid
             dims, vidx = tt_dimscheck(self.ndims, len(matrix), dims, exclude_dims)
 
@@ -1587,9 +1591,9 @@ class tensor:
 
     def ttv(
         self,
-        vector: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        vector: Union[np.ndarray, Sequence[np.ndarray]],
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, tensor]:
         """
         Tensor times vector.
@@ -1612,7 +1616,7 @@ class tensor:
         Parameters
         ----------
         vector:
-            Vector or vectors to multiple by.
+            Vector or vectors to multiply by.
         dims:
             Dimensions to multiply against.
         exclude_dims:
@@ -1636,14 +1640,6 @@ class tensor:
         >>> T.ttv([np.ones(2), np.ones(2)])
         10.0
         """
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check that vector is a list of vectors, if not place single vector as element
         # in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
@@ -1681,7 +1677,7 @@ class tensor:
 
     def ttsv(
         self,
-        vector: np.ndarray,
+        vector: OneDArray,
         skip_dim: Optional[int] = None,
         version: Optional[int] = None,
     ) -> Union[float, np.ndarray, tensor]:
@@ -1710,6 +1706,7 @@ class tensor:
         array([[1, 2],
                [3, 4]])
         """
+        vector = parse_one_d(vector)
         # Only two simple cases are supported
         if skip_dim is None:
             exclude_dims = None
@@ -1814,7 +1811,7 @@ class tensor:
         if isinstance(key, (int, float, np.generic)):
             idx = np.array([key])
         elif isinstance(key, slice):
-            idx = np.array(range(np.prod(self.shape))[key])
+            idx = np.array(range(prod(self.shape))[key])
         idx = tt_ind2sub(self.shape, idx)
         if idx.shape[0] == 1:
             self.data[tuple(idx[0, :])] = value
@@ -1950,7 +1947,7 @@ class tensor:
             if isinstance(item, (int, float, np.generic)):
                 idx = np.array(item)
             elif isinstance(item, slice):
-                idx = np.array(range(np.prod(self.shape))[item])
+                idx = np.array(range(prod(self.shape))[item])
             a = np.squeeze(self.data[tuple(tt_ind2sub(self.shape, idx).transpose())])
             # Todo if row make column?
             return tt_subsubsref(a, idx)
@@ -2550,7 +2547,7 @@ class tensor:
     __str__ = __repr__
 
 
-def tenones(shape: Tuple[int, ...]) -> tensor:
+def tenones(shape: Shape) -> tensor:
     """
     Creates a tensor of all ones.
 
@@ -2581,7 +2578,7 @@ def tenones(shape: Tuple[int, ...]) -> tensor:
     return tensor.from_function(np.ones, shape)
 
 
-def tenzeros(shape: Tuple[int, ...]) -> tensor:
+def tenzeros(shape: Shape) -> tensor:
     """
     Creates a tensor of all zeros.
 
@@ -2612,7 +2609,7 @@ def tenzeros(shape: Tuple[int, ...]) -> tensor:
     return tensor.from_function(np.zeros, shape)
 
 
-def tenrand(shape: Tuple[int, ...]) -> tensor:
+def tenrand(shape: Shape) -> tensor:
     """
     Creates a tensor with entries drawn from a uniform
     distribution on the unit interval.
@@ -2644,7 +2641,7 @@ def tenrand(shape: Tuple[int, ...]) -> tensor:
     return tensor.from_function(unit_uniform, shape)
 
 
-def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> tensor:
+def tendiag(elements: OneDArray, shape: Optional[Shape] = None) -> tensor:
     """
     Creates a tensor with elements along super diagonal. If provided shape is too
     small the tensor will be enlarged to accomodate.
@@ -2670,11 +2667,12 @@ def tendiag(elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None) -> te
     True
     """
     # Flatten provided elements
-    elements = np.ravel(elements)
+    elements = parse_one_d(elements)
     N = len(elements)
     if shape is None:
         constructed_shape = (N,) * N
     else:
+        shape = parse_shape(shape)
         constructed_shape = tuple(max(N, dim) for dim in shape)
     X = tenzeros(constructed_shape)
     subs = np.tile(np.arange(0, N)[:, None], (len(constructed_shape),))
@@ -2758,7 +2756,7 @@ def mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
     return W_out
 
 
-def mttv_mid(W_in: np.ndarray, U_mid: List[np.ndarray]) -> np.ndarray:
+def mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
     """
     Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
 
@@ -2785,7 +2783,7 @@ def mttv_mid(W_in: np.ndarray, U_mid: List[np.ndarray]) -> np.ndarray:
     return V
 
 
-def min_split(shape: Tuple[int, ...]) -> int:
+def min_split(shape: Shape) -> int:
     """Scan for optimal splitting with minimal memory footprint.
 
     Parameters
@@ -2799,8 +2797,9 @@ def min_split(shape: Tuple[int, ...]) -> int:
         Modes 0:split will contract in left-partial computation and the
         rest will contract in right-partial.
     """
+    shape = parse_shape(shape)
     m_left = shape[0]
-    m_right = np.prod(shape[1:])
+    m_right = prod(shape[1:])
     idx_min = 0
 
     # Minimize m_left + m_right

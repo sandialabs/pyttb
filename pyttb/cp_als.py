@@ -6,11 +6,12 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, Literal, Optional, Tuple, Union
 
 import numpy as np
 
 import pyttb as ttb
+from pyttb.pyttb_utils import OneDArray, parse_one_d
 
 
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
@@ -18,8 +19,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     rank: int,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
-    dimorder: Optional[List[int]] = None,
-    optdims: Optional[List[int]] = None,
+    dimorder: Optional[OneDArray] = None,
+    optdims: Optional[OneDArray] = None,
     init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
     printitn: int = 1,
     fixsigns: bool = True,
@@ -109,8 +110,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     [[0.1467... 0.0923...]
      [0.1862... 0.3455...]]
     >>> print(output["params"]) # doctest: +NORMALIZE_WHITESPACE
-    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': [0, 1],\
-     'optdims': [0, 1], 'printitn': 1, 'fixsigns': True}
+    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': array([0, 1]),\
+     'optdims': array([0, 1]), 'printitn': 1, 'fixsigns': True}
 
     Example using "nvecs" initialization:
 
@@ -135,15 +136,17 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
 
     # Set up dimorder if not specified
     if dimorder is None:
-        dimorder = list(range(N))
-    elif not isinstance(dimorder, list):
-        assert False, "Dimorder must be a list"
-    elif tuple(range(N)) != tuple(sorted(dimorder)):
+        dimorder = np.arange(N)
+    else:
+        dimorder = parse_one_d(dimorder)
+    if tuple(range(N)) != tuple(sorted(dimorder)):
         assert False, "Dimorder must be a list or permutation of range(tensor.ndims)"
 
     # Set up optdims if not specified
     if optdims is None:
-        optdims = list(range(N))
+        optdims = np.arange(N)
+    else:
+        optdims = parse_one_d(optdims)
 
     # Error checking
     assert rank > 0, "Number of components requested must be positive"
