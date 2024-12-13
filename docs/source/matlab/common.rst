@@ -1,6 +1,22 @@
 General key differences
 -----------------------
 
+Python Conventions
+^^^^^^^^^^^^^^^^^^
+We make extensive use of NumPy throughout the library so please see their
+`documentation for MATLAB users <https://numpy.org/doc/stable/user/numpy-for-matlab-users.html>`_.
+Otherwise some highlights are:
+
+* 0-indexing in python vs 1-indexing in MATLAB
+
+Copying
+^^^^^^^^^^^^^^^^^^^^
+Copying a ``pyttb`` tensor works differently than MATLAB. For example in MATLAB, copying a tensor ``Y``
+as  ``Y = X`` returns a tensor ``Y`` that is independent of ``X``. Changing the value of ``Y`` does not
+change the value of ``X``. However, the same syntax in ``pyttb``, ``Y = X``, returns a *shallow copy* of ``X``;
+the shallow copy ``Y`` is a *reference* to ``X``. For that reason, each ``pyttb`` tensor class provides a ``copy()``
+method that returns a *deep copy* ``Y`` that is independent of ``X``, which is called as ``Y = X.copy()``.
+
 Data members
 ^^^^^^^^^^^^
 +-----------------+----------------------+------------------------------------------------------------------------+
@@ -66,14 +82,6 @@ Methods
 +-----------------+----------------------+------------------------------------------------------------------------+
 | ``xor``         | ``logical_xor``      | ``X.logical_xor(Y)``                                                   |
 +-----------------+----------------------+------------------------------------------------------------------------+
-
-Copying
-^^^^^^^^^^^^^^^^^^^^
-Copying a ``pyttb`` tensor works differently than MATLAB. For example in MATLAB, copying a tensor ``Y``
-as  ``Y = X`` returns a tensor ``Y`` that is independent of ``X``. Changing the value of ``Y`` does not
-change the value of ``X``. However, the same syntax in ``pyttb``, ``Y = X``, returns a *shallow copy* of ``X``;
-the shallow copy ``Y`` is a *reference* to ``X``. For that reason, each ``pyttb`` tensor class provides a ``copy()``
-method that returns a *deep copy* ``Y`` that is independent of ``X``, which is called as ``Y = X.copy()``.
 
 MATLAB methods not included in ``pyttb``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

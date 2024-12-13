@@ -11,4 +11,5 @@ Tensor Classes
     tensor.rst
     ttensor.rst
     tenmat.rst
+    pyttb_utils.rst
 

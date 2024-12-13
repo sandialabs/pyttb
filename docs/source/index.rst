@@ -24,7 +24,7 @@ algorithms for computing low-rank tensor models.
 
    pyttb supports multiple tensor types, including
    dense and sparse, as well as specially structured tensors, such as
-   the Krusal format (stored as factor matrices).
+   the Kruskal format (stored as factor matrices).
 
 - `Algorithms`_
 
