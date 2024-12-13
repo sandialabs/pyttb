@@ -1,4 +1,4 @@
-"""CP Decomposition via Alternating Least Squares"""
+"""CP Decomposition via Alternating Least Squares."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -25,8 +25,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     printitn: int = 1,
     fixsigns: bool = True,
 ) -> Tuple[ttb.ktensor, ttb.ktensor, Dict]:
-    """
-    Compute CP decomposition with alternating least squares
+    """Compute CP decomposition with alternating least squares.
 
     Parameters
     ----------
@@ -129,7 +128,6 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
      Iter 1: f = ... f-delta = ...
      Final f = ...
     """
-
     # Extract number of dimensions and norm of tensor
     N = input_tensor.ndims
     normX = input_tensor.norm()

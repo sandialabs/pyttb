@@ -1777,3 +1777,62 @@ def test_mttkrps():
         np.allclose(a_direct, an_optimized)
         for a_direct, an_optimized in zip(direct, optimized)
     )
+
+
+def test_tenfun():
+    data = np.array([[1, 2, 3], [4, 5, 6]])
+    t1 = ttb.tensor(data)
+    t2 = ttb.tensor(data)
+
+    # Binary case
+    def add(x, y):
+        return x + y
+
+    assert np.array_equal(t1.tenfun(add, t2).data, 2 * data)
+
+    # Single argument case
+    def add1(x):
+        return x + 1
+
+    assert np.array_equal(t1.tenfun(add1).data, (data + 1))
+
+    # Multi argument case
+    def tensor_max(x):
+        return np.max(x, axis=0)
+
+    assert np.array_equal(t1.tenfun(tensor_max, t1, t1).data, data)
+    # TODO: sptensor arguments, depends on fixing the indexing ordering
+
+    # No np array case
+    assert np.array_equal(t1.tenfun(tensor_max, data, data).data, data)
+
+    # No list case
+    with pytest.raises(AssertionError) as excinfo:
+        t1.tenfun(tensor_max, [1, 2, 3])
+    assert "Invalid input to ten fun" in str(excinfo)
+
+    # Scalar argument not in first two positions
+    with pytest.raises(AssertionError) as excinfo:
+        t1.tenfun(tensor_max, t1, 1)
+    assert "Invalid input to ten fun" in str(excinfo)
+
+    # Tensors of different sizes
+    with pytest.raises(AssertionError) as excinfo:
+        t1.tenfun(
+            tensor_max,
+            t1,
+            ttb.tensor(np.concatenate((data, np.array([[7, 8, 9]])))),
+        )
+    assert "Tensor 1 is not the same size as the first tensor input" in str(excinfo)
+
+    with pytest.raises(ValueError) as excinfo:
+
+        def three_arg_function(x, y, z):
+            pass
+
+        t1.tenfun(three_arg_function)
+    assert "only supports binary and unary function handles" in str(excinfo)
+
+    with pytest.raises(AssertionError) as excinfo:
+        _ = t1.tenfun_unary(add1, 1)
+    assert "scalar but expected a tensor" in str(excinfo)

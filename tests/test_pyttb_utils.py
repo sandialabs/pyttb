@@ -76,59 +76,6 @@ def test_tt_dimscheck():
     assert "Negative dims" in str(excinfo), f"{str(excinfo)}"
 
 
-def test_tt_tenfun():
-    data = np.array([[1, 2, 3], [4, 5, 6]])
-    t1 = ttb.tensor(data)
-    t2 = ttb.tensor(data)
-
-    # Binary case
-    def add(x, y):
-        return x + y
-
-    assert np.array_equal(ttb_utils.tt_tenfun(add, t1, t2).data, 2 * data)
-
-    # Single argument case
-    def add1(x):
-        return x + 1
-
-    assert np.array_equal(ttb_utils.tt_tenfun(add1, t1).data, (data + 1))
-
-    # Multi argument case
-    def tensor_max(x):
-        return np.max(x, axis=0)
-
-    assert np.array_equal(ttb_utils.tt_tenfun(tensor_max, t1, t1, t1).data, data)
-    # TODO: sptensor arguments, depends on fixing the indexing ordering
-
-    # No np array case
-    assert np.array_equal(ttb_utils.tt_tenfun(tensor_max, data, data, data).data, data)
-
-    # No argument case
-    with pytest.raises(AssertionError) as excinfo:
-        ttb_utils.tt_tenfun(tensor_max)
-    assert "Must provide element(s) to perform operation on" in str(excinfo)
-
-    # No list case
-    with pytest.raises(AssertionError) as excinfo:
-        ttb_utils.tt_tenfun(tensor_max, [1, 2, 3])
-    assert "Invalid input to ten fun" in str(excinfo)
-
-    # Scalar argument not in first two positions
-    with pytest.raises(AssertionError) as excinfo:
-        ttb_utils.tt_tenfun(tensor_max, t1, t1, 1)
-    assert "Argument 2 is a scalar but expected a tensor" in str(excinfo)
-
-    # Tensors of different sizes
-    with pytest.raises(AssertionError) as excinfo:
-        ttb_utils.tt_tenfun(
-            tensor_max,
-            t1,
-            t1,
-            ttb.tensor(np.concatenate((data, np.array([[7, 8, 9]])))),
-        )
-    assert "Tensor 2 is not the same size as the first tensor input" in str(excinfo)
-
-
 def test_tt_setdiff_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6], [99, 0]])
     b = np.array(
@@ -339,12 +286,6 @@ def test_tt_subsubsref_valid():
     assert True
 
 
-def test_tt_intvec2str_valid():
-    """This function is slotted to be removed because it is probably unnecessary in python"""
-    v = np.array([1, 2, 3])
-    assert ttb_utils.tt_intvec2str(v) == "[1 2 3]"
-
-
 def test_tt_sizecheck_empty():
     assert ttb_utils.tt_sizecheck(())
 
@@ -470,7 +411,7 @@ def test_islogical_invalid():
 
 def test_get_index_variant_linear():
     assert ttb_utils.get_index_variant(1) == ttb_utils.IndexVariant.LINEAR
-    assert ttb_utils.get_index_variant(1.0) == ttb_utils.IndexVariant.LINEAR
+    assert ttb_utils.get_index_variant(1.0) == ttb_utils.IndexVariant.UNKNOWN
     assert ttb_utils.get_index_variant(slice(1, 5)) == ttb_utils.IndexVariant.LINEAR
     assert ttb_utils.get_index_variant(np.int32(2)) == ttb_utils.IndexVariant.LINEAR
     assert (

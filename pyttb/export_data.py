@@ -1,4 +1,4 @@
-"""Utilities for saving tensor data"""
+"""Utilities for saving tensor data."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -20,9 +20,7 @@ def export_data(
     fmt_data: Optional[str] = None,
     fmt_weights: Optional[str] = None,
 ):
-    """
-    Export tensor-related data to a file.
-    """
+    """Export tensor-related data to a file."""
     if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
         assert False, f"Invalid data type for export: {type(data)}"
 
@@ -58,7 +56,7 @@ def export_data(
 
 
 def export_size(fp: TextIO, shape: Shape):
-    """Export the size of something to a file"""
+    """Export the size of something to a file."""
     shape = parse_shape(shape)
     print(f"{len(shape)}", file=fp)  # # of dimensions on one line
     shape_str = " ".join([str(d) for d in shape])
@@ -66,12 +64,12 @@ def export_size(fp: TextIO, shape: Shape):
 
 
 def export_rank(fp: TextIO, data: ttb.ktensor):
-    """Export the rank of a ktensor to a file"""
+    """Export the rank of a ktensor to a file."""
     print(f"{len(data.weights)}", file=fp)  # ktensor rank on one line
 
 
 def export_weights(fp: TextIO, data: ttb.ktensor, fmt_weights: Optional[str]):
-    """Export KTensor weights"""
+    """Export KTensor weights."""
     if not fmt_weights:
         fmt_weights = "%.16e"
     data.weights.tofile(fp, sep=" ", format=fmt_weights)
@@ -79,7 +77,7 @@ def export_weights(fp: TextIO, data: ttb.ktensor, fmt_weights: Optional[str]):
 
 
 def export_array(fp: TextIO, data: np.ndarray, fmt_data: Optional[str]):
-    """Export dense data"""
+    """Export dense data."""
     if not fmt_data:
         fmt_data = "%.16e"
     data.tofile(fp, sep="\n", format=fmt_data)
@@ -87,7 +85,7 @@ def export_array(fp: TextIO, data: np.ndarray, fmt_data: Optional[str]):
 
 
 def export_factor(fp: TextIO, data: np.ndarray, fmt_data: Optional[str]):
-    """Export KTensor factor"""
+    """Export KTensor factor."""
     if not fmt_data:
         fmt_data = "%.16e"
     for i in range(data.shape[0]):
@@ -97,7 +95,7 @@ def export_factor(fp: TextIO, data: np.ndarray, fmt_data: Optional[str]):
 
 
 def export_sparse_size(fp: TextIO, A: ttb.sptensor):
-    """Export the size of something to a file"""
+    """Export the size of something to a file."""
     print(f"{len(A.shape)}", file=fp)  # # of dimensions on one line
     shape_str = " ".join([str(d) for d in A.shape])
     print(f"{shape_str}", file=fp)  # size of each dimensions on the next line
@@ -105,7 +103,7 @@ def export_sparse_size(fp: TextIO, A: ttb.sptensor):
 
 
 def export_sparse_array(fp: TextIO, A: ttb.sptensor, fmt_data: Optional[str]):
-    """Export sparse array data in coordinate format"""
+    """Export sparse array data in coordinate format."""
     if not fmt_data:
         fmt_data = "%.16e"
     # TODO: looping through all values may take a long time, can this be more efficient?

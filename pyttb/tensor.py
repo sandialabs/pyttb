@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
+from inspect import signature
 from itertools import combinations_with_replacement, permutations
 from math import factorial, prod
 from typing import (
@@ -43,7 +44,6 @@ from pyttb.pyttb_utils import (
     tt_ind2sub,
     tt_sub2ind,
     tt_subsubsref,
-    tt_tenfun,
 )
 
 
@@ -77,8 +77,7 @@ class tensor:
         shape: Optional[Shape] = None,
         copy: bool = True,
     ):
-        """
-        Creates a :class:`pyttb.tensor` from a :class:`numpy.ndarray`
+        """Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`.
 
         Note that 1D tensors (i.e., when len(shape)==1) contains a data
         array that follow the Numpy convention of being a row vector.
@@ -93,7 +92,7 @@ class tensor:
             Whether to make a copy of provided data or just reference it.
 
         Examples
-        -------
+        --------
         Create an empty :class:`pyttb.tensor`:
 
         >>> T = ttb.tensor()
@@ -146,7 +145,7 @@ class tensor:
         if copy:
             self.data = data.copy(self.order)
         else:
-            if not self.matches_order(data):
+            if not self._matches_order(data):
                 logging.warning(
                     f"Selected no copy, but input data isn't {self.order} ordered "
                     "so must copy."
@@ -160,7 +159,8 @@ class tensor:
         """Return the data layout of the underlying storage."""
         return "F"
 
-    def matches_order(self, array: np.ndarray) -> bool:
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
         if array.flags["C_CONTIGUOUS"] and self.order == "C":
             return True
         if array.flags["F_CONTIGUOUS"] and self.order == "F":
@@ -173,9 +173,7 @@ class tensor:
         function_handle: Callable[[Tuple[int, ...]], np.ndarray],
         shape: Shape,
     ) -> tensor:
-        """
-        Construct a :class:`pyttb.tensor` whose data entries are set using
-        a function.
+        """Construct a :class:`pyttb.tensor` with data from a function.
 
         Parameters
         ----------
@@ -240,11 +238,12 @@ class tensor:
         return ttb.tensor(self.data, self.shape, copy=True)
 
     def __deepcopy__(self, memo):
+        """Return deep copy of this tensor."""
         return self.copy()
 
     def collapse(
         self,
-        dims: Optional[np.ndarray] = None,
+        dims: Optional[OneDArray] = None,
         fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
     ) -> Union[float, np.ndarray, tensor]:
         """
@@ -281,10 +280,11 @@ class tensor:
         if dims is None:
             dims = np.arange(0, self.ndims)
 
+        dims, _ = tt_dimscheck(self.ndims, dims=dims)
+
         if dims.size == 0:
             return self.copy()
 
-        dims, _ = tt_dimscheck(self.ndims, dims=dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
 
         # Check for the case where we accumulate over *all* dimensions
@@ -456,8 +456,7 @@ class tensor:
         return subs, vals
 
     def to_sptensor(self) -> ttb.sptensor:
-        """
-        Contruct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`
+        """Contruct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`.
 
         Returns
         -------
@@ -500,9 +499,7 @@ class tensor:
         ] = None,
         copy: bool = True,
     ) -> ttb.tenmat:
-        """
-        Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor` and
-        unwrapping details.
+        """Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor`.
 
         Parameters
         ----------
@@ -617,9 +614,7 @@ class tensor:
     def innerprod(
         self, other: Union[tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
-        """
-        Efficient inner product between a tensor and other `pyttb` tensors
-        (`tensor`, `sptensor`, `ktensor`, or `ttensor`).
+        """Efficient inner product between a tensor and other `pyttb` tensors.
 
         Parameters
         ----------
@@ -815,7 +810,7 @@ class tensor:
         def logical_and(x, y):
             return np.logical_and(x, y).astype(dtype=x.dtype)
 
-        return tt_tenfun(logical_and, self, other)
+        return self.tenfun(logical_and, other)
 
     def logical_not(self) -> tensor:
         """
@@ -849,7 +844,7 @@ class tensor:
         def tensor_or(x, y):
             return np.logical_or(x, y).astype(x.dtype)
 
-        return tt_tenfun(tensor_or, self, other)
+        return self.tenfun(tensor_or, other)
 
     def logical_xor(self, other: Union[float, tensor]) -> tensor:
         """
@@ -870,7 +865,7 @@ class tensor:
         def tensor_xor(x, y):
             return np.logical_xor(x, y).astype(dtype=x.dtype)
 
-        return tt_tenfun(tensor_xor, self, other)
+        return self.tenfun(tensor_xor, other)
 
     def mask(self, W: tensor) -> np.ndarray:
         """
@@ -905,8 +900,9 @@ class tensor:
     def mttkrp(
         self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
     ) -> np.ndarray:
-        """
-        Matricized tensor times Khatri-Rao product. The matrices used in the
+        """Matricized tensor times Khatri-Rao product.
+
+        The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
         factor matrices are used) or as a list of :class:`numpy.ndarray` objects.
 
@@ -929,7 +925,6 @@ class tensor:
         array([[4., 4.],
                [4., 4.]])
         """
-
         # check that we have a tensor that can perform mttkrp
         if self.ndims < 2:
             assert False, "MTTKRP is invalid for tensors with fewer than 2 dimensions"
@@ -1047,8 +1042,9 @@ class tensor:
         return np.count_nonzero(self.data)
 
     def norm(self) -> float:
-        """
-        Frobenius norm of the tensor, defined as the square root of the sum of the
+        """Frobenius norm of the tensor.
+
+        Defined as the square root of the sum of the
         squares of the elements of the tensor.
 
         Examples
@@ -1121,8 +1117,9 @@ class tensor:
         return v
 
     def permute(self, order: OneDArray) -> tensor:
-        """
-        Permute tensor dimensions. The result is a tensor that has the
+        """Permute tensor dimensions.
+
+        The result is a tensor that has the
         same values, but the order of the subscripts needed to access
         any particular element are rearranged as specified by `order`.
 
@@ -1251,8 +1248,7 @@ class tensor:
         return ttb.tenmat(result, dims, remdims, self.shape, copy=False).to_tensor()
 
     def squeeze(self) -> Union[tensor, float]:
-        """
-        Removes singleton dimensions from the tensor.
+        """Remove singleton dimensions from the tensor.
 
         Returns
         -------
@@ -1782,6 +1778,168 @@ class tensor:
             return y
         assert False, "Invalid value for version; should be None, 1, or 2"
 
+    def tenfun(
+        self,
+        function_handle: Union[
+            Callable[[np.ndarray, np.ndarray], np.ndarray],
+            Callable[[np.ndarray], np.ndarray],
+        ],
+        *inputs: Union[
+            float,
+            int,
+            np.ndarray,
+            ttb.tensor,
+            ttb.ktensor,
+            ttb.ttensor,
+            ttb.sptensor,
+            ttb.sumtensor,
+        ],
+    ) -> ttb.tensor:
+        """Apply a function to each element in a tensor or tensors.
+
+        See :meth:`pyttb.tensor.tenfun_binary` and
+        :meth:`pyttb.tensor.tenfun_binary_unary` for supported
+        options.
+        """
+        assert callable(function_handle), "function_handle must be callable"
+
+        # Number of inputs for function handle
+        nfunin = len(signature(function_handle).parameters)
+
+        # Case I: Binary function
+        if len(inputs) == 1 and nfunin == 2:
+            # We manually inspected the function handle for the parameters
+            # maybe there is a more clever way to convince mypy
+            binary_function_handle = cast(
+                Callable[[np.ndarray, np.ndarray], np.ndarray], function_handle
+            )
+            Y = inputs[0]
+            if not isinstance(Y, (int, float)):
+                Y = self._tt_to_tensor(Y)
+            return self.tenfun_binary(binary_function_handle, Y)
+
+        # Convert inputs to tensors if they aren't already
+        # Allow inputs to be mutable in case of type conversion
+        input_tensors: list[Union[ttb.tensor]] = []
+        for an_input in inputs:
+            if not isinstance(
+                an_input,
+                (
+                    np.ndarray,
+                    ttb.tensor,
+                    ttb.ktensor,
+                    ttb.ttensor,
+                    ttb.sptensor,
+                    ttb.sumtensor,
+                ),
+            ):
+                assert (
+                    False
+                ), f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
+            input_tensors.append(self._tt_to_tensor(an_input))
+
+        # Case II: Expects input to be matrix and applies operation on each columns
+        if nfunin != 1:
+            raise ValueError(
+                "Tenfun only supports binary and unary function handles but provided "
+                "function handle takes {nfunin} arguments."
+            )
+        unary_function_handle = cast(
+            Callable[[np.ndarray], np.ndarray], function_handle
+        )
+        return self.tenfun_unary(unary_function_handle, *input_tensors)
+
+    def tenfun_binary(
+        self,
+        function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray],
+        other: Union[ttb.tensor, int, float],
+        first: bool = True,
+    ) -> ttb.tensor:
+        """Apply a binary operation to two tensors or a tensor and a scalar.
+
+        Parameters
+        ----------
+        function_handle: Function to apply.
+        other: Other input to the binary function.
+        first: Whether the tensor comes first in the method call (if ordering matters).
+
+        Example
+        -------
+        >>> add = lambda x, y: x + y
+        >>> t0 = ttb.tenones((2, 2))
+        >>> t1 = t0.tenfun_binary(add, t0)
+        >>> t1.isequal(t0 * 2)
+        True
+        >>> t2 = t0.tenfun_binary(add, 1)
+        >>> t2.isequal(t1)
+        True
+        """
+        X = self.data
+        if not isinstance(other, (float, int)):
+            Y = other.data
+        else:
+            Y = np.array(other)
+
+        if not first:
+            Y, X = X, Y
+        data = function_handle(X, Y)
+        Z = ttb.tensor(data, copy=False)
+        return Z
+
+    def tenfun_unary(
+        self, function_handle: Callable[[np.ndarray], np.ndarray], *inputs: ttb.tensor
+    ) -> ttb.tensor:
+        """Apply a unary operation to multiple tensors columnwise.
+
+        Example
+        -------
+        >>> tensor_max = lambda x: np.max(x, axis=0)
+        >>> data = np.array([[1, 2, 3], [4, 5, 6]])
+        >>> t0 = ttb.tensor(data)
+        >>> t1 = ttb.tensor(data)
+        >>> t2 = t0.tenfun_unary(tensor_max, t1)
+        >>> t2.isequal(t1)
+        True
+        """
+        sz = self.shape
+        for i, an_input in enumerate(inputs):
+            if isinstance(an_input, (float, int)):
+                assert False, f"Argument {i} is a scalar but expected a tensor"
+            elif sz != an_input.shape:
+                assert (
+                    False
+                ), f"Tensor {i} is not the same size as the first tensor input"
+        if len(inputs) == 0:
+            X = self.data
+            X = np.reshape(X, (1, -1))
+        else:
+            X = np.zeros((len(inputs) + 1, np.prod(sz)))
+            X[0, :] = np.reshape(self.data, (np.prod(sz)))
+            for i, an_input in enumerate(inputs):
+                X[i + 1, :] = np.reshape(an_input.data, (np.prod(sz)))
+        data = function_handle(X)
+        data = np.reshape(data, sz)
+        Z = ttb.tensor(data, copy=False)
+        return Z
+
+    def _tt_to_tensor(
+        self,
+        some_tensor: Union[
+            np.ndarray,
+            ttb.tensor,
+            ttb.ktensor,
+            ttb.ttensor,
+            ttb.sptensor,
+            ttb.sumtensor,
+        ],
+    ) -> ttb.tensor:
+        """Convert a variety of data structures to a dense tensor."""
+        if isinstance(some_tensor, np.ndarray):
+            return ttb.tensor(some_tensor)
+        elif isinstance(some_tensor, ttb.tensor):
+            return some_tensor
+        return some_tensor.to_tensor()
+
     def __setitem__(self, key, value):
         """
         Subscripted assignment for a tensor.
@@ -2071,7 +2229,7 @@ class tensor:
         def tensor_equality(x, y):
             return x == y
 
-        return tt_tenfun(tensor_equality, self, other)
+        return self.tenfun(tensor_equality, other)
 
     def __ne__(self, other):
         """
@@ -2103,7 +2261,7 @@ class tensor:
         def tensor_not_equal(x, y):
             return x != y
 
-        return tt_tenfun(tensor_not_equal, self, other)
+        return self.tenfun(tensor_not_equal, other)
 
     def __ge__(self, other):
         """
@@ -2135,7 +2293,7 @@ class tensor:
         def greater_or_equal(x, y):
             return x >= y
 
-        return tt_tenfun(greater_or_equal, self, other)
+        return self.tenfun(greater_or_equal, other)
 
     def __le__(self, other):
         """
@@ -2167,7 +2325,7 @@ class tensor:
         def less_or_equal(x, y):
             return x <= y
 
-        return tt_tenfun(less_or_equal, self, other)
+        return self.tenfun(less_or_equal, other)
 
     def __gt__(self, other):
         """
@@ -2199,7 +2357,7 @@ class tensor:
         def greater(x, y):
             return x > y
 
-        return tt_tenfun(greater, self, other)
+        return self.tenfun(greater, other)
 
     def __lt__(self, other):
         """
@@ -2231,7 +2389,7 @@ class tensor:
         def less(x, y):
             return x < y
 
-        return tt_tenfun(less, self, other)
+        return self.tenfun(less, other)
 
     def __sub__(self, other):
         """
@@ -2263,7 +2421,7 @@ class tensor:
         def minus(x, y):
             return x - y
 
-        return tt_tenfun(minus, self, other)
+        return self.tenfun(minus, other)
 
     def __add__(self, other):
         """
@@ -2298,11 +2456,10 @@ class tensor:
         def tensor_add(x, y):
             return x + y
 
-        return tt_tenfun(tensor_add, self, other)
+        return self.tenfun(tensor_add, other)
 
     def __radd__(self, other):
-        """
-        Right binary addition (+) for tensors
+        """Right binary addition (+) for tensors.
 
         Parameters
         ----------
@@ -2348,11 +2505,10 @@ class tensor:
         def tensor_pow(x, y):
             return x**y
 
-        return tt_tenfun(tensor_pow, self, power)
+        return self.tenfun(tensor_pow, power)
 
     def __mul__(self, other):
-        """
-        Element-wise multiplication (*) for tensors, self*other
+        """Element-wise multiplication (*) for tensors, self*other.
 
         Parameters
         ----------
@@ -2383,11 +2539,10 @@ class tensor:
         if isinstance(other, (ttb.ktensor, ttb.sptensor, ttb.ttensor)):
             other = other.full()
 
-        return tt_tenfun(mul, self, other)
+        return self.tenfun(mul, other)
 
     def __rmul__(self, other):
-        """
-        Element wise right multiplication (*) for tensors, other*self
+        """Element wise right multiplication (*) for tensors, other*self.
 
         Parameters
         ----------
@@ -2409,8 +2564,7 @@ class tensor:
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        """
-        Element-wise left division (/) for tensors, self/other
+        """Element-wise left division (/) for tensors, self/other.
 
         Parameters
         ----------
@@ -2441,11 +2595,10 @@ class tensor:
             with np.errstate(divide="ignore", invalid="ignore"):
                 return x / y
 
-        return tt_tenfun(div, self, other)
+        return self.tenfun(div, other)
 
     def __rtruediv__(self, other):
-        """
-        Element wise right division (/) for tensors, other/self
+        """Element wise right division (/) for tensors, other/self.
 
         Parameters
         ----------
@@ -2472,7 +2625,7 @@ class tensor:
             with np.errstate(divide="ignore", invalid="ignore"):
                 return x / y
 
-        return tt_tenfun(div, other, self)
+        return self.tenfun_binary(div, other, first=False)
 
     def __pos__(self):
         """
@@ -2510,12 +2663,10 @@ class tensor:
         [[-1 -2]
          [-3 -4]]
         """
-
         return ttb.tensor(-1 * self.data)
 
     def __repr__(self):
-        """
-        String representation of the tensor.
+        """Return string representation of the tensor.
 
         Returns
         -------
@@ -2574,8 +2725,7 @@ class tensor:
 
 
 def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
-    """
-    Creates a tensor of all ones.
+    """Create a tensor of all ones.
 
     Parameters
     ----------
@@ -2611,8 +2761,7 @@ def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
 
 
 def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
-    """
-    Creates a tensor of all zeros.
+    """Create a tensor of all zeros.
 
     Parameters
     ----------
@@ -2648,9 +2797,7 @@ def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> te
 
 
 def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
-    """
-    Creates a tensor with entries drawn from a uniform
-    distribution on the unit interval.
+    """Create a tensor with entries drawn from a uniform distribution on [0, 1].
 
     Parameters
     ----------
@@ -2689,9 +2836,9 @@ def tendiag(
     shape: Optional[Shape] = None,
     order: Union[Literal["F"], Literal["C"]] = "F",
 ) -> tensor:
-    """
-    Creates a tensor with elements along super diagonal. If provided shape is too
-    small the tensor will be enlarged to accomodate.
+    """Create a tensor with elements along super diagonal.
+
+    If provided shape is too small the tensor will be enlarged to accomodate.
 
     Parameters
     ----------
@@ -2781,8 +2928,8 @@ def teneye(
 
 
 def mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
-    """
-    Contract leading mode in partial MTTKRP W_in using factor matrix U1.
+    """Contract leading mode in partial MTTKRP W_in using factor matrix U1.
+
     The leading mode is the mode for which consecutive increases in index address
     elements at consecutive increases in the memory offset.
 
