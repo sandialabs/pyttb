@@ -9,12 +9,12 @@ from __future__ import annotations
 import logging
 import warnings
 from collections.abc import Iterable, Sequence
+from math import prod
 from operator import ge, gt, le, lt
 from typing import (
     Any,
     Callable,
     Dict,
-    List,
     Literal,
     Optional,
     Tuple,
@@ -31,10 +31,14 @@ from scipy import sparse
 import pyttb as ttb
 from pyttb.pyttb_utils import (
     IndexVariant,
+    OneDArray,
+    Shape,
     gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
     np_to_python,
+    parse_one_d,
+    parse_shape,
     tt_dimscheck,
     tt_ind2sub,
     tt_intersect_rows,
@@ -84,7 +88,7 @@ class sptensor:
         self,
         subs: Optional[np.ndarray] = None,
         vals: Optional[np.ndarray] = None,
-        shape: Optional[Tuple[int, ...]] = None,
+        shape: Optional[Shape] = None,
         copy: bool = True,
     ):
         """Construct a :class:`pyttb.sptensor`.
@@ -129,6 +133,8 @@ class sptensor:
             self.vals = np.array([], ndmin=2)
             self.shape: Union[Tuple[()], Tuple[int, ...]] = ()
             if shape is not None:
+                shape = parse_shape(shape)
+                # TODO do we need sizecheck or should that wrap in our share parser?
                 if not tt_sizecheck(shape):
                     raise ValueError(f"Invalid shape provided: {shape}")
                 self.shape = tuple(shape)
@@ -137,7 +143,9 @@ class sptensor:
             raise ValueError("If subs or vals are provided they must both be provided.")
 
         if shape is None:
-            shape = tuple(np.max(subs, axis=0) + 1)
+            shape = parse_shape(np.max(subs, axis=0) + 1)
+        else:
+            shape = parse_shape(shape)
 
         if subs.size > 0:
             assert subs.shape[1] == len(shape) and np.all(
@@ -169,7 +177,7 @@ class sptensor:
     def from_function(
         cls,
         function_handle: Callable[[Tuple[int, ...]], np.ndarray],
-        shape: Tuple[int, ...],
+        shape: Shape,
         nonzeros: float,
     ) -> sptensor:
         """Construct a :class:`pyttb.sptensor`.
@@ -220,13 +228,14 @@ class sptensor:
         """
         assert callable(function_handle), "function_handle must be callable"
 
-        if (nonzeros < 0) or (nonzeros >= np.prod(shape)):
+        shape = parse_shape(shape)
+        if (nonzeros < 0) or (nonzeros >= prod(shape)):
             assert False, (
                 "Requested number of nonzeros must be positive "
                 "and less than the total size"
             )
         elif nonzeros < 1:
-            nonzeros = int(np.ceil(np.prod(shape) * nonzeros))
+            nonzeros = int(np.ceil(prod(shape) * nonzeros))
         else:
             nonzeros = int(np.floor(nonzeros))
         nonzeros = int(nonzeros)
@@ -253,7 +262,7 @@ class sptensor:
         cls,
         subs: np.ndarray,
         vals: np.ndarray,
-        shape: Optional[Tuple[int, ...]] = None,
+        shape: Optional[Shape] = None,
         function_handle: Union[str, Callable[[Any], Union[float, np.ndarray]]] = "sum",
     ) -> sptensor:
         """Construct a :class:`pyttb.sptensor`.
@@ -309,16 +318,17 @@ class sptensor:
         [1, 2] = 6.0
         [1, 3] = 7.5
         """
-        tt_subscheck(subs)
-        tt_valscheck(vals)
+        tt_subscheck(subs, False)
+        tt_valscheck(vals, False)
         if subs.size > 1 and vals.shape[0] != subs.shape[0]:
             assert False, "Number of subscripts and values must be equal"
 
         # Extract the shape
         if shape is not None:
-            tt_sizecheck(shape)
+            shape = parse_shape(shape)
+            tt_sizecheck(shape, False)
         else:
-            shape = tuple(np.max(subs, axis=0) + 1)
+            shape = parse_shape(np.max(subs, axis=0) + 1)
 
         # Check for wrong input
         if subs.size > 0 and subs.shape[1] > len(shape):
@@ -399,7 +409,7 @@ class sptensor:
         if len(self.shape) == 0:
             return np.empty(shape=(1, 0), dtype=int)
 
-        s = np.zeros(shape=(np.prod(self.shape), self.ndims))
+        s = np.zeros(shape=(prod(self.shape), self.ndims))
 
         # Generate appropriately sized ones vectors
         o = []
@@ -408,7 +418,7 @@ class sptensor:
 
         # Generate each column of the subscripts in turn
         for n in range(0, self.ndims):
-            i = o.copy()
+            i: list[np.ndarray] = o.copy()
             i[n] = np.expand_dims(np.arange(0, self.shape[n]), axis=1)
             s[:, n] = np.squeeze(ttb.khatrirao(*i))
 
@@ -416,7 +426,7 @@ class sptensor:
 
     def collapse(
         self,
-        dims: Optional[np.ndarray] = None,
+        dims: Optional[OneDArray] = None,
         function_handle: Callable[[np.ndarray], Union[float, np.ndarray]] = sum,
     ) -> Union[float, np.ndarray, sptensor]:
         """
@@ -457,9 +467,6 @@ class sptensor:
         >>> S.collapse(dims=np.array([0, 2]))
         array([6., 7.])
         """
-        if dims is None:
-            dims = np.arange(0, self.ndims)
-
         dims, _ = tt_dimscheck(self.ndims, dims=dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
 
@@ -513,7 +520,7 @@ class sptensor:
         >>> T = ttb.tensor(np.ones((2, 2, 2)))
         >>> S = T.to_sptensor()
         >>> S.contract(0, 1)
-        tensor of shape (2,)
+        tensor of shape (2,) with order F
         data[:] =
         [2. 2.]
 
@@ -562,7 +569,7 @@ class sptensor:
             )
 
         # Check if result should be dense
-        if y.nnz > 0.5 * np.prod(y.shape):
+        if y.nnz > 0.5 * prod(y.shape):
             # Final result is a dense tensor
             return y.to_tensor()
         return y
@@ -691,7 +698,7 @@ class sptensor:
         >>> S = ttb.sptensor()
         >>> S[1, 1] = 1
         >>> S.to_tensor()
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 0.]
          [0. 1.]]
@@ -803,7 +810,9 @@ class sptensor:
         csize = np.array(self.shape)[cdims]
 
         if rsize.size == 0:
-            ridx = np.zeros((self.nnz, 1))
+            ridx: np.ndarray[tuple[int, ...], np.dtype[Any]] = np.zeros(
+                (self.nnz, 1), dtype=int
+            )
         elif self.subs.size == 0:
             ridx = np.array([], dtype=int)
         else:
@@ -811,7 +820,9 @@ class sptensor:
         ridx = ridx.reshape((ridx.size, 1)).astype(int)
 
         if csize.size == 0:
-            cidx = np.zeros((self.nnz, 1))
+            cidx: np.ndarray[tuple[int, ...], np.dtype[Any]] = np.zeros(
+                (self.nnz, 1), dtype=int
+            )
         elif self.subs.size == 0:
             cidx = np.array([], dtype=int)
         else:
@@ -1073,7 +1084,7 @@ class sptensor:
 
         >>> T = S.to_tensor()
         >>> S.logical_or(T)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 0.]
          [0. 1.]]
@@ -1081,7 +1092,7 @@ class sptensor:
         Compute logical OR with a scalar value:
 
         >>> S.logical_or(1)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 1.]
          [1. 1.]]
@@ -1143,7 +1154,7 @@ class sptensor:
         >>> T = S.to_tensor()
         >>> T[1, 0] = 1.0
         >>> S.logical_xor(T)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 0.]
          [1. 0.]]
@@ -1151,7 +1162,7 @@ class sptensor:
         Compute logical XOR with a scalar value:
 
         >>> S.logical_xor(1)
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0. 1.]
          [1. 0.]]
@@ -1237,7 +1248,10 @@ class sptensor:
         vals[matching_indices] = self.vals[matching_indices]
         return vals
 
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+            self,
+            U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """Matricized tensor times Khatri-Rao product using :class:`pyttb.sptensor`.
 
         This is an efficient form of the matrix
@@ -1306,7 +1320,7 @@ class sptensor:
                 else:
                     Z.append(np.array([]))
             # Perform ttv multiplication
-            ttv = self.ttv(Z, exclude_dims=n)
+            ttv = self.ttv(Z, exclude_dims=int(n))
             # TODO is is possible to hit the float condition here?
             if isinstance(ttv, float):  # pragma: no cover
                 V[:, r] = ttv
@@ -1479,7 +1493,7 @@ class sptensor:
         oneVals.fill(1)
         return ttb.sptensor(self.subs, oneVals, self.shape)
 
-    def permute(self, order: np.ndarray) -> sptensor:
+    def permute(self, order: OneDArray) -> sptensor:
         """Permute the :class:`pyttb.sptensor` dimensions.
 
         The result is a new
@@ -1515,6 +1529,7 @@ class sptensor:
         [1, 0] = 2.0
         [0, 1] = 3.0
         """
+        order = parse_one_d(order)
         # Error check
         if self.ndims != order.size or np.any(
             np.sort(order) != np.arange(0, self.ndims)
@@ -1530,7 +1545,7 @@ class sptensor:
 
     def reshape(
         self,
-        new_shape: Tuple[int, ...],
+        new_shape: Shape,
         old_modes: Optional[Union[np.ndarray, int]] = None,
     ) -> sptensor:
         """Reshape the :class:`pyttb.sptensor` to the `new_shape`.
@@ -1603,15 +1618,16 @@ class sptensor:
         shapeArray = np.array(self.shape)
         old_shape = shapeArray[old_modes]
         keep_shape = shapeArray[keep_modes]
+        new_shape = parse_shape(new_shape)
 
-        if np.prod(new_shape) != np.prod(old_shape):
+        if prod(new_shape) != prod(old_shape):
             assert False, "Reshape must maintain tensor size"
 
         if self.subs.size == 0:
             return ttb.sptensor(
                 np.array([]),
                 np.array([]),
-                tuple(np.concatenate((keep_shape, new_shape))),
+                np.concatenate((keep_shape, new_shape)),
                 copy=False,
             )
         if np.isscalar(old_shape):
@@ -1623,13 +1639,13 @@ class sptensor:
         return ttb.sptensor(
             np.concatenate((self.subs[:, keep_modes], new_subs), axis=1),
             self.vals,
-            tuple(np.concatenate((keep_shape, new_shape))),
+            np.concatenate((keep_shape, new_shape)),
         )
 
     def scale(
         self,
         factor: Union[np.ndarray, ttb.tensor, ttb.sptensor],
-        dims: Union[float, np.ndarray],
+        dims: OneDArray,
     ) -> sptensor:
         """
         Scale the :class:`pyttb.sptensor` along specified dimensions.
@@ -1674,8 +1690,6 @@ class sptensor:
         [0, 1, 2] = 24
         [0, 2, 2] = 27
         """
-        if isinstance(dims, (float, int)):
-            dims = np.array([dims])
         dims, _ = tt_dimscheck(self.ndims, dims=dims)
 
         if isinstance(factor, ttb.tensor):
@@ -1861,11 +1875,11 @@ class sptensor:
 
         return loc
 
-    def ttv(  # noqa: PLR0912
+    def ttv(
         self,
-        vector: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        vector: Union[np.ndarray, Sequence[np.ndarray]],
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[sptensor, ttb.tensor, float]:
         """
         Multiplication of the :class:`pyttb.sptensor` with a vector.
@@ -1910,7 +1924,7 @@ class sptensor:
         result is a :class:`pyttb.tensor`:
 
         >>> S.ttv(np.ones(2), 0)
-        tensor of shape (2,)
+        tensor of shape (2,) with order F
         data[:] =
         [4. 2.]
 
@@ -1939,14 +1953,6 @@ class sptensor:
         >>> S1.ttv(vectors)
         36.0
         """
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
         if len(vector) > 0 and isinstance(vector[0], (int, float, np.int_, np.float64)):
@@ -1990,7 +1996,7 @@ class sptensor:
             )
             if np.count_nonzero(c) <= 0.5 * newsiz:
                 return ttb.sptensor.from_aggregator(
-                    np.arange(0, newsiz)[:, None], c, tuple(newsiz)
+                    np.arange(0, newsiz)[:, None], c.reshape((len(c), 1)), tuple(newsiz)
                 )
             return ttb.tensor(c, tuple(newsiz), copy=False)
 
@@ -1998,7 +2004,7 @@ class sptensor:
         c = ttb.sptensor.from_aggregator(newsubs, newvals, tuple(newsiz))
 
         # Convert to a dense tensor if more than 50% of the result is nonzero.
-        if c.nnz > 0.5 * np.prod(newsiz):
+        if c.nnz > 0.5 * prod(newsiz):
             c = c.to_tensor()
 
         return c
@@ -2142,7 +2148,7 @@ class sptensor:
             if isinstance(item, (int, float, np.generic, slice)):
                 if isinstance(item, (int, float, np.generic)):
                     if item < 0:
-                        item = np.prod(self.shape) + item
+                        item = prod(self.shape) + item
                     idx = np.array([item])
                 elif isinstance(item, slice):
                     idx = np.array(range(np.prod(self.shape))[item])
@@ -2756,7 +2762,7 @@ class sptensor:
             unionSubs = tt_union_rows(
                 self.subs, np.array(np.where(other.data == 0)).transpose()
             )
-            if unionSubs.shape[0] != np.prod(self.shape):
+            if unionSubs.shape[0] != prod(self.shape):
                 subs1Idx = tt_setdiff_rows(self.allsubs(), unionSubs)
                 subs1 = self.allsubs()[subs1Idx]
             else:
@@ -2800,7 +2806,7 @@ class sptensor:
         Subtract a scalar value, returning a dense tensor:
 
         >>> S - 1
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[-1. -1.]
          [-1.  0.]]
@@ -2849,7 +2855,7 @@ class sptensor:
         Add a scalar value, returning a dense tensor:
 
         >>> S + 1
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[1. 1.]
          [1. 2.]]
@@ -3363,7 +3369,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[:, :] = 2.0
         >>> 1 / S
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[0.5 0.5]
          [0.5 0.5]]
@@ -3416,9 +3422,9 @@ class sptensor:
 
     def ttm(
         self,
-        matrices: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[float, np.ndarray]] = None,
-        exclude_dims: Optional[Union[float, np.ndarray]] = None,
+        matrices: Union[np.ndarray, Sequence[np.ndarray]],
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
         transpose: bool = False,
     ) -> Union[ttb.tensor, sptensor]:
         """
@@ -3461,37 +3467,27 @@ class sptensor:
 
         >>> A = 2 * np.ones((2, 1))
         >>> S.ttm([A, A], dims=[0, 1], transpose=True)
-        tensor of shape (1, 1, 2, 2)
-        data[0, 0, :, :] =
-        [[8. 0.]
-         [8. 0.]]
+        tensor of shape (1, 1, 2, 2) with order F
+        data[:, :, 0, 0] =
+        [[8.]]
+        data[:, :, 1, 0] =
+        [[8.]]
+        data[:, :, 0, 1] =
+        [[0.]]
+        data[:, :, 1, 1] =
+        [[0.]]
 
         Compute sparse tensor matrix product specifying which two tensor
         dimensions to exclude in the multiplication:
 
         >>> S.ttm([A, A], exclude_dims=[0, 1], transpose=True)
-        tensor of shape (2, 2, 1, 1)
-        data[0, 0, :, :] =
-        [[8.]]
-        data[1, 0, :, :] =
-        [[8.]]
-        data[0, 1, :, :] =
-        [[0.]]
-        data[1, 1, :, :] =
-        [[0.]]
+        tensor of shape (2, 2, 1, 1) with order F
+        data[:, :, 0, 0] =
+        [[8. 0.]
+         [8. 0.]]
         """
-        if dims is None and exclude_dims is None:
-            dims = np.arange(self.ndims)
-        elif isinstance(dims, list):
-            dims = np.array(dims)
-        elif isinstance(dims, (float, int, np.generic)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Handle list of matrices
-        if isinstance(matrices, list):
+        if isinstance(matrices, Sequence):
             # Check dimensions are valid
             [dims, vidx] = tt_dimscheck(self.ndims, len(matrices), dims, exclude_dims)
             # Calculate individual products
@@ -3508,9 +3504,9 @@ class sptensor:
         if transpose:
             matrices = matrices.transpose()
 
-        # FIXME: This made typing happy but shouldn't be possible
-        if not isinstance(dims, np.ndarray):  # pragma: no cover
-            raise ValueError("Dims should be an array here")
+        # This is slightly inefficient for the looping above
+        # consider short circuit
+        dims, _ = tt_dimscheck(self.ndims, None, dims, exclude_dims)
 
         # Ensure this is the terminal single dimension case
         if not (dims.size == 1 and np.isin(dims, np.arange(self.ndims))):
@@ -3536,7 +3532,7 @@ class sptensor:
         # Rearrange back into sparse tensor of correct shape
         Ynt = ttb.sptenmat.from_array(Z, Xnt.rdims, Xnt.cdims, tuple(siz)).to_sptensor()
 
-        if not isinstance(Z, np.ndarray) and Z.nnz <= 0.5 * np.prod(siz):
+        if not isinstance(Z, np.ndarray) and Z.nnz <= 0.5 * prod(siz):
             return Ynt
         # TODO evaluate performance loss by casting into sptensor then tensor.
         #  I assume minimal since we are already using sparse matrix representation
@@ -3606,7 +3602,7 @@ class sptensor:
 
 
 def sptenrand(
-    shape: Tuple[int, ...],
+    shape: Shape,
     density: Optional[float] = None,
     nonzeros: Optional[float] = None,
 ) -> sptensor:
@@ -3645,8 +3641,10 @@ def sptenrand(
     if density is not None and not 0 < density <= 1:
         raise ValueError(f"Density must be a fraction (0, 1] but received {density}")
 
+    shape = parse_shape(shape)
     if isinstance(density, float):
-        valid_nonzeros = float(np.prod(shape) * density)
+        # TODO this should be an int
+        valid_nonzeros = float(prod(shape) * density)
     elif isinstance(nonzeros, (int, float)):
         valid_nonzeros = nonzeros
     else:  # pragma: no cover
@@ -3662,9 +3660,7 @@ def sptenrand(
     return ttb.sptensor.from_function(unit_uniform, shape, valid_nonzeros)
 
 
-def sptendiag(
-    elements: np.ndarray, shape: Optional[Tuple[int, ...]] = None
-) -> sptensor:
+def sptendiag(elements: OneDArray, shape: Optional[Shape] = None) -> sptensor:
     """Create a :class:`pyttb.sptensor` with elements along the super diagonal.
 
     If provided shape is too small the sparse tensor will be enlarged to
@@ -3694,11 +3690,12 @@ def sptendiag(
     True
     """
     # Flatten provided elements
-    elements = np.ravel(elements)
+    elements = parse_one_d(elements)
     N = len(elements)
     if shape is None:
         constructed_shape = (N,) * N
     else:
+        shape = parse_shape(shape)
         constructed_shape = tuple(max(N, dim) for dim in shape)
     subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1)).transpose()
     return sptensor.from_aggregator(subs, elements.reshape((N, 1)), constructed_shape)

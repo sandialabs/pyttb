@@ -6,11 +6,12 @@
 
 from __future__ import annotations
 
-from typing import Optional, TextIO, Tuple, Union
+from typing import Optional, TextIO, Union
 
 import numpy as np
 
 import pyttb as ttb
+from pyttb.pyttb_utils import Shape, parse_shape
 
 
 def export_data(
@@ -54,8 +55,9 @@ def export_data(
             export_array(fp, data, fmt_data)
 
 
-def export_size(fp: TextIO, shape: Tuple[int, ...]):
+def export_size(fp: TextIO, shape: Shape):
     """Export the size of something to a file."""
+    shape = parse_shape(shape)
     print(f"{len(shape)}", file=fp)  # # of dimensions on one line
     shape_str = " ".join([str(d) for d in shape])
     print(f"{shape_str}", file=fp)  # size of each dimensions on the next line

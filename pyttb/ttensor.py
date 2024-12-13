@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import textwrap
 from copy import deepcopy
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import scipy
@@ -17,6 +17,7 @@ from scipy import sparse
 
 import pyttb as ttb
 from pyttb import pyttb_utils as ttb_utils
+from pyttb.pyttb_utils import OneDArray, parse_one_d
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/sptensor."
 
@@ -29,7 +30,7 @@ class ttensor:
     def __init__(
         self,
         core: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
-        factors: Optional[List[np.ndarray]] = None,
+        factors: Optional[Sequence[np.ndarray]] = None,
         copy: bool = True,
     ) -> None:
         """
@@ -78,10 +79,16 @@ class ttensor:
         if isinstance(core, (ttb.tensor, ttb.sptensor)):
             if copy:
                 self.core = core.copy()
-                self.factor_matrices = deepcopy(factors)
+                self.factor_matrices = list(deepcopy(factors))
             else:
                 self.core = core
-                self.factor_matrices = factors
+                if isinstance(factors, list):
+                    self.factor_matrices = factors
+                else:
+                    logging.warning(
+                        "Must provide factor matrices as list to avoid copy"
+                    )
+                    self.factor_matrices = list(factors)
         else:
             # TODO support any tensor type with supported ops
             raise ValueError(ALT_CORE_ERROR)
@@ -334,9 +341,9 @@ class ttensor:
 
     def ttv(
         self,
-        vector: Union[List[np.ndarray], np.ndarray],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        vector: Union[Sequence[np.ndarray], np.ndarray],
+        dims: Optional[OneDArray] = None,
+        exclude_dims: Optional[OneDArray] = None,
     ) -> Union[float, ttensor]:
         """TTensor times vector.
 
@@ -349,15 +356,6 @@ class ttensor:
         exclude_dims:
             Alternative multiply by all dimensions but these.
         """
-        if dims is None and exclude_dims is None:
-            dims = np.array([])
-        # TODO make helper function to check scalar since re-used many places
-        elif isinstance(dims, (float, int)):
-            dims = np.array([dims])
-
-        if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
-
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
         if (
@@ -394,7 +392,9 @@ class ttensor:
         assert not isinstance(newcore, float)
         return ttensor(newcore, [self.factor_matrices[dim] for dim in remdims])
 
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for ttensors.
 
@@ -441,7 +441,7 @@ class ttensor:
             return np.sqrt(tmp)
         return self.full().norm()
 
-    def permute(self, order: np.ndarray) -> ttensor:
+    def permute(self, order: OneDArray) -> ttensor:
         """
         Permute :class:`pyttb.ttensor` dimensions.
 
@@ -459,6 +459,7 @@ class ttensor:
         -------
         Permuted :class:`pyttb.ttensor`.
         """
+        order = parse_one_d(order)
         if not np.array_equal(np.arange(0, self.ndims), np.sort(order)):
             raise ValueError("Invalid permutation")
         new_core = self.core.permute(order)
@@ -467,7 +468,7 @@ class ttensor:
 
     def ttm(
         self,
-        matrix: Union[np.ndarray, List[np.ndarray]],
+        matrix: Union[np.ndarray, Sequence[np.ndarray]],
         dims: Optional[Union[float, np.ndarray]] = None,
         exclude_dims: Optional[Union[int, np.ndarray]] = None,
         transpose: bool = False,
@@ -495,7 +496,7 @@ class ttensor:
         if isinstance(exclude_dims, (float, int)):
             exclude_dims = np.array([exclude_dims])
 
-        if not isinstance(matrix, list):
+        if not isinstance(matrix, Sequence):
             return self.ttm([matrix], dims, exclude_dims, transpose)
 
         # Check that the dimensions are valid
@@ -521,8 +522,8 @@ class ttensor:
 
     def reconstruct(  # noqa: PLR0912
         self,
-        samples: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
-        modes: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+        samples: Optional[Union[np.ndarray, Sequence[np.ndarray]]] = None,
+        modes: Optional[Union[np.ndarray, Sequence[np.ndarray]]] = None,
     ) -> ttb.tensor:
         """
         Reconstruct or partially reconstruct tensor from ttensor.
@@ -550,14 +551,14 @@ class ttensor:
 
         if modes is None:
             modes = np.arange(self.ndims)
-        elif isinstance(modes, list):
+        elif isinstance(modes, Sequence):
             modes = np.array(modes)
         elif np.isscalar(modes):
             modes = np.array([modes])
 
         if np.isscalar(samples):
             samples = [np.array([samples])]
-        elif not isinstance(samples, list):
+        elif not isinstance(samples, Sequence):
             samples = [samples]
 
         unequal_lengths = len(samples) > 0 and len(samples) != len(modes)

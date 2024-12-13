@@ -6,12 +6,13 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple, Union
+from math import prod
+from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 
 import pyttb as ttb
-from pyttb.pyttb_utils import gather_wrap_dims, np_to_python
+from pyttb.pyttb_utils import Shape, gather_wrap_dims, np_to_python, parse_shape
 
 
 class tenmat:
@@ -24,7 +25,7 @@ class tenmat:
         data: Optional[np.ndarray] = None,
         rdims: Optional[np.ndarray] = None,
         cdims: Optional[np.ndarray] = None,
-        tshape: Optional[Tuple[int, ...]] = None,
+        tshape: Optional[Shape] = None,
         copy: bool = True,
     ):
         """Construct a :class:`pyttb.tenmat` from explicit components.
@@ -49,7 +50,7 @@ class tenmat:
         Create an empty :class:`pyttb.tenmat`.
 
         >>> ttb.tenmat()  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape ()
+        matrix corresponding to a tensor of shape () with order F
         rindices = [  ] (modes of tensor corresponding to rows)
         cindices = [  ] (modes of tensor corresponding to columns)
         data = []
@@ -57,7 +58,7 @@ class tenmat:
         Create tensor shaped data.
 
         >>> tshape = (2, 2, 2)
-        >>> data = np.reshape(np.arange(np.prod(tshape), dtype=np.double), tshape)
+        >>> data = np.reshape(np.arange(prod(tshape), dtype=np.double), tshape)
         >>> data  # doctest: +NORMALIZE_WHITESPACE
         array([[[0., 1.],
                 [2., 3.]],
@@ -83,7 +84,7 @@ class tenmat:
                [[4., 5.],
                 [6., 7.]]])
         """
-        # Case 0a: Empty Contructor
+        # Case 0a: Empty Constructor
         # data is empty, return empty tenmat unless rdims, cdims, or tshape are
         # not empty
         if data is None or (isinstance(data, np.ndarray) and data.size == 0):
@@ -97,7 +98,7 @@ class tenmat:
             self.tshape: Union[Tuple[()], Tuple[int, ...]] = ()
             self.rindices = np.array([])
             self.cindices = np.array([])
-            self.data = np.array([], ndmin=2, order="F")
+            self.data = np.array([], ndmin=2, order=self.order)
             return
 
         # Verify that data is a numeric numpy.ndarray
@@ -111,7 +112,7 @@ class tenmat:
                 assert False, "tshape must be specified when data is 1d array."
             else:
                 # make data a 2d array with shape (1, data.shape[0]), i.e., a row vector
-                data = np.reshape(data.copy(), (1, data.shape[0]), order="F")
+                data = np.reshape(data.copy(), (1, data.shape[0]), order=self.order)
 
         if len(data.shape) != 2:
             raise ValueError(
@@ -121,11 +122,10 @@ class tenmat:
         # use data.shape for tshape if not provided
         if tshape is None:
             tshape = data.shape
-        elif not isinstance(tshape, tuple):
-            assert False, "tshape must be a tuple."
+        tshape = parse_shape(tshape)
 
         # check that data.shape and tshape agree
-        if np.prod(data.shape) != np.prod(tshape):
+        if prod(data.shape) != prod(tshape):
             assert False, (
                 "Incorrect dimensions specified: products of data.shape and tuple do "
                 "not match"
@@ -138,7 +138,7 @@ class tenmat:
         # check that data.shape and product of dimensions agree
         if not np.prod(np.array(tshape)[rdims]) * np.prod(
             np.array(tshape)[cdims]
-        ) == np.prod(data.shape):
+        ) == prod(data.shape):
             assert (
                 False
             ), "data.shape does not match shape specified by rdims, cdims, and tshape."
@@ -164,6 +164,11 @@ class tenmat:
         else:
             self.data = data
         return
+
+    @property
+    def order(self) -> Literal["F"]:
+        """Return the data layout of the underlying storage."""
+        return "F"
 
     def copy(self) -> tenmat:
         """
@@ -231,13 +236,13 @@ class tenmat:
         Extract original tensor shaped data.
 
         >>> tm.to_tensor()  # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape (2, 2, 2)
-        data[0, :, :] =
-        [[0. 1.]
-         [2. 3.]]
-        data[1, :, :] =
-        [[4. 5.]
-         [6. 7.]]
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[0. 2.]
+         [4. 6.]]
+        data[:, :, 1] =
+        [[1. 3.]
+         [5. 7.]]
         """
         # RESHAPE TENSOR-AS-MATRIX
         # Here we just reverse what was done in the tenmat constructor.
@@ -248,7 +253,7 @@ class tenmat:
         data = self.data
         if copy:
             data = self.data.copy()
-        data = np.reshape(data, np.array(shape)[order], order="F")
+        data = np.reshape(data, np.array(shape)[order], order=self.order)
         if order.size > 1:
             data = np.transpose(data, np.argsort(order))
         return ttb.tensor(data, shape, copy=False)
@@ -264,14 +269,14 @@ class tenmat:
         >>> T = ttb.tenones((2, 2, 2))
         >>> TM = T.to_tenmat(rdims=np.array([0]))
         >>> TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2, 2)
+        matrix corresponding to a tensor of shape (2, 2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
         data[:, :] =
         [[1. 1. 1. 1.]
          [1. 1. 1. 1.]]
         >>> TM.ctranspose()  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2, 2)
+        matrix corresponding to a tensor of shape (2, 2, 2) with order F
         rindices = [ 1, 2 ] (modes of tensor corresponding to rows)
         cindices = [ 0 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -297,7 +302,7 @@ class tenmat:
         >>> T = ttb.tenones((2, 2, 2))
         >>> TM = T.to_tenmat(rdims=np.array([0]))
         >>> TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2, 2)
+        matrix corresponding to a tensor of shape (2, 2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -337,7 +342,7 @@ class tenmat:
         >>> T = ttb.tenones((2, 2, 2))
         >>> TM = T.to_tenmat(rdims=np.array([0]))
         >>> TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2, 2)
+        matrix corresponding to a tensor of shape (2, 2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -402,7 +407,7 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2, 2)).to_tenmat(np.array([0]))
         >>> TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2, 2)
+        matrix corresponding to a tensor of shape (2, 2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -410,7 +415,7 @@ class tenmat:
          [1. 1. 1. 1.]]
         >>> TM[0, 0] = 2.0
         >>> TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2, 2)
+        matrix corresponding to a tensor of shape (2, 2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -447,7 +452,7 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> TM * TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -504,7 +509,7 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> TM * TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -529,14 +534,14 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> TM + TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
         [[2. 2.]
          [2. 2.]]
         >>> TM + 1.0  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2)  with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -574,7 +579,7 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> 1.0 + TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -599,14 +604,14 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> TM - TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
         [[0. 0.]
          [0. 0.]]
         >>> TM - 1.0  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -644,7 +649,7 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> 1.0 - TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -678,7 +683,7 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> +TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -702,7 +707,7 @@ class tenmat:
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> -TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -727,7 +732,7 @@ class tenmat:
         Print an empty :class:`pyttb.tenmat`.
 
         >>> ttb.tenmat()  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape ()
+        matrix corresponding to a tensor of shape () with order F
         rindices = [  ] (modes of tensor corresponding to rows)
         cindices = [  ] (modes of tensor corresponding to columns)
         data = []
@@ -736,7 +741,7 @@ class tenmat:
 
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
         >>> TM  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2)
+        matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
@@ -752,6 +757,7 @@ class tenmat:
         s = ""
         s += "matrix corresponding to a tensor of shape "
         s += str(np_to_python(self.tshape))
+        s += f" with order {self.order}"
         s += "\n"
 
         s += "rindices = "

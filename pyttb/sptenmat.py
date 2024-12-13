@@ -342,7 +342,7 @@ class sptenmat:
         >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST1.full()  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape (2, 2, 2)
+        matrix corresponding to a tensor of shape (2, 2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
         data[:, :] =

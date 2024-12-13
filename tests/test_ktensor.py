@@ -111,7 +111,7 @@ def test_ktensor_init(sample_ktensor_2way):
     # 'factor_matrices' must be a list
     with pytest.raises(AssertionError) as excinfo:
         ttb.ktensor(np.ones((2, 2)), np.array([2.0]))
-    assert "Input 'factor_matrices' must be a list." in str(excinfo)
+    assert "Input 'factor_matrices' must be a sequence." in str(excinfo)
 
     # each factor matrix should be a np.ndarray
     with pytest.raises(AssertionError) as excinfo:
@@ -517,15 +517,12 @@ def test_ktensor_mttkrp(sample_ktensor_3way):
     with pytest.raises(AssertionError) as excinfo:
         K.mttkrp(fm_wrong_size, 0)
     assert "List of factor matrices is the wrong length" in str(excinfo)
-    # Wrong input type
-    fm_wrong_type = (
-        K1.factor_matrices[0],
-        K1.factor_matrices[0],
-        K1.factor_matrices[0],
-    )
+
     with pytest.raises(AssertionError) as excinfo:
-        K.mttkrp(fm_wrong_type, 0)
-    assert "Second argument must be list of numpy.ndarray's" in str(excinfo)
+        K.mttkrp(5, 0)
+    assert "Second argument must be a sequence of numpy.ndarray's or a ktensor" in str(
+        excinfo
+    )
 
 
 def test_ktensor_ncomponents(sample_ktensor_2way):
@@ -1231,5 +1228,5 @@ def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
 
 def test_ktensor__str__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
-    s = """ktensor of shape (2, 2)\nweights=[1. 2.]\nfactor_matrices[0] =\n[[1. 2.]\n [3. 4.]]\nfactor_matrices[1] =\n[[5. 6.]\n [7. 8.]]"""
+    s = """ktensor of shape (2, 2) with order F\nweights=[1. 2.]\nfactor_matrices[0] =\n[[1. 2.]\n [3. 4.]]\nfactor_matrices[1] =\n[[5. 6.]\n [7. 8.]]"""
     assert K0.__str__() == s

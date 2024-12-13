@@ -914,8 +914,8 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                 delg = np.zeros((rank, lbfgsMem))
                 rho = np.zeros((lbfgsMem,))
                 lbfgsPos = 0
-                m_rowOLD = np.empty(())
-                gradOLD = np.empty(())
+                m_rowOLD = np.empty((), dtype=m_row.dtype)
+                gradOLD = np.empty((), dtype=m_row.dtype)
 
                 # Iteratively solve the row subproblem with projected quasi-Newton steps
                 for i in range(maxinneriters):
@@ -980,8 +980,8 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                     isRowNOTconverged[jj] = 1
 
                     # Update the L-BFGS approximation.
-                    tmp_delm = m_row - m_rowOLD
-                    tmp_delg = gradM - gradOLD
+                    tmp_delm: np.ndarray = m_row - m_rowOLD
+                    tmp_delg: np.ndarray = gradM - gradOLD
                     tmp_delm_dot = tmp_delm.dot(tmp_delg.transpose())
                     if not np.any(tmp_delm_dot == 0):
                         tmp_rho = 1 / tmp_delm_dot

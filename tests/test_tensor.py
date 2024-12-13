@@ -62,10 +62,6 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
         excinfo
     )
 
-    with pytest.raises(AssertionError) as excinfo:
-        ttb.tensor(params["data"], np.array([2, 3]))
-    assert "Second argument must be a tuple." in str(excinfo)
-
     # TODO how else to break this logical statement?
     data = np.array([["a", 2, 3], [4, 5, 6]])
     with pytest.raises(AssertionError) as excinfo:
@@ -114,10 +110,6 @@ def test_tensor_initialization_from_function():
     a = ttb.tensor.from_function(function_handle, shape)
     assert np.array_equal(a.data, data)
     assert a.shape == shape
-
-    with pytest.raises(AssertionError) as excinfo:
-        ttb.tensor.from_function(function_handle, [2, 3])
-    assert "TTB:BadInput, Shape must be a tuple" in str(excinfo)
 
 
 def test_tensor_copy(sample_tensor_2way):
@@ -1500,7 +1492,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4,))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     s += "\ndata"
     s += "[:] =\n"
     s += data.__str__()
@@ -1510,7 +1502,7 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 3))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
+    s += f"tensor of shape {tensorInstance.shape} with order F"
     s += "\ndata"
     s += "[:, :] =\n"
     s += data.__str__()
@@ -1520,46 +1512,46 @@ def test_tensor__str__(sample_tensor_2way):
     data = np.random.normal(size=(4, 3, 2))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
-    for i in range(data.shape[0]):
+    s += f"tensor of shape {tensorInstance.shape} with order F"
+    for i in range(data.shape[-1]):
         s += "\ndata"
-        s += "[{}, :, :] =\n".format(i)
-        s += data[i, :, :].__str__()
+        s += "[:, :, {}] =\n".format(i)
+        s += data[:, :, i].__str__()
     assert s == tensorInstance.__str__()
 
     data = np.random.normal(size=(2, 3, 4))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
-    for i in range(data.shape[0]):
+    s += f"tensor of shape {tensorInstance.shape} with order F"
+    for i in range(data.shape[-1]):
         s += "\ndata"
-        s += "[{}, :, :] =\n".format(i)
-        s += data[i, :, :].__str__()
+        s += "[:, :, {}] =\n".format(i)
+        s += data[:, :, i].__str__()
     assert s == tensorInstance.__str__()
 
     # Test 4D
     data = np.random.normal(size=(4, 4, 3, 2))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
-    for i in range(data.shape[0]):
-        for j in range(data.shape[1]):
+    s += f"tensor of shape {tensorInstance.shape} with order F"
+    for i in range(data.shape[-1]):
+        for j in range(data.shape[-2]):
             s += "\ndata"
-            s += "[{}, {}, :, :] =\n".format(j, i)
-            s += data[j, i, :, :].__str__()
+            s += "[:, :, {}, {}] =\n".format(j, i)
+            s += data[:, :, j, i].__str__()
     assert s == tensorInstance.__str__()
 
     # Test 5D
     data = np.random.normal(size=(2, 2, 2, 2, 2))
     tensorInstance = ttb.tensor(data)
     s = ""
-    s += f"tensor of shape {tensorInstance.shape}"
-    for i in range(data.shape[0]):
-        for j in range(data.shape[1]):
-            for k in range(data.shape[2]):
+    s += f"tensor of shape {tensorInstance.shape} with order F"
+    for i in range(data.shape[-1]):
+        for j in range(data.shape[-2]):
+            for k in range(data.shape[-3]):
                 s += "\ndata"
-                s += "[{}, {}, {}, :, :] =\n".format(k, j, i)
-                s += data[k, j, i, :, :].__str__()
+                s += "[:, :, {}, {}, {}] =\n".format(k, j, i)
+                s += data[:, :, k, j, i].__str__()
     assert s == tensorInstance.__str__()
 
 
@@ -1624,7 +1616,7 @@ def test_tensor_mttkrp(sample_tensor_2way):
     # second argument not a ktensor or list
     with pytest.raises(AssertionError) as excinfo:
         tensorInstance.mttkrp(5, 0)
-    assert "Second argument must be list of numpy.ndarray's or a ktensor" in str(
+    assert "Second argument must be a sequence of numpy.ndarray's or a ktensor" in str(
         excinfo
     )
 
