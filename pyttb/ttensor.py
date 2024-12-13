@@ -168,7 +168,8 @@ class ttensor:
             Contains the core, and factor matrices as strings on different lines.
         """
         display_string = f"Tensor of shape: {self.shape}\n" f"\tCore is a\n"
-        display_string += textwrap.indent(str(self.core), "\t")
+        display_string += textwrap.indent(str(self.core), "\t\t")
+        display_string += "\n"
 
         for factor_idx, factor in enumerate(self.factor_matrices):
             display_string += f"\tU[{factor_idx}] = \n"
