@@ -7,21 +7,22 @@
 from __future__ import annotations
 
 import warnings
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 import scipy
 
 import pyttb as ttb
+from pyttb.pyttb_utils import OneDArray, parse_one_d
 
 
 def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: ttb.tensor,
     tol: float,
     verbosity: float = 1,
-    dimorder: Optional[List[int]] = None,
+    dimorder: Optional[OneDArray] = None,
     sequential: bool = True,
-    ranks: Optional[List[int]] = None,
+    ranks: Optional[OneDArray] = None,
 ) -> ttb.ttensor:
     """Compute sequentially-truncated higher-order SVD (Tucker).
 
@@ -57,21 +58,22 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     # In tucker als this is N
     d = input_tensor.ndims
 
-    if ranks is not None:
-        if len(ranks) != d:
-            raise ValueError(
-                f"Ranks must be a list of length tensor ndims. Ndims: {d} but got "
-                f"ranks: {ranks}."
-            )
+    if ranks is None:
+        ranks = np.zeros((d,), dtype=int)
     else:
-        ranks = [0] * d
+        ranks = parse_one_d(ranks)
+
+    if len(ranks) != d:
+        raise ValueError(
+            "Ranks must be a sequence of length tensor ndims."
+            f" Ndims: {d} but got ranks: {ranks}."
+        )
 
     # Set up dimorder if not specified (this is copy past from tucker_als
-    if not dimorder:
-        dimorder = list(range(d))
+    if dimorder is None:
+        dimorder = np.arange(d)
     else:
-        if not isinstance(dimorder, list):
-            raise ValueError("Dimorder must be a list")
+        dimorder = parse_one_d(dimorder)
         if tuple(range(d)) != tuple(sorted(dimorder)):
             raise ValueError(
                 "Dimorder must be a list or permutation of range(tensor.ndims)"
@@ -127,7 +129,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
         # Shrink!
         if sequential:
-            Y = Y.ttm(factor_matrices[k].transpose(), k)
+            Y = Y.ttm(factor_matrices[k].transpose(), int(k))
     # Extract final core
     if sequential:
         G = Y

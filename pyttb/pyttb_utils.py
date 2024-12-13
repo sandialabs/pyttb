@@ -8,11 +8,12 @@ from __future__ import annotations
 
 from enum import Enum
 from inspect import signature
+from math import prod
 from typing import (
     Iterable,
-    List,
     Literal,
     Optional,
+    Sequence,
     Tuple,
     Union,
     get_args,
@@ -22,6 +23,9 @@ from typing import (
 import numpy as np
 
 import pyttb as ttb
+
+Shape = Union[int, Iterable[int]]
+OneDArray = Union[int, float, Iterable[int], Iterable[float], np.ndarray]
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
@@ -73,8 +77,8 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 def tt_dimscheck(
     N: int,
     M: None = None,
-    dims: Optional[np.ndarray] = None,
-    exclude_dims: Optional[np.ndarray] = None,
+    dims: Optional[OneDArray] = None,
+    exclude_dims: Optional[OneDArray] = None,
 ) -> Tuple[np.ndarray, None]: ...  # pragma: no cover see coveragepy/issues/970
 
 
@@ -82,16 +86,16 @@ def tt_dimscheck(
 def tt_dimscheck(
     N: int,
     M: int,
-    dims: Optional[np.ndarray] = None,
-    exclude_dims: Optional[np.ndarray] = None,
+    dims: Optional[OneDArray] = None,
+    exclude_dims: Optional[OneDArray] = None,
 ) -> Tuple[np.ndarray, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
-def tt_dimscheck(
+def tt_dimscheck(  # noqa: PLR0912
     N: int,
     M: Optional[int] = None,
-    dims: Optional[np.ndarray] = None,
-    exclude_dims: Optional[np.ndarray] = None,
+    dims: Optional[OneDArray] = None,
+    exclude_dims: Optional[OneDArray] = None,
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """
     Used to preprocess dimensions for tensor dimensions
@@ -105,6 +109,10 @@ def tt_dimscheck(
     """
     if dims is not None and exclude_dims is not None:
         raise ValueError("Either specify dims to include or exclude, but not both")
+    if dims is not None:
+        dims = parse_one_d(dims)
+    if exclude_dims is not None:
+        exclude_dims = parse_one_d(exclude_dims)
 
     dim_array: np.ndarray = np.empty((1,))
 
@@ -122,7 +130,8 @@ def tt_dimscheck(
         dim_array = np.setdiff1d(np.arange(0, N), exclude_dims)
 
     # Fix empty case
-    if (dims is None or dims.size == 0) and exclude_dims is None:
+    # if (dims is None or dims.size == 0) and exclude_dims is None:
+    if dims is None and exclude_dims is None:
         dim_array = np.arange(0, N)
     elif isinstance(dims, np.ndarray):
         dim_array = dims
@@ -255,9 +264,9 @@ def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
         X = inputs[0].data
         X = np.reshape(X, (1, -1))
     else:
-        X = np.zeros((len(inputs), np.prod(sz)))
+        X = np.zeros((len(inputs), prod(sz)))
         for i, an_input in enumerate(inputs):
-            X[i, :] = np.reshape(an_input.data, (np.prod(sz)))
+            X[i, :] = np.reshape(an_input.data, (prod(sz)))
     data = function_handle(X)
     data = np.reshape(data, sz)
     Z = ttb.tensor(data, copy=False)
@@ -501,7 +510,11 @@ def tt_ismember_rows(
     return matched, results.astype(int)
 
 
-def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
+def tt_ind2sub(
+    shape: Tuple[int, ...],
+    idx: np.ndarray,
+    order: Union[Literal["F"], Literal["C"]] = "F",
+) -> np.ndarray:
     """
     Multiple subscripts from linear indices.
 
@@ -516,8 +529,8 @@ def tt_ind2sub(shape: Tuple[int, ...], idx: np.ndarray) -> np.ndarray:
     """
     if idx.size == 0:
         return np.empty(shape=(0, len(shape)), dtype=int)
-    idx[idx < 0] += np.prod(shape)  # Handle negative indexing as simply as possible
-    return np.array(np.unravel_index(idx, shape, order="F")).transpose()
+    idx[idx < 0] += prod(shape)  # Handle negative indexing as simply as possible
+    return np.array(np.unravel_index(idx, shape, order=order)).transpose()
 
 
 def tt_subsubsref(obj, s):
@@ -563,7 +576,11 @@ def tt_intvec2str(v: np.ndarray) -> str:
     return np.array2string(v)
 
 
-def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
+def tt_sub2ind(
+    shape: Tuple[int, ...],
+    subs: np.ndarray,
+    order: Union[Literal["F"], Literal["C"]] = "F",
+) -> np.ndarray:
     """
     Converts multidimensional subscripts to linear indices.
 
@@ -573,6 +590,8 @@ def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
         Shape of tensor
     subs:
         Subscripts for tensor
+    order:
+        Memory layout
 
     Returns
     -------
@@ -585,7 +604,7 @@ def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
     """
     if subs.size == 0:
         return np.array([])
-    idx = np.ravel_multi_index(tuple(subs.transpose()), shape, order="F")
+    idx = np.ravel_multi_index(tuple(subs.transpose()), shape, order=order)
     return idx
 
 
@@ -698,7 +717,7 @@ def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
     else:
         ok = False
     if not ok and not nargout:
-        assert False, "Values must be in array"
+        assert False, f"Values must be in array but got {vals}"
     return ok
 
 
@@ -797,8 +816,8 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 
 
 def get_mttkrp_factors(
-    U: Union[ttb.ktensor, List[np.ndarray]], n: int, ndims: int
-) -> List[np.ndarray]:
+    U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer], ndims: int
+) -> Sequence[np.ndarray]:
     """Apply standard checks and type conversions for mttkrp factors"""
     if isinstance(U, ttb.ktensor):
         U = U.copy()
@@ -812,8 +831,8 @@ def get_mttkrp_factors(
         U = U.factor_matrices
 
     assert isinstance(
-        U, (list, np.ndarray)
-    ), "Second argument must be list of numpy.ndarray's or a ktensor"
+        U, (Sequence, np.ndarray)
+    ), "Second argument must be a sequence of numpy.ndarray's or a ktensor"
 
     assert len(U) == ndims, "List of factor matrices is the wrong length"
 
@@ -879,3 +898,85 @@ def np_to_python(
         element.item() if isinstance(element, np.generic) else element
         for element in iterable
     )
+
+
+def parse_shape(shape: Shape) -> Tuple[int, ...]:
+    """Provides more flexible shape support
+
+
+    Examples
+    --------
+    >>> integer_shape = 4
+    >>> parse_shape(integer_shape)
+    (4,)
+    >>> flat_numpy_shape = np.ones((4,), dtype=int)
+    >>> parse_shape(flat_numpy_shape)
+    (1, 1, 1, 1)
+    >>> stacked_numpy_shape = np.ones((4, 1, 1), dtype=int)
+    >>> parse_shape(stacked_numpy_shape)
+    (1, 1, 1, 1)
+    >>> list_shape = [1, 1, 1, 1]
+    >>> parse_shape(list_shape)
+    (1, 1, 1, 1)
+    """
+    # FIXME do we care to map numpy ints to python ints?
+    if isinstance(shape, (int, np.integer)):
+        return (shape,)
+    if isinstance(shape, np.ndarray):
+        if not np.issubdtype(shape.dtype, np.integer):
+            raise ValueError("Numpy arrays used as shapes must be integer valued")
+        squeezed_shape = shape.squeeze()
+        if squeezed_shape.ndim == 0:
+            # If it's an array containing a single scalar
+            return (int(squeezed_shape),)
+        if squeezed_shape.ndim > 1:
+            raise ValueError(
+                "Numpy arrays used as shapes can only have one non-trivial dimension"
+            )
+        return tuple(map(int, squeezed_shape))
+
+    shape = tuple(shape)
+    if not all(isinstance(ele, (int, np.integer)) for ele in shape):
+        raise ValueError("Shapes entries must be integers")
+    return shape
+
+
+def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
+    """Provides more flexible vector support
+
+    Examples
+    --------
+    >>> int_scalar = 1
+    >>> parse_one_d(int_scalar)
+    array([1])
+    >>> np_int_scalar = np.int8(1)
+    >>> parse_one_d(np_int_scalar)
+    array([1], dtype=int8)
+    >>> float_scalar = 1.0
+    >>> parse_one_d(float_scalar)
+    array([1.])
+    >>> np_float_scalar = 1.0
+    >>> parse_one_d(np_float_scalar)
+    array([1.])
+    >>> example_list = [1.0, 1.0]
+    >>> parse_one_d(example_list)
+    array([1., 1.])
+    >>> extra_dims = np.array([[1, 1]])
+    >>> parse_one_d(extra_dims)
+    array([1, 1])
+    """
+    if isinstance(maybe_vector, (int, float, np.integer, np.floating)):
+        return np.array([maybe_vector])
+    if isinstance(maybe_vector, np.ndarray):
+        squeezed_vector = maybe_vector.squeeze()
+        if squeezed_vector.ndim == 1:
+            return squeezed_vector
+        elif squeezed_vector.ndim == 0:
+            # Squeezed to scalar so force vector
+            return squeezed_vector[None]
+        else:
+            raise ValueError(
+                "Vector can have at most one non-trivial dimension but "
+                f"had shape {maybe_vector.shape}"
+            )
+    return np.array(maybe_vector)

@@ -174,12 +174,6 @@ def test_tenmat_initialization_from_data(
         ttb.tenmat(ndarrayInstance1, rdims, cdims, None)
     assert exc in str(excinfo)
 
-    # tshape is not a tuple
-    exc = "tshape must be a tuple."
-    with pytest.raises(AssertionError) as excinfo:
-        ttb.tenmat(ndarrayInstance2, rdims, cdims, list(tshape))
-    assert exc in str(excinfo)
-
     # products of tshape and data.shape do not match
     exc = (
         "Incorrect dimensions specified: products of data.shape and tuple do not match"
@@ -649,7 +643,7 @@ def test_tenmat__str__(
     # Empty
     tenmatInstance = ttb.tenmat()
     s = ""
-    s += "matrix corresponding to a tensor of shape ()\n"
+    s += "matrix corresponding to a tensor of shape () with order F\n"
     s += "rindices = [  ] (modes of tensor corresponding to rows)\n"
     s += "cindices = [  ] (modes of tensor corresponding to columns)\n"
     s += "data = []\n"
@@ -661,7 +655,7 @@ def test_tenmat__str__(
     s = ""
     s += "matrix corresponding to a tensor of shape "
     s += str(tenmatInstance.tshape)
-    s += "\n"
+    s += " with order F\n"
     s += "rindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.rindices]) + " ] "
     s += "(modes of tensor corresponding to rows)\n"
@@ -678,7 +672,7 @@ def test_tenmat__str__(
     s = ""
     s += "matrix corresponding to a tensor of shape "
     s += str(tenmatInstance.tshape)
-    s += "\n"
+    s += " with order F\n"
     s += "rindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.rindices]) + " ] "
     s += "(modes of tensor corresponding to rows)\n"
@@ -696,7 +690,7 @@ def test_tenmat__str__(
     s = ""
     s += "matrix corresponding to a tensor of shape "
     s += str(tenmatInstance.tshape)
-    s += "\n"
+    s += " with order F\n"
     s += "rindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.rindices]) + " ] "
     s += "(modes of tensor corresponding to rows)\n"

@@ -9,6 +9,7 @@ import pytest
 
 import pyttb as ttb
 import pyttb.pyttb_utils as ttb_utils
+from pyttb.pyttb_utils import parse_one_d, parse_shape
 
 
 def test_tt_union_rows():
@@ -25,7 +26,7 @@ def test_tt_union_rows():
 
 def test_tt_dimscheck():
     #  Empty
-    rdims, ridx = ttb_utils.tt_dimscheck(6, dims=np.array([]))
+    rdims, ridx = ttb_utils.tt_dimscheck(6, dims=None)
     assert np.array_equal(rdims, np.array([0, 1, 2, 3, 4, 5]))
     assert ridx is None
 
@@ -492,3 +493,15 @@ def test_get_index_variant_subtensor():
 
 def test_get_index_variant_unknown():
     assert ttb_utils.get_index_variant("a") == ttb_utils.IndexVariant.UNKNOWN
+
+
+def test_parse_shape():
+    with pytest.raises(ValueError):
+        parse_shape(np.ones((4,), dtype=float))
+    with pytest.raises(ValueError):
+        parse_shape(np.ones((4, 2), dtype=int))
+
+
+def test_parse_one_d():
+    with pytest.raises(ValueError):
+        parse_one_d(np.ones((4, 2)))

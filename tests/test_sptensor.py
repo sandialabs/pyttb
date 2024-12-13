@@ -142,7 +142,7 @@ def test_sptensor_initialization_from_aggregator(sample_sptensor):
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_aggregator(
-            np.concatenate((subs, np.ones((6, 1))), axis=1), vals, shape
+            np.concatenate((subs, np.ones((6, 1), dtype=int)), axis=1), vals, shape
         )
     assert "More subscripts than specified by shape" in str(excinfo)
 
@@ -1745,8 +1745,8 @@ def test_sptensor_mttkrp(sample_sptensor):
     assert "List of factor matrices is the wrong length" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
-        sptensorInstance.mttkrp("string", 0)
-    assert "Second argument must be list of numpy.ndarray's or a ktensor" in str(
+        sptensorInstance.mttkrp(5, 0)
+    assert "Second argument must be a sequence of numpy.ndarray's or a ktensor" in str(
         excinfo
     )
 

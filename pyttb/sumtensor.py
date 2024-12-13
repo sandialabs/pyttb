@@ -108,7 +108,7 @@ class sumtensor:
         >>> ttb.sumtensor([T1, T2])  # doctest: +NORMALIZE_WHITESPACE
         sumtensor of shape (2, 2) with 2 parts:
         Part 0:
-            tensor of shape (2, 2)
+            tensor of shape (2, 2) with order F
             data[:, :] =
             [[1. 1.]
              [1. 1.]]
@@ -260,7 +260,7 @@ class sumtensor:
         >>> T = ttb.tenones((2, 2))
         >>> S = ttb.sumtensor([T, T])
         >>> print(S.full())  # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape (2, 2)
+        tensor of shape (2, 2) with order F
         data[:, :] =
         [[2. 2.]
          [2. 2.]]
@@ -318,7 +318,9 @@ class sumtensor:
             result += part.innerprod(other)
         return result
 
-    def mttkrp(self, U: Union[ttb.ktensor, List[np.ndarray]], n: int) -> np.ndarray:
+    def mttkrp(
+        self, U: Union[ttb.ktensor, List[np.ndarray]], n: Union[int, np.integer]
+    ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product. The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
@@ -396,17 +398,17 @@ class sumtensor:
         >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
         >>> S = ttb.sumtensor([T, T])
         >>> T.ttv(np.ones(2), 0)
-        tensor of shape (2,)
+        tensor of shape (2,) with order F
         data[:] =
         [4. 6.]
         >>> S.ttv(np.ones(2), 0)  # doctest: +NORMALIZE_WHITESPACE
         sumtensor of shape (2,) with 2 parts:
         Part 0:
-             tensor of shape (2,)
+             tensor of shape (2,) with order F
              data[:] =
              [4. 6.]
         Part 1:
-             tensor of shape (2,)
+             tensor of shape (2,) with order F
              data[:] =
              [4. 6.]
         >>> T.ttv([np.ones(2), np.ones(2)])
