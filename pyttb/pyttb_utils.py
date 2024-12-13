@@ -1,4 +1,4 @@
-"""PYTTB shared utilities across tensor types"""
+"""PYTTB shared utilities across tensor types."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -7,15 +7,16 @@
 from __future__ import annotations
 
 from enum import Enum
-from inspect import signature
 from math import prod
 from typing import (
+    Any,
     Iterable,
     Literal,
     Optional,
     Sequence,
     Tuple,
     Union,
+    cast,
     get_args,
     overload,
 )
@@ -29,8 +30,7 @@ OneDArray = Union[int, float, Iterable[int], Iterable[float], np.ndarray]
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
-    """
-    Helper function to reproduce functionality of MATLABS intersect(a,b,'rows')
+    """Reproduce functionality of MATLABS intersect(a,b,'rows').
 
     Parameters
     ----------
@@ -53,7 +53,7 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
            [1, 2],
            [3, 4]])
     """
-    # TODO ismember and uniqe are very similar in function
+    # TODO ismember and unique are very similar in function
     if MatrixA.size > 0:
         MatrixAUnique, idxA = np.unique(MatrixA, axis=0, return_index=True)
     else:
@@ -97,15 +97,41 @@ def tt_dimscheck(  # noqa: PLR0912
     dims: Optional[OneDArray] = None,
     exclude_dims: Optional[OneDArray] = None,
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-    """
-    Used to preprocess dimensions for tensor dimensions
+    """Preprocess dimensions for tensor operations.
 
     Parameters
     ----------
+    N: Tensor order
+    M: Num of multiplicands
+    dims: Dimensions to check
+    exclude_dims: Check all dimensions but these. (Mutually exclusive with dims)
 
     Returns
     -------
+    sdims: New dimensions
+    vidx: Index into the multiplicands (if M defined).
 
+    Examples
+    --------
+    # Default captures all dims and no index
+
+    >>> rdims, _ = tt_dimscheck(6)
+    >>> np.array_equal(rdims, np.arange(6))
+    True
+
+    # Exclude single dim and still no index
+
+    >>> rdims, _ = tt_dimscheck(6, exclude_dims=np.array([5]))
+    >>> np.array_equal(rdims, np.arange(5))
+    True
+
+    # Exclude single dim and number of multiplicands equals resulting size
+
+    >>> rdims, ridx = tt_dimscheck(6, 5, exclude_dims=np.array([0]))
+    >>> np.array_equal(rdims, np.array([1, 2, 3, 4, 5]))
+    True
+    >>> np.array_equal(ridx, np.arange(0, 5))
+    True
     """
     if dims is not None and exclude_dims is not None:
         raise ValueError("Either specify dims to include or exclude, but not both")
@@ -174,108 +200,8 @@ def tt_dimscheck(  # noqa: PLR0912
     return sdims, vidx
 
 
-def tt_tenfun(function_handle, *inputs):  # noqa: PLR0912
-    """
-    Apply a function to each element in a tensor
-
-    Parameters
-    ----------
-    function_handle:
-        callable
-    inputs:
-        tensor type, or np.array
-
-    Returns
-    -------
-    :class:`pyttb.tensor`
-    """
-    # Allow inputs to be mutable in case of type conversion
-    inputs = list(inputs)
-
-    if len(inputs) == 0:
-        assert False, "Must provide element(s) to perform operation on"
-
-    assert callable(function_handle), "function_handle must be callable"
-
-    # Convert inputs to tensors if they aren't already
-    for i, an_input in enumerate(inputs):
-        if isinstance(an_input, (ttb.tensor, float, int)):
-            continue
-        if isinstance(an_input, np.ndarray):
-            inputs[i] = ttb.tensor(an_input)
-        elif isinstance(
-            an_input,
-            (
-                ttb.ktensor,
-                ttb.ttensor,
-                ttb.sptensor,
-                ttb.sumtensor,
-                ttb.symtensor,
-                ttb.symktensor,
-            ),
-        ):
-            inputs[i] = an_input.to_tensor()
-        else:
-            assert False, "Invalid input to ten fun"
-
-    # It's ok if there are two input and one is a scalar; otherwise all inputs have to
-    # be the same size
-    if (
-        (len(inputs) == 2)
-        and isinstance(inputs[0], (float, int))
-        and isinstance(inputs[1], ttb.tensor)
-    ):
-        sz = inputs[1].shape
-    elif (
-        (len(inputs) == 2)
-        and isinstance(inputs[1], (float, int))
-        and isinstance(inputs[0], ttb.tensor)
-    ):
-        sz = inputs[0].shape
-    else:
-        for i, an_input in enumerate(inputs):
-            if isinstance(an_input, (float, int)):
-                assert False, f"Argument {i} is a scalar but expected a tensor"
-            elif i == 0:
-                sz = an_input.shape
-            elif sz != an_input.shape:
-                assert (
-                    False
-                ), f"Tensor {i} is not the same size as the first tensor input"
-
-    # Number of inputs for function handle
-    nfunin = len(signature(function_handle).parameters)
-
-    # Case I: Binary function
-    if len(inputs) == 2 and nfunin == 2:
-        X = inputs[0]
-        Y = inputs[1]
-        if not isinstance(X, (float, int)):
-            X = X.data
-        if not isinstance(Y, (float, int)):
-            Y = Y.data
-
-        data = function_handle(X, Y)
-        Z = ttb.tensor(data, copy=False)
-        return Z
-
-    # Case II: Expects input to be matrix and applies operation on each columns
-    if len(inputs) == 1:
-        X = inputs[0].data
-        X = np.reshape(X, (1, -1))
-    else:
-        X = np.zeros((len(inputs), prod(sz)))
-        for i, an_input in enumerate(inputs):
-            X[i, :] = np.reshape(an_input.data, (prod(sz)))
-    data = function_handle(X)
-    data = np.reshape(data, sz)
-    Z = ttb.tensor(data, copy=False)
-    return Z
-
-
 def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
-    """
-    Helper function to reproduce functionality of MATLABS setdiff(a,b,'rows')
+    """Reproduce functionality of MATLABS setdiff(a,b,'rows').
 
     Parameters
     ----------
@@ -304,8 +230,7 @@ def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
 
 def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
-    """
-    Helper function to reproduce functionality of MATLABS intersect(a,b,'rows')
+    """Reproduce functionality of MATLABS intersect(a,b,'rows').
 
     Parameters
     ----------
@@ -343,9 +268,10 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     return location[valid]
 
 
-def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.ndarray:
-    """
-    RENUMBER indices for sptensor subsasgn
+def tt_irenumber(
+    t: ttb.sptensor, shape: Tuple[int, ...], number_range: Sequence[IndexType]
+) -> np.ndarray:
+    """Renumber indices for sptensor __setitem__.
 
     Parameters
     ----------
@@ -375,17 +301,16 @@ def tt_irenumber(t: ttb.sptensor, shape: Tuple[int, ...], number_range) -> np.nd
             # This appears to be inserting new keys as rows to our subs here
             newsubs = np.insert(newsubs, obj=i, values=r, axis=1)
         else:
-            if isinstance(r, list):
+            if not isinstance(r, np.ndarray):
                 r = np.array(r)  # noqa: PLW2901
             newsubs[:, i] = r[newsubs[:, i]]
     return newsubs
 
 
 def tt_renumber(
-    subs: np.ndarray, shape: Tuple[int, ...], number_range
+    subs: np.ndarray, shape: Tuple[int, ...], number_range: Sequence[IndexType]
 ) -> Tuple[np.ndarray, Tuple[int, ...]]:
-    """
-    RENUMBER indices for sptensor subsref
+    """Renumber indices for sptensor __getitem__.
 
     [NEWSUBS,NEWSZ] = RENUMBER(SUBS,SZ,RANGE) takes a set of
     original subscripts SUBS with entries from a tensor of size
@@ -396,9 +321,11 @@ def tt_renumber(
     Parameters
     ----------
     subs:
+        Original subscripts for source tensor.
     shape:
         Shape of source tensor.
-    range:
+    number_range:
+        Key from __getitem__ for tensor.
 
     Returns
     -------
@@ -413,13 +340,21 @@ def tt_renumber(
         if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
-                    if isinstance(number_range[i], (int, float, np.integer)):
-                        newshape[i] = number_range[i]
+                    # This should be statically determinable but mypy unhappy
+                    # without intermediate
+                    number_range_i = number_range[i]
+                    if isinstance(number_range_i, (int, float, np.integer)):
+                        newshape[i] = number_range_i
                     else:
-                        newshape[i] = len(number_range[i])
+                        assert not isinstance(number_range_i, (int, slice, np.integer))
+                        newshape[i] = len(number_range_i)
                 else:
                     # TODO get this length without generating the range
-                    newshape[i] = len(range(0, shape[i])[number_range[i]])
+                    #   This should be statically determinable but mypy unhappy
+                    #   without assert
+                    number_range_i = number_range[i]
+                    assert isinstance(number_range_i, slice)
+                    newshape[i] = len(range(0, shape[i])[number_range_i])
             else:
                 newsubs[:, i], newshape[i] = tt_renumberdim(
                     subs[:, i], shape[i], number_range[i]
@@ -428,9 +363,12 @@ def tt_renumber(
     return newsubs, tuple(newshape)
 
 
-def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]:
-    """
-    RENUMBERDIM helper function for RENUMBER
+def tt_renumberdim(
+    idx: np.ndarray, shape: int, number_range: IndexType
+) -> Tuple[int, int]:
+    """Renumber a single dimension.
+
+    Helper function for RENUMBER.
 
     Parameters
     ----------
@@ -445,12 +383,15 @@ def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]
     """
     # Determine the size of the new range
     if isinstance(number_range, (int, np.integer)):
+        number_range = [int(number_range)]
         newshape = 0
     elif isinstance(number_range, slice):
-        number_range = range(0, shape)[number_range]
+        number_range = list(range(0, shape))[number_range]
+        newshape = len(number_range)
+    elif isinstance(number_range, (Sequence, np.ndarray)):
         newshape = len(number_range)
     else:
-        newshape = len(number_range)
+        raise ValueError(f"Bad number range: {number_range}")
 
     # Create map from old range to the new range
     idx_map = np.zeros(shape=shape)
@@ -468,8 +409,7 @@ def tt_renumberdim(idx: np.ndarray, shape: int, number_range) -> Tuple[int, int]
 def tt_ismember_rows(
     search: np.ndarray, source: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Find location of search rows in source array
+    """Find location of search rows in source array.
 
     Parameters
     ----------
@@ -520,12 +460,20 @@ def tt_ind2sub(
 
     Parameters
     ----------
-    shape:
-    idx:
+    shape: Shape of tensor indexing into.
+    idx: Array of linear indices into the tensor.
 
     Returns
     -------
-    :class:`numpy.ndarray`
+    Multi-dimensional indices for the tensor.
+
+    Example
+    -------
+    >>> shape = (2, 2, 2)
+    >>> linear_indices = np.array([0, 1])
+    >>> tt_ind2sub(shape, linear_indices)
+    array([[0, 0, 0],
+           [1, 0, 0]])
     """
     if idx.size == 0:
         return np.empty(shape=(0, len(shape)), dtype=int)
@@ -533,9 +481,8 @@ def tt_ind2sub(
     return np.array(np.unravel_index(idx, shape, order=order)).transpose()
 
 
-def tt_subsubsref(obj, s):
-    """
-    Helper function for tensor toolbox subsref.
+def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
+    """Helper function for tensor toolbox subsref.
 
     Parameters
     ----------
@@ -547,7 +494,7 @@ def tt_subsubsref(obj, s):
     Returns
     -------
     Still uncertain to this functionality
-    """
+    """  # noqa: D401
     # TODO figure out when subsref yields key of length>1 for now ignore this logic and
     #  just return
     # if len(s) == 1:
@@ -555,25 +502,9 @@ def tt_subsubsref(obj, s):
     # else:
     #   return obj[s[1:]]
     if isinstance(obj, np.ndarray) and obj.size == 1:
-        return obj.item()
+        # TODO: Globally figure out why typing thinks item is a string
+        return cast(float, obj.item())
     return obj
-
-
-def tt_intvec2str(v: np.ndarray) -> str:
-    """
-    Print integer vector to a string with brackets. Numpy should already handle this so
-    it is a placeholder stub
-
-    Parameters
-    ----------
-    v:
-        Integer vector
-
-    Returns
-    -------
-    Formatted string to print
-    """
-    return np.array2string(v)
 
 
 def tt_sub2ind(
@@ -581,8 +512,7 @@ def tt_sub2ind(
     subs: np.ndarray,
     order: Union[Literal["F"], Literal["C"]] = "F",
 ) -> np.ndarray:
-    """
-    Converts multidimensional subscripts to linear indices.
+    """Convert multidimensional subscripts to linear indices.
 
     Parameters
     ----------
@@ -593,13 +523,15 @@ def tt_sub2ind(
     order:
         Memory layout
 
-    Returns
-    -------
-    :class:`numpy.ndarray`
+    Examples
+    --------
+    >>> shape = (2, 2, 2)
+    >>> full_indices = np.array([[0, 0, 0], [1, 0, 0]], dtype=int)
+    >>> tt_sub2ind(shape, full_indices)
+    array([0, 1])
 
     See Also
     --------
-
     :func:`tt_ind2sub`:
     """
     if subs.size == 0:
@@ -627,9 +559,15 @@ def tt_sizecheck(shape: Tuple[int, ...], nargout: bool = True) -> bool:
     -------
     bool
 
+    Examples
+    --------
+    >>> tt_sizecheck((0, -1, 2))
+    False
+    >>> tt_sizecheck((1, 1, 1))
+    True
+
     See Also
     --------
-
     :func:`tt_subscheck`:
     """
     siz = np.array(shape)
@@ -669,9 +607,15 @@ def tt_subscheck(subs: np.ndarray, nargout: bool = True) -> bool:
     -------
     bool
 
+    Examples
+    --------
+    >>> tt_subscheck(np.array([[2, 2], [3, 3]]))
+    True
+    >>> tt_subscheck(np.array([[2, 2], [3, -1]]))
+    False
+
     See Also
     --------
-
     :func:`tt_sizecheck`:
     :func:`tt_valscheck`:
     """
@@ -709,6 +653,18 @@ def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
     Returns
     -------
     bool
+
+    Examples
+    --------
+    >>> tt_valscheck(np.array([[1], [2]]))
+    True
+    >>> tt_valscheck(np.array([[1, 2, 3], [2, 2, 2]]))
+    False
+
+    See Also
+    --------
+    :func:`tt_sizecheck`:
+    :func:`tt_subscheck`:
     """
     if vals.size == 0:
         ok = True
@@ -732,9 +688,12 @@ def isrow(v: np.ndarray) -> bool:
     v:
         Vector input
 
-    Returns
-    -------
-    bool
+    Examples
+    --------
+    >>> isrow(np.array([[1, 2]]))
+    True
+    >>> isrow(np.array([[1, 2], [3, 4]]))
+    False
     """
     return v.ndim == 2 and v.shape[0] == 1 and v.shape[1] >= 1
 
@@ -780,7 +739,7 @@ def islogical(a: np.ndarray) -> bool:
 
 
 class IndexVariant(Enum):
-    """Methods for indexing entries of tensors"""
+    """Methods for indexing entries of tensors."""
 
     UNKNOWN = 0
     LINEAR = 1
@@ -789,12 +748,16 @@ class IndexVariant(Enum):
 
 
 # We probably want to create a specific file for utility types
-LinearIndexType = Union[int, float, np.generic, slice]
-IndexType = Union[LinearIndexType, list, np.ndarray]
+LinearIndexType = Union[int, np.integer, slice]
+IndexType = Union[LinearIndexType, Sequence[int], np.ndarray]
 
 
 def get_index_variant(indices: IndexType) -> IndexVariant:
-    """Decide on intended indexing variant. No correctness checks."""
+    """Decide on intended indexing variant. No correctness checks.
+
+    See getitem or setitem in :class:`pyttb.tensor` for elaboration of the
+    various indexing options.
+    """
     variant = IndexVariant.UNKNOWN
     if isinstance(indices, get_args(LinearIndexType)):
         variant = IndexVariant.LINEAR
@@ -807,7 +770,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
             variant = IndexVariant.SUBSCRIPTS
     elif isinstance(indices, tuple):
         variant = IndexVariant.SUBTENSOR
-    elif isinstance(indices, list):
+    elif isinstance(indices, Sequence) and isinstance(indices[0], int):
         # TODO this is slightly redundant/inefficient
         key = np.array(indices)
         if len(key.shape) == 1 or key.shape[1] == 1:
@@ -818,7 +781,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 def get_mttkrp_factors(
     U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer], ndims: int
 ) -> Sequence[np.ndarray]:
-    """Apply standard checks and type conversions for mttkrp factors"""
+    """Apply standard checks and type conversions for mttkrp factors."""
     if isinstance(U, ttb.ktensor):
         U = U.copy()
         # Absorb lambda into one of the factors but not the one that is skipped
@@ -845,6 +808,36 @@ def gather_wrap_dims(
     cdims: Optional[np.ndarray] = None,
     cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"], Literal["t"]]] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """Extract tensor modes mapped to rows and columns for matricized tensors.
+
+    Parameters
+    ----------
+    ndims:
+        Number of dimensions.
+    rdims:
+        Mapping of row indices.
+    cdims:
+        Mapping of column indices.
+    cdims_cyclic:
+        When only rdims is specified maps a single rdim to the rows and
+            the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
+            in the order range(rdims,self.ndims()) followed by range(0, rdims).
+            _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
+            range(self.ndims(), rdims, -1).
+
+    Notes
+    -----
+    Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+        De Lathauwer, De Moor, and Vandewalle [2]_.
+
+    References
+    ----------
+    .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology
+           in multiway analysis. J. Chemometrics 14, 105-122.
+    .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
+           rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order
+           tensors. SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+    """
     alldims = np.array([range(ndims)])
 
     if rdims is not None and cdims is None:
@@ -901,8 +894,7 @@ def np_to_python(
 
 
 def parse_shape(shape: Shape) -> Tuple[int, ...]:
-    """Provides more flexible shape support
-
+    """Parse flexible type into shape tuple.
 
     Examples
     --------
@@ -942,7 +934,7 @@ def parse_shape(shape: Shape) -> Tuple[int, ...]:
 
 
 def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
-    """Provides more flexible vector support
+    """Parse flexible type into numpy array.
 
     Examples
     --------

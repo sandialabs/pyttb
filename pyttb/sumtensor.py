@@ -18,10 +18,7 @@ from pyttb.pyttb_utils import np_to_python
 
 
 class sumtensor:
-    """
-    SUMTENSOR Class for implicit sum of other tensors.
-
-    """
+    """Class for implicit sum of other tensors."""
 
     def __init__(
         self,
@@ -30,8 +27,8 @@ class sumtensor:
         ] = None,
         copy: bool = True,
     ):
-        """
-        Creates a :class:`pyttb.sumtensor` from a collection of tensors.
+        """Create a :class:`pyttb.sumtensor` from a collection of tensors.
+
         Each provided tensor is explicitly retained. All provided tensors
         must have the same shape but can be combinations of types.
 
@@ -43,7 +40,7 @@ class sumtensor:
             Whether to make a copy of provided data or just reference it.
 
         Examples
-        -------
+        --------
         Create an empty :class:`pyttb.tensor`:
 
         >>> T1 = ttb.tenones((3, 4, 5))
@@ -85,17 +82,18 @@ class sumtensor:
         return ttb.sumtensor(self.parts, copy=True)
 
     def __deepcopy__(self, memo):
+        """Return deepcopy of this sumtensor."""
         return self.copy()
 
     @property
     def shape(self) -> Tuple[int, ...]:
+        """Shape of a :class:`pyttb.sumtensor`."""
         if len(self.parts) == 0:
             return ()
         return self.parts[0].shape
 
     def __repr__(self):
-        """
-        String representation of the sumtensor.
+        """Return string representation of the sumtensor.
 
         Returns
         -------
@@ -247,6 +245,13 @@ class sumtensor:
         """
         return self.__add__(other)
 
+    def to_tensor(self) -> ttb.tensor:
+        """Return sumtensor converted to dense tensor.
+
+        Same as :meth:`pyttb.sumtensor.full`.
+        """
+        return self.full()
+
     def full(self) -> ttb.tensor:
         """
         Convert a :class:`pyttb.sumtensor` to a :class:`pyttb.tensor`.
@@ -292,9 +297,7 @@ class sumtensor:
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
     ) -> float:
-        """
-        Efficient inner product between a sumtensor and other `pyttb` tensors
-        (`tensor`, `sptensor`, `ktensor`, or `ttensor`).
+        """Efficient inner product between a sumtensor and other `pyttb` tensors.
 
         Parameters
         ----------
@@ -321,8 +324,9 @@ class sumtensor:
     def mttkrp(
         self, U: Union[ttb.ktensor, List[np.ndarray]], n: Union[int, np.integer]
     ) -> np.ndarray:
-        """
-        Matricized tensor times Khatri-Rao product. The matrices used in the
+        """Matricized tensor times Khatri-Rao product.
+
+        The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
         factor matrices are used) or as a list of :class:`numpy.ndarray` objects.
 
@@ -430,7 +434,7 @@ class sumtensor:
         return ttb.sumtensor(new_parts, copy=False)
 
     def norm(self) -> float:
-        """Compatibility Interface. Just returns 0"""
+        """Compatibility Interface. Just returns 0."""
         warnings.warn(
             "Sumtensor doesn't actually support norm. " "Returning 0 for compatibility."
         )

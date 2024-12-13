@@ -1,4 +1,4 @@
-"""Tucker decomposition via Alternating Least Squares"""
+"""Tucker decomposition via Alternating Least Squares."""
 
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -25,8 +25,7 @@ def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
     init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
     printitn: int = 1,
 ) -> Tuple[ttensor, ttensor, Dict]:
-    """
-    Compute Tucker decomposition with alternating least squares
+    """Compute Tucker decomposition with alternating least squares.
 
     Parameters
     ----------

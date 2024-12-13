@@ -67,7 +67,7 @@ requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff.lint]
-select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
 ignore = [
     # Ignored in conversion to ruff since not previously enforced
     "PLR2004",
@@ -84,15 +84,18 @@ ignore = [
     # There is ongoing discussion about logging/warning etc
     "B028",
 ]
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
 [tool.ruff.lint.per-file-ignores]
 # See  see https://github.com/astral-sh/ruff/issues/3172 for details on this becoming simpler
 
 # Everything but I, F (to catch import mess and potential logic errors)
-"tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF", "B"]
+"tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF", "B", "D"]
 # Ignore everything for now
-"docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
-"docs/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
-"profiling/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B"]
+"docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
+"docs/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
+"profiling/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
 
 [tool.ruff.format]
 docstring-code-format = true
