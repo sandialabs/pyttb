@@ -243,7 +243,7 @@ class tensor:
 
     def collapse(
         self,
-        dims: Optional[np.ndarray] = None,
+        dims: Optional[OneDArray] = None,
         fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
     ) -> Union[float, np.ndarray, tensor]:
         """
@@ -280,10 +280,11 @@ class tensor:
         if dims is None:
             dims = np.arange(0, self.ndims)
 
+        dims, _ = tt_dimscheck(self.ndims, dims=dims)
+
         if dims.size == 0:
             return self.copy()
 
-        dims, _ = tt_dimscheck(self.ndims, dims=dims)
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
 
         # Check for the case where we accumulate over *all* dimensions
