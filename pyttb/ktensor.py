@@ -303,9 +303,7 @@ class ktensor:
         return cls(factor_matrices, weights, copy=False)
 
     @classmethod
-    def from_vector(
-        cls, data: np.ndarray, shape: Shape, contains_weights: bool
-    ):
+    def from_vector(cls, data: np.ndarray, shape: Shape, contains_weights: bool):
         """Construct a :class:`pyttb.ktensor` from a vector and shape.
 
         The rank of the

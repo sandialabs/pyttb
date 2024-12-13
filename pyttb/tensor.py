@@ -145,7 +145,7 @@ class tensor:
         if copy:
             self.data = data.copy(self.order)
         else:
-            if not self.matches_order(data):
+            if not self._matches_order(data):
                 logging.warning(
                     f"Selected no copy, but input data isn't {self.order} ordered "
                     "so must copy."
@@ -159,7 +159,8 @@ class tensor:
         """Return the data layout of the underlying storage."""
         return "F"
 
-    def matches_order(self, array: np.ndarray) -> bool:
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
         if array.flags["C_CONTIGUOUS"] and self.order == "C":
             return True
         if array.flags["F_CONTIGUOUS"] and self.order == "F":
@@ -896,7 +897,7 @@ class tensor:
         return self.data[tuple(wsubs.transpose())]
 
     def mttkrp(
-            self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
     ) -> np.ndarray:
         """Matricized tensor times Khatri-Rao product.
 
@@ -2757,6 +2758,7 @@ def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
 
     return tensor.from_function(ones, shape)
 
+
 def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
     """Create a tensor of all zeros.
 
@@ -2791,6 +2793,7 @@ def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> te
         return np.zeros(shape, order=order)
 
     return tensor.from_function(zeros, shape)
+
 
 def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
     """Create a tensor with entries drawn from a uniform distribution on [0, 1].

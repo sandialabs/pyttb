@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from inspect import signature
 from math import prod
 from typing import (
     Any,
@@ -17,6 +16,7 @@ from typing import (
     Sequence,
     Tuple,
     Union,
+    cast,
     get_args,
     overload,
 )
@@ -340,12 +340,12 @@ def tt_renumber(
         if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
-                    if isinstance(number_range[i], (int, float, np.integer)):
-                        newshape[i] = number_range[i]
+                    # This should be statically determinable but mypy unhappy
+                    # without intermediate
+                    number_range_i = number_range[i]
+                    if isinstance(number_range_i, (int, float, np.integer)):
+                        newshape[i] = number_range_i
                     else:
-                        # This should be statically determinable but mypy unhappy
-                        # without assert
-                        number_range_i = number_range[i]
                         assert not isinstance(number_range_i, (int, slice, np.integer))
                         newshape[i] = len(number_range_i)
                 else:
@@ -502,11 +502,16 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
     # else:
     #   return obj[s[1:]]
     if isinstance(obj, np.ndarray) and obj.size == 1:
-        return obj.item()
+        # TODO: Globally figure out why typing thinks item is a string
+        return cast(float, obj.item())
     return obj
 
 
-def tt_sub2ind(shape: Tuple[int, ...], subs: np.ndarray) -> np.ndarray:
+def tt_sub2ind(
+    shape: Tuple[int, ...],
+    subs: np.ndarray,
+    order: Union[Literal["F"], Literal["C"]] = "F",
+) -> np.ndarray:
     """Convert multidimensional subscripts to linear indices.
 
     Parameters
@@ -889,8 +894,7 @@ def np_to_python(
 
 
 def parse_shape(shape: Shape) -> Tuple[int, ...]:
-    """Provides more flexible shape support
-
+    """Parse flexible type into shape tuple.
 
     Examples
     --------
@@ -930,7 +934,7 @@ def parse_shape(shape: Shape) -> Tuple[int, ...]:
 
 
 def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
-    """Provides more flexible vector support
+    """Parse flexible type into numpy array.
 
     Examples
     --------

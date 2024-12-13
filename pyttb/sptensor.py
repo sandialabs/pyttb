@@ -1249,8 +1249,7 @@ class sptensor:
         return vals
 
     def mttkrp(
-            self,
-            U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
     ) -> np.ndarray:
         """Matricized tensor times Khatri-Rao product using :class:`pyttb.sptensor`.
 

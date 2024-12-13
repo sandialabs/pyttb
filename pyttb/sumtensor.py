@@ -322,7 +322,7 @@ class sumtensor:
         return result
 
     def mttkrp(
-            self, U: Union[ttb.ktensor, List[np.ndarray]], n: Union[int, np.integer]
+        self, U: Union[ttb.ktensor, List[np.ndarray]], n: Union[int, np.integer]
     ) -> np.ndarray:
         """Matricized tensor times Khatri-Rao product.
 
