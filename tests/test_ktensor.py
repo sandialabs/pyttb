@@ -212,7 +212,7 @@ def test_ktensor_arrange(sample_ktensor_2way):
     assert np.linalg.norm(K1.factor_matrices[0] - fm0) < 1e-8
     assert np.linalg.norm(K1.factor_matrices[1] - fm1) < 1e-8
 
-    # error, cannot shoft weight and permute simultaneously
+    # error, cannot shift weight and permute simultaneously
     with pytest.raises(AssertionError) as excinfo:
         K1.arrange(weight_factor=0, permutation=p)
     assert (
@@ -459,7 +459,7 @@ def test_ktensor_issymetric(sample_ktensor_2way, sample_ktensor_symmetric):
     assert np.array_equal(diffs, np.array([[0.0, 8.0], [0.0, 0]]))
 
     # should be symmetric
-    (datas, K1) = sample_ktensor_symmetric
+    _, K1 = sample_ktensor_symmetric
     assert K1.issymmetric()
     issym1, diffs1 = K1.issymmetric(return_diffs=True)
     assert np.array_equal(diffs1, np.array([[0.0, 0.0], [0.0, 0]]))
@@ -849,7 +849,7 @@ def test_ktensor_score():
         score, Aperm, flag, best_perm = A.score(B)
     assert "Size mismatch" in str(excinfo)
 
-    # invalid: number of compnents of first ktensor must be greater than or
+    # invalid: number of components of first ktensor must be greater than or
     # equal to number of components of second ktensor
     with pytest.raises(AssertionError) as excinfo:
         B = ttb.ktensor(

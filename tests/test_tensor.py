@@ -367,7 +367,7 @@ class TestGetItem:
             ttb.tensor(three_way_data)[two_slices].double(),
             three_way_data[two_slices],
         )
-        # Combining slice with (multi-)integer indicies
+        # Combining slice with (multi-)integer indices
         assert np.array_equal(
             tensorInstance[np.array([0, 1]), :].data, tensorInstance.data[[0, 1], :]
         )

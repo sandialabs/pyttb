@@ -35,12 +35,12 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
     ```
     git checkout -b my-new-feature-branch
     ```
-1. Formatters and linting
+1. Formatters and linting (These are checked in the full test suite as well)
    1. Run autoformatters and linting from root of project (they will change your code)
-       ```commandline
-       ruff check . --fix
-       ruff format
-       ```
+      ```commandline
+      ruff check . --fix
+      ruff format
+      ```
       1. Ruff's `--fix` won't necessarily address everything and may point out issues that need manual attention
       1. [We](./.pre-commit-config.yaml) optionally support [pre-commit hooks](https://pre-commit.com/) for this
          1. Alternatively, you can run `pre-commit run --all-files` from the command line if you don't want to install the hooks.
@@ -48,6 +48,12 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
       ```commandline
       mypy pyttb/
       ```
+      1. Not included in our pre-commit hooks because of slow runtime.
+   1. Check spelling
+      ```commandline
+      codespell
+      ```
+      1. This is also included in the optional pre-commit hooks.
 
 1. Run tests (at desired fidelity)
    1. Just doctests (enabled by default)

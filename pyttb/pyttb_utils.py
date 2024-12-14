@@ -190,7 +190,7 @@ def tt_dimscheck(  # noqa: PLR0912
         # Check sizes to determine how to index multiplicands
         if P == M:
             # Case 1: Number of items in dims and number of multiplicands are equal;
-            # therfore, index in order of sdims
+            # therefore, index in order of sdims
             vidx = sidx
         else:
             # Case 2: Number of multiplicands is equal to the number of dimensions of
@@ -545,7 +545,7 @@ def tt_sizecheck(shape: Tuple[int, ...], nargout: bool = True) -> bool:
     TT_SIZECHECK Checks that the shape is valid.
 
     TT_SIZECHECK(S) throws an error if S is not a valid shape tuple,
-    which means that it is a row vector with strictly postitive,
+    which means that it is a row vector with strictly positive,
     real-valued, finite integer values.
 
     Parameters
@@ -820,7 +820,7 @@ def gather_wrap_dims(
         Mapping of column indices.
     cdims_cyclic:
         When only rdims is specified maps a single rdim to the rows and
-            the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
+            the remaining dimensions span the columns. _fc_ (forward cyclic[1]_)
             in the order range(rdims,self.ndims()) followed by range(0, rdims).
             _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
             range(self.ndims(), rdims, -1).

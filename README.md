@@ -32,7 +32,7 @@ low-rank tensor decompositions:
 [`cp_apr`](https://pyttb.readthedocs.io/en/stable/cpapr.html "CP decomposition via Alternating Poisson Regression"), 
 [`gcp_opt`](https://pyttb.readthedocs.io/en/stable/gcpopt.html "Generalized CP decomposition"), 
 [`hosvd`](https://pyttb.readthedocs.io/en/stable/hosvd.html "Tucker decomposition via Higher Order Singular Value Decomposition"),
-[`tucker_als`](https://pyttb.readthedocs.io/en/stable/tuckerals.html "Tucker decompostion via Alternating Least Squares")
+[`tucker_als`](https://pyttb.readthedocs.io/en/stable/tuckerals.html "Tucker decomposition via Alternating Least Squares")
 
 ## Quick Start
 
