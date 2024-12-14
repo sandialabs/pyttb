@@ -945,7 +945,7 @@ class ktensor:
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and
-                the remaining dimensons span the columns. _fc_ (forward cyclic)
+                the remaining dimensions span the columns. _fc_ (forward cyclic)
                 in the order range(rdims,self.ndims()) followed by range(0, rdims).
                 _bc_ (backward cyclic) range(rdims-1, -1, -1) then
                 range(self.ndims(), rdims, -1).
@@ -1378,7 +1378,7 @@ class ktensor:
 
         if sort:
             if self.ncomponents > 1:
-                # indices of srting in descending order
+                # indices of string in descending order
                 p = np.argsort(self.weights)[::-1]
                 self.arrange(permutation=p)
 
@@ -2300,7 +2300,7 @@ class ktensor:
         >>> fig, axs = K.vis(show_figure=False)  # doctest: +ELLIPSIS
         >>> plt.close(fig)
 
-        Define a more realistic plot fuctions with x labels,
+        Define a more realistic plot functions with x labels,
         control relative widths of each plot,
         and set mode titles.
 

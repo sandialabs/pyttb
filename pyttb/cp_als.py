@@ -76,7 +76,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
 
     Example
     -------
-    Random initialization causes slight pertubation in intermediate results.
+    Random initialization causes slight perturbation in intermediate results.
     `...` is our place holder for these numeric values.
     Example using default values ("random" initialization):
 

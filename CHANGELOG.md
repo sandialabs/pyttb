@@ -3,7 +3,7 @@
   - Aligning comparison operator output for data classes (https://github.com/sandialabs/pyttb/pull/331)
 - Improved:
   - Getting starting documentation (https://github.com/sandialabs/pyttb/pull/324)
-  - Development enviroment (https://github.com/sandialabs/pyttb/pull/329, https://github.com/sandialabs/pyttb/pull/330)
+  - Development environment (https://github.com/sandialabs/pyttb/pull/329, https://github.com/sandialabs/pyttb/pull/330)
   - Documentation (https://github.com/sandialabs/pyttb/pull/328, https://github.com/sandialabs/pyttb/pull/334)
 
 # v1.8.0 (2024-10-23)
@@ -84,7 +84,7 @@
     - Addresses ambiguity of -0 by using `exclude_dims` (`numpy.ndarray`) parameter
   - `ktensor.ttv`, `sptensor.ttv`, `tensor.ttv`, `ttensor.ttv`
     - Use `exlude_dims` parameter instead of `-dims`
-    - Explicit nameing of dimensions to exclude
+    - Explicit naming of dimensions to exclude
   - `tensor.ttsv`
     - Use `skip_dim` (`int`) parameter instead of `-dims`
     - Exclude all dimensions up to and including `skip_dim`

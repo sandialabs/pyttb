@@ -738,7 +738,7 @@ class sptensor:
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and
-                the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
+                the remaining dimensions span the columns. _fc_ (forward cyclic[1]_)
                 in the order range(rdims,self.ndims()) followed by range(0, rdims).
                 _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
                 range(self.ndims(), rdims, -1).
@@ -2029,7 +2029,7 @@ class sptensor:
         linear subscripts, returns a vector of `p` values.
 
         Any ambiguity results in executing the first valid case. This
-        is particularily an issue if `self.ndims == 1`.
+        is particularly an issue if `self.ndims == 1`.
 
         Examples
         --------
@@ -2368,7 +2368,7 @@ class sptensor:
         # Process Group A: Changing values
         if np.sum(idxa) > 0:
             self.vals[tf[idxa]] = newvals[idxa]
-        # Proces Group B: Removing Values
+        # Process Group B: Removing Values
         if np.sum(idxb) > 0:
             removesubs = loc[idxb]
             keepsubs = np.setdiff1d(range(0, self.nnz), removesubs)
@@ -3119,7 +3119,7 @@ class sptensor:
         Parameters
         ----------
         other:
-            Oject to compare with.
+            Object to compare with.
 
         Examples
         --------
