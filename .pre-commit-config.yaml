@@ -18,3 +18,5 @@ repos:
     hooks:
       - id: codespell
         args: [ --toml, "pyproject.toml"]
+        additional_dependencies:
+          - tomli
