@@ -19,6 +19,7 @@ from pyttb.hosvd import hosvd
 from pyttb.import_data import import_data
 from pyttb.khatrirao import khatrirao
 from pyttb.ktensor import ktensor
+from pyttb.matlab import matlab_support
 from pyttb.sptenmat import sptenmat
 from pyttb.sptensor import sptendiag, sptenrand, sptensor
 from pyttb.sptensor3 import sptensor3
@@ -51,6 +52,7 @@ __all__ = [  # noqa: PLE0604
     import_data.__name__,
     khatrirao.__name__,
     ktensor.__name__,
+    matlab_support.__name__,
     sptenmat.__name__,
     sptendiag.__name__,
     sptenrand.__name__,
