@@ -40,6 +40,7 @@ dev = [
     # Also in pre-commit
     "ruff>=0.7,<0.8",
     "pre-commit>=4.0,<5.0",
+    "codespell>=2.3.0,<2.4.0"
 ]
 doc = [
     "sphinx >= 4.0",
@@ -119,4 +120,23 @@ minversion = "6.0"
 addopts = "--doctest-modules pyttb"
 filterwarnings = [
     "ignore:.*deprecated.*:"
+]
+
+[tool.codespell]
+skip = [
+    # Built documentation
+    "./docs/build",
+    "./docs/jupyter_execute",
+    # Project build artifacts
+    "./build"
+]
+count = true
+ignore-words-list = [
+    # Conventions carried from MATLAB ttb (consider changing)
+    "ans",
+    "siz",
+    # Tensor/repo Nomenclature
+    "COO",
+    "nd",
+    "als",
 ]

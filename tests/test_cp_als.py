@@ -82,7 +82,7 @@ def test_cp_als_incorrect_init(capsys, sample_tensor):
         (M, Minit, output) = ttb.cp_als(T, 2, init="init")
     assert "The selected initialization method is not supported" in str(excinfo)
 
-    # incorrect size of intial ktensor
+    # incorrect size of initial ktensor
     Tshape_incorrect = list(T.shape)
     Tshape_incorrect[0] = Tshape_incorrect[0] + 1
     Tshape_incorrect = tuple(Tshape_incorrect)

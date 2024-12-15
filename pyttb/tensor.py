@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import logging
+import textwrap
 from collections.abc import Iterable
 from inspect import signature
 from itertools import combinations_with_replacement, permutations
@@ -30,6 +31,7 @@ from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
+from pyttb.matlab.matlab_utilities import _matlab_array_str
 from pyttb.pyttb_utils import (
     IndexVariant,
     OneDArray,
@@ -456,7 +458,7 @@ class tensor:
         return subs, vals
 
     def to_sptensor(self) -> ttb.sptensor:
-        """Contruct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`.
+        """Construct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`.
 
         Returns
         -------
@@ -509,7 +511,7 @@ class tensor:
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and
-                the remaining dimensons span the columns. _fc_ (forward cyclic)
+                the remaining dimensions span the columns. _fc_ (forward cyclic)
                 in the order range(rdims,self.ndims()) followed by range(0, rdims).
                 _bc_ (backward cyclic) range(rdims-1, -1, -1) then
                 range(self.ndims(), rdims, -1).
@@ -1384,7 +1386,7 @@ class tensor:
                 combos.append(np.array(list(permutations(grps[i, :]))))
             combos = np.stack(combos)
 
-            # Create all the permuations to be averaged
+            # Create all the permutations to be averaged
             combo_lengths = [len(perm) for perm in combos]
             total_perms = prod(combo_lengths)
             sym_perms = np.tile(np.arange(0, n), [total_perms, 1])
@@ -2023,7 +2025,7 @@ class tensor:
                     not isinstance(entry, (float, int, np.generic)) for entry in element
                 ):
                     raise ValueError(
-                        f"Entries for setitem must be numeric but recieved, {element}"
+                        f"Entries for setitem must be numeric but received, {element}"
                     )
                 sliceCheck.append(max(element))
             else:
@@ -2723,6 +2725,23 @@ class tensor:
 
     __str__ = __repr__
 
+    def _matlab_str(
+        self, format: Optional[str] = None, name: Optional[str] = None
+    ) -> str:
+        """Non-standard representation to be more similar to MATLAB."""
+        header = name
+        if name is None:
+            name = "data"
+        if header is None:
+            header = "This"
+
+        matlab_str = f"{header} is a tensor of shape " + " x ".join(
+            map(str, self.shape)
+        )
+
+        array_str = _matlab_array_str(self.data, format, name)
+        return matlab_str + "\n" + textwrap.indent(array_str, "\t")
+
 
 def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
     """Create a tensor of all ones.
@@ -2838,7 +2857,7 @@ def tendiag(
 ) -> tensor:
     """Create a tensor with elements along super diagonal.
 
-    If provided shape is too small the tensor will be enlarged to accomodate.
+    If provided shape is too small the tensor will be enlarged to accommodate.
 
     Parameters
     ----------
