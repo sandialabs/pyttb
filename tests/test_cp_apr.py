@@ -192,7 +192,7 @@ def test_cpapr_mu(capsys, sample_tensor1, default_init_ktensor):
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorSolnInstance.full().data).all()
 
-    # Assert given an inital guess of the final answer yields immediate convergence
+    # Assert given an initial guess of the final answer yields immediate convergence
     M, _, output = ttb.cp_apr(
         input_tensor=tensorInstance, rank=2, init=ktensorSolnInstance
     )

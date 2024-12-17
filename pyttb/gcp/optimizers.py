@@ -512,7 +512,7 @@ class LBFGSB:
 
         lbfgsb_info["final_f"] = final_f
         lbfgsb_info["callback"] = vars(monitor)
-        # Unregister monitor in case of re-use
+        # Unregister monitor in case of reuse
         self._solver_kwargs["callback"] = monitor.callback
 
         # TODO big print output

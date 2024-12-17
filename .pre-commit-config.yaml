@@ -13,3 +13,10 @@ repos:
             --extra-keys=metadata.language_info metadata.vscode metadata.kernelspec cell.metadata.vscode,
             --drop-empty-cells
         ]
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args: [ --toml, "pyproject.toml"]
+        additional_dependencies:
+          - tomli
