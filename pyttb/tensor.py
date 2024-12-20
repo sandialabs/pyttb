@@ -152,7 +152,7 @@ class tensor:
                     f"Selected no copy, but input data isn't {self.order} ordered "
                     "so must copy."
                 )
-            self.data = data
+            self.data = np.asfortranarray(data)
         self.shape = shape
         return
 
@@ -611,6 +611,7 @@ class tensor:
             (rprod, cprod),
             order=self.order,
         )
+        assert data.flags["F_CONTIGUOUS"]
         return ttb.tenmat(data, rdims, cdims, tshape=tshape, copy=copy)
 
     def innerprod(
@@ -1161,7 +1162,8 @@ class tensor:
             return self.copy()
 
         # Np transpose does error checking on order, acts as permutation
-        return ttb.tensor(np.transpose(self.data, order), copy=False)
+
+        return ttb.tensor(np.asfortranarray(np.transpose(self.data, order)), copy=False)
 
     def reshape(self, shape: Shape) -> tensor:
         """
@@ -1361,7 +1363,7 @@ class tensor:
                     avg = classSum / classNum
 
                 newdata = avg[linclassidx]
-                data = np.reshape(newdata, self.shape)
+                data = np.reshape(newdata, self.shape, order=self.order)
 
             return ttb.tensor(data, copy=False)
 
@@ -1521,7 +1523,7 @@ class tensor:
         )
         Y_data: np.ndarray = np.reshape(newdata, newshape, order=self.order)
         Y_data = np.transpose(Y_data, np.argsort(order))
-        return ttb.tensor(Y_data, copy=False)
+        return ttb.tensor(Y_data, copy=True)
 
     def ttt(
         self,
@@ -1880,12 +1882,20 @@ class tensor:
         if not isinstance(other, (float, int)):
             Y = other.data
         else:
-            Y = np.array(other)
+            Y = np.array(other, order=self.order)
 
         if not first:
             Y, X = X, Y
         data = function_handle(X, Y)
-        Z = ttb.tensor(data, copy=False)
+        copy = False
+        if not self._matches_order(data):
+            copy = True
+            logging.warning(
+                f"Tenfun function expects data of order {self.order}."
+                f" Update function to return data or the order to avoid "
+                "extra data copy."
+            )
+        Z = ttb.tensor(data, copy=copy)
         return Z
 
     def tenfun_unary(
@@ -1913,14 +1923,14 @@ class tensor:
                 ), f"Tensor {i} is not the same size as the first tensor input"
         if len(inputs) == 0:
             X = self.data
-            X = np.reshape(X, (1, -1))
+            X = np.reshape(X, (1, -1), order=self.order)
         else:
-            X = np.zeros((len(inputs) + 1, np.prod(sz)))
-            X[0, :] = np.reshape(self.data, (np.prod(sz)))
+            X = np.zeros((len(inputs) + 1, np.prod(sz)), order=self.order)
+            X[0, :] = np.reshape(self.data, (np.prod(sz)), order=self.order)
             for i, an_input in enumerate(inputs):
-                X[i + 1, :] = np.reshape(an_input.data, (np.prod(sz)))
+                X[i + 1, :] = np.reshape(an_input.data, (np.prod(sz)), order=self.order)
         data = function_handle(X)
-        data = np.reshape(data, sz)
+        data = np.reshape(data, sz, order=self.order)
         Z = ttb.tensor(data, copy=False)
         return Z
 
@@ -2170,7 +2180,8 @@ class tensor:
             if newsiz.size == 0:
                 a = newdata.item()
             else:
-                a = ttb.tensor(newdata, copy=False)
+                # Copy data to ensure correct data ordering
+                a = ttb.tensor(newdata, copy=True)
             return a
 
         # *** CASE 2a: Subscript indexing ***

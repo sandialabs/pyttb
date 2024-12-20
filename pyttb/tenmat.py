@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import logging
 from math import prod
 from typing import Literal, Optional, Tuple, Union
 
@@ -255,7 +256,12 @@ class tenmat:
             data = self.data.copy()
         data = np.reshape(data, np.array(shape)[order], order=self.order)
         if order.size > 1:
-            data = np.transpose(data, np.argsort(order))
+            if not copy:
+                logging.warning(
+                    "This tenmat cannot be trivially unwrapped into tensor "
+                    "so must copy."
+                )
+            data = np.asfortranarray(np.transpose(data, np.argsort(order)))
         return ttb.tensor(data, shape, copy=False)
 
     def ctranspose(self) -> tenmat:

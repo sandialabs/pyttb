@@ -386,6 +386,11 @@ class sptensor:
         """
         return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
 
+    @property
+    def order(self) -> Literal["F"]:
+        """Return the data layout of the underlying storage."""
+        return "F"
+
     def __deepcopy__(self, memo):
         """Return deep copy of this sptensor."""
         return self.copy()
@@ -708,7 +713,7 @@ class sptensor:
             return ttb.tensor()
 
         # Create a dense zero tensor B that is the same shape as A
-        B = ttb.tensor(np.zeros(shape=self.shape), copy=False)
+        B = ttb.tensor(np.zeros(shape=self.shape, order=self.order), copy=False)
 
         if self.subs.size == 0:
             return B

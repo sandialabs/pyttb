@@ -74,7 +74,7 @@ class ktensor:
 
     __slots__ = ("weights", "factor_matrices")
 
-    def __init__(
+    def __init__(  # noqa: PLR0912
         self,
         factor_matrices: Optional[Sequence[np.ndarray]] = None,
         weights: Optional[np.ndarray] = None,
@@ -147,7 +147,7 @@ class ktensor:
 
         # Empty constructor
         if factor_matrices is None and weights is None:
-            self.weights = np.array([])
+            self.weights = np.array([], order=self.order)
             self.factor_matrices: List[np.ndarray] = []
             return
 
@@ -183,12 +183,17 @@ class ktensor:
             )
             # make copy or use reference
             if copy:
-                self.weights = weights.copy()
+                self.weights = weights.copy(self.order)
             else:
-                self.weights = weights
+                if not self._matches_order(weights):
+                    logging.warning(
+                        f"Selected no copy, but input data isn't {self.order} ordered "
+                        "so must copy."
+                    )
+                self.weights = np.asfortranarray(weights)
         else:
             # create weights if not provided
-            self.weights = np.ones(num_components)
+            self.weights = np.ones(num_components, order=self.order)
 
         # process factor_matrices
         if copy:
@@ -418,6 +423,14 @@ class ktensor:
     def order(self) -> Literal["F"]:
         """Return the data layout of the underlying storage."""
         return "F"
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
 
     def arrange(
         self,
@@ -924,7 +937,9 @@ class ktensor:
         data = (
             ttb.khatrirao(*self.factor_matrices[:i_split], reverse=True) * self.weights
         ) @ ttb.khatrirao(*self.factor_matrices[i_split:], reverse=True).T
-        return ttb.tensor(data, self.shape, copy=False)
+        # Copy needed to ensure F order. Transpose above means both elements are
+        # different layout. If originally in C order can save on this copy.
+        return ttb.tensor(data, self.shape, copy=True)
 
     def to_tenmat(
         self,
@@ -1678,7 +1693,7 @@ class ktensor:
         # Compute all possible vector-vector congruences.
 
         # Compute every pair for each mode
-        Cbig = ttb.tensor.from_function(np.zeros, (RA, RB, N))
+        Cbig = ttb.tensor(np.zeros((RA, RB, N), order=self.order))
         for n in range(N):
             Cbig[:, :, n] = np.abs(A.factor_matrices[n].T @ B.factor_matrices[n])
 

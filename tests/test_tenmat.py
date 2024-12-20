@@ -2,6 +2,7 @@
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
+import logging
 from copy import deepcopy
 
 import numpy as np
@@ -324,7 +325,7 @@ def test_tenmat_initialization_from_tensor_type(
         assert exc in str(excinfo)
 
 
-def test_tenmat_to_tensor():
+def test_tenmat_to_tensor(caplog):
     tensorInstance = ttb.tenrand((4, 3))
     tensorInstance4 = ttb.tenrand((4, 3, 2, 2))
     # tenmat
@@ -345,8 +346,11 @@ def test_tenmat_to_tensor():
     assert not np.may_share_memory(tensorTenmatInstance4.data, tenmatInstance4.data)
 
     # Reference instead of copy
-    tensorTenmatInstance4_ref = tenmatInstance4.to_tensor(copy=False)
-    assert np.may_share_memory(tensorTenmatInstance4_ref.data, tenmatInstance4.data)
+    with caplog.at_level(logging.WARNING):
+        tensorTenmatInstance4_ref = tenmatInstance4.to_tensor(copy=False)
+        assert not np.may_share_memory(
+            tensorTenmatInstance4_ref.data, tenmatInstance4.data
+        )
 
 
 def test_tenmat_ctranspose(sample_tenmat_4way):
