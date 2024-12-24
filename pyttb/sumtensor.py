@@ -439,3 +439,9 @@ class sumtensor:
             "Sumtensor doesn't actually support norm. " "Returning 0 for compatibility."
         )
         return 0.0
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

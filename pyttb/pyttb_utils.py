@@ -972,3 +972,9 @@ def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
                 f"had shape {maybe_vector.shape}"
             )
     return np.array(maybe_vector)
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

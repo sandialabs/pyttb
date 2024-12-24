@@ -194,7 +194,8 @@ class tensor:
         --------
         Create a :class:`pyttb.tensor` with entries equal to 1:
 
-        >>> T = ttb.tensor.from_function(np.ones, (2, 3, 4))
+        >>> fortran_order_ones = lambda shape: np.ones(shape=shape, order="F")
+        >>> T = ttb.tensor.from_function(fortran_order_ones, (2, 3, 4))
         >>> print(T)
         tensor of shape (2, 3, 4) with order F
         data[:, :, 0] =
@@ -1365,7 +1366,7 @@ class tensor:
                 newdata = avg[linclassidx]
                 data = np.reshape(newdata, self.shape, order=self.order)
 
-            return ttb.tensor(data, copy=False)
+            return ttb.tensor(np.asfortranarray(data), copy=False)
 
         else:  # Original version
             # Check tensor dimensions for compatibility with symmetrization
@@ -2844,7 +2845,7 @@ def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
     --------
     >>> np.random.seed(1)
     >>> T = ttb.tenrand((3,))
-    >>> T
+    >>> T  # doctest: +ELLIPSIS
     tensor of shape (3,) with order F
     data[:] =
     [4.170...e-01 7.203...e-01 1.143...e-04]

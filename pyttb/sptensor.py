@@ -3703,3 +3703,9 @@ def sptendiag(elements: OneDArray, shape: Optional[Shape] = None) -> sptensor:
         constructed_shape = tuple(max(N, dim) for dim in shape)
     subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1)).transpose()
     return sptensor.from_aggregator(subs, elements.reshape((N, 1)), constructed_shape)
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

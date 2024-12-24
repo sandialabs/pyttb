@@ -666,3 +666,9 @@ class ttensor:
                 if v[idx[i], i] < 0:
                     v[:, i] *= -1
         return v
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

@@ -603,3 +603,9 @@ class sptenmat:
         return s
 
     __str__ = __repr__
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover
