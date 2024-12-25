@@ -407,7 +407,7 @@ class tensor:
         array([[1., 1.],
                [1., 1.]])
         """
-        return self.data.astype(np.float64).copy()
+        return self.data.astype(np.float64, order=self.order, copy=True)
 
     def exp(self) -> tensor:
         """
@@ -954,11 +954,11 @@ class tensor:
         if n == 0:
             Ur = ttb.khatrirao(*U[1 : self.ndims], reverse=True)
             Y = np.reshape(self.data, (szn, szr), order=self.order)
-            return Y @ Ur
+            return np.asfortranarray(Y @ Ur)
         if n == self.ndims - 1:
             Ul = ttb.khatrirao(*U[0 : self.ndims - 1], reverse=True)
             Y = np.reshape(self.data, (szl, szn), order=self.order)
-            return Y.T @ Ul
+            return np.asfortranarray(Y.T @ Ul)
         else:
             Ul = ttb.khatrirao(*U[n + 1 :], reverse=True)
             Ur = np.reshape(
@@ -967,10 +967,10 @@ class tensor:
             Y = np.reshape(self.data, (-1, szr), order=self.order)
             Y = Y @ Ul
             Y = np.reshape(Y, (szl, szn, R), order=self.order)
-            V = np.zeros((szn, R))
+            V = np.zeros((szn, R), order=self.order)
             for r in range(R):
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
-            return V
+            return np.asfortranarray(V)
 
     def mttkrps(self, U: Union[ttb.ktensor, Sequence[np.ndarray]]) -> List[np.ndarray]:
         """

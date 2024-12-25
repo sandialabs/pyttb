@@ -12,56 +12,6 @@ import pyttb as ttb
 np.set_printoptions(precision=16)
 
 
-@pytest.fixture()
-def sample_ktensor_2way():
-    weights = np.array([1.0, 2.0])
-    fm0 = np.array([[1.0, 2.0], [3.0, 4.0]])
-    fm1 = np.array([[5.0, 6.0], [7.0, 8.0]])
-    factor_matrices = [fm0, fm1]
-    data = {"weights": weights, "factor_matrices": factor_matrices}
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    return data, ktensorInstance
-
-
-@pytest.fixture()
-def sample_ktensor_3way():
-    rank = 2
-    shape = (2, 3, 4)
-    vector = np.arange(1, rank * sum(shape) + 1).astype(float)
-    weights = 2 * np.ones(rank).astype(float)
-    vector_with_weights = np.concatenate((weights, vector), axis=0)
-    # vector_with_weights = vector_with_weights.reshape((len(vector_with_weights), 1))
-    # ground truth
-    fm0 = np.array([[1.0, 3.0], [2.0, 4.0]])
-    fm1 = np.array([[5.0, 8.0], [6.0, 9.0], [7.0, 10.0]])
-    fm2 = np.array([[11.0, 15.0], [12.0, 16.0], [13.0, 17.0], [14.0, 18.0]])
-    factor_matrices = [fm0, fm1, fm2]
-    data = {
-        "weights": weights,
-        "factor_matrices": factor_matrices,
-        "vector": vector,
-        "vector_with_weights": vector_with_weights,
-        "shape": shape,
-    }
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    return data, ktensorInstance
-
-
-@pytest.fixture()
-def sample_ktensor_symmetric():
-    weights = np.array([1.0, 1.0])
-    fm0 = np.array(
-        [[2.340431417384394, 4.951967353890655], [4.596069112758807, 8.012451489774961]]
-    )
-    fm1 = np.array(
-        [[2.340431417384394, 4.951967353890655], [4.596069112758807, 8.012451489774961]]
-    )
-    factor_matrices = [fm0, fm1]
-    data = {"weights": weights, "factor_matrices": factor_matrices}
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    return data, ktensorInstance
-
-
 def test_ktensor_init(sample_ktensor_2way):
     empty = np.array([])
 
