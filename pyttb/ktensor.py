@@ -37,6 +37,7 @@ from pyttb.pyttb_utils import (
     np_to_python,
     parse_one_d,
     parse_shape,
+    to_memory_order,
     tt_dimscheck,
     tt_ind2sub,
 )
@@ -187,10 +188,10 @@ class ktensor:
             else:
                 if not self._matches_order(weights):
                     logging.warning(
-                        f"Selected no copy, but input data isn't {self.order} ordered "
-                        "so must copy."
+                        f"Selected no copy, but input weights aren't {self.order} "
+                        "ordered so must copy."
                     )
-                self.weights = np.asfortranarray(weights)
+                self.weights = to_memory_order(weights, self.order)
         else:
             # create weights if not provided
             self.weights = np.ones(num_components, order=self.order)

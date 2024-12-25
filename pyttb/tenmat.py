@@ -13,7 +13,13 @@ from typing import Literal, Optional, Tuple, Union
 import numpy as np
 
 import pyttb as ttb
-from pyttb.pyttb_utils import Shape, gather_wrap_dims, np_to_python, parse_shape
+from pyttb.pyttb_utils import (
+    Shape,
+    gather_wrap_dims,
+    np_to_python,
+    parse_shape,
+    to_memory_order,
+)
 
 
 class tenmat:
@@ -261,7 +267,7 @@ class tenmat:
                     "This tenmat cannot be trivially unwrapped into tensor "
                     "so must copy."
                 )
-            data = np.asfortranarray(np.transpose(data, np.argsort(order)))
+            data = to_memory_order(np.transpose(data, np.argsort(order)), self.order)
         return ttb.tensor(data, shape, copy=False)
 
     def ctranspose(self) -> tenmat:
