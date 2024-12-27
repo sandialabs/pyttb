@@ -166,16 +166,28 @@ class tenmat:
         self.tshape = tshape
         self.rindices = rdims.copy()
         self.cindices = cdims.copy()
-        if copy:
-            self.data = data.copy()
-        else:
-            self.data = data
+
+        if not copy and not self._matches_order(data):
+            logging.warning(
+                f"Selected no copy, but input data isn't {self.order} ordered "
+                "so must copy."
+            )
+            copy = True
+        self.data = to_memory_order(data, self.order, copy=copy)
         return
 
     @property
     def order(self) -> Literal["F"]:
         """Return the data layout of the underlying storage."""
         return "F"
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
 
     def copy(self) -> tenmat:
         """
@@ -328,7 +340,7 @@ class tenmat:
         -------
         Copy of tenmat data.
         """
-        return self.data.astype(np.float64).copy()
+        return to_memory_order(self.data, self.order, copy=True).astype(np.float64)
 
     @property
     def ndims(self) -> int:
