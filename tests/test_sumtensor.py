@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
+from tests.test_utils import assert_consistent_order
 
 
 @pytest.fixture()
@@ -163,7 +164,9 @@ def test_sumtensor_full_double(example_ttensor, example_kensor):
     S = ttb.sumtensor([T1, T2, K, TT])
     # Smoke test that all type combine
     assert isinstance(S.full(), ttb.tensor)
-    assert isinstance(S.double(), np.ndarray)
+    double_array = S.double()
+    assert isinstance(double_array, np.ndarray)
+    assert_consistent_order(S, double_array)
 
 
 def test_sumtensor_innerprod(example_ttensor, example_kensor):
