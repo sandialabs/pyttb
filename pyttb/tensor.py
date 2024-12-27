@@ -50,25 +50,15 @@ from pyttb.pyttb_utils import (
 
 
 class tensor:
-    """
-    TENSOR Class for dense tensors.
+    """Class for dense tensors. 
+    
+    **Members**
 
-    Contains the following data members:
+    * ``data``: :class:`numpy.ndarray` containing the data elements of the tensor stored, by default, in Fortran order.
 
-    ``data``: :class:`numpy.ndarray` dense array containing the data elements
-    of the tensor.
+    * ``shape``: :class:`tuple` of integers containing the size of each mode of the tensor. *Technically, this is redudant since the shape can be inferred from the data. This is an artifact of the transfer from the MATLAB Tensor Toolbox because MATLAB does not propertly store the size of a 1D tensor.*
 
-    Instances of :class:`pyttb.tensor` can be created using `__init__()` or
-    the following method:
-
-      * :meth:`from_function`
-
-    Examples
-    --------
-    For all examples listed below, the following module imports are assumed:
-
-    >>> import pyttb as ttb
-    >>> import numpy as np
+    
     """
 
     __slots__ = ("data", "shape")
@@ -79,11 +69,9 @@ class tensor:
         shape: Optional[Shape] = None,
         copy: bool = True,
     ):
-        """Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`.
-
-        Note that 1D tensors (i.e., when len(shape)==1) contains a data
-        array that follow the Numpy convention of being a row vector.
-
+        """
+        **Constructor**
+        
         Parameters
         ----------
         data:
@@ -95,6 +83,12 @@ class tensor:
 
         Examples
         --------
+
+        For *all* examples in this document, the following module imports are assumed:
+
+        >>> import pyttb as ttb
+        >>> import numpy as np
+
         Create an empty :class:`pyttb.tensor`:
 
         >>> T = ttb.tensor()
@@ -110,6 +104,10 @@ class tensor:
         data[:, :] =
         [[1 2]
          [3 4]]
+
+         See Also
+         --------
+            :meth:`from_function`
         """
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
@@ -1099,6 +1097,7 @@ class tensor:
         Xn = self.to_tenmat(rdims=np.array([n])).double()
         y = Xn @ Xn.T
 
+        # TODO (TK) We shouldn't use sparse library functions. RandSVD would probably be better.
         if r < y.shape[0] - 1:
             w, v = scipy.sparse.linalg.eigsh(y, r)
             v = v[:, (-np.abs(w)).argsort()]

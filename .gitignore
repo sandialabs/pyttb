@@ -6,6 +6,7 @@ dist/
 tests/__pycache__
 pyttb/__pycache__
 build/
+_build/
 .coverage
 .ipynb_checkpoints
 htmlcov
