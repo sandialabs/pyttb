@@ -477,7 +477,7 @@ class tensor:
          [3 0]]
         >>> S = T.to_sptensor()
         >>> print(S)
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [1, 0] = 3
         [0, 1] = 2
         """

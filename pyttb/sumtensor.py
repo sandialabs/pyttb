@@ -124,7 +124,7 @@ class sumtensor:
             [[1. 1.]
              [1. 1.]]
         Part 1:
-            empty sparse tensor of shape (2, 2)
+            empty sparse tensor of shape (2, 2) with order F
         """
         if len(self.parts) == 0:
             return "Empty sumtensor"
