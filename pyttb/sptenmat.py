@@ -6,14 +6,18 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
-from pyttb.pyttb_utils import gather_wrap_dims, np_to_python, tt_ind2sub
+from pyttb.pyttb_utils import (
+    gather_wrap_dims,
+    np_to_python,
+    tt_ind2sub,
+)
 
 
 class sptenmat:
@@ -219,6 +223,19 @@ class sptenmat:
         subs = np.vstack(array.nonzero()).transpose()
         return ttb.sptenmat(subs, vals, rdims, cdims, tshape)
 
+    @property
+    def order(self) -> Literal["F"]:
+        """Return the data layout of the underlying storage."""
+        return "F"
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
+
     def copy(self) -> sptenmat:
         """
         Return a deep copy of the :class:`pyttb.sptenmat`.
@@ -350,7 +367,9 @@ class sptenmat:
          [0. 0. 0. 0.]]
         """
         # Create empty dense tenmat
-        result = ttb.tenmat(np.zeros(self.shape), self.rdims, self.cdims, self.tshape)
+        result = ttb.tenmat(
+            np.zeros(self.shape, order=self.order), self.rdims, self.cdims, self.tshape
+        )
         # Assign nonzero values
         result[tuple(self.subs.transpose())] = np.squeeze(self.vals)
         return result
