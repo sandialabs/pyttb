@@ -449,7 +449,7 @@ class sumtensor:
     def norm(self) -> float:
         """Compatibility Interface. Just returns 0."""
         warnings.warn(
-            "Sumtensor doesn't actually support norm. " "Returning 0 for compatibility."
+            "Sumtensor doesn't actually support norm. Returning 0 for compatibility."
         )
         return 0.0
 
