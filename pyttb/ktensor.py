@@ -198,7 +198,7 @@ class ktensor:
 
         # process factor_matrices
         if copy:
-            self.factor_matrices = [fm.copy() for fm in factor_matrices]
+            self.factor_matrices = [fm.copy(order=self.order) for fm in factor_matrices]
         else:
             if not isinstance(factor_matrices, list):
                 logging.warning("Must provide factor matrices as list to avoid copy")

@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import logging
 import textwrap
-from copy import deepcopy
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Literal, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import scipy
@@ -17,7 +16,7 @@ from scipy import sparse
 
 import pyttb as ttb
 from pyttb import pyttb_utils as ttb_utils
-from pyttb.pyttb_utils import OneDArray, parse_one_d
+from pyttb.pyttb_utils import OneDArray, parse_one_d, to_memory_order
 
 ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/sptensor."
 
@@ -77,10 +76,31 @@ class ttensor:
             )
 
         if isinstance(core, (ttb.tensor, ttb.sptensor)):
+            if not all(
+                isinstance(fm, (np.ndarray, sparse.coo_matrix)) for fm in factors
+            ):
+                raise ValueError(
+                    "Factor matrices must be numpy arrays or scipy sparse coo_matrices"
+                    f"but received {[type(fm) for fm in factors]}."
+                )
             if copy:
+                # TODO when generalizing tensor order add order argument to copy
                 self.core = core.copy()
-                self.factor_matrices = list(deepcopy(factors))
+                self.factor_matrices = [
+                    to_memory_order(fm, self.order, copy=True) for fm in factors
+                ]
             else:
+                if self.order != core.order:
+                    # This isn't possible right now
+                    raise ValueError("Core tensor doesn't match Tucker Tensor Order")
+                if not all(self._matches_order(factor) for factor in factors):
+                    logging.warning(
+                        "Selected no copy, but input factor matrices aren't "
+                        f"{self.order} ordered so must copy."
+                    )
+                    factors = [
+                        to_memory_order(fm, self.order, copy=True) for fm in factors
+                    ]
                 self.core = core
                 if isinstance(factors, list):
                     self.factor_matrices = factors
@@ -94,6 +114,19 @@ class ttensor:
             raise ValueError(ALT_CORE_ERROR)
         self._validate_ttensor()
         return
+
+    @property
+    def order(self) -> Literal["F"]:
+        """Return the data layout of the underlying storage."""
+        return "F"
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
 
     def copy(self) -> ttensor:
         """Make a deep copy of a :class:`pyttb.ttensor`.
@@ -412,7 +445,7 @@ class ttensor:
         """
         # NOTE: MATLAB version calculates an unused R here
 
-        W = [np.empty(())] * self.ndims
+        W = [np.empty((), order=self.order)] * self.ndims
         if isinstance(U, ttb.ktensor):
             U = U.factor_matrices
         for i in range(0, self.ndims):
@@ -423,7 +456,7 @@ class ttensor:
         Y = self.core.mttkrp(W, n)
 
         # Find each column of answer by multiplying by weights
-        return self.factor_matrices[n].dot(Y)
+        return to_memory_order(self.factor_matrices[n].dot(Y), self.order)
 
     def norm(self) -> float:
         """
@@ -490,12 +523,12 @@ class ttensor:
         if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
         elif isinstance(dims, list):
-            dims = np.array(dims)
+            dims = np.array(dims, order=self.order)
         elif isinstance(dims, (float, int, np.generic)):
-            dims = np.array([dims])
+            dims = np.array([dims], order=self.order)
 
         if isinstance(exclude_dims, (float, int)):
-            exclude_dims = np.array([exclude_dims])
+            exclude_dims = np.array([exclude_dims], order=self.order)
 
         if not isinstance(matrix, Sequence):
             return self.ttm([matrix], dims, exclude_dims, transpose)
@@ -553,12 +586,12 @@ class ttensor:
         if modes is None:
             modes = np.arange(self.ndims)
         elif isinstance(modes, Sequence):
-            modes = np.array(modes)
+            modes = np.array(modes, order=self.order)
         elif np.isscalar(modes):
-            modes = np.array([modes])
+            modes = np.array([modes], order=self.order)
 
         if np.isscalar(samples):
-            samples = [np.array([samples])]
+            samples = [np.array([samples], order=self.order)]
         elif not isinstance(samples, Sequence):
             samples = [samples]
 
@@ -569,10 +602,10 @@ class ttensor:
                 f"samples had length {len(samples)} and modes {len(modes)}"
             )
 
-        full_samples = [np.array([])] * self.ndims
+        full_samples = [np.array([], order=self.order)] * self.ndims
         for sample, mode in zip(samples, modes):
             if np.isscalar(sample):
-                full_samples[mode] = np.array([sample])
+                full_samples[mode] = np.array([sample], order=self.order)
             else:
                 full_samples[mode] = sample
 
@@ -622,16 +655,20 @@ class ttensor:
         H = self.core.ttm(V)
 
         if isinstance(H, ttb.sptensor):
-            HnT = H.to_sptenmat(np.array([n]), cdims_cyclic="t").double()
+            HnT = H.to_sptenmat(
+                np.array([n], order=self.order), cdims_cyclic="t"
+            ).double()
         else:
-            HnT = H.full().to_tenmat(cdims=np.array([n])).double()
+            HnT = H.full().to_tenmat(cdims=np.array([n], order=self.order)).double()
 
         G = self.core
 
         if isinstance(G, ttb.sptensor):
-            GnT = G.to_sptenmat(np.array([n]), cdims_cyclic="t").double()
+            GnT = G.to_sptenmat(
+                np.array([n], order=self.order), cdims_cyclic="t"
+            ).double()
         else:
-            GnT = G.full().to_tenmat(cdims=np.array([n])).double()
+            GnT = G.full().to_tenmat(cdims=np.array([n], order=self.order)).double()
 
         # Compute Xn * Xn'
         # Big hack because if RHS is sparse wrong dot product is used

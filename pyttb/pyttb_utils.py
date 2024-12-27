@@ -22,6 +22,7 @@ from typing import (
 )
 
 import numpy as np
+from scipy import sparse
 
 import pyttb as ttb
 
@@ -975,8 +976,30 @@ def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
     return np.array(maybe_vector)
 
 
-def to_memory_order(array: np.ndarray, order: MemoryLayout) -> np.ndarray:
+@overload
+def to_memory_order(
+    array: np.ndarray, order: MemoryLayout, copy: bool = False
+) -> np.ndarray:
+    pass
+
+
+@overload
+def to_memory_order(
+    array: sparse.coo_matrix, order: MemoryLayout, copy: bool = False
+) -> sparse.coo_matrix:
+    pass
+
+
+def to_memory_order(
+    array: Union[np.ndarray, sparse.coo_matrix], order: MemoryLayout, copy: bool = False
+) -> Union[np.ndarray, sparse.coo_matrix]:
     """Convert an array to the specified memory layout.
+
+    Parameters
+    ----------
+    array: Data to ensure matches memory order.
+    order: Desired memory order.
+    copy: Whether to force a copy even if data already in supported memory order.
 
     Examples
     --------
@@ -986,6 +1009,12 @@ def to_memory_order(array: np.ndarray, order: MemoryLayout) -> np.ndarray:
     >>> to_memory_order(c_order, "F").flags["F_CONTIGUOUS"]
     True
     """
+    if copy:
+        # This could be slightly optimized
+        # in worst case two copies occur
+        array = array.copy()
+    if isinstance(array, sparse.coo_matrix):
+        return array
     if order == "F":
         return np.asfortranarray(array)
     elif order == "C":
