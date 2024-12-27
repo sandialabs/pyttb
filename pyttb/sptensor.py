@@ -39,6 +39,7 @@ from pyttb.pyttb_utils import (
     np_to_python,
     parse_one_d,
     parse_shape,
+    to_memory_order,
     tt_dimscheck,
     tt_ind2sub,
     tt_intersect_rows,
@@ -391,6 +392,14 @@ class sptensor:
         """Return the data layout of the underlying storage."""
         return "F"
 
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
+
     def __deepcopy__(self, memo):
         """Return deep copy of this sptensor."""
         return self.copy()
@@ -596,7 +605,7 @@ class sptensor:
         >>> S.double()
         array([[0. , 1.5]])
         """
-        a = np.zeros(self.shape)
+        a = np.zeros(self.shape, order=self.order)
         if self.nnz > 0:
             a[tuple(self.subs.transpose())] = self.vals.transpose()[0]
         return a
@@ -661,7 +670,7 @@ class sptensor:
             assert False, f"{error_msg}" "Invalid subscripts"
 
         # Set the default answer to zero
-        a = np.zeros(shape=(p, 1), dtype=self.vals.dtype)
+        a = np.zeros(shape=(p, 1), dtype=self.vals.dtype, order=self.order)
 
         # Find which indices already exist and their locations
         valid, loc = tt_ismember_rows(searchsubs, self.subs)
@@ -1314,7 +1323,7 @@ class sptensor:
         else:
             R = U[0].shape[1]
 
-        V = np.zeros((self.shape[n], R))
+        V = np.zeros((self.shape[n], R), order=self.order)
         for r in range(R):
             # Set up list with appropriate vectors for ttv multiplication
             Z = []
@@ -1322,7 +1331,7 @@ class sptensor:
                 if i != n:
                     Z.append(U[i][:, r])
                 else:
-                    Z.append(np.array([]))
+                    Z.append(np.array([], order=self.order))
             # Perform ttv multiplication
             ttv = self.ttv(Z, exclude_dims=int(n))
             # TODO is is possible to hit the float condition here?
@@ -1465,7 +1474,7 @@ class sptensor:
             for i in range(v.shape[1]):
                 if v[idx[i], i] < 0:  # pragma: no cover
                     v[:, i] *= -1
-        return v
+        return to_memory_order(v, self.order)
 
     def ones(self) -> sptensor:
         """
