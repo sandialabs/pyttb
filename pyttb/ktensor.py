@@ -200,6 +200,14 @@ class ktensor:
         if copy:
             self.factor_matrices = [fm.copy(order=self.order) for fm in factor_matrices]
         else:
+            if not all(self._matches_order(factor) for factor in factor_matrices):
+                logging.warning(
+                    "Selected no copy, but input factor matrices aren't "
+                    f"{self.order} ordered so must copy."
+                )
+                factor_matrices = [
+                    to_memory_order(fm, self.order, copy=True) for fm in factor_matrices
+                ]
             if not isinstance(factor_matrices, list):
                 logging.warning("Must provide factor matrices as list to avoid copy")
                 factor_matrices = list(factor_matrices)
@@ -1253,7 +1261,7 @@ class ktensor:
                 W = W * (self.factor_matrices[i].T @ U[i])
 
         # Find each column of answer by multiplying columns of X.u{n} with weights
-        return self.factor_matrices[n] @ W
+        return to_memory_order(self.factor_matrices[n] @ W, self.order)
 
     @property
     def ncomponents(self) -> int:
