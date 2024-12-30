@@ -50,13 +50,13 @@ from pyttb.pyttb_utils import (
 
 
 class tensor:
-    """Class for dense tensors. 
+    """Class for dense tensors
     
     **Members**
 
-    * ``data``: :class:`numpy.ndarray` containing the data elements of the tensor stored, by default, in Fortran order.
+    * ``data``: :class:`numpy.ndarray` containing the data elements of the tensor stored, by default, in Fortran order
 
-    * ``shape``: :class:`tuple` of integers containing the size of each mode of the tensor. *Technically, this is (mostly?) redudant since the shape can be inferred from the data.*
+    * ``shape``: :class:`tuple` of integers containing the size of each mode of the tensor 
    
     """
 
@@ -72,11 +72,11 @@ class tensor:
 
         Parameters
         ----------
-        data : 
+        data : optional
             Source data as :class:`numpy.ndarray` (default: empty)
-        shape : 
-            Shape of the tensor as a :class:`tuple` (default: ``data.shape()``)
-        copy : bool
+        shape : optional
+           Shape of the tensor as a :class:`tuple` (default: ``data.shape()``)
+        copy : optional bool
             Whether to copy the data or reference it (default: True)
 
         Examples
@@ -87,12 +87,12 @@ class tensor:
             >>> import pyttb as ttb
             >>> import numpy as np
 
-        Create a :class:`pyttb.tensor` from a 3D :class:`numpy.ndarray`::
+        Create a :class:`pyttb.tensor` from a three-way :class:`numpy.ndarray`::
 
             >>> data = np.array([[[1,13],[5,17],[9,21]],
-                 [[2,14],[6,18],[10,22]],
-                 [[3,15],[7,19],[11,23]],
-                 [[4,16],[8,20],[12,24]]])
+            ... [[2,14],[6,18],[10,22]],
+            ... [[3,15],[7,19],[11,23]],
+            ...  [[4,16],[8,20],[12,24]]])
             >>> T = ttb.tensor(data)
             >>> print(T)
             tensor of shape (4, 3, 2) with order F
@@ -107,7 +107,7 @@ class tensor:
              [15 19 23]
              [16 20 24]]
         
-        Create a :class:`pyttb.tensor` from a 1D :class:`numpy.ndarray` and reshape it::
+        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray` vector and reshape it::
 
             >>> data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
             >>> T = ttb.tensor(data, shape=(4, 3, 2))
@@ -120,34 +120,50 @@ class tensor:
              [ 4  8 12]]
             data[:, :, 1] =
             [[13 17 21]
-            [14 18 22]
-            [15 19 23]
-            [16 20 24]]    
+             [14 18 22]
+             [15 19 23]
+             [16 20 24]]
+
+        Create an empty :class:`ppytb.tensor`::
+            >>> T = ttb.tensor()
+            >>> print(T)
+            empty tensor of shape ()
+            data = []
              
         See Also
         --------
-        * :meth:`pyttb.tensor.from_function` - Create a tensor from a function
-        * :class:`pyttb.sptensor` - Sparse tensor class
+        * :meth:`pyttb.tensor.from_function` - Create a tensor from a function such as np.random.rand or np.ones
+        * :meth:`pyttb.tensor.copy` - Make a deep copy of a tensor
+        * :meth:`pyttb.sptensor.to_tensor` - Convert a sparse tensor to a dense tensor
+        * :meth:`pyttb.ktensor.to_tensor` - Convert a Kruskal tensor to a dense tensor
+        * :meth:`pyttb.ttensor.to_tensor` - Convert a Tucker tensor to a dense tensor
+        * :meth:`pyttb.tenmat.to_tensor` - Convert a tenmat to a dense tensor
         """
+        # EMPTY / DEFAULT CONSTRUCTOR
         if data is None:
-            # EMPTY / DEFAULT CONSTRUCTOR
             self.data: np.ndarray = np.array([], order=self.order)
             self.shape: Tuple = ()
             return
 
-        # CONVERT A MULTIDIMENSIONAL ARRAY
-        assert issubclass(data.dtype.type, np.number) or issubclass(data.dtype.type, np.bool_), "Data (1st argument) must be a numpy ndarray."
+        # Check that data is an numpy number or boolean array
+        if not issubclass(data.dtype.type, np.number) and not issubclass(
+            data.dtype.type, np.bool_
+        ):
+            raise AssertionError("Data (1st argument) must be a numpy ndarray")
 
-        # Create or check second argument
+        # Create or check second argument (can be a variety of things)
         if shape is None:
             shape = data.shape
-        shape = parse_shape(shape) # parse variety of inputs into a tuple
+        else:
+            shape = parse_shape(shape) 
 
         # Make sure the number of elements matches what's been specified
         if len(shape) == 0:
-            assert data.size == 0, "Shape (2nd argument) has zero length, but data (1st argument) was not empty."
-        else: 
-            assert prod(shape) == data.size, "Shape (2nd argument) does not match number of elements in data (1st argument)"
+            if data.size > 0:
+                raise AssertionError("Shape (2nd argument) has zero length, but data (1st argument) was not empty")
+
+        elif prod(shape) != data.size:
+            raise AssertionError("Shape (2nd argument) does not match number of elements in data (1st argument)")
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
@@ -156,13 +172,11 @@ class tensor:
 
         # Create the tensor
         if copy:
-            # TODO This may break later if the data is C-ordered
             self.data = data.copy(self.order)
         else:
-            # TODO This is a strange hack to 
             if not self._matches_order(data):
                 logging.warning(
-                    f"Tensor Constructor: Selected no copy, but input data isn't {self.order} ordered so must copy."
+                    f"Tensor Constructor: Selected no copy, but input data isn't {self.order} ordered so must copy"
                 )
             self.data = np.asfortranarray(data)
         self.shape = shape
