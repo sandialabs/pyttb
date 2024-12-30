@@ -21,7 +21,7 @@ def test_linting():
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
     subprocess.run(
-        f"ruff check {root_dir} --config {toml_file}",
+        f'ruff check "{root_dir}" --config "{toml_file}"',
         check=True,
         shell=True,
     )
@@ -32,7 +32,7 @@ def test_formatting():
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
     subprocess.run(
-        f"ruff format --check {root_dir} --config {toml_file}",
+        f'ruff format --check "{root_dir}" --config "{toml_file}"',
         check=True,
         shell=True,
     )
@@ -50,7 +50,7 @@ def test_typing():
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
     subprocess.run(
-        f"mypy -p pyttb  --config-file {toml_file} {skip_untyped}",
+        f'mypy -p pyttb  --config-file "{toml_file}" {skip_untyped}',
         check=True,
         shell=True,
     )
