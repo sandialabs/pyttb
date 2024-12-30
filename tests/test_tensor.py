@@ -54,11 +54,11 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.tensor(params["data"], ())
-    assert "Empty tensor cannot contain any elements" in str(excinfo)
+    assert "Shape (2nd argument) has zero length, but data (1st argument) was not empty" in str(excinfo)
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.tensor(params["data"], (2, 4))
-    assert "TTB:WrongSize, Size of data does not match specified size of tensor" in str(
+    assert "Shape (2nd argument) does not match number of elements in data (1st argument)" in str(
         excinfo
     )
 
@@ -66,7 +66,7 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
     data = np.array([["a", 2, 3], [4, 5, 6]])
     with pytest.raises(AssertionError) as excinfo:
         ttb.tensor(data, (2, 3))
-    assert "First argument must be a multidimensional array." in str(excinfo)
+    assert "Data (1st argument) must be a numpy ndarray" in str(excinfo)
 
     # 1D tensors
     # no shape specified
