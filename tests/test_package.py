@@ -61,7 +61,7 @@ def test_spelling():
     root_dir = os.path.dirname(os.path.dirname(__file__))
     toml_file = os.path.join(root_dir, "pyproject.toml")
     subprocess.run(
-        f"codespell --toml {toml_file}",
+        f'codespell --toml "{toml_file}"',
         check=True,
         shell=True,
     )
