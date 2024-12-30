@@ -253,7 +253,8 @@ class tensor:
         shape = parse_shape(shape)
 
         # Generate data
-        data = function_handle(shape)
+        totalsize = prod(shape)
+        data = function_handle((totalsize,))
 
         # Create the tensor
         return cls(data, shape, copy=False)
