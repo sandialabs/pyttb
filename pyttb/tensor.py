@@ -50,14 +50,16 @@ from pyttb.pyttb_utils import (
 
 
 class tensor:
-    """Class for dense tensors
-    
+    """Class for dense tensors.
+
     **Members**
 
-    * ``data``: :class:`numpy.ndarray` containing the data elements of the tensor stored, by default, in Fortran order
+    * ``data``: :class:`numpy.ndarray` containing the data elements of the tensor
+      stored, by default, in Fortran order
 
-    * ``shape``: :class:`tuple` of integers containing the size of each mode of the tensor 
-   
+    * ``shape``: :class:`tuple` of integers containing the size of each mode of
+      the tensor
+
     """
 
     __slots__ = ("data", "shape")
@@ -68,7 +70,8 @@ class tensor:
         shape: Optional[Shape] = None,
         copy: bool = True,
     ):
-        """Constructor for :class:`pyttb.tensor`.
+        """
+        Create a :class:`pyttb.tensor`.
 
         Parameters
         ----------
@@ -81,7 +84,6 @@ class tensor:
 
         Examples
         --------
-
         For *all* examples in this document, the following module imports are assumed::
 
             >>> import pyttb as ttb
@@ -106,10 +108,12 @@ class tensor:
              [14 18 22]
              [15 19 23]
              [16 20 24]]
-        
-        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray` vector and reshape it::
 
-            >>> data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
+        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray` vector and
+        reshape it::
+
+            >>> data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+            ... 17, 18, 19, 20, 21, 22, 23, 24])
             >>> T = ttb.tensor(data, shape=(4, 3, 2))
             >>> print(T)
             tensor of shape (4, 3, 2) with order F
@@ -124,15 +128,17 @@ class tensor:
              [15 19 23]
              [16 20 24]]
 
-        Create an empty :class:`ppytb.tensor`::
+        Create an empty :class:`pyttb.tensor`::
+
             >>> T = ttb.tensor()
             >>> print(T)
             empty tensor of shape ()
             data = []
-             
+
         See Also
         --------
-        * :meth:`pyttb.tensor.from_function` - Create a tensor from a function such as np.random.rand or np.ones
+        * :meth:`pyttb.tensor.from_function` - Create a tensor from a function
+          such as :meth:`numpy.ones`
         * :meth:`pyttb.tensor.copy` - Make a deep copy of a tensor
         * :meth:`pyttb.sptensor.to_tensor` - Convert a sparse tensor to a dense tensor
         * :meth:`pyttb.ktensor.to_tensor` - Convert a Kruskal tensor to a dense tensor
@@ -154,16 +160,22 @@ class tensor:
         # Create or check second argument (can be a variety of things)
         if shape is None:
             shape = data.shape
-        else:
-            shape = parse_shape(shape) 
+
+        shape = parse_shape(shape)
 
         # Make sure the number of elements matches what's been specified
         if len(shape) == 0:
             if data.size > 0:
-                raise AssertionError("Shape (2nd argument) has zero length, but data (1st argument) was not empty")
+                raise AssertionError(
+                    "Shape (2nd argument) has zero length,"
+                    "but data (1st argument) was not empty"
+                )
 
         elif prod(shape) != data.size:
-            raise AssertionError("Shape (2nd argument) does not match number of elements in data (1st argument)")
+            raise AssertionError(
+                "Shape (2nd argument) does not match number of"
+                "elements in data (1st argument)"
+            )
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
@@ -176,7 +188,8 @@ class tensor:
         else:
             if not self._matches_order(data):
                 logging.warning(
-                    f"Tensor Constructor: Selected no copy, but input data isn't {self.order} ordered so must copy"
+                    "Tensor Constructor: Selected no copy, but input data isn't "
+                    f"{self.order} ordered so must copy"
                 )
             self.data = np.asfortranarray(data)
         self.shape = shape
@@ -1125,7 +1138,7 @@ class tensor:
         Xn = self.to_tenmat(rdims=np.array([n])).double()
         y = Xn @ Xn.T
 
-        # TODO (TK) We shouldn't use sparse library functions. RandSVD would probably be better.
+        # TODO (TK) RandSVD would probably be better.
         if r < y.shape[0] - 1:
             w, v = scipy.sparse.linalg.eigsh(y, r)
             v = v[:, (-np.abs(w)).argsort()]

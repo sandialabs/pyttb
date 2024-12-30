@@ -54,12 +54,16 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.tensor(params["data"], ())
-    assert "Shape (2nd argument) has zero length, but data (1st argument) was not empty" in str(excinfo)
+    assert (
+        "Shape (2nd argument) has zero length, but data (1st argument) was not empty"
+        in str(excinfo)
+    )
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.tensor(params["data"], (2, 4))
-    assert "Shape (2nd argument) does not match number of elements in data (1st argument)" in str(
-        excinfo
+    assert (
+        "Shape (2nd argument) does not match number of elements in data (1st argument)"
+        in str(excinfo)
     )
 
     # TODO how else to break this logical statement?
