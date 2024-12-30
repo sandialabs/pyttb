@@ -167,13 +167,13 @@ class tensor:
         if len(shape) == 0:
             if data.size > 0:
                 raise AssertionError(
-                    "Shape (2nd argument) has zero length,"
+                    "Shape (2nd argument) has zero length, "
                     "but data (1st argument) was not empty"
                 )
 
         elif prod(shape) != data.size:
             raise AssertionError(
-                "Shape (2nd argument) does not match number of"
+                "Shape (2nd argument) does not match number of "
                 "elements in data (1st argument)"
             )
 
