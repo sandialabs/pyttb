@@ -181,7 +181,7 @@ class tensor:
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
             # reshaping using Fortran ordering to match Matlab conventions
-            #TODO: Check if there is a reordering of the data that is expense.
+            # TODO: Check if there is a reordering of the data that is expense.
             data = np.reshape(data, np.array(shape), order=self.order)
 
         # Create the tensor
@@ -277,7 +277,7 @@ class tensor:
             [[1. 1. 1.]
              [1. 1. 1.]]
         """
-        #TODO Create documentation page for collapsing and scaling tensors
+        # TODO Create documentation page for collapsing and scaling tensors
 
         # Check size
         shape = parse_shape(shape)
@@ -365,7 +365,7 @@ class tensor:
 
         Compute the max entry in each mode-2 slice (output is a tensor)::
 
-            >>> T.collapse([0 1], np.max)
+            >>> T.collapse([0, 1], np.max)
             tensor of shape (2,) with order F
             data[:] =
             [1. 1.]
@@ -376,10 +376,6 @@ class tensor:
             >>> np.random.seed(0) # reproducibility
             >>> T = ttb.tensor.from_function(randn, (2, 2, 2))
             >>> print(T)
-            >>> max_val = T.collapse(fun=np.max)
-            >>> min_val = T.collapse(fun=np.min)
-            >>> print(f"Max value: {max_val}")
-            >>> print(f"Min value: {min_val}")
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
             [[1.76405235 0.97873798]
@@ -387,9 +383,12 @@ class tensor:
             data[:, :, 1] =
             [[ 1.86755799  0.95008842]
              [-0.97727788 -0.15135721]]
+            >>> max_val = T.collapse(fun=np.max)
+            >>> min_val = T.collapse(fun=np.min)
+            >>> print(f"Max value: {max_val}")
             Max value: 2.240893199201458
+            >>> print(f"Min value: {min_val}")
             Min value: -0.977277879876411
-
         """
         if self.data.size == 0:
             return np.array([], order=self.order)
