@@ -138,9 +138,9 @@ class tensor:
         See Also
         --------
         * :doc:`/tutorial/class_tensor` - Getting started with the tensor class
-        * :meth:`pyttb.tensor.from_function` - Create a tensor from a function
+        * :meth:`from_function` - Create a tensor from a function
           such as :meth:`numpy.ones`
-        * :meth:`pyttb.tensor.copy` - Make a deep copy of a tensor
+        * :meth:`copy` - Make a deep copy of a tensor
         * :meth:`pyttb.sptensor.to_tensor` - Convert a sparse tensor to a dense tensor
         * :meth:`pyttb.ktensor.to_tensor` - Convert a Kruskal tensor to a dense tensor
         * :meth:`pyttb.ttensor.to_tensor` - Convert a Tucker tensor to a dense tensor
@@ -2876,8 +2876,9 @@ def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
     ----------
     shape:
         Shape of resulting tensor.
-    order:
-        Memory layout for resulting tensor.
+    order: optional
+        Memory layout for resulting tensor (default: F).
+        *Note: C order is not recommended.*
 
     Returns
     -------
@@ -2897,6 +2898,10 @@ def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
     [[1. 1. 1.]
      [1. 1. 1.]
      [1. 1. 1.]]
+
+    See Also
+    --------
+    * :meth:`pyttb.tensor.from_function` - Create a tensor from a function.
     """
 
     def ones(shape: Tuple[int, ...]) -> np.ndarray:
@@ -2912,8 +2917,9 @@ def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> te
     ----------
     shape:
         Shape of resulting tensor.
-    order:
-        Memory layout for resulting tensor.
+    order: optional
+        Memory layout for resulting tensor (default: F).
+        *Note: C order is not recommended.*
 
     Returns
     -------
@@ -2948,8 +2954,9 @@ def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
     ----------
     shape:
         Shape of resulting tensor.
-    order:
-        Memory layout for resulting tensor.
+    order: optional
+        Memory layout for resulting tensor (default: F).
+        *Note: C order is not recommended.*
 
     Returns
     -------
@@ -2968,9 +2975,7 @@ def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
     # Typing doesn't play nice with partial
     # mypy issue: 1484
     def unit_uniform(pass_through_shape: Tuple[int, ...]) -> np.ndarray:
-        data = np.random.uniform(low=0, high=1, size=pass_through_shape)
-        if order == "F":
-            return np.asfortranarray(data)
+        data = np.random.uniform(low=0, high=1, size=np.prod(pass_through_shape))
         return data
 
     return tensor.from_function(unit_uniform, shape)
