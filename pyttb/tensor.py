@@ -137,6 +137,7 @@ class tensor:
 
         See Also
         --------
+        * :doc:`/tutorial/class_tensor` - Getting started with the tensor class
         * :meth:`pyttb.tensor.from_function` - Create a tensor from a function
           such as :meth:`numpy.ones`
         * :meth:`pyttb.tensor.copy` - Make a deep copy of a tensor
@@ -180,6 +181,7 @@ class tensor:
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
             # reshaping using Fortran ordering to match Matlab conventions
+            #TODO: Check if there is a reordering of the data that is expense.
             data = np.reshape(data, np.array(shape), order=self.order)
 
         # Create the tensor
