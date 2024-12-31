@@ -224,7 +224,7 @@ class tensor:
         function_handle:
             A function that takes a tuple of integers and returns a
             :class:`numpy.ndarray`. The array should be in Fortran order to avoid
-            warnings of data being copied. The data will be reshaped to the shape,
+            data being copied. The data will be reshaped to the shape,
             so returning a vector of length equal to the product of the shape is fine.
         shape:
             Shape of the resulting tensor; e.g., a tuple of integers.
@@ -236,7 +236,9 @@ class tensor:
         Examples
         --------
         Create a :class:`pyttb.tensor` with entries drawn from a normal distribution
-        using :func:`numpy.random.randn`::
+        using :func:`numpy.random.randn`. Observe that we actually generate a vector to
+        avoid having a C-ordered array (the default if we had provided the shape array)
+        be rearranged as a F-ordered array::
 
             >>> randn = lambda s : np.random.randn(np.prod(s))
             >>> np.random.seed(0) # reproducibility
@@ -254,8 +256,8 @@ class tensor:
              [ 0.44386323  0.3130677   0.8644362 ]
              [ 0.33367433 -0.85409574 -0.74216502]]
 
-        Create a :class:`pyttb.tensor` with all entries equal to 1
-        using :func:`numpy.ones`::
+        Create a :class:`pyttb.tensor` with all entries equal to 1 using
+        :func:`numpy.ones`. Observe that we specifically specify Fortran order::
 
             >>> T = ttb.tensor.from_function(lambda s: np.ones(s,order='F'), (2, 3, 4))
             >>> print(T)
@@ -273,6 +275,8 @@ class tensor:
             [[1. 1. 1.]
              [1. 1. 1.]]
         """
+        #TODO Create documentation page for collapsing and scaling tensors
+
         # Check size
         shape = parse_shape(shape)
 
@@ -285,20 +289,28 @@ class tensor:
     def copy(self) -> tensor:
         """Make a deep copy of a :class:`pyttb.tensor`.
 
+        The standard copy of a tensor creates a shallow copy of the data.
+        Any changes to the old or new tensor will affect the other.
+        In contrast, the copy method creates a deep copy of the tensor which
+        is totally independent of what it was copied from.
+
         Returns
         -------
-        Copy of original tensor.
+        Deep copy of original tensor.
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.ones((3, 2)))
-        >>> T2 = T1
-        >>> T3 = T2.copy()
-        >>> T1[0, 0] = 3
-        >>> T1[0, 0] == T2[0, 0]
-        True
-        >>> T1[0, 0] == T3[0, 0]
-        False
+        Observing the difference between a shallow copy and a deep copy. When the
+        original tensor changes, so does the shallow copy, but the deep copy does not::
+
+            >>> T = ttb.tensor(np.ones((3, 2)))
+            >>> T_shallow = T
+            >>> T_deep = T.copy()
+            >>> T[0, 0] = 3
+            >>> T[0, 0] == T_shallow[0, 0]
+            True
+            >>> T[0, 0] == T_deep[0, 0]
+            False
         """
         return ttb.tensor(self.data, self.shape, copy=True)
 
@@ -312,32 +324,70 @@ class tensor:
         fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
     ) -> Union[float, np.ndarray, tensor]:
         """
-        Collapse tensor along specified dimensions.
+        Collapse tensor along specified dimensions using a function.
 
         Parameters
         ----------
-        dims:
-            Dimensions to collapse.
-        fun:
-            Method used to collapse dimensions.
+        dims: optional
+            Dimensions to collapse (default: all).
+        fun: optional
+            Method used to collapse dimensions (default: :meth:`numpy.sum`).
 
         Returns
         -------
-        Collapsed value.
+        Scalar (if all dimensions collapsed) or tensor.
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2, 2)))
-        >>> T.collapse()
-        4.0
-        >>> T.collapse(np.array([0]))
-        tensor of shape (2,) with order F
-        data[:] =
-        [2. 2.]
-        >>> T.collapse(np.arange(T.ndims), sum)
-        4.0
-        >>> T.collapse(np.arange(T.ndims), np.prod)
-        1.0
+        Sum all elements of tensor::
+
+            >>> T = ttb.tensor(np.ones((4,3,2),order='F'))
+            >>> T.collapse()
+            24.0
+
+        Compute the sum for each mode-0 fiber (output is a tensor)::
+
+            >>> T.collapse(0)
+            tensor of shape (3, 2) with order F
+            data[:, :] =
+            [[4. 4.]
+             [4. 4.]
+             [4. 4.]]
+
+        Compute the sum of the entries in each mode-0 slice (output is a tensor)::
+
+            >>> T.collapse([1, 2])
+            tensor of shape (4,) with order F
+            data[:] =
+            [6. 6. 6. 6.]
+
+        Compute the max entry in each mode-2 slice (output is a tensor)::
+
+            >>> T.collapse([0 1], np.max)
+            tensor of shape (2,) with order F
+            data[:] =
+            [1. 1.]
+
+        Find the maximum and minimum values in a tensor::
+
+            >>> randn = lambda s : np.random.randn(np.prod(s))
+            >>> np.random.seed(0) # reproducibility
+            >>> T = ttb.tensor.from_function(randn, (2, 2, 2))
+            >>> print(T)
+            >>> max_val = T.collapse(fun=np.max)
+            >>> min_val = T.collapse(fun=np.min)
+            >>> print(f"Max value: {max_val}")
+            >>> print(f"Min value: {min_val}")
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[1.76405235 0.97873798]
+             [0.40015721 2.2408932 ]]
+            data[:, :, 1] =
+            [[ 1.86755799  0.95008842]
+             [-0.97727788 -0.15135721]]
+            Max value: 2.240893199201458
+            Min value: -0.977277879876411
+
         """
         if self.data.size == 0:
             return np.array([], order=self.order)
