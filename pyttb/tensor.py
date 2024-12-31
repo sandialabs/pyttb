@@ -71,16 +71,16 @@ class tensor:
         copy: bool = True,
     ):
         """
-        Create a :class:`pyttb.tensor`.
+        Construct a :class:`pyttb.tensor`.
 
         Parameters
         ----------
         data : optional
-            Source data as :class:`numpy.ndarray` (default: empty)
+            Source data as :class:`numpy.ndarray` (default: empty).
         shape : optional
-           Shape of the tensor as a :class:`tuple` (default: ``data.shape()``)
+           Shape of the tensor as a :class:`tuple` (default: ``data.shape()``).
         copy : optional bool
-            Whether to copy the data or reference it (default: True)
+            Whether to copy the data or reference it (default: True).
 
         Examples
         --------
