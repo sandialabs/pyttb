@@ -219,9 +219,8 @@ class tensor:
         Parameters
         ----------
         function_handle:
-            A function that can accept a shape (i.e., :class:`tuple` of
-            dimension sizes) and return a :class:`numpy.ndarray` of that shape.
-            `numpy.zeros`, `numpy.ones`.
+            A function that can accept an integer length and
+            return a :class:`numpy.ndarray` vector of that length.
         shape:
             Shape of the resulting tensor.
 
@@ -231,7 +230,7 @@ class tensor:
 
         Examples
         --------
-        Create a :class:`pyttb.tensor` with entries equal to 1:
+        Create a :class:`pyttb.tensor` with all entries equal to 1::
 
         >>> T = ttb.tensor.from_function(np.ones, (2, 3, 4))
         >>> print(T)
@@ -254,7 +253,7 @@ class tensor:
 
         # Generate data
         totalsize = prod(shape)
-        data = function_handle((totalsize,))
+        data = function_handle(totalsize)
 
         # Create the tensor
         return cls(data, shape, copy=False)
