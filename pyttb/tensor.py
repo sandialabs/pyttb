@@ -197,7 +197,10 @@ class tensor:
 
     @property
     def order(self) -> Literal["F"]:
-        """Return the data layout of the underlying storage."""
+        """Return the data layout of the underlying storage.
+
+        The data layout is required to be Fortran.
+        """
         return "F"
 
     def _matches_order(self, array: np.ndarray) -> bool:
