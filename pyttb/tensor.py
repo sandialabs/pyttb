@@ -79,8 +79,8 @@ class tensor:
             Source data as :class:`numpy.ndarray` (default: empty).
         shape : optional
            Shape of the tensor as a :class:`tuple` (default: ``data.shape()``).
-        copy : optional bool
-            Whether to copy the data or reference it (default: True).
+        copy : optional
+            Whether to copy (versus reference) the data (default: True).
 
         Examples
         --------
