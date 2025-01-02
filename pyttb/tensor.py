@@ -317,7 +317,11 @@ class tensor:
         return ttb.tensor(self.data, self.shape, copy=True)
 
     def __deepcopy__(self, memo):
-        """Return deep copy of this tensor."""
+        """Return deep copy of this tensor.
+
+        This a python construct to support copy operations;
+        see https://docs.python.org/3/library/copy.html for details.
+        """
         return self.copy()
 
     def collapse(
@@ -1301,7 +1305,7 @@ class tensor:
         shape = parse_shape(shape)
         if prod(self.shape) != prod(shape):
             assert False, "Reshaping a tensor cannot change number of elements"
-
+        # TODO: This is a copy, but it should be a view
         return ttb.tensor(np.reshape(self.data, shape, order=self.order), shape)
 
     def scale(
