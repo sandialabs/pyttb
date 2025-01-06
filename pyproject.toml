@@ -12,7 +12,7 @@ requires-python = ">=3.9"
 dependencies = [
     "numpy<3.0,>=1.24",
     "numpy_groupies>0.11",
-    "scipy<1.15,>1.9",
+    "scipy>1.9",
     "matplotlib>3.7",
 ]
 
