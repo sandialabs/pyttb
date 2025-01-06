@@ -1,3 +1,12 @@
+# v1.8.2 (2025-01-01)
+- Fixed
+    - Fixed layout and printing issues (https://github.com/sandialabs/pyttb/pull/354)
+    - Fixed tutorial hierarchy (https://github.com/sandialabs/pyttb/pull/343)
+- Improvements
+    - Improved `pyttb_utils` (https://github.com/sandialabs/pyttb/pull/353)
+    - Improved docs for coming from MATLAB (https://github.com/sandialabs/pyttb/pull/352)
+    - Improved shape support in data classes (https://github.com/sandialabs/pyttb/pull/348)
+
 # v1.8.1 (2024-11-11)
 - Fixed: 
   - Aligning comparison operator output for data classes (https://github.com/sandialabs/pyttb/pull/331)
