@@ -89,7 +89,7 @@ def test_sptensor_initialization_from_function():
     assert sptensorInstance.shape == shape
     assert len(sptensorInstance.subs) == nz
 
-    # NZ as a propotion in [0,1)
+    # NZ as a proportion in [0,1)
     nz = 0.09375
     sptensorInstance = ttb.sptensor.from_function(function_handle, shape, nz)
     assert np.array_equal(sptensorInstance.vals, function_handle())
@@ -487,7 +487,7 @@ class TestSetItem:
 
         # Set empty tensor with sptensor via ambiguous slice
         emptyTensor = ttb.sptensor()
-        # TODO revist this after setitem cleanup. Probably won't support arbitrary slice on empty tensor
+        # TODO revisit this after setitem cleanup. Probably won't support arbitrary slice on empty tensor
         emptyTensor[:, :, :] = sptensorInstance
         assert emptyTensor.isequal(sptensorInstance)
 
@@ -1165,7 +1165,7 @@ def test_sptensor__gt__(sample_sptensor):
     # Test comparison to tensor
     assert (sptensorInstance > sptensorInstance.full()).vals.size == 0
 
-    # Test comparison to tensor of different sparsity patter
+    # Test comparison to tensor of different sparsity pattern
     denseTensor = sptensorInstance.full()
     denseTensor[1, 1, 2] = -1
     assert np.array_equal(
