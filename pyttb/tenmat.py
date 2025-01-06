@@ -6,13 +6,20 @@
 
 from __future__ import annotations
 
+import logging
 from math import prod
 from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 
 import pyttb as ttb
-from pyttb.pyttb_utils import Shape, gather_wrap_dims, np_to_python, parse_shape
+from pyttb.pyttb_utils import (
+    Shape,
+    gather_wrap_dims,
+    np_to_python,
+    parse_shape,
+    to_memory_order,
+)
 
 
 class tenmat:
@@ -159,16 +166,28 @@ class tenmat:
         self.tshape = tshape
         self.rindices = rdims.copy()
         self.cindices = cdims.copy()
-        if copy:
-            self.data = data.copy()
-        else:
-            self.data = data
+
+        if not copy and not self._matches_order(data):
+            logging.warning(
+                f"Selected no copy, but input data isn't {self.order} ordered "
+                "so must copy."
+            )
+            copy = True
+        self.data = to_memory_order(data, self.order, copy=copy)
         return
 
     @property
     def order(self) -> Literal["F"]:
         """Return the data layout of the underlying storage."""
         return "F"
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
 
     def copy(self) -> tenmat:
         """
@@ -255,7 +274,12 @@ class tenmat:
             data = self.data.copy()
         data = np.reshape(data, np.array(shape)[order], order=self.order)
         if order.size > 1:
-            data = np.transpose(data, np.argsort(order))
+            if not copy:
+                logging.warning(
+                    "This tenmat cannot be trivially unwrapped into tensor "
+                    "so must copy."
+                )
+            data = to_memory_order(np.transpose(data, np.argsort(order)), self.order)
         return ttb.tensor(data, shape, copy=False)
 
     def ctranspose(self) -> tenmat:
@@ -316,7 +340,7 @@ class tenmat:
         -------
         Copy of tenmat data.
         """
-        return self.data.astype(np.float64).copy()
+        return to_memory_order(self.data, self.order, copy=True).astype(np.float64)
 
     @property
     def ndims(self) -> int:
@@ -778,3 +802,9 @@ class tenmat:
         return s
 
     __str__ = __repr__
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

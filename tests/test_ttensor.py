@@ -7,6 +7,7 @@ import copy
 import numpy as np
 import pytest
 from scipy import sparse
+from test_utils import assert_consistent_order
 
 import pyttb as ttb
 
@@ -149,6 +150,7 @@ def test_ttensor_double(sample_ttensor):
     ttensorInstance = sample_ttensor
     # This sanity check only works for all 1's
     assert ttensorInstance.double() == np.prod(ttensorInstance.core.shape)
+    assert_consistent_order(ttensorInstance, ttensorInstance.double())
 
 
 def test_ttensor_ndims(sample_ttensor):
@@ -288,6 +290,7 @@ def test_ttensor_mttkrp(random_ttensor):
     assert np.allclose(final_value, full_value), (
         f"TTensor value is: \n{final_value}\n\n" f"Full value is: \n{full_value}"
     )
+    assert_consistent_order(ttensorInstance, final_value)
 
     final_value = ttensorInstance.mttkrp(ttb.ktensor(vectors), 2)
     assert np.allclose(final_value, full_value), (
@@ -410,9 +413,11 @@ def test_ttensor_nvecs(random_ttensor):
     ttensor_eigvals = ttensorInstance.nvecs(n, r)
     full_eigvals = ttensorInstance.full().nvecs(n, r)
     assert np.allclose(ttensor_eigvals, full_eigvals)
+    assert_consistent_order(ttensorInstance, ttensor_eigvals)
 
     sparse_core_ttensor_eigvals = sparse_core_ttensor.nvecs(n, r)
     assert np.allclose(ttensor_eigvals, sparse_core_ttensor_eigvals)
+    assert_consistent_order(sparse_core_ttensor, sparse_core_ttensor_eigvals)
 
     sparse_factors_ttensor_eigvals = sparse_factor_ttensor.nvecs(n, r)
     assert np.allclose(ttensor_eigvals, sparse_factors_ttensor_eigvals)

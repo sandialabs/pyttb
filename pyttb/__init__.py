@@ -40,9 +40,7 @@ def ignore_warnings(ignore=True):
         warnings.simplefilter("default")
 
 
-ignore_warnings(True)
-
-# Ruff inspection rules are too strict heres
+# Ruff inspection rules are too strict here
 __all__ = [  # noqa: PLE0604
     cp_als.__name__,
     cp_apr.__name__,

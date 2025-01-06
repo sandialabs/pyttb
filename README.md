@@ -56,6 +56,19 @@ CP_ALS:
  Final f = 7.508253e-01
  ```
 
+### Memory layout
+For historical reasons we use Fortran memory layouts, where numpy by default uses C.
+This is relevant for indexing. In the future we hope to extend support for both.
+```python
+>>> import numpy as np
+>>> c_order = np.arange(8).reshape((2,2,2))
+>>> f_order = np.arange(8).reshape((2,2,2), order="F")
+>>> print(c_order[0,1,1])
+3
+>>> print(f_order[0,1,1])
+6
+```
+
 <!-- markdown-link-check-disable -->
 ### Getting Help
 - [Documentation](https://pyttb.readthedocs.io)
