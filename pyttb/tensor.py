@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import logging
+import textwrap
 from collections.abc import Iterable
 from inspect import signature
 from itertools import combinations_with_replacement, permutations
@@ -30,6 +31,7 @@ from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
+from pyttb.matlab.matlab_utilities import _matlab_array_str
 from pyttb.pyttb_utils import (
     IndexVariant,
     OneDArray,
@@ -2722,6 +2724,23 @@ class tensor:
         return s
 
     __str__ = __repr__
+
+    def _matlab_str(
+        self, format: Optional[str] = None, name: Optional[str] = None
+    ) -> str:
+        """Non-standard representation to be more similar to MATLAB."""
+        header = name
+        if name is None:
+            name = "data"
+        if header is None:
+            header = "This"
+
+        matlab_str = f"{header} is a tensor of shape " + " x ".join(
+            map(str, self.shape)
+        )
+
+        array_str = _matlab_array_str(self.data, format, name)
+        return matlab_str + "\n" + textwrap.indent(array_str, "\t")
 
 
 def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
