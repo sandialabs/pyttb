@@ -2250,7 +2250,7 @@ class ktensor:
 
         return self
 
-    def vis(  # noqa: PLR0912, PLR0913
+    def viz(  # noqa: PLR0912, PLR0913
         self,
         plots: Optional[Union[tuple, list]] = None,
         show_figure: bool = True,
@@ -2319,9 +2319,9 @@ class ktensor:
         >>> np.random.seed(1)
         >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 10), 2)
 
-        Use plot K using default behavior K.vis()
+        Use plot K using default behavior K.viz()
 
-        >>> fig, axs = K.vis(show_figure=False)  # doctest: +ELLIPSIS
+        >>> fig, axs = K.viz(show_figure=False)  # doctest: +ELLIPSIS
         >>> plt.close(fig)
 
         Define a more realistic plot functions with x labels,
@@ -2338,7 +2338,7 @@ class ktensor:
         ...     ax.semilogx(np.logspace(-2, 2, v.shape[0]), v)
         ...     ax.set_xlabel("$E$, [kJ]")
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
-        >>> fig, axs = K.vis(
+        >>> fig, axs = K.viz(
         ...     show_figure=False,
         ...     plots=plots,
         ...     rel_widths=[1, 2, 3],
