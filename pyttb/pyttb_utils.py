@@ -22,11 +22,13 @@ from typing import (
 )
 
 import numpy as np
+from scipy import sparse
 
 import pyttb as ttb
 
 Shape = Union[int, Iterable[int]]
 OneDArray = Union[int, float, Iterable[int], Iterable[float], np.ndarray]
+MemoryLayout = Union[Literal["F"], Literal["C"]]
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
@@ -190,7 +192,7 @@ def tt_dimscheck(  # noqa: PLR0912
         # Check sizes to determine how to index multiplicands
         if P == M:
             # Case 1: Number of items in dims and number of multiplicands are equal;
-            # therfore, index in order of sdims
+            # therefore, index in order of sdims
             vidx = sidx
         else:
             # Case 2: Number of multiplicands is equal to the number of dimensions of
@@ -453,7 +455,7 @@ def tt_ismember_rows(
 def tt_ind2sub(
     shape: Tuple[int, ...],
     idx: np.ndarray,
-    order: Union[Literal["F"], Literal["C"]] = "F",
+    order: MemoryLayout = "F",
 ) -> np.ndarray:
     """
     Multiple subscripts from linear indices.
@@ -510,7 +512,7 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
 def tt_sub2ind(
     shape: Tuple[int, ...],
     subs: np.ndarray,
-    order: Union[Literal["F"], Literal["C"]] = "F",
+    order: MemoryLayout = "F",
 ) -> np.ndarray:
     """Convert multidimensional subscripts to linear indices.
 
@@ -545,7 +547,7 @@ def tt_sizecheck(shape: Tuple[int, ...], nargout: bool = True) -> bool:
     TT_SIZECHECK Checks that the shape is valid.
 
     TT_SIZECHECK(S) throws an error if S is not a valid shape tuple,
-    which means that it is a row vector with strictly postitive,
+    which means that it is a row vector with strictly positive,
     real-valued, finite integer values.
 
     Parameters
@@ -820,7 +822,7 @@ def gather_wrap_dims(
         Mapping of column indices.
     cdims_cyclic:
         When only rdims is specified maps a single rdim to the rows and
-            the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
+            the remaining dimensions span the columns. _fc_ (forward cyclic[1]_)
             in the order range(rdims,self.ndims()) followed by range(0, rdims).
             _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
             range(self.ndims(), rdims, -1).
@@ -972,3 +974,55 @@ def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
                 f"had shape {maybe_vector.shape}"
             )
     return np.array(maybe_vector)
+
+
+@overload
+def to_memory_order(
+    array: np.ndarray, order: MemoryLayout, copy: bool = False
+) -> np.ndarray:
+    pass
+
+
+@overload
+def to_memory_order(
+    array: sparse.coo_matrix, order: MemoryLayout, copy: bool = False
+) -> sparse.coo_matrix:
+    pass
+
+
+def to_memory_order(
+    array: Union[np.ndarray, sparse.coo_matrix], order: MemoryLayout, copy: bool = False
+) -> Union[np.ndarray, sparse.coo_matrix]:
+    """Convert an array to the specified memory layout.
+
+    Parameters
+    ----------
+    array: Data to ensure matches memory order.
+    order: Desired memory order.
+    copy: Whether to force a copy even if data already in supported memory order.
+
+    Examples
+    --------
+    >>> c_order = np.arange(16).reshape((2, 2, 2, 2))
+    >>> c_order.flags["C_CONTIGUOUS"]
+    True
+    >>> to_memory_order(c_order, "F").flags["F_CONTIGUOUS"]
+    True
+    """
+    if copy:
+        # This could be slightly optimized
+        # in worst case two copies occur
+        array = array.copy()
+    if isinstance(array, sparse.coo_matrix):
+        return array
+    if order == "F":
+        return np.asfortranarray(array)
+    elif order == "C":
+        return np.ascontiguousarray(array)
+    raise ValueError(f"Unsupported order {order}")
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

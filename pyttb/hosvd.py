@@ -116,7 +116,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
             ranks[k] = np.where(eigsum > eigsumthresh)[0][-1]
 
             if verbosity > 5:
-                print("Reverse cummulative sum of evals of Gram matrix:")
+                print("Reverse cumulative sum of evals of Gram matrix:")
                 for i, a_sum in enumerate(eigsum):
                     print_msg = f"{i: d}: {a_sum: 6.4f}"
                     if i == ranks[k]:

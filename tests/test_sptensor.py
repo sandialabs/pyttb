@@ -10,6 +10,7 @@ import pytest
 import scipy.sparse as sparse
 
 import pyttb as ttb
+from tests.test_utils import assert_consistent_order
 
 
 @pytest.fixture()
@@ -89,7 +90,7 @@ def test_sptensor_initialization_from_function():
     assert sptensorInstance.shape == shape
     assert len(sptensorInstance.subs) == nz
 
-    # NZ as a propotion in [0,1)
+    # NZ as a proportion in [0,1)
     nz = 0.09375
     sptensorInstance = ttb.sptensor.from_function(function_handle, shape, nz)
     assert np.array_equal(sptensorInstance.vals, function_handle())
@@ -487,7 +488,7 @@ class TestSetItem:
 
         # Set empty tensor with sptensor via ambiguous slice
         emptyTensor = ttb.sptensor()
-        # TODO revist this after setitem cleanup. Probably won't support arbitrary slice on empty tensor
+        # TODO revisit this after setitem cleanup. Probably won't support arbitrary slice on empty tensor
         emptyTensor[:, :, :] = sptensorInstance
         assert emptyTensor.isequal(sptensorInstance)
 
@@ -1024,8 +1025,10 @@ def test_sptensor_double(sample_sptensor):
     actualIdx = tuple(data["subs"].transpose())
     denseData[actualIdx] = data["vals"].transpose()[0]
 
-    assert np.array_equal(sptensorInstance.double(), denseData)
-    assert sptensorInstance.double().shape == data["shape"]
+    double_array = sptensorInstance.double()
+    assert np.array_equal(double_array, denseData)
+    assert double_array.shape == data["shape"]
+    assert_consistent_order(sptensorInstance, double_array)
 
 
 def test_sptensor_compare(sample_sptensor):
@@ -1165,7 +1168,7 @@ def test_sptensor__gt__(sample_sptensor):
     # Test comparison to tensor
     assert (sptensorInstance > sptensorInstance.full()).vals.size == 0
 
-    # Test comparison to tensor of different sparsity patter
+    # Test comparison to tensor of different sparsity pattern
     denseTensor = sptensorInstance.full()
     denseTensor[1, 1, 2] = -1
     assert np.array_equal(
@@ -1425,7 +1428,9 @@ def test_sptensor_mask(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
     # Mask captures all nonzero entries
-    assert np.array_equal(sptensorInstance.mask(sptensorInstance), data["vals"])
+    mask_array = sptensorInstance.mask(sptensorInstance)
+    assert np.array_equal(mask_array, data["vals"])
+    assert_consistent_order(sptensorInstance, mask_array)
 
     # Mask correctly skips zeros
     S = ttb.sptensor()
@@ -1434,7 +1439,9 @@ def test_sptensor_mask(sample_sptensor):
     W = ttb.sptensor()
     W[0, 0] = 1
     W[1, 0] = 1
-    assert np.array_equal(S.mask(W), np.array([[S[0, 0]], [S[1, 0]]]))
+    mask_array = S.mask(W)
+    assert np.array_equal(mask_array, np.array([[S[0, 0]], [S[1, 0]]]))
+    assert_consistent_order(sptensorInstance, mask_array)
 
     # Mask too large
     with pytest.raises(AssertionError) as excinfo:
@@ -1707,22 +1714,24 @@ def test_sptensor_mttkrp(sample_sptensor):
     # MTTKRP with array of matrices
     # Note this is more of a regression test against the output of MATLAB TTB
     matrix = np.ones((4, 4))
+    mttkrp_result = sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0)
     assert np.array_equal(
-        sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0),
-        np.array(
-            [[0, 0, 0, 0], [2, 2, 2, 2], [2.5, 2.5, 2.5, 2.5], [3.5, 3.5, 3.5, 3.5]]
-        ),
+        mttkrp_result,
+        np.array([4 * [0], 4 * [2], 4 * [2.5], 4 * [3.5]]),
     )
+    assert_consistent_order(sptensorInstance, mttkrp_result)
+
     assert np.array_equal(
         sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 1),
         sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 0),
     )
+
+    mttkrp_result = sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 2)
     assert np.array_equal(
-        sptensorInstance.mttkrp(np.array([matrix, matrix, matrix]), 2),
-        np.array(
-            [[0, 0, 0, 0], [0.5, 0.5, 0.5, 0.5], [2.5, 2.5, 2.5, 2.5], [5, 5, 5, 5]]
-        ),
+        mttkrp_result,
+        np.array([4 * [0], 4 * [0.5], 4 * [2.5], 4 * [5]]),
     )
+    assert_consistent_order(sptensorInstance, mttkrp_result)
 
     # MTTKRP with factor matrices from ktensor
     K = ttb.ktensor([matrix, matrix, matrix])
@@ -1755,18 +1764,25 @@ def test_sptensor_nvecs(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
     # Test for one eigenvector
-    assert np.allclose((sptensorInstance.nvecs(1, 1)), np.array([0, 0, 0, 1])[:, None])
+    nvecs_result = sptensorInstance.nvecs(1, 1)
+    assert np.allclose(nvecs_result, np.array([0, 0, 0, 1])[:, None])
+    assert_consistent_order(sptensorInstance, nvecs_result)
+
+    nvecs_result = sptensorInstance.nvecs(1, 2)
     assert np.allclose(
-        (sptensorInstance.nvecs(1, 2)),
+        nvecs_result,
         np.array([[0, 0, 0, 1], [0, 0, 1, 0]]).transpose(),
     )
+    assert_consistent_order(sptensorInstance, nvecs_result)
 
     # Test for r >= N-1, requires cast to dense
     ans = np.zeros((4, 3))
     ans[3, 0] = 1
     ans[2, 1] = 1
     ans[1, 2] = 1
-    assert np.allclose((sptensorInstance.nvecs(1, 3)), ans)
+    nvecs_result = sptensorInstance.nvecs(1, 3)
+    assert np.allclose(nvecs_result, ans)
+    assert_consistent_order(sptensorInstance, nvecs_result)
 
     # Negative test, check for only singleton dims
     with pytest.raises(ValueError):

@@ -104,7 +104,7 @@ def cp_apr(  # noqa: PLR0913
         assert init.ndims == N, "Initial guess does not have the right number of modes"
         assert (
             init.ncomponents == rank
-        ), "Initial guess does not have the right number of componenets"
+        ), "Initial guess does not have the right number of components"
         for n in range(N):
             if init.shape[n] != input_tensor.shape[n]:
                 assert False, f"Mode {n} of the initial guess is the wrong size"
@@ -256,7 +256,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     M.normalize(normtype=1)
     Phi = []  # np.zeros((N,))#cell(N,1)
     for n in range(N):
-        # TODO prepopulation Phi instead of appen should be faster
+        # TODO prepopulation Phi instead of append should be faster
         Phi.append(np.zeros(M.factor_matrices[n].shape))
     kktModeViolations = np.zeros((N,))
 
@@ -488,7 +488,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
 
     if isinstance(input_tensor, ttb.sptensor) and isSparse and precompinds:
         # Precompute sparse index sets for all the row subproblems.
-        # Takes more memory but can cut exectuion time significantly in some cases.
+        # Takes more memory but can cut execution time significantly in some cases.
         if printitn > 0:
             print("\tPrecomuting sparse index sets...")
         sparseIx = []
@@ -521,7 +521,9 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
             if isinstance(input_tensor, ttb.tensor) and isSparse is False:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = input_tensor.to_tenmat(np.array([n]), copy=False).data
+                X_mat = input_tensor.to_tenmat(
+                    np.array([n], order=input_tensor.order), copy=False
+                ).data
 
             num_rows = M.factor_matrices[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -847,7 +849,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
 
     if isinstance(input_tensor, ttb.sptensor) and precompinds:
         # Precompute sparse index sets for all the row subproblems.
-        # Takes more memory but can cut exectuion time significantly in some cases.
+        # Takes more memory but can cut execution time significantly in some cases.
         if printitn > 0:
             print("\tPrecomuting sparse index sets...")
         sparseIx = []
@@ -876,7 +878,9 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
             if not isinstance(input_tensor, ttb.sptensor) and not isSparse:
                 # Data is not a sparse tensor.
                 Pi = tt_calcpi_prowsubprob(input_tensor, M, rank, n, N, isSparse)
-                X_mat = input_tensor.to_tenmat(np.array([n]), copy=False).data
+                X_mat = input_tensor.to_tenmat(
+                    np.array([n], order=input_tensor.order), copy=False
+                ).data
 
             num_rows = M.factor_matrices[n].shape[0]
             isRowNOTconverged = np.zeros((num_rows,))
@@ -989,12 +993,12 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                         delg[:, lbfgsPos] = tmp_delg
                         rho[lbfgsPos] = tmp_rho
                     else:
-                        # Rho is required to be postive; if not, then skip the L-BFGS
+                        # Rho is required to be positive; if not, then skip the L-BFGS
                         # update pair. The recommended safeguard for full BFGS is
                         # Powell damping, but not clear how to damp in 2-loop L-BFGS
                         if dispLineWarn:
                             warnings.warn(
-                                "WARNING: skipping L-BFGS update, rho whould be "
+                                "WARNING: skipping L-BFGS update, rho would be "
                                 f"1 / {tmp_delm * tmp_delg}"
                             )
                         # Roll back lbfgsPos since it will increment later.
@@ -1384,7 +1388,7 @@ def tt_linesearch_prowsubprob(  # noqa: PLR0913
     max_steps:
         maximum number of steps to try (suggest 10)
     suff_decr:
-        sufficent decrease for convergence (suggest 1.0e-4)
+        sufficient decrease for convergence (suggest 1.0e-4)
     isSparse:
         sparsity flag for computing the objective
     data_row:
@@ -1414,7 +1418,7 @@ def tt_linesearch_prowsubprob(  # noqa: PLR0913
 
     stepSize = step_len
 
-    # Evalute the current objective value
+    # Evaluate the current objective value
     f_old = -tt_loglikelihood_row(isSparse, data_row, model_old, Pi)
     num_evals = 1
     count = 1
@@ -1613,7 +1617,7 @@ def get_search_dir_pqnr(  # noqa: PLR0913
     lbfgsSize = delta_model.shape[1]
 
     # Determine active and free variables.
-    # TODO: is the bellow relevant?
+    # TODO: is the below relevant?
     # If epsActSet is zero, then the following works:
     # fixedVars = find((m_row == 0) & (grad' > 0));
     # For the general case this works but is less clear and assumes m_row > 0:
@@ -1747,7 +1751,7 @@ def calculate_phi(  # noqa: PLR0913
     Pi: np.ndarray,
     epsilon: float,
 ) -> np.ndarray:
-    """Calcualte Phi.
+    """Calculate Phi.
 
     Parameters
     ----------
@@ -1772,7 +1776,7 @@ def calculate_phi(  # noqa: PLR0913
             )
             Phi[:, r] = Yr
     else:
-        Xn = Data.to_tenmat(np.array([factorIndex]), copy=False).data
+        Xn = Data.to_tenmat(np.array([factorIndex], order=Data.order), copy=False).data
         V = Model.factor_matrices[factorIndex].dot(Pi.transpose())
         W = Xn / np.maximum(V, epsilon)
         Y = W.dot(Pi)
@@ -1817,8 +1821,8 @@ def tt_loglikelihood(
             np.sum(Data.vals * np.log(np.sum(A, axis=1))[:, None])
             - np.sum(Model.factor_matrices[0])
         )
-    dX = Data.to_tenmat(np.array([1]), copy=False).data
-    dM = Model.to_tenmat(np.array([1]), copy=False).data
+    dX = Data.to_tenmat(np.array([1], order=Data.order), copy=False).data
+    dM = Model.to_tenmat(np.array([1], order=Model.order), copy=False).data
     f = 0
     for i in range(dX.shape[0]):
         for j in range(dX.shape[1]):

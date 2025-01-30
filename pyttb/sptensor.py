@@ -39,6 +39,7 @@ from pyttb.pyttb_utils import (
     np_to_python,
     parse_one_d,
     parse_shape,
+    to_memory_order,
     tt_dimscheck,
     tt_ind2sub,
     tt_intersect_rows,
@@ -115,7 +116,7 @@ class sptensor:
         >>> shape = (4, 4, 4)
         >>> S = ttb.sptensor(shape=shape)
         >>> S
-        empty sparse tensor of shape (4, 4, 4)
+        empty sparse tensor of shape (4, 4, 4) with order F
 
         Create a :class:`pyttb.sptensor` from subscripts and values:
 
@@ -123,7 +124,7 @@ class sptensor:
         >>> vals = np.array([[6], [7]])
         >>> S = ttb.sptensor(subs, vals, shape)
         >>> S
-        sparse tensor of shape (4, 4, 4) with 2 nonzeros
+        sparse tensor of shape (4, 4, 4) with 2 nonzeros and order F
         [1, 2, 1] = 6
         [1, 3, 1] = 7
         """
@@ -207,7 +208,7 @@ class sptensor:
         >>> np.random.seed(1)
         >>> S = ttb.sptensor.from_function(np.random.random_sample, (2, 3, 4), 5)
         >>> print(S)  # doctest: +ELLIPSIS
-        sparse tensor of shape (2, 3, 4) with 5 nonzeros
+        sparse tensor of shape (2, 3, 4) with 5 nonzeros and order F
         [0, 1, 3] = 0.4478...
         [0, 2, 0] = 0.9085...
         [1, 2, 0] = 0.2936...
@@ -219,7 +220,7 @@ class sptensor:
         >>> np.random.seed(1)
         >>> S = ttb.sptensor.from_function(np.ones, (2, 3, 4), 5)
         >>> print(S)
-        sparse tensor of shape (2, 3, 4) with 5 nonzeros
+        sparse tensor of shape (2, 3, 4) with 5 nonzeros and order F
         [0, 1, 3] = 1.0
         [0, 2, 0] = 1.0
         [1, 2, 0] = 1.0
@@ -294,7 +295,7 @@ class sptensor:
         >>> shape = (4, 4)
         >>> S = ttb.sptensor.from_aggregator(subs, vals)
         >>> print(S)
-        sparse tensor of shape (2, 4) with 2 nonzeros
+        sparse tensor of shape (2, 4) with 2 nonzeros and order F
         [1, 2] = 6
         [1, 3] = 15
 
@@ -303,7 +304,7 @@ class sptensor:
 
         >>> S = ttb.sptensor.from_aggregator(subs, vals, shape)
         >>> print(S)
-        sparse tensor of shape (4, 4) with 2 nonzeros
+        sparse tensor of shape (4, 4) with 2 nonzeros and order F
         [1, 2] = 6
         [1, 3] = 15
 
@@ -314,7 +315,7 @@ class sptensor:
         ...     subs, vals, shape, function_handle=np.mean
         ... )
         >>> print(S3)
-        sparse tensor of shape (4, 4) with 2 nonzeros
+        sparse tensor of shape (4, 4) with 2 nonzeros and order F
         [1, 2] = 6.0
         [1, 3] = 7.5
         """
@@ -385,6 +386,19 @@ class sptensor:
         False
         """
         return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
+
+    @property
+    def order(self) -> Literal["F"]:
+        """Return the data layout of the underlying storage."""
+        return "F"
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
 
     def __deepcopy__(self, memo):
         """Return deep copy of this sptensor."""
@@ -457,7 +471,7 @@ class sptensor:
         :class:`pyttb.sptensor`:
 
         >>> S.collapse(dims=np.array([0]))
-        sparse tensor of shape (2, 1) with 2 nonzeros
+        sparse tensor of shape (2, 1) with 2 nonzeros and order F
         [0, 0] = 6.0
         [1, 0] = 7.0
 
@@ -532,7 +546,7 @@ class sptensor:
         >>> shape = (4, 4, 4)
         >>> S = ttb.sptensor(subs, vals, shape)
         >>> S.contract(1, 2)
-        sparse tensor of shape (4,) with 2 nonzeros
+        sparse tensor of shape (4,) with 2 nonzeros and order F
         [1] = 0.5
         [2] = 1.5
         """
@@ -586,12 +600,12 @@ class sptensor:
         >>> S = ttb.sptensor()
         >>> S[0, 1] = 1.5
         >>> S
-        sparse tensor of shape (1, 2) with 1 nonzeros
+        sparse tensor of shape (1, 2) with 1 nonzeros and order F
         [0, 1] = 1.5
         >>> S.double()
         array([[0. , 1.5]])
         """
-        a = np.zeros(self.shape)
+        a = np.zeros(self.shape, order=self.order)
         if self.nnz > 0:
             a[tuple(self.subs.transpose())] = self.vals.transpose()[0]
         return a
@@ -616,7 +630,7 @@ class sptensor:
         >>> S1[2, 2, 2] = 1.5
         >>> S2 = S1.elemfun(lambda values: values * 2)
         >>> S2
-        sparse tensor of shape (3, 3, 3) with 1 nonzeros
+        sparse tensor of shape (3, 3, 3) with 1 nonzeros and order F
         [2, 2, 2] = 3.0
         """
         vals = function_handle(self.vals)
@@ -656,7 +670,7 @@ class sptensor:
             assert False, f"{error_msg}" "Invalid subscripts"
 
         # Set the default answer to zero
-        a = np.zeros(shape=(p, 1), dtype=self.vals.dtype)
+        a = np.zeros(shape=(p, 1), dtype=self.vals.dtype, order=self.order)
 
         # Find which indices already exist and their locations
         valid, loc = tt_ismember_rows(searchsubs, self.subs)
@@ -708,7 +722,7 @@ class sptensor:
             return ttb.tensor()
 
         # Create a dense zero tensor B that is the same shape as A
-        B = ttb.tensor(np.zeros(shape=self.shape), copy=False)
+        B = ttb.tensor(np.zeros(shape=self.shape, order=self.order), copy=False)
 
         if self.subs.size == 0:
             return B
@@ -738,7 +752,7 @@ class sptensor:
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and
-                the remaining dimensons span the columns. _fc_ (forward cyclic[1]_)
+                the remaining dimensions span the columns. _fc_ (forward cyclic[1]_)
                 in the order range(rdims,self.ndims()) followed by range(0, rdims).
                 _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
                 range(self.ndims(), rdims, -1).
@@ -779,7 +793,8 @@ class sptensor:
 
         >>> ST3 = S.to_sptenmat(rdims=np.array([0]), cdims_cyclic="fc")
         >>> ST3  # doctest: +NORMALIZE_WHITESPACE
-        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros \
+        and order F
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 1, 2 ] (modes of sptensor corresponding to columns)
             [1, 6] = 6
@@ -789,7 +804,8 @@ class sptensor:
 
         >>> ST4 = S.to_sptenmat(rdims=np.array([0]), cdims_cyclic="bc")
         >>> ST4  # doctest: +NORMALIZE_WHITESPACE
-        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros
+        sptenmat corresponding to a sptensor of shape (4, 4, 4) with 2 nonzeros \
+        and order F
         rdims = [ 0 ] (modes of sptensor corresponding to rows)
         cdims = [ 2, 1 ] (modes of sptensor corresponding to columns)
             [1, 9] = 6
@@ -855,7 +871,7 @@ class sptensor:
         >>> S[0, 0] = 1
         >>> S[1, 1] = 2
         >>> S
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
 
@@ -924,7 +940,7 @@ class sptensor:
         >>> S[0, 0] = 1
         >>> S[1, 1] = 2
         >>> S
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
 
@@ -967,7 +983,7 @@ class sptensor:
         >>> S[0, 0] = 1
         >>> S[1, 1] = 2
         >>> S
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
 
@@ -977,14 +993,14 @@ class sptensor:
         >>> T = S.to_tensor()
         >>> T[0, 0] = T[0, 0] + 1
         >>> S.logical_and(T)
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 1.0
 
         Compute logical AND with a scalar value:
 
         >>> S.logical_and(1.0)
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 1.0
         """
@@ -1032,11 +1048,11 @@ class sptensor:
         >>> S[0, 0] = 1
         >>> S[1, 1] = 2
         >>> S
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
         >>> S.logical_not()
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 1] = 1.0
         [1, 0] = 1.0
         """
@@ -1075,7 +1091,7 @@ class sptensor:
         >>> S[0, 0] = 1
         >>> S[1, 1] = 2
         >>> S.logical_or(S)
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 1.0
 
@@ -1146,7 +1162,7 @@ class sptensor:
         >>> S[0, 0] = 1
         >>> S[1, 1] = 2
         >>> S.logical_xor(S)
-        empty sparse tensor of shape (2, 2)
+        empty sparse tensor of shape (2, 2) with order F
 
         Compute logical XOR with :class:`pyttb.tensor` that has a different
         nonzero pattern:
@@ -1205,7 +1221,7 @@ class sptensor:
         >>> S[0, 0] = 1
         >>> S[1, 1] = 2
         >>> S
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
 
@@ -1309,7 +1325,7 @@ class sptensor:
         else:
             R = U[0].shape[1]
 
-        V = np.zeros((self.shape[n], R))
+        V = np.zeros((self.shape[n], R), order=self.order)
         for r in range(R):
             # Set up list with appropriate vectors for ttv multiplication
             Z = []
@@ -1317,7 +1333,7 @@ class sptensor:
                 if i != n:
                     Z.append(U[i][:, r])
                 else:
-                    Z.append(np.array([]))
+                    Z.append(np.array([], order=self.order))
             # Perform ttv multiplication
             ttv = self.ttv(Z, exclude_dims=int(n))
             # TODO is is possible to hit the float condition here?
@@ -1339,7 +1355,7 @@ class sptensor:
 
         >>> S = ttb.sptensor(shape=(1, 2, 3, 4, 5, 6))
         >>> S
-        empty sparse tensor of shape (1, 2, 3, 4, 5, 6)
+        empty sparse tensor of shape (1, 2, 3, 4, 5, 6) with order F
         >>> S.ndims
         6
         """
@@ -1377,7 +1393,7 @@ class sptensor:
 
         >>> S = ttb.tensor(np.diag([1.0, 2.0, 3.0, 4.0])).to_sptensor()
         >>> S
-        sparse tensor of shape (4, 4) with 4 nonzeros
+        sparse tensor of shape (4, 4) with 4 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
         [2, 2] = 3.0
@@ -1460,7 +1476,7 @@ class sptensor:
             for i in range(v.shape[1]):
                 if v[idx[i], i] < 0:  # pragma: no cover
                     v[:, i] *= -1
-        return v
+        return to_memory_order(v, self.order)
 
     def ones(self) -> sptensor:
         """
@@ -1475,7 +1491,7 @@ class sptensor:
         >>> shape = (2, 2)
         >>> S = ttb.sptensor(subs, vals, shape)
         >>> S
-        sparse tensor of shape (2, 2) with 3 nonzeros
+        sparse tensor of shape (2, 2) with 3 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 2.0
         [1, 0] = 3.0
@@ -1483,7 +1499,7 @@ class sptensor:
         Replace the nonzero values of `S` with the value 1:
 
         >>> S.ones()
-        sparse tensor of shape (2, 2) with 3 nonzeros
+        sparse tensor of shape (2, 2) with 3 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 1.0
         [1, 0] = 1.0
@@ -1514,7 +1530,7 @@ class sptensor:
         >>> shape = (2, 2)
         >>> S = ttb.sptensor(subs, vals, shape)
         >>> S
-        sparse tensor of shape (2, 2) with 3 nonzeros
+        sparse tensor of shape (2, 2) with 3 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 2.0
         [1, 0] = 3.0
@@ -1523,7 +1539,7 @@ class sptensor:
 
         >>> S1 = S.permute(np.array((1, 0)))
         >>> S1
-        sparse tensor of shape (2, 2) with 3 nonzeros
+        sparse tensor of shape (2, 2) with 3 nonzeros and order F
         [0, 0] = 1.0
         [1, 0] = 2.0
         [0, 1] = 3.0
@@ -1567,7 +1583,7 @@ class sptensor:
 
         >>> S = ttb.tensor(np.arange(9) + 1, shape=(1, 3, 3)).to_sptensor()
         >>> S
-        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros and order F
         [0, 0, 0] = 1
         [0, 1, 0] = 2
         [0, 2, 0] = 3
@@ -1581,7 +1597,7 @@ class sptensor:
         Reshape to a 2-way :class:`pyttb.sptensor`:
 
         >>> S.reshape((1, 9))
-        sparse tensor of shape (1, 9) with 9 nonzeros
+        sparse tensor of shape (1, 9) with 9 nonzeros and order F
         [0, 0] = 1
         [0, 1] = 2
         [0, 2] = 3
@@ -1597,7 +1613,7 @@ class sptensor:
         after the remaining subscript (i.e., corresponding to mode 2).
 
         >>> S.reshape(new_shape=(3, 1), old_modes=np.array((1, 0)))
-        sparse tensor of shape (3, 3, 1) with 9 nonzeros
+        sparse tensor of shape (3, 3, 1) with 9 nonzeros and order F
         [0, 0, 0] = 1
         [0, 1, 0] = 2
         [0, 2, 0] = 3
@@ -1662,7 +1678,7 @@ class sptensor:
 
         >>> S = ttb.tensor(np.arange(9) + 1, shape=(1, 3, 3)).to_sptensor()
         >>> S
-        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros and order F
         [0, 0, 0] = 1
         [0, 1, 0] = 2
         [0, 2, 0] = 3
@@ -1678,7 +1694,7 @@ class sptensor:
 
         >>> scaling_factor = np.array([1, 2, 3])
         >>> S.scale(scaling_factor, np.array([2]))
-        sparse tensor of shape (1, 3, 3) with 9 nonzeros
+        sparse tensor of shape (1, 3, 3) with 9 nonzeros and order F
         [0, 0, 0] = 1
         [0, 1, 0] = 2
         [0, 2, 0] = 3
@@ -1727,7 +1743,7 @@ class sptensor:
 
         >>> S = ttb.tendiag([1, 2]).to_sptensor()
         >>> S
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
 
@@ -1766,11 +1782,11 @@ class sptensor:
 
         >>> S = ttb.sptensor(np.array([[0, 0, 0], [1, 0, 1]]), np.array([[1.0], [2.0]]))
         >>> S
-        sparse tensor of shape (2, 1, 2) with 2 nonzeros
+        sparse tensor of shape (2, 1, 2) with 2 nonzeros and order F
         [0, 0, 0] = 1.0
         [1, 0, 1] = 2.0
         >>> S.squeeze()
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 1.0
         [1, 1] = 2.0
         """
@@ -1914,7 +1930,7 @@ class sptensor:
         >>> shape = (2, 2)
         >>> S = ttb.sptensor(subs, vals, shape)
         >>> S
-        sparse tensor of shape (2, 2) with 3 nonzeros
+        sparse tensor of shape (2, 2) with 3 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 2.0
         [1, 0] = 3.0
@@ -1938,7 +1954,7 @@ class sptensor:
         result is a :class:`pyttb.sptensor`:
 
         >>> S1.ttv(np.ones(2), 1)
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [0, 0] = 3.0
         [1, 1] = 3.0
 
@@ -2029,7 +2045,7 @@ class sptensor:
         linear subscripts, returns a vector of `p` values.
 
         Any ambiguity results in executing the first valid case. This
-        is particularily an issue if `self.ndims == 1`.
+        is particularly an issue if `self.ndims == 1`.
 
         Examples
         --------
@@ -2048,7 +2064,7 @@ class sptensor:
         Use a range of subscripts (Case 1b):
 
         >>> S[3, 3, :]
-        sparse tensor of shape (4,) with 1 nonzeros
+        sparse tensor of shape (4,) with 1 nonzeros and order F
         [3] = 3
 
         Use an array of subscripts (Case 2a):
@@ -2198,17 +2214,17 @@ class sptensor:
         >>> S[0, 0, 0] = 1
         >>> S[(0, 0, 0)] = 1
         >>> S
-        sparse tensor of shape (3, 4, 5) with 1 nonzeros
+        sparse tensor of shape (3, 4, 5) with 1 nonzeros and order F
         [0, 0, 0] = 1.0
         >>> S
-        sparse tensor of shape (3, 4, 5) with 1 nonzeros
+        sparse tensor of shape (3, 4, 5) with 1 nonzeros and order F
         [0, 0, 0] = 1.0
 
         Set a range of elements using a single value:
 
         >>> S[0, 0, 1:3] = 2
         >>> S
-        sparse tensor of shape (3, 4, 5) with 3 nonzeros
+        sparse tensor of shape (3, 4, 5) with 3 nonzeros and order F
         [0, 0, 0] = 1.0
         [0, 0, 1] = 2.0
         [0, 0, 2] = 2.0
@@ -2217,7 +2233,7 @@ class sptensor:
 
         >>> S[0:1, 1:3, 3:4] = 3 * ttb.tenones((1, 2, 1)).to_sptensor()
         >>> S
-        sparse tensor of shape (3, 4, 5) with 5 nonzeros
+        sparse tensor of shape (3, 4, 5) with 5 nonzeros and order F
         [0, 0, 0] = 1.0
         [0, 0, 1] = 2.0
         [0, 0, 2] = 2.0
@@ -2229,7 +2245,7 @@ class sptensor:
 
         >>> S[3, 4, 5] = 4
         >>> S
-        sparse tensor of shape (4, 5, 6) with 6 nonzeros
+        sparse tensor of shape (4, 5, 6) with 6 nonzeros and order F
         [0, 0, 0] = 1.0
         [0, 0, 1] = 2.0
         [0, 0, 2] = 2.0
@@ -2242,7 +2258,7 @@ class sptensor:
 
         >>> S[S.subs] = 5 * np.ones((S.vals.shape[0], 1))
         >>> S
-        sparse tensor of shape (4, 5, 6) with 6 nonzeros
+        sparse tensor of shape (4, 5, 6) with 6 nonzeros and order F
         [0, 0, 0] = 5.0
         [0, 0, 1] = 5.0
         [0, 0, 2] = 5.0
@@ -2368,7 +2384,7 @@ class sptensor:
         # Process Group A: Changing values
         if np.sum(idxa) > 0:
             self.vals[tf[idxa]] = newvals[idxa]
-        # Proces Group B: Removing Values
+        # Process Group B: Removing Values
         if np.sum(idxb) > 0:
             removesubs = loc[idxb]
             keepsubs = np.setdiff1d(range(0, self.nnz), removesubs)
@@ -2588,7 +2604,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S == S
-        sparse tensor of shape (2, 2) with 4 nonzeros
+        sparse tensor of shape (2, 2) with 4 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 1.0
         [1, 0] = 1.0
@@ -2597,7 +2613,7 @@ class sptensor:
         Compare with a scalar value, returning only a single `True` value:
 
         >>> S == 1
-        sparse tensor of shape (2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2) with 1 nonzeros and order F
         [1, 1] = 1.0
         """
         # Case 1: other is a scalar
@@ -2689,12 +2705,12 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S != S
-        empty sparse tensor of shape (2, 2)
+        empty sparse tensor of shape (2, 2) with order F
 
         Compare with a scalar value: :
 
         >>> S != 1
-        sparse tensor of shape (2, 2) with 3 nonzeros
+        sparse tensor of shape (2, 2) with 3 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 1.0
         [1, 0] = 1.0
@@ -2800,7 +2816,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S - S
-        empty sparse tensor of shape (2, 2)
+        empty sparse tensor of shape (2, 2) with order F
 
         Subtract a scalar value, returning a dense tensor:
 
@@ -2848,7 +2864,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S + S
-        sparse tensor of shape (2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2) with 1 nonzeros and order F
         [1, 1] = 2.0
 
         Add a scalar value, returning a dense tensor:
@@ -2876,13 +2892,13 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2, 2))
         >>> S[1, 1, 1] = 1
         >>> S
-        sparse tensor of shape (2, 2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
         [1, 1, 1] = 1.0
 
         Apply the + operator:
 
         >>> +S
-        sparse tensor of shape (2, 2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
         [1, 1, 1] = 1.0
         """
         return self.copy()
@@ -2898,13 +2914,13 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2, 2))
         >>> S[1, 1, 1] = 1
         >>> S
-        sparse tensor of shape (2, 2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
         [1, 1, 1] = 1.0
 
         Apply the + operator:
 
         >>> -S
-        sparse tensor of shape (2, 2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
         [1, 1, 1] = -1.0
         """
         return ttb.sptensor(self.subs, -1 * self.vals, self.shape)
@@ -2925,7 +2941,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S * 3
-        sparse tensor of shape (2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2) with 1 nonzeros and order F
         [1, 1] = 3.0
 
         Multiply two sparse tensors with no overlap in subscripts of
@@ -2934,7 +2950,7 @@ class sptensor:
         >>> S2 = ttb.sptensor(shape=(2, 2))
         >>> S2[1, 0] = 1.0
         >>> S * S2
-        empty sparse tensor of shape (2, 2)
+        empty sparse tensor of shape (2, 2) with order F
         """
         if isinstance(other, (float, int, np.number)):
             return ttb.sptensor(self.subs, self.vals * other, self.shape)
@@ -2989,7 +3005,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> 3 * S
-        sparse tensor of shape (2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2) with 1 nonzeros and order F
         [1, 1] = 3.0
         """
         if isinstance(other, (float, int, np.number)):
@@ -3119,7 +3135,7 @@ class sptensor:
         Parameters
         ----------
         other:
-            Oject to compare with.
+            Object to compare with.
 
         Examples
         --------
@@ -3128,7 +3144,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S <= S
-        sparse tensor of shape (2, 2) with 4 nonzeros
+        sparse tensor of shape (2, 2) with 4 nonzeros and order F
         [1, 1] = 1.0
         [0, 0] = 1.0
         [0, 1] = 1.0
@@ -3137,7 +3153,7 @@ class sptensor:
         Compare with a scalar:
 
         >>> S <= -1
-        empty sparse tensor of shape (2, 2)
+        empty sparse tensor of shape (2, 2) with order F
         """
         return self._compare(other, le, ge, True)
 
@@ -3157,12 +3173,12 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S < S
-        empty sparse tensor of shape (2, 2)
+        empty sparse tensor of shape (2, 2) with order F
 
         Compare with a scalar:
 
         >>> S < 1
-        sparse tensor of shape (2, 2) with 3 nonzeros
+        sparse tensor of shape (2, 2) with 3 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 1.0
         [1, 0] = 1.0
@@ -3185,7 +3201,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S >= S
-        sparse tensor of shape (2, 2) with 4 nonzeros
+        sparse tensor of shape (2, 2) with 4 nonzeros and order F
         [1, 1] = 1.0
         [0, 0] = 1.0
         [0, 1] = 1.0
@@ -3194,7 +3210,7 @@ class sptensor:
         Compare with a scalar:
 
         >>> S >= 1
-        sparse tensor of shape (2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2) with 1 nonzeros and order F
         [1, 1] = 1.0
         """
         return self._compare(other, ge, le, True)
@@ -3215,12 +3231,12 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[1, 1] = 1.0
         >>> S > S
-        empty sparse tensor of shape (2, 2)
+        empty sparse tensor of shape (2, 2) with order F
 
         Compare with a scalar:
 
         >>> S > 0
-        sparse tensor of shape (2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2) with 1 nonzeros and order F
         [1, 1] = 1.0
         """
         return self._compare(other, gt, lt)
@@ -3244,7 +3260,7 @@ class sptensor:
         >>> S2 = ttb.sptensor(shape=(2, 2))
         >>> S2[1, 1] = 4.0
         >>> S / S2
-        sparse tensor of shape (2, 2) with 4 nonzeros
+        sparse tensor of shape (2, 2) with 4 nonzeros and order F
         [1, 1] = 0.5
         [0, 0] = nan
         [0, 1] = nan
@@ -3253,7 +3269,7 @@ class sptensor:
         Divide by a scalar:
 
         >>> S / 3  # doctest: +ELLIPSIS
-        sparse tensor of shape (2, 2) with 1 nonzeros
+        sparse tensor of shape (2, 2) with 1 nonzeros and order F
         [1, 1] = 0.66666...
         """
         # Divide by a scalar -> result is sparse
@@ -3388,7 +3404,7 @@ class sptensor:
         >>> S = ttb.sptensor(shape=(2, 2))
         >>> S[:, :] = 1.0
         >>> print(S)
-        sparse tensor of shape (2, 2) with 4 nonzeros
+        sparse tensor of shape (2, 2) with 4 nonzeros and order F
         [0, 0] = 1.0
         [0, 1] = 1.0
         [1, 0] = 1.0
@@ -3396,11 +3412,14 @@ class sptensor:
         """
         nz = self.nnz
         if nz == 0:
-            s = f"empty sparse tensor of shape {np_to_python(self.shape)!r}"
+            s = (
+                f"empty sparse tensor of shape {np_to_python(self.shape)!r}"
+                " with order F"
+            )
             return s
 
         s = f"sparse tensor of shape {np_to_python(self.shape)!r}"
-        s += f" with {nz} nonzeros\n"
+        s += f" with {nz} nonzeros and order {self.order}\n"
 
         # Stop insane printouts
         if nz > 10000:
@@ -3567,11 +3586,11 @@ class sptensor:
         >>> S[0, 1, 2] = 1
         >>> S[0, 1, 3] = 2
         >>> S
-        sparse tensor of shape (10, 10, 10) with 2 nonzeros
+        sparse tensor of shape (10, 10, 10) with 2 nonzeros and order F
         [0, 1, 2] = 1.0
         [0, 1, 3] = 2.0
         >>> S.squash()
-        sparse tensor of shape (2, 2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2, 2) with 2 nonzeros and order F
         [0, 0, 0] = 1.0
         [0, 0, 1] = 2.0
 
@@ -3698,3 +3717,9 @@ def sptendiag(elements: OneDArray, shape: Optional[Shape] = None) -> sptensor:
         constructed_shape = tuple(max(N, dim) for dim in shape)
     subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1)).transpose()
     return sptensor.from_aggregator(subs, elements.reshape((N, 1)), constructed_shape)
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

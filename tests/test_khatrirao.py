@@ -40,7 +40,9 @@ def test_khatrirao():
         )
     )
     assert np.array_equal(ttb.khatrirao(*[a_2, a_1, a_1]), result)
-    assert np.array_equal(ttb.khatrirao(a_2, a_1, a_1), result)
+    khatrirao_result = ttb.khatrirao(a_2, a_1, a_1)
+    assert np.array_equal(khatrirao_result, result)
+    assert khatrirao_result.flags["F_CONTIGUOUS"]
 
     with pytest.raises(AssertionError) as excinfo:
         ttb.khatrirao(a_2, a_1, np.ones((2, 2, 2)))

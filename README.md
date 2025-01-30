@@ -32,7 +32,7 @@ low-rank tensor decompositions:
 [`cp_apr`](https://pyttb.readthedocs.io/en/stable/cpapr.html "CP decomposition via Alternating Poisson Regression"), 
 [`gcp_opt`](https://pyttb.readthedocs.io/en/stable/gcpopt.html "Generalized CP decomposition"), 
 [`hosvd`](https://pyttb.readthedocs.io/en/stable/hosvd.html "Tucker decomposition via Higher Order Singular Value Decomposition"),
-[`tucker_als`](https://pyttb.readthedocs.io/en/stable/tuckerals.html "Tucker decompostion via Alternating Least Squares")
+[`tucker_als`](https://pyttb.readthedocs.io/en/stable/tuckerals.html "Tucker decomposition via Alternating Least Squares")
 
 ## Quick Start
 
@@ -55,6 +55,19 @@ CP_ALS:
  Iter 3: f = 7.508253e-01 f-delta = 1.3e-06
  Final f = 7.508253e-01
  ```
+
+### Memory layout
+For historical reasons we use Fortran memory layouts, where numpy by default uses C.
+This is relevant for indexing. In the future we hope to extend support for both.
+```python
+>>> import numpy as np
+>>> c_order = np.arange(8).reshape((2,2,2))
+>>> f_order = np.arange(8).reshape((2,2,2), order="F")
+>>> print(c_order[0,1,1])
+3
+>>> print(f_order[0,1,1])
+6
+```
 
 <!-- markdown-link-check-disable -->
 ### Getting Help

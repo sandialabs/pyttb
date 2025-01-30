@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-__version__ = "1.8.1"
+__version__ = "1.8.2"
 
 
 import warnings
@@ -19,6 +19,7 @@ from pyttb.hosvd import hosvd
 from pyttb.import_data import import_data
 from pyttb.khatrirao import khatrirao
 from pyttb.ktensor import ktensor
+from pyttb.matlab import matlab_support
 from pyttb.sptenmat import sptenmat
 from pyttb.sptensor import sptendiag, sptenrand, sptensor
 from pyttb.sptensor3 import sptensor3
@@ -39,9 +40,7 @@ def ignore_warnings(ignore=True):
         warnings.simplefilter("default")
 
 
-ignore_warnings(True)
-
-# Ruff inspection rules are too strict heres
+# Ruff inspection rules are too strict here
 __all__ = [  # noqa: PLE0604
     cp_als.__name__,
     cp_apr.__name__,
@@ -51,6 +50,7 @@ __all__ = [  # noqa: PLE0604
     import_data.__name__,
     khatrirao.__name__,
     ktensor.__name__,
+    matlab_support.__name__,
     sptenmat.__name__,
     sptendiag.__name__,
     sptenrand.__name__,
