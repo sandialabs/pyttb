@@ -65,3 +65,14 @@ def test_spelling():
         check=True,
         shell=True,
     )
+
+
+def test_spelling():
+    """Confirm spelling is enforced"""
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+    toml_file = os.path.join(root_dir, "pyproject.toml")
+    subprocess.run(
+        f"codespell --toml {toml_file}",
+        check=True,
+        shell=True,
+    )

@@ -48,6 +48,18 @@ algorithms for computing low-rank tensor models.
 
 Getting Started
 ===============
+For historical reasons we use Fortran memory layouts, where numpy by default uses C.
+This is relevant for indexing. In the future we hope to extend support for both.
+
+.. code-block:: python
+
+    >>> import numpy as np
+    >>> c_order = np.arange(8).reshape((2,2,2))
+    >>> f_order = np.arange(8).reshape((2,2,2), order="F")
+    >>> print(c_order[0,1,1])
+    3
+    >>> print(f_order[0,1,1])
+    6
 
 .. toctree::
    :maxdepth: 1

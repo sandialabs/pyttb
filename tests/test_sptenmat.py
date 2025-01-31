@@ -314,7 +314,9 @@ def test_sptenmat__str__(sample_sptensor_3way):
     # Empty
     sptenmatInstance = ttb.sptenmat()
     s = ""
-    s += "sptenmat corresponding to a sptensor of shape () with 0 nonzeros\n"
+    s += (
+        "sptenmat corresponding to a sptensor of shape () with 0 nonzeros and order F\n"
+    )
     s += "rdims = [  ] (modes of sptensor corresponding to rows)\n"
     s += "cdims = [  ] (modes of sptensor corresponding to columns)\n"
     assert s == sptenmatInstance.__str__()
@@ -324,7 +326,7 @@ def test_sptenmat__str__(sample_sptensor_3way):
     s = ""
     s += "sptenmat corresponding to a sptensor of shape "
     s += f"{sptenmatInstance3.tshape!r}"
-    s += " with " + str(sptenmatInstance3.vals.size) + " nonzeros"
+    s += " with " + str(sptenmatInstance3.vals.size) + " nonzeros and order F"
     s += "\n"
     s += "rdims = "
     s += "[ " + (", ").join([str(int(d)) for d in sptenmatInstance3.rdims]) + " ] "
