@@ -512,7 +512,7 @@ class tenmat:
             if not tshape:
                 return (self.data @ other.data)[0, 0]
             tenmatInstance = tenmat(
-                self.data @ other.data,
+                np.matmul(self.data, other.data, order=self.order),
                 np.arange(len(self.rindices)),
                 np.arange(len(other.cindices)) + len(self.rindices),
                 tshape,
