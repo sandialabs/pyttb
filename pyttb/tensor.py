@@ -1192,8 +1192,8 @@ class tensor:
         if prod(self.shape) != prod(shape):
             assert False, "Reshaping a tensor cannot change number of elements"
 
-        return ttb.tensor(np.reshape(self.data, shape, order=self.order), shape)
-
+        return ttb.tensor(self.data.reshape(shape, order=self.order), shape, copy=False)
+    
     def scale(
         self,
         factor: Union[np.ndarray, ttb.tensor],
