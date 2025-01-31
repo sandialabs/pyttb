@@ -34,6 +34,7 @@ import pyttb as ttb
 from pyttb.matlab.matlab_utilities import _matlab_array_str
 from pyttb.pyttb_utils import (
     IndexVariant,
+    MemoryLayout,
     OneDArray,
     Shape,
     gather_wrap_dims,
@@ -42,6 +43,7 @@ from pyttb.pyttb_utils import (
     np_to_python,
     parse_one_d,
     parse_shape,
+    to_memory_order,
     tt_dimscheck,
     tt_ind2sub,
     tt_sub2ind,
@@ -193,7 +195,7 @@ class tensor:
                     "Tensor Constructor: Selected no copy, but input data isn't "
                     f"{self.order} ordered so must copy"
                 )
-            self.data = np.asfortranarray(data)
+            self.data = to_memory_order(data, self.order)
         self.shape = shape
         return
 
@@ -524,7 +526,7 @@ class tensor:
         array([[1., 1.],
                [1., 1.]])
         """
-        return self.data.astype(np.float64).copy()
+        return self.data.astype(np.float64, order=self.order, copy=True)
 
     def exp(self) -> tensor:
         """
@@ -592,7 +594,7 @@ class tensor:
          [3 0]]
         >>> S = T.to_sptensor()
         >>> print(S)
-        sparse tensor of shape (2, 2) with 2 nonzeros
+        sparse tensor of shape (2, 2) with 2 nonzeros and order F
         [1, 0] = 3
         [0, 1] = 2
         """
@@ -1071,11 +1073,11 @@ class tensor:
         if n == 0:
             Ur = ttb.khatrirao(*U[1 : self.ndims], reverse=True)
             Y = np.reshape(self.data, (szn, szr), order=self.order)
-            return Y @ Ur
+            return to_memory_order(Y @ Ur, self.order)
         if n == self.ndims - 1:
             Ul = ttb.khatrirao(*U[0 : self.ndims - 1], reverse=True)
             Y = np.reshape(self.data, (szl, szn), order=self.order)
-            return Y.T @ Ul
+            return to_memory_order(Y.T @ Ul, self.order)
         else:
             Ul = ttb.khatrirao(*U[n + 1 :], reverse=True)
             Ur = np.reshape(
@@ -1084,10 +1086,10 @@ class tensor:
             Y = np.reshape(self.data, (-1, szr), order=self.order)
             Y = Y @ Ul
             Y = np.reshape(Y, (szl, szn, R), order=self.order)
-            V = np.zeros((szn, R))
+            V = np.zeros((szn, R), order=self.order)
             for r in range(R):
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
-            return V
+            return to_memory_order(V, self.order)
 
     def mttkrps(self, U: Union[ttb.ktensor, Sequence[np.ndarray]]) -> List[np.ndarray]:
         """
@@ -1282,7 +1284,9 @@ class tensor:
 
         # Np transpose does error checking on order, acts as permutation
 
-        return ttb.tensor(np.asfortranarray(np.transpose(self.data, order)), copy=False)
+        return ttb.tensor(
+            to_memory_order(np.transpose(self.data, order), self.order), copy=False
+        )
 
     def reshape(self, shape: Shape) -> tensor:
         """
@@ -1484,7 +1488,7 @@ class tensor:
                 newdata = avg[linclassidx]
                 data = np.reshape(newdata, self.shape, order=self.order)
 
-            return ttb.tensor(data, copy=False)
+            return ttb.tensor(to_memory_order(data, self.order), copy=False)
 
         else:  # Original version
             # Check tensor dimensions for compatibility with symmetrization
@@ -2873,7 +2877,7 @@ class tensor:
         return matlab_str + "\n" + textwrap.indent(array_str, "\t")
 
 
-def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
+def tenones(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """Create a tensor of all ones.
 
     Parameters
@@ -2914,7 +2918,7 @@ def tenones(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
     return tensor.from_function(ones, shape)
 
 
-def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
+def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """Create a tensor of all zeros.
 
     Parameters
@@ -2951,7 +2955,7 @@ def tenzeros(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> te
     return tensor.from_function(zeros, shape)
 
 
-def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> tensor:
+def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """Create a tensor with entries drawn from a uniform distribution on [0, 1].
 
     Parameters
@@ -2970,7 +2974,7 @@ def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
     --------
     >>> np.random.seed(1)
     >>> T = ttb.tenrand((3,))
-    >>> T
+    >>> T  # doctest: +ELLIPSIS
     tensor of shape (3,) with order F
     data[:] =
     [4.170...e-01 7.203...e-01 1.143...e-04]
@@ -2988,7 +2992,7 @@ def tenrand(shape: Shape, order: Union[Literal["F"], Literal["C"]] = "F") -> ten
 def tendiag(
     elements: OneDArray,
     shape: Optional[Shape] = None,
-    order: Union[Literal["F"], Literal["C"]] = "F",
+    order: MemoryLayout = "F",
 ) -> tensor:
     """Create a tensor with elements along super diagonal.
 
@@ -3030,9 +3034,7 @@ def tendiag(
     return X
 
 
-def teneye(
-    ndims: int, size: int, order: Union[Literal["F"], Literal["C"]] = "F"
-) -> tensor:
+def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
     """Create identity tensor of specified shape.
 
     T is an "identity tensor if T.ttsv(x, skip_dim=0) = x for all x such that

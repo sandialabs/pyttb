@@ -37,6 +37,7 @@ from pyttb.pyttb_utils import (
     np_to_python,
     parse_one_d,
     parse_shape,
+    to_memory_order,
     tt_dimscheck,
     tt_ind2sub,
 )
@@ -187,18 +188,26 @@ class ktensor:
             else:
                 if not self._matches_order(weights):
                     logging.warning(
-                        f"Selected no copy, but input data isn't {self.order} ordered "
-                        "so must copy."
+                        f"Selected no copy, but input weights aren't {self.order} "
+                        "ordered so must copy."
                     )
-                self.weights = np.asfortranarray(weights)
+                self.weights = to_memory_order(weights, self.order)
         else:
             # create weights if not provided
             self.weights = np.ones(num_components, order=self.order)
 
         # process factor_matrices
         if copy:
-            self.factor_matrices = [fm.copy() for fm in factor_matrices]
+            self.factor_matrices = [fm.copy(order=self.order) for fm in factor_matrices]
         else:
+            if not all(self._matches_order(factor) for factor in factor_matrices):
+                logging.warning(
+                    "Selected no copy, but input factor matrices aren't "
+                    f"{self.order} ordered so must copy."
+                )
+                factor_matrices = [
+                    to_memory_order(fm, self.order, copy=True) for fm in factor_matrices
+                ]
             if not isinstance(factor_matrices, list):
                 logging.warning("Must provide factor matrices as list to avoid copy")
                 factor_matrices = list(factor_matrices)
@@ -1252,7 +1261,7 @@ class ktensor:
                 W = W * (self.factor_matrices[i].T @ U[i])
 
         # Find each column of answer by multiplying columns of X.u{n} with weights
-        return self.factor_matrices[n] @ W
+        return to_memory_order(self.factor_matrices[n] @ W, self.order)
 
     @property
     def ncomponents(self) -> int:
@@ -2241,7 +2250,7 @@ class ktensor:
 
         return self
 
-    def vis(  # noqa: PLR0912, PLR0913
+    def viz(  # noqa: PLR0912, PLR0913
         self,
         plots: Optional[Union[tuple, list]] = None,
         show_figure: bool = True,
@@ -2310,9 +2319,9 @@ class ktensor:
         >>> np.random.seed(1)
         >>> K = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 10), 2)
 
-        Use plot K using default behavior K.vis()
+        Use plot K using default behavior K.viz()
 
-        >>> fig, axs = K.vis(show_figure=False)  # doctest: +ELLIPSIS
+        >>> fig, axs = K.viz(show_figure=False)  # doctest: +ELLIPSIS
         >>> plt.close(fig)
 
         Define a more realistic plot functions with x labels,
@@ -2329,7 +2338,7 @@ class ktensor:
         ...     ax.semilogx(np.logspace(-2, 2, v.shape[0]), v)
         ...     ax.set_xlabel("$E$, [kJ]")
         >>> plots = [mode_1_plot, mode_2_plot, mode_3_plot]
-        >>> fig, axs = K.vis(
+        >>> fig, axs = K.viz(
         ...     show_figure=False,
         ...     plots=plots,
         ...     rel_widths=[1, 2, 3],

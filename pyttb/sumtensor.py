@@ -9,7 +9,7 @@ from __future__ import annotations
 import warnings
 from copy import deepcopy
 from textwrap import indent
-from typing import List, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
@@ -59,6 +59,19 @@ class sumtensor:
         if copy:
             tensors = deepcopy(tensors)
         self.parts = tensors
+
+    @property
+    def order(self) -> Literal["F"]:
+        """Return the data layout of the underlying storage."""
+        return "F"
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
 
     def copy(self) -> sumtensor:
         """Make a deep copy of a :class:`pyttb.sumtensor`.
@@ -111,7 +124,7 @@ class sumtensor:
             [[1. 1.]
              [1. 1.]]
         Part 1:
-            empty sparse tensor of shape (2, 2)
+            empty sparse tensor of shape (2, 2) with order F
         """
         if len(self.parts) == 0:
             return "Empty sumtensor"
@@ -436,6 +449,12 @@ class sumtensor:
     def norm(self) -> float:
         """Compatibility Interface. Just returns 0."""
         warnings.warn(
-            "Sumtensor doesn't actually support norm. " "Returning 0 for compatibility."
+            "Sumtensor doesn't actually support norm. Returning 0 for compatibility."
         )
         return 0.0
+
+
+if __name__ == "__main__":
+    import doctest  # pragma: no cover
+
+    doctest.testmod()  # pragma: no cover

@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-__version__ = "1.8.1"
+__version__ = "1.8.2"
 
 
 import warnings
@@ -40,9 +40,7 @@ def ignore_warnings(ignore=True):
         warnings.simplefilter("default")
 
 
-ignore_warnings(True)
-
-# Ruff inspection rules are too strict heres
+# Ruff inspection rules are too strict here
 __all__ = [  # noqa: PLE0604
     cp_als.__name__,
     cp_apr.__name__,
