@@ -667,7 +667,7 @@ class sptensor:
             badsubs = searchsubs[badloc, :]
             for i in np.arange(0, badloc[0].size):
                 error_msg += f"\tsubscript = {np.array2string(badsubs[i, :])} \n"
-            assert False, f"{error_msg}" "Invalid subscripts"
+            assert False, f"{error_msg}Invalid subscripts"
 
         # Set the default answer to zero
         a = np.zeros(shape=(p, 1), dtype=self.vals.dtype, order=self.order)
@@ -2578,7 +2578,10 @@ class sptensor:
                 if self.subs.size > 0:
                     self.subs = np.vstack((self.subs, addsubs.astype(int)))
                     self.vals = np.vstack(
-                        (self.vals, value * np.ones((addsubs.shape[0], 1)))
+                        (
+                            self.vals,
+                            value * np.ones((addsubs.shape[0], 1)),
+                        )
                     )
                 else:
                     self.subs = addsubs.astype(int)

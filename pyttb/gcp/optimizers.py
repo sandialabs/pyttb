@@ -234,7 +234,7 @@ class StochasticSolver(ABC):
                 "End Main Loop\n"
                 f"Final f-est: {f_est: 10.4e}\n"
                 f"Main loop time: {main_time: .2f}\n"
-                f"Total iterations: {n_epoch*self._epoch_iters}"
+                f"Total iterations: {n_epoch * self._epoch_iters}"
             )
             logging.info(msg)
 

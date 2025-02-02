@@ -367,7 +367,10 @@ class TestSetItem:
         # Warning for duplicates and dropping duplicates
         with pytest.warns(Warning) as record:
             sptensorInstance[np.array([[1, 1, 1], [1, 1, 1]]).astype(int)] = np.array(
-                [[999.0], [999.0]]
+                [
+                    [999.0],
+                    [999.0],
+                ]
             )
         assert "Duplicate assignments discarded" in str(record[0].message)
 
@@ -751,7 +754,7 @@ def test_sptensor__eq__(sample_sptensor):
     logging.debug(f"\nsptensorInstance = {sptensorInstance}")
     logging.debug(f"\ntype(eqSptensor.subs) = \n{type(eqSptensor.subs)}")
     for i in range(eqSptensor.subs.shape[0]):
-        logging.debug(f"{i}\t{eqSptensor.subs[i,:]}")
+        logging.debug(f"{i}\t{eqSptensor.subs[i, :]}")
     logging.debug(f"\neqSptensor.subs = \n{eqSptensor.subs}")
     logging.debug(f"\neqSptensor.subs.shape[0] = {eqSptensor.subs.shape[0]}")
     logging.debug(f"\nsptensorInstance.shape = {sptensorInstance.shape}")
@@ -1415,7 +1418,11 @@ def test_sptensor_reshape(sample_sptensor):
 
     # Reshape empty sptensor
     assert ttb.sptensor(np.array([]), np.array([]), (4, 4, 4)).reshape(
-        (16, 4, 1)
+        (
+            16,
+            4,
+            1,
+        )
     ).shape == (16, 4, 1)
 
     # Improper reshape

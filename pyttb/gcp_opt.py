@@ -111,7 +111,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
         )
         if nmissing > 0:
             welcome_msg += (
-                f"Missing entries: {nmissing} ({100*nmissing/tensor_size:.2g}%)"
+                f"Missing entries: {nmissing} ({100 * nmissing / tensor_size:.2g}%)"
             )
         logging.info(welcome_msg)
 

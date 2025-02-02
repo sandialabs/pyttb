@@ -95,7 +95,11 @@ def test_ktensor_from_function():
     assert np.array_equal(K1.weights, np.array([1.0, 1.0]))
     fm0 = np.array([[4.17022005e-01, 7.20324493e-01], [1.14374817e-04, 3.02332573e-01]])
     fm1 = np.array(
-        [[0.14675589, 0.09233859], [0.18626021, 0.34556073], [0.39676747, 0.53881673]]
+        [
+            [0.14675589, 0.09233859],
+            [0.18626021, 0.34556073],
+            [0.39676747, 0.53881673],
+        ]
     )
     fm2 = np.array(
         [
@@ -444,7 +448,10 @@ def test_ktensor_mttkrp(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
     K1 = ttb.ktensor.from_function(np.ones, (2, 3, 4), 4)
     output0 = np.array(
-        [[12492.0, 12492.0, 12492.0, 12492.0], [17856.0, 17856.0, 17856.0, 17856.0]]
+        [
+            [12492.0, 12492.0, 12492.0, 12492.0],
+            [17856.0, 17856.0, 17856.0, 17856.0],
+        ]
     )
     mttkrp_result = K.mttkrp(K1.factor_matrices, 0)
     assert np.array_equal(mttkrp_result, output0)
@@ -608,7 +615,10 @@ def test_ktensor_normalize(sample_ktensor_2way, sample_ktensor_3way):
     # print("\nK3\n",K3)
     weights3 = np.array([1.0, 1.0])
     factor_matrix30 = np.array(
-        [[0.4472135954999579, 0.6000000000000001], [0.8944271909999159, 0.8]]
+        [
+            [0.4472135954999579, 0.6000000000000001],
+            [0.8944271909999159, 0.8],
+        ]
     )
     factor_matrix31 = np.array(
         [
@@ -642,7 +652,10 @@ def test_ktensor_normalize(sample_ktensor_2way, sample_ktensor_3way):
     K4.normalize(sort=True)
     weights = np.array([5177.161384388167, 1177.285012220915])
     fm0 = np.array(
-        [[0.6000000000000001, 0.4472135954999579], [0.8, 0.8944271909999159]]
+        [
+            [0.6000000000000001, 0.4472135954999579],
+            [0.8, 0.8944271909999159],
+        ]
     )
     fm1 = np.array(
         [
@@ -675,7 +688,10 @@ def test_ktensor_normalize(sample_ktensor_2way, sample_ktensor_3way):
         ]
     )
     fm1 = np.array(
-        [[3.031531424242968, 5.674449654019056], [4.244143993940155, 7.565932872025407]]
+        [
+            [3.031531424242968, 5.674449654019056],
+            [4.244143993940155, 7.565932872025407],
+        ]
     )
     assert np.allclose(K5.weights, weights)
     assert np.allclose(K5.factor_matrices[0], fm0)
@@ -862,7 +878,10 @@ def test_ktensor_symmetrize(sample_ktensor_2way):
     K1 = K.symmetrize()
     weights = np.array([1.0, 1.0])
     fm = np.array(
-        [[2.340431417384394, 4.951967353890656], [4.596069112758807, 8.01245148977496]]
+        [
+            [2.340431417384394, 4.951967353890656],
+            [4.596069112758807, 8.01245148977496],
+        ]
     )
     assert np.allclose(K1.weights, weights)
     assert np.allclose(K1.factor_matrices[0], fm)

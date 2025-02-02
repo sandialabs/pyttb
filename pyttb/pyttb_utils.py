@@ -70,7 +70,10 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
         MatrixBUnique[np.argsort(idxB)], MatrixAUnique[np.argsort(idxA)]
     )
     union = np.vstack(
-        (MatrixB[np.sort(idxB[np.where(location < 0)])], MatrixA[np.sort(idxA)])
+        (
+            MatrixB[np.sort(idxB[np.where(location < 0)])],
+            MatrixA[np.sort(idxA)],
+        )
     )
     return union
 
@@ -861,10 +864,9 @@ def gather_wrap_dims(
                     + [i for i in range(ndims - 1, rdims[0], -1)]
                 )
             else:
-                assert False, (
-                    "Unrecognized value for cdims_cyclic pattern, "
-                    'must be "fc" or "bc".'
-                )
+                assert (
+                    False
+                ), 'Unrecognized value for cdims_cyclic pattern, must be "fc" or "bc".'
         else:
             # Multiple row mapping
             cdims = np.setdiff1d(alldims, rdims)

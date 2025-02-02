@@ -1524,7 +1524,11 @@ class tensor:
             p = matrix.shape[0]
 
         newshape = np.array(
-            [p, *list(shape[range(0, n)]), *list(shape[range(n + 1, self.ndims)])]
+            [
+                p,
+                *list(shape[range(0, n)]),
+                *list(shape[range(n + 1, self.ndims)]),
+            ]
         )
         Y_data: np.ndarray = np.reshape(newdata, newshape, order=self.order)
         Y_data = np.transpose(Y_data, np.argsort(order))
@@ -2050,7 +2054,10 @@ class tensor:
             newsiz = (bsiz[n:] + 1).astype(int)
         else:
             newsiz = np.concatenate(
-                (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
+                (
+                    np.max((self.shape, bsiz[0:n] + 1), axis=0),
+                    bsiz[n:] + 1,
+                )
             ).astype(int)
         if not np.array_equal(newsiz, self.shape):
             # We need to enlarge x.data.
@@ -2078,7 +2085,10 @@ class tensor:
             newsiz = (bsiz[n:] + 1).astype(int)
         else:
             newsiz = np.concatenate(
-                (np.max((self.shape, bsiz[0:n] + 1), axis=0), bsiz[n:] + 1)
+                (
+                    np.max((self.shape, bsiz[0:n] + 1), axis=0),
+                    bsiz[n:] + 1,
+                )
             ).astype(int)
 
         if not np.array_equal(newsiz, self.shape):
@@ -2731,7 +2741,10 @@ class tensor:
                     self.data[
                         tuple(
                             np.concatenate(
-                                (np.array([slice(None), slice(None)]), idx[0])
+                                (
+                                    np.array([slice(None), slice(None)]),
+                                    idx[0],
+                                )
                             )
                         )
                     ]

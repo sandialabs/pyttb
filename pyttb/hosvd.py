@@ -143,7 +143,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
         relnorm = np.sqrt(diffnormsqr / normxsqr)
         print(f"Shape of core: {G.shape}")
         if relnorm <= tol:
-            print(f"||X-T||/||X|| = {relnorm: g} <=" f"{tol: f} (tol)")
+            print(f"||X-T||/||X|| = {relnorm: g} <={tol: f} (tol)")
         else:
             print(
                 "Tolerance not satisfied!! "

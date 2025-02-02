@@ -957,7 +957,10 @@ def test_tensor_permute(sample_tensor_2way, sample_tensor_3way, sample_tensor_4w
         2,
     ), f"tensorInstance3.permute(np.array([2, 1, 0])): {tensorInstance3}"
     data3 = np.array(
-        [[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]]]
+        [
+            [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+            [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
+        ]
     )
     assert np.array_equal(tensorInstance3.data, data3)
 
@@ -1216,7 +1219,10 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert isinstance(T3, ttb.tensor)
     assert T3.shape == (2, 3, 2)
     data3 = np.array(
-        [[[100, 138], [132, 186], [164, 234]], [[148, 204], [196, 276], [244, 348]]]
+        [
+            [[100, 138], [132, 186], [164, 234]],
+            [[148, 204], [196, 276], [244, 348]],
+        ]
     )
     assert np.array_equal(T3.data, data3)
 
@@ -1225,7 +1231,10 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert isinstance(T3, ttb.tensor)
     assert T3.shape == (2, 3, 2)
     data3 = np.array(
-        [[[408, 576], [498, 702], [588, 828]], [[456, 648], [558, 792], [660, 936]]]
+        [
+            [[408, 576], [498, 702], [588, 828]],
+            [[456, 648], [558, 792], [660, 936]],
+        ]
     )
     assert np.array_equal(T3.data, data3)
 
@@ -1665,7 +1674,13 @@ def test_tensor_mttkrp(sample_tensor_2way):
     assert np.array_equal(T.mttkrp(U, 2), data2)
 
     data3 = np.array(
-        [[45000, 45000], [48456, 48456], [51912, 51912], [55368, 55368], [58824, 58824]]
+        [
+            [45000, 45000],
+            [48456, 48456],
+            [51912, 51912],
+            [55368, 55368],
+            [58824, 58824],
+        ]
     )
     assert np.array_equal(T.mttkrp(U, 3), data3)
 

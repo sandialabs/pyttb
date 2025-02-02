@@ -287,15 +287,15 @@ def test_ttensor_mttkrp(random_ttensor):
     ]
     final_value = ttensorInstance.mttkrp(vectors, 2)
     full_value = ttensorInstance.full().mttkrp(vectors, 2)
-    assert np.allclose(final_value, full_value), (
-        f"TTensor value is: \n{final_value}\n\n" f"Full value is: \n{full_value}"
-    )
+    assert np.allclose(
+        final_value, full_value
+    ), f"TTensor value is: \n{final_value}\n\nFull value is: \n{full_value}"
     assert_consistent_order(ttensorInstance, final_value)
 
     final_value = ttensorInstance.mttkrp(ttb.ktensor(vectors), 2)
-    assert np.allclose(final_value, full_value), (
-        f"TTensor value is: \n{final_value}\n\n" f"Full value is: \n{full_value}"
-    )
+    assert np.allclose(
+        final_value, full_value
+    ), f"TTensor value is: \n{final_value}\n\nFull value is: \n{full_value}"
 
 
 def test_ttensor_norm(sample_ttensor, random_ttensor):
@@ -330,9 +330,9 @@ def test_ttensor_ttm(random_ttensor):
     reverse_value = ttensorInstance.ttm(
         list(reversed(matrices)), np.arange(len(matrices) - 1, -1, -1)
     )
-    assert final_value.isequal(reverse_value), (
-        f"TTensor value is: \n{final_value}\n\n" f"Full value is: \n{reverse_value}"
-    )
+    assert final_value.isequal(
+        reverse_value
+    ), f"TTensor value is: \n{final_value}\n\nFull value is: \n{reverse_value}"
     final_value = ttensorInstance.ttm(matrices)  # No dims
     assert final_value.isequal(reverse_value)
     final_value = ttensorInstance.ttm(

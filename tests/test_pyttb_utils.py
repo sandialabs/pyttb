@@ -79,7 +79,18 @@ def test_tt_dimscheck():
 def test_tt_setdiff_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6], [99, 0]])
     b = np.array(
-        [[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]]
+        [
+            [1, 7],
+            [1, 8],
+            [2, 6],
+            [2, 1],
+            [2, 4],
+            [4, 6],
+            [4, 7],
+            [5, 9],
+            [5, 2],
+            [5, 1],
+        ]
     )
     assert np.array_equal(ttb_utils.tt_setdiff_rows(a, b), np.array([1, 4]))
 
@@ -96,7 +107,18 @@ def test_tt_setdiff_rows():
 def test_tt_intersect_rows():
     a = np.array([[4, 6], [1, 9], [2, 6], [2, 6]])
     b = np.array(
-        [[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]]
+        [
+            [1, 7],
+            [1, 8],
+            [2, 6],
+            [2, 1],
+            [2, 4],
+            [4, 6],
+            [4, 7],
+            [5, 9],
+            [5, 2],
+            [5, 1],
+        ]
     )
     assert np.array_equal(ttb_utils.tt_intersect_rows(a, b), np.array([2, 0]))
 
@@ -111,7 +133,18 @@ def test_tt_intersect_rows():
 def test_tt_ismember_rows():
     a = np.array([[4, 6], [1, 9], [2, 6]])
     b = np.array(
-        [[1, 7], [1, 8], [2, 6], [2, 1], [2, 4], [4, 6], [4, 7], [5, 9], [5, 2], [5, 1]]
+        [
+            [1, 7],
+            [1, 8],
+            [2, 6],
+            [2, 1],
+            [2, 4],
+            [4, 6],
+            [4, 7],
+            [5, 9],
+            [5, 2],
+            [5, 1],
+        ]
     )
     valid, result = ttb_utils.tt_ismember_rows(a, b)
     assert np.array_equal(result, np.array([5, -1, 2]))
@@ -140,7 +173,10 @@ def test_tt_irenumber():
         slice(None, None, None),
     )
     extended_result = np.array(
-        [[const, const, const, const, const, 0], [const, const, const, const, const, 1]]
+        [
+            [const, const, const, const, const, 0],
+            [const, const, const, const, const, 1],
+        ]
     )
 
     # Pad equal to number of modes
