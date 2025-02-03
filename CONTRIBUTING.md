@@ -22,13 +22,13 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
    
    Most changes only require dev options
     ```commandline
-    pip install -e ".[dev]"
+    python -m pip install -e ".[dev]"
     ```
 
    But if you are making larger interface changes or updating tutorials/documentation
    you can also add the required packages for documentation.
    ```commandline
-   pip install -e ".[dev,doc]"
+   python -m pip install -e ".[dev,doc]"
    ```
 
 1. Checkout a branch and make your changes
