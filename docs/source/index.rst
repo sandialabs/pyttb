@@ -4,15 +4,24 @@ pyttb: Python Tensor Toolbox
 ****************************
 Tensors (also known as multidimensional arrays or N-way arrays) are used
 in a variety of applications ranging from chemometrics to network
-analysis.
+analysis. This Python package is an adaptation of the 
+`Tensor Toolbox for MATLAB <https://www.tensortoolbox.org>`_.
 
--  Install the latest release from pypi (``pip install pyttb``).
 -  This is open source software. Please see `LICENSE`_ for the
    terms of the license (2-clause BSD).
 -  For more information or for feedback on this project, please `contact us`_.
 
 .. _`LICENSE`: ../../../LICENSE
 .. _contact us: #contact
+
+Installing
+==========
+
+* Via pypi
+   -  Install the latest release from pypi (``pip install pyttb``).
+* From source
+   -  Clone the repository from `github <https://github.com/sandialabs/pyttb>`_.
+   -  Install the package with ``pip install .`` from the pyttb root directory.
 
 Functionality
 ==============
