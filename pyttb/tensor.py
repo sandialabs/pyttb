@@ -136,9 +136,9 @@ class tensor:
                 assert False, "Empty tensor cannot contain any elements"
 
         elif prod(shape) != data.size:
-            assert False, (
-                "TTB:WrongSize, Size of data does not match specified size of tensor"
-            )
+            assert (
+                False
+            ), "TTB:WrongSize, Size of data does not match specified size of tensor"
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
@@ -1607,9 +1607,9 @@ class tensor:
         othershape = tuple(np.array(other.shape)[otherdims])
 
         if np.any(selfshape != othershape):
-            assert False, (
-                f"Specified dimensions do not match got {selfshape} and {othershape}"
-            )
+            assert (
+                False
+            ), f"Specified dimensions do not match got {selfshape} and {othershape}"
 
         # Compute the product
 
@@ -1846,9 +1846,9 @@ class tensor:
                     ttb.sumtensor,
                 ),
             ):
-                assert False, (
-                    f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
-                )
+                assert (
+                    False
+                ), f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
             input_tensors.append(self._tt_to_tensor(an_input))
 
         # Case II: Expects input to be matrix and applies operation on each columns
@@ -1927,9 +1927,9 @@ class tensor:
             if isinstance(an_input, (float, int)):
                 assert False, f"Argument {i} is a scalar but expected a tensor"
             elif sz != an_input.shape:
-                assert False, (
-                    f"Tensor {i} is not the same size as the first tensor input"
-                )
+                assert (
+                    False
+                ), f"Tensor {i} is not the same size as the first tensor input"
         if len(inputs) == 0:
             X = self.data
             X = np.reshape(X, (1, -1), order=self.order)
@@ -2013,9 +2013,9 @@ class tensor:
     def _set_linear(self, key, value):
         idx = key
         if not isinstance(idx, slice) and (idx > np.prod(self.shape)).any():
-            assert False, (
-                "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
-            )
+            assert (
+                False
+            ), "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
         if isinstance(key, (int, float, np.generic)):
             idx = np.array([key])
         elif isinstance(key, slice):
