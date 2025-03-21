@@ -1,4 +1,4 @@
-pyttb.ktensor
+Kruskal Tensor (:class:`ktensor`)
 ---------------------
 
 .. automodule:: pyttb.ktensor
