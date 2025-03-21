@@ -1,4 +1,4 @@
-pyttb.cp_als
+CP Alternating Least Squares (:obj:`cp_als`)
 ====================
 
 .. automodule:: pyttb.cp_als
