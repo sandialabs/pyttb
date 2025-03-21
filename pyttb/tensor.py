@@ -1391,7 +1391,6 @@ class tensor:
             combos = []
             for i in range(0, ngrps):
                 combos.append(np.array(list(permutations(grps[i, :]))))
-            # combos = np.stack(combos)
 
             # Create all the permutations to be averaged
             combo_lengths = [len(perm) for perm in combos]
