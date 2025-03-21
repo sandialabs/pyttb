@@ -1,4 +1,4 @@
-pyttb.sumtensor
+Sum Tensor (:class:`sumtensor`)
 -----------------------
 
 .. autoclass:: pyttb.sumtensor

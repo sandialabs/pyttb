@@ -2,14 +2,14 @@ Tensor Classes
 ==============
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
-    ktensor.rst
-    sptenmat.rst
+    tensor.rst 
     sptensor.rst
-    sumtensor.rst
-    tensor.rst
+    ktensor.rst
     ttensor.rst
+    sumtensor.rst
     tenmat.rst
+    sptenmat.rst
     pyttb_utils.rst
 

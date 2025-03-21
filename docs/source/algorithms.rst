@@ -1,7 +1,7 @@
 Algorithms
 ==========
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     cpals.rst
     cpapr.rst
