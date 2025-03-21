@@ -1,4 +1,4 @@
-pyttb.ttensor
+Tucker tensor (:class:`ttensor`)
 --------------------
 
 .. autoclass:: pyttb.ttensor

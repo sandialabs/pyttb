@@ -1,4 +1,4 @@
-pyttb.sptensor
+Sparse Tensor (:class:`sptensor`)
 ----------------------
 
 .. autoclass:: pyttb.sptensor

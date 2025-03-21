@@ -1,4 +1,4 @@
-pyttb.tensor
+Dense Tensor (:class:`tensor`)
 --------------------
 
 .. autoclass:: pyttb.tensor
