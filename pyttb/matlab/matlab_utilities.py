@@ -5,7 +5,7 @@ matlab_support can depend on this, but tensors and this shouldn't depend on it.
 Probably best for everything here to be private functions.
 """
 
-# Copyright 2024 National Technology & Engineering Solutions of Sandia,
+# Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
