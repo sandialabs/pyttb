@@ -27,20 +27,21 @@ from scipy import sparse
 import pyttb as ttb
 
 Shape = Union[int, Iterable[int]]
-"""Shape represents the object size or dimensions. It can be specified as 
-either a single integer or an iterable of integers, which will be normalized 
+"""Shape represents the object size or dimensions. It can be specified as
+either a single integer or an iterable of integers, which will be normalized
 to a tuple internally."""
 
 OneDArray = Union[int, float, Iterable[int], Iterable[float], np.ndarray]
-"""OneDArray represents any one-dimensional array, which can be a single 
+"""OneDArray represents any one-dimensional array, which can be a single
 integer or float, and iterable of integerss or floats, or a NumPy array."""
 
 MemoryLayout = Union[Literal["F"], Literal["C"]]
-"""MemoryLayout is the set of options for the layout of a tensor. 
-It can be "F", meaning Fortran ordered and analogous to column-major for matrices, 
-or "C", meaning C ordered and analogous to row-major for matrices. 
+"""MemoryLayout is the set of options for the layout of a tensor.
+It can be "F", meaning Fortran ordered and analogous to column-major for matrices,
+or "C", meaning C ordered and analogous to row-major for matrices.
 Order "F" is how tensors are stored in MATLAB, and order "C" is the default
 for NumPy arrays."""
+
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     """Reproduce functionality of MATLABS intersect(a,b,'rows').
