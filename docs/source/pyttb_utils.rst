@@ -1,4 +1,4 @@
-pyttb.pyttb_utils
+Helper Functions (:mod:`pyttb_utils`)
 --------------------
 
 .. automodule:: pyttb.pyttb_utils

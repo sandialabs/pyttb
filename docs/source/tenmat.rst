@@ -1,4 +1,4 @@
-pyttb.tenmat
+Tensor as Matrix (:class:`tenmat`)
 ====================
 
 .. autoclass:: pyttb.tenmat
