@@ -113,7 +113,7 @@ html_theme = "sphinx_rtd_theme"
 # documentation.
 #
 html_theme_options = {
-    'navigation_depth': 6  # Adjust the number to control the depth
+    "navigation_depth": 6  # Adjust the number to control the depth
 }
 
 
@@ -199,4 +199,3 @@ texinfo_documents = [
 # Autodoc settings
 autoclass_content = "both"
 autodoc_member_order = "bysource"
-
