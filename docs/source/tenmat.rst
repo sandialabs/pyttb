@@ -1,5 +1,5 @@
 Tensor as Matrix (:class:`tenmat`)
-====================
+----------------------------------
 
 .. autoclass:: pyttb.tenmat
     :members:

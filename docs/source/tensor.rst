@@ -1,5 +1,5 @@
 Dense Tensor (:class:`tensor`)
---------------------
+------------------------------
 
 .. automodule:: pyttb.tensor
     :members:
