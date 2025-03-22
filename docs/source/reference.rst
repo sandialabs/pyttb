@@ -1,5 +1,5 @@
 Reference (:mod:`pyttb`)
-==========
+========================
 
 .. toctree::
     :maxdepth: 2

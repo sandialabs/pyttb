@@ -1,5 +1,5 @@
 Sparse Tensor (:class:`sptensor`)
-----------------------
+---------------------------------
 
 .. automodule:: pyttb.sptensor
     :members:

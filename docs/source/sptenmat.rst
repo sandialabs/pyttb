@@ -1,5 +1,5 @@
 Sparse Tensor as Matrix (:class:`sptenmat`)
-----------------------
+-------------------------------------------
 
 .. autoclass:: pyttb.sptenmat
     :members:

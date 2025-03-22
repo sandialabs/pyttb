@@ -1,5 +1,5 @@
 Helper Functions (:mod:`pyttb_utils`)
---------------------
+-------------------------------------
 
 .. automodule:: pyttb.pyttb_utils
     :members:
