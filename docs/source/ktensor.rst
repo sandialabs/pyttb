@@ -1,5 +1,5 @@
 Kruskal Tensor (:class:`ktensor`)
----------------------
+---------------------------------
 
 .. automodule:: pyttb.ktensor
     :members:
