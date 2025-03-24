@@ -1,5 +1,8 @@
 Sparse Tensor as Matrix (:class:`sptenmat`)
 -------------------------------------------
+.. note::
+    
+     The ``sptenmat`` class defined in ``sptenmat.py`` has been promoted to the ``pyttb`` namespace.
 
 .. autoclass:: pyttb.sptenmat
     :members:
