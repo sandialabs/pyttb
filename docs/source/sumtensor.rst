@@ -1,5 +1,5 @@
 Sum Tensor (:class:`sumtensor`)
------------------------
+-------------------------------
 
 .. autoclass:: pyttb.sumtensor
     :members:
