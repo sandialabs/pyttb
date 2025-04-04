@@ -2857,8 +2857,7 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
     # Typing doesn't play nice with partial
     # mypy issue: 1484
     def unit_uniform(pass_through_shape: Tuple[int, ...]) -> np.ndarray:
-        data = np.random.uniform(low=0, high=1, size=pass_through_shape)
-        to_memory_order(data, order)
+        data = np.random.uniform(low=0, high=1, size=np.prod(pass_through_shape))
         return data
 
     return tensor.from_function(unit_uniform, shape)
