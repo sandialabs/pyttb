@@ -1,5 +1,8 @@
 Tensor as Matrix (:class:`tenmat`)
 ----------------------------------
+.. note::
+    
+     The ``tenmat`` class defined in ``tenmat.py`` has been promoted to the ``pyttb`` namespace.
 
 .. autoclass:: pyttb.tenmat
     :members:

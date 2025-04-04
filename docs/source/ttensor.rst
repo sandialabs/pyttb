@@ -1,5 +1,8 @@
 Tucker tensor (:class:`ttensor`)
 --------------------------------
+.. note::
+    
+     The ``ttensor`` class defined in ``ttensor.py`` has been promoted to the ``pyttb`` namespace.
 
 .. autoclass:: pyttb.ttensor
     :members:
