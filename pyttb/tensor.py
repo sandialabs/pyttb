@@ -184,7 +184,9 @@ class tensor:
         function_handle:
             A function that can accept a shape (i.e., :class:`tuple` of
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
-            The array returned by the function should ideally be in Fortran order. If that is not the case, an expensive reordering of the data will be required. One way to avoid this reordering is to return a 1D vector.
+            The array returned by the function should ideally be in Fortran order.
+            If that is not the case, an expensive reordering of the data will be
+            required. One way to avoid this reordering is to return a 1D vector.
         shape:
             Shape of the resulting tensor.
 
