@@ -87,37 +87,70 @@ class tensor:
         shape: Optional[Shape] = None,
         copy: bool = True,
     ):
-        """Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`.
-
-        Note that 1D tensors (i.e., when len(shape)==1) contains a data
-        array that follow the Numpy convention of being a row vector.
+        """
+        Create a :class:`pyttb.tensor`.
 
         Parameters
         ----------
-        data:
-            Tensor source data.
-        shape:
-            Shape of resulting tensor if not the same as data shape.
-        copy:
-            Whether to make a copy of provided data or just reference it.
+        data : optional
+            Source data as :class:`numpy.ndarray`
+        shape : optional
+           Shape of the tensor as a :class:`tuple` or any iterable array of integers.
+           A single integer means that the tensor should be a 1D array.
+           If no shape is given, defaults to :attr:`numpy.ndarray.shape` of ``data``.
+           Otherwise, the data is reshaped to the specified shape.
+        copy : optional
+            Whether to deep copy (versus reference) the data.
+            By default, the data is deep copied.
 
         Examples
         --------
-        Create an empty :class:`pyttb.tensor`:
+        Create a :class:`pyttb.tensor` from a three-way :class:`numpy.ndarray`::
 
-        >>> T = ttb.tensor()
-        >>> print(T)
-        empty tensor of shape ()
-        data = []
+            >>> data = np.array([[[1,13],[5,17],[9,21]],
+            ... [[2,14],[6,18],[10,22]],
+            ... [[3,15],[7,19],[11,23]],
+            ...  [[4,16],[8,20],[12,24]]])
+            >>> T = ttb.tensor(data)
+            >>> print(T)
+            tensor of shape (4, 3, 2) with order F
+            data[:, :, 0] =
+            [[ 1  5  9]
+             [ 2  6 10]
+             [ 3  7 11]
+             [ 4  8 12]]
+            data[:, :, 1] =
+            [[13 17 21]
+             [14 18 22]
+             [15 19 23]
+             [16 20 24]]
 
-        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
+        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray` vector and
+        reshape it::
 
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[1 2]
-         [3 4]]
+            >>> data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+            ... 17, 18, 19, 20, 21, 22, 23, 24])
+            >>> T = ttb.tensor(data, shape=(4, 3, 2))
+            >>> print(T)
+            tensor of shape (4, 3, 2) with order F
+            data[:, :, 0] =
+            [[ 1  5  9]
+             [ 2  6 10]
+             [ 3  7 11]
+             [ 4  8 12]]
+            data[:, :, 1] =
+            [[13 17 21]
+             [14 18 22]
+             [15 19 23]
+             [16 20 24]]
+
+        Create an empty :class:`pyttb.tensor`::
+
+            >>> T = ttb.tensor()
+            >>> print(T)
+            empty tensor of shape ()
+            data = []
+
         """
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
