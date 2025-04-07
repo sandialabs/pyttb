@@ -266,18 +266,21 @@ class tensor:
 
         Returns
         -------
-        Copy of original tensor.
+        Deep copy of original tensor.
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.ones((3, 2)))
-        >>> T2 = T1
-        >>> T3 = T2.copy()
-        >>> T1[0, 0] = 3
-        >>> T1[0, 0] == T2[0, 0]
-        True
-        >>> T1[0, 0] == T3[0, 0]
-        False
+        Observing the difference between a shallow copy and a deep copy. When the
+        original tensor changes, so does the shallow copy, but the deep copy does not::
+
+            >>> T = ttb.tensor(np.ones((3, 2)))
+            >>> T_shallow = T
+            >>> T_deep = T.copy()
+            >>> T[0, 0] = 3
+            >>> T[0, 0] == T_shallow[0, 0]
+            True
+            >>> T[0, 0] == T_deep[0, 0]
+            False
         """
         return ttb.tensor(self.data, self.shape, copy=True)
 
