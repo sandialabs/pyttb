@@ -223,7 +223,9 @@ class tensor:
         function_handle:
             A function that can accept a shape (i.e., :class:`tuple` of
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
-            `numpy.zeros`, `numpy.ones`.
+            The array returned by the function should ideally be in Fortran order.
+            If that is not the case, an expensive reordering of the data will be
+            required. One way to avoid this reordering is to return a 1D vector.
         shape:
             Shape of the resulting tensor.
 
@@ -233,24 +235,45 @@ class tensor:
 
         Examples
         --------
-        Create a :class:`pyttb.tensor` with entries equal to 1:
+        Create a :class:`pyttb.tensor` with entries drawn from a normal distribution
+        using :func:`numpy.random.randn`. Observe that we actually generate a vector to
+        avoid having a C-ordered array (the default if we had provided the shape array)
+        be rearranged as a F-ordered array::
 
-        >>> fortran_order_ones = lambda shape: np.ones(shape=shape, order="F")
-        >>> T = ttb.tensor.from_function(fortran_order_ones, (2, 3, 4))
-        >>> print(T)
-        tensor of shape (2, 3, 4) with order F
-        data[:, :, 0] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
-        data[:, :, 1] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
-        data[:, :, 2] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
-        data[:, :, 3] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
+            >>> randn = lambda s : np.random.randn(np.prod(s))
+            >>> np.random.seed(0) # reproducibility
+            >>> T = ttb.tensor.from_function(randn, (4, 3, 2))
+            >>> print(T)
+            tensor of shape (4, 3, 2) with order F
+            data[:, :, 0] =
+            [[ 1.76405235  1.86755799 -0.10321885]
+             [ 0.40015721 -0.97727788  0.4105985 ]
+             [ 0.97873798  0.95008842  0.14404357]
+             [ 2.2408932  -0.15135721  1.45427351]]
+            data[:, :, 1] =
+            [[ 0.76103773  1.49407907 -2.55298982]
+             [ 0.12167502 -0.20515826  0.6536186 ]
+             [ 0.44386323  0.3130677   0.8644362 ]
+             [ 0.33367433 -0.85409574 -0.74216502]]
+
+        Create a :class:`pyttb.tensor` with all entries equal to 1 using
+        :func:`numpy.ones`. Observe that we specifically specify Fortran order::
+
+            >>> T = ttb.tensor.from_function(lambda s: np.ones(s,order='F'), (2, 3, 4))
+            >>> print(T)
+            tensor of shape (2, 3, 4) with order F
+            data[:, :, 0] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
+            data[:, :, 1] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
+            data[:, :, 2] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
+            data[:, :, 3] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
         """
         # Check size
         shape = parse_shape(shape)
