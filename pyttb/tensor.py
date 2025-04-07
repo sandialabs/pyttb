@@ -1,4 +1,4 @@
-"""Classes and functions for working with dense tensors."""
+"""Classes and functions for dense tensors (hidden module)."""
 
 # Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
@@ -52,25 +52,31 @@ from pyttb.pyttb_utils import (
 
 
 class tensor:
-    """
-    TENSOR Class for dense tensors.
+    """Class for dense tensors.
 
-    Contains the following data members:
+    Attributes
+    ----------
+        data : numpy.ndarray
+            Data of the tensor
+        shape : tuple of integers
+            Size of the tensor
 
-    ``data``: :class:`numpy.ndarray` dense array containing the data elements
-    of the tensor.
+    Instances of :class:`pyttb.tensor` can be created using :meth:`__init__`
+    or the following methods:
 
-    Instances of :class:`pyttb.tensor` can be created using `__init__()` or
-    the following method:
+        * :meth:`from_function` - Create a tensor from a function
+        * :meth:`copy` - Make a deep copy of a tensor
+        * :func:`tenones` - Create an all ones tensor of a specified size
+        * :func:`tenzeros` - Create an all zeros tensor of a specified size
+        * :func:`tenrand` - Create a random tensor of a specified size
+        * :func:`tendiag` - Create a tensor with a specified diagonal
+        * :func:`teneye` - Create an identity tensor
+        * :meth:`pyttb.sptensor.to_tensor` - Convert a sparse tensor to a dense tensor
+        * :meth:`pyttb.ktensor.to_tensor` - Convert a Kruskal tensor to a dense tensor
+        * :meth:`pyttb.ttensor.to_tensor` - Convert a Tucker tensor to a dense tensor
+        * :meth:`pyttb.tenmat.to_tensor` - Convert a tenmat to a dense tensor
 
-      * :meth:`from_function`
-
-    Examples
-    --------
-    For all examples listed below, the following module imports are assumed:
-
-    >>> import pyttb as ttb
-    >>> import numpy as np
+    See :doc:`/tutorial/class_tensor` for getting started with the tensor class.
     """
 
     __slots__ = ("data", "shape")
@@ -81,37 +87,70 @@ class tensor:
         shape: Optional[Shape] = None,
         copy: bool = True,
     ):
-        """Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`.
-
-        Note that 1D tensors (i.e., when len(shape)==1) contains a data
-        array that follow the Numpy convention of being a row vector.
+        """
+        Create a :class:`pyttb.tensor`.
 
         Parameters
         ----------
-        data:
-            Tensor source data.
-        shape:
-            Shape of resulting tensor if not the same as data shape.
-        copy:
-            Whether to make a copy of provided data or just reference it.
+        data : optional
+            Source data as :class:`numpy.ndarray`
+        shape : optional
+           Shape of the tensor as a :class:`tuple` or any iterable array of integers.
+           A single integer means that the tensor should be a 1D array.
+           If no shape is given, defaults to :attr:`numpy.ndarray.shape` of ``data``.
+           Otherwise, the data is reshaped to the specified shape.
+        copy : optional
+            Whether to deep copy (versus reference) the data.
+            By default, the data is deep copied.
 
         Examples
         --------
-        Create an empty :class:`pyttb.tensor`:
+        Create a :class:`pyttb.tensor` from a three-way :class:`numpy.ndarray`::
 
-        >>> T = ttb.tensor()
-        >>> print(T)
-        empty tensor of shape ()
-        data = []
+            >>> data = np.array([[[1,13],[5,17],[9,21]],
+            ... [[2,14],[6,18],[10,22]],
+            ... [[3,15],[7,19],[11,23]],
+            ...  [[4,16],[8,20],[12,24]]])
+            >>> T = ttb.tensor(data)
+            >>> print(T)
+            tensor of shape (4, 3, 2) with order F
+            data[:, :, 0] =
+            [[ 1  5  9]
+             [ 2  6 10]
+             [ 3  7 11]
+             [ 4  8 12]]
+            data[:, :, 1] =
+            [[13 17 21]
+             [14 18 22]
+             [15 19 23]
+             [16 20 24]]
 
-        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray`:
+        Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray` vector and
+        reshape it::
 
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[1 2]
-         [3 4]]
+            >>> data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+            ... 17, 18, 19, 20, 21, 22, 23, 24])
+            >>> T = ttb.tensor(data, shape=(4, 3, 2))
+            >>> print(T)
+            tensor of shape (4, 3, 2) with order F
+            data[:, :, 0] =
+            [[ 1  5  9]
+             [ 2  6 10]
+             [ 3  7 11]
+             [ 4  8 12]]
+            data[:, :, 1] =
+            [[13 17 21]
+             [14 18 22]
+             [15 19 23]
+             [16 20 24]]
+
+        Create an empty :class:`pyttb.tensor`::
+
+            >>> T = ttb.tensor()
+            >>> print(T)
+            empty tensor of shape ()
+            data = []
+
         """
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
@@ -184,7 +223,9 @@ class tensor:
         function_handle:
             A function that can accept a shape (i.e., :class:`tuple` of
             dimension sizes) and return a :class:`numpy.ndarray` of that shape.
-            `numpy.zeros`, `numpy.ones`.
+            The array returned by the function should ideally be in Fortran order.
+            If that is not the case, an expensive reordering of the data will be
+            required. One way to avoid this reordering is to return a 1D vector.
         shape:
             Shape of the resulting tensor.
 
@@ -194,24 +235,45 @@ class tensor:
 
         Examples
         --------
-        Create a :class:`pyttb.tensor` with entries equal to 1:
+        Create a :class:`pyttb.tensor` with entries drawn from a normal distribution
+        using :func:`numpy.random.randn`. Observe that we actually generate a vector to
+        avoid having a C-ordered array (the default if we had provided the shape array)
+        be rearranged as a F-ordered array::
 
-        >>> fortran_order_ones = lambda shape: np.ones(shape=shape, order="F")
-        >>> T = ttb.tensor.from_function(fortran_order_ones, (2, 3, 4))
-        >>> print(T)
-        tensor of shape (2, 3, 4) with order F
-        data[:, :, 0] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
-        data[:, :, 1] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
-        data[:, :, 2] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
-        data[:, :, 3] =
-        [[1. 1. 1.]
-         [1. 1. 1.]]
+            >>> randn = lambda s : np.random.randn(np.prod(s))
+            >>> np.random.seed(0) # reproducibility
+            >>> T = ttb.tensor.from_function(randn, (4, 3, 2))
+            >>> print(T)
+            tensor of shape (4, 3, 2) with order F
+            data[:, :, 0] =
+            [[ 1.76405235  1.86755799 -0.10321885]
+             [ 0.40015721 -0.97727788  0.4105985 ]
+             [ 0.97873798  0.95008842  0.14404357]
+             [ 2.2408932  -0.15135721  1.45427351]]
+            data[:, :, 1] =
+            [[ 0.76103773  1.49407907 -2.55298982]
+             [ 0.12167502 -0.20515826  0.6536186 ]
+             [ 0.44386323  0.3130677   0.8644362 ]
+             [ 0.33367433 -0.85409574 -0.74216502]]
+
+        Create a :class:`pyttb.tensor` with all entries equal to 1 using
+        :func:`numpy.ones`. Observe that we specifically specify Fortran order::
+
+            >>> T = ttb.tensor.from_function(lambda s: np.ones(s,order='F'), (2, 3, 4))
+            >>> print(T)
+            tensor of shape (2, 3, 4) with order F
+            data[:, :, 0] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
+            data[:, :, 1] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
+            data[:, :, 2] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
+            data[:, :, 3] =
+            [[1. 1. 1.]
+             [1. 1. 1.]]
         """
         # Check size
         shape = parse_shape(shape)
@@ -227,18 +289,21 @@ class tensor:
 
         Returns
         -------
-        Copy of original tensor.
+        Deep copy of original tensor.
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.ones((3, 2)))
-        >>> T2 = T1
-        >>> T3 = T2.copy()
-        >>> T1[0, 0] = 3
-        >>> T1[0, 0] == T2[0, 0]
-        True
-        >>> T1[0, 0] == T3[0, 0]
-        False
+        Observing the difference between a shallow copy and a deep copy. When the
+        original tensor changes, so does the shallow copy, but the deep copy does not::
+
+            >>> T = ttb.tensor(np.ones((3, 2)))
+            >>> T_shallow = T
+            >>> T_deep = T.copy()
+            >>> T[0, 0] = 3
+            >>> T[0, 0] == T_shallow[0, 0]
+            True
+            >>> T[0, 0] == T_deep[0, 0]
+            False
         """
         return ttb.tensor(self.data, self.shape, copy=True)
 
