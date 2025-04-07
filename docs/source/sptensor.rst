@@ -7,7 +7,7 @@ Sparse Tensor (:class:`sptensor`)
 .. autoclass:: pyttb.sptensor
     :members:
     :special-members:
-    :exclude-members: __dict__, __weakref__, __slots__, __init__
+    :exclude-members: __dict__, __weakref__, __slots__
     :show-inheritance:
 
 .. autofunction:: pyttb.sptenrand

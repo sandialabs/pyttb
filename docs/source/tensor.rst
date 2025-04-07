@@ -15,4 +15,3 @@ Dense Tensor (:class:`tensor`)
 .. autofunction:: pyttb.tenrand
 .. autofunction:: pyttb.tendiag
 .. autofunction:: pyttb.teneye
-
