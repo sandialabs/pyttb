@@ -4,7 +4,12 @@ Dense Tensor (:class:`tensor`)
     
      Classes and functions defined in ``tensor.py`` have been promoted to the ``pyttb`` namespace.
 
-.. autoclass:: pyttb.tensor
+For *all* examples in this document, the following module imports are assumed::
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
+
+.. automodule:: pyttb.tensor
     :members:
     :special-members:
     :exclude-members: __dict__, __weakref__, __slots__
