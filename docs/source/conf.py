@@ -199,4 +199,3 @@ texinfo_documents = [
 # Autodoc settings
 autoclass_content = "class"
 autodoc_member_order = "bysource"
-autodoc_class_signature = "separated"
