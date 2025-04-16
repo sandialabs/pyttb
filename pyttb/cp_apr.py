@@ -313,7 +313,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
                 M.factor_matrices[n] *= Phi[n]
 
                 # Print status
-                if (printinneritn > 0) and(divmod(i, printinneritn)[1] == 0):
+                if (printinneritn > 0) and (divmod(i, printinneritn)[1] == 0):
                     print(
                         "\t\tMode = {n}, Inner Iter = {i}, "
                         f"KKT violation = {kktModeViolations[n]}"
