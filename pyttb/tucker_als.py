@@ -161,7 +161,7 @@ def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
         fit = 1 - (normresidual / normX)  # fraction explained by model
         fitchange = abs(fitold - fit)
 
-        if iteration % printitn == 0:
+        if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
             print(f" Iter {iteration}: fit = {fit:e} fitdelta = {fitchange:7.1e}")
 
         # Check for convergence
