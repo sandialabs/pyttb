@@ -40,7 +40,7 @@ class sptenmat:
         and values (vals) along with the mappings of the row (rdims) and column
         indices (cdims) and the shape of the original tensor (tshape).
 
-        If you already have an sparse tensor see :method:`pyttb.sptensor.to_sptenmat`.
+        If you already have an sparse tensor see :meth:`pyttb.sptensor.to_sptenmat`.
 
         Parameters
         ----------
