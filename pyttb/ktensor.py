@@ -1606,7 +1606,7 @@ class ktensor:
         component :class:`pyttb.ktensor` instances that have been normalized
         so that their weights are `self.weights` and `other.weights`, and their
         factor matrices are single column vectors containing [a1,a2,...,an] and
-        [b1,b2,...bn], rescpetively, then the score is defined as
+        [b1,b2,...bn], respectively, then the score is defined as
 
             score = penalty * (a1.T*b1) * (a2.T*b2) * ... * (an.T*bn),
 
@@ -1653,23 +1653,31 @@ class ktensor:
         Create two :class:`pyttb.ktensor` instances and compute the score
         between them:
 
-        >>> factors = [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))]
+        >>> factors = [
+        ...     np.ones((3, 3)) + 0.1,
+        ...     np.ones((4, 3)) + 0.2,
+        ...     np.ones((5, 3)) + 0.3,
+        ... ]
         >>> weights = np.array([2.0, 1.0, 3.0])
         >>> K = ttb.ktensor(factors, weights)
-        >>> factors_2 = [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))]
+        >>> factors_2 = [
+        ...     np.ones((3, 2)) + 0.1,
+        ...     np.ones((4, 2)) + 0.2,
+        ...     np.ones((5, 2)) + 0.3,
+        ... ]
         >>> weights_2 = np.array([2.0, 4.0])
         >>> K2 = ttb.ktensor(factors_2, weights_2)
         >>> score, Kperm, flag, perm = K.score(K2)
-        >>> print(score)
-        0.875
+        >>> print(np.isclose(score, 0.875))
+        True
         >>> print(perm)
         [0 2 1]
 
         Compute score without using weights:
 
         >>> score, Kperm, flag, perm = K.score(K2, weight_penalty=False)
-        >>> print(score)
-        1.0
+        >>> print(np.isclose(score, 1.0))
+        True
         >>> print(perm)
         [0 1 2]
         """
@@ -1733,8 +1741,9 @@ class ktensor:
             best_perm = -1 * np.ones((RA), dtype=int)
             best_score = 0.0
             for _ in range(RB):
-                idx = np.argmax(C.reshape(prod(C.shape), order=self.order))
-                ij = tt_ind2sub((RA, RB), np.array(idx))
+                flatten_C = C.reshape(prod(C.shape), order=self.order)
+                idx = np.argmax(flatten_C)
+                ij = tt_ind2sub((RA, RB), np.array(idx, dtype=int), order=self.order)
                 best_score = best_score + C[ij[0], ij[1]]
                 C[ij[0], :] = -10
                 C[:, ij[1]] = -10
