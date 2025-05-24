@@ -1,5 +1,7 @@
-Helper Functions (:mod:`pyttb_utils`)
--------------------------------------
+Helper Functions (:mod:`pyttb_utils`, :mod:`khatrirao`)
+--------------------------------------------------------
+
+.. autofunction:: pyttb.khatrirao.khatrirao
 
 .. automodule:: pyttb.pyttb_utils
     :members:

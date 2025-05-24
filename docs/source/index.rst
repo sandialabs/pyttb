@@ -47,8 +47,13 @@ algorithms for computing low-rank tensor models.
    decompositions such as Poisson Tensor Factorization via alternating
    Poisson regression.
 
+- `IO`_
+
+   Storing and retrieving tensors from disk.
+
 .. _Tensor Classes: tensor_classes.html
 .. _Algorithms: algorithms.html
+.. _IO: io.html
 
 
 Getting Started
