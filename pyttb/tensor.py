@@ -558,20 +558,35 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[1 2]
-         [3 4]]
-        >>> T_threshold = T > 2
-        >>> subs, vals = T_threshold.find()
-        >>> subs.astype(int)
-        array([[1, 0],
-               [1, 1]])
-        >>> vals
-        array([[ True],
-               [ True]])
+        Create a random tensor with approximately 50% zero entries::
+
+            >>> np.random.seed(6) # reproducibility
+            >>> sprandint = lambda s: np.where(np.random.rand(np.prod(s)) < 0.5,
+            ...                                0.0, np.random.rand(np.prod(s)))
+            >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.33540785 0.43814143]
+             [0.         0.        ]]
+            data[:, :, 1] =
+            [[0.        0.6453551]
+             [0.5788586 0.       ]]
+
+        Find the nonzero entries in the tensor::
+
+            >>> subs, vals = T.find()
+            >>> print(subs)
+            [[0 0 0]
+             [0 1 0]
+             [1 0 1]
+             [0 1 1]]
+            >>> print(vals)
+            [[0.33540785]
+             [0.43814143]
+             [0.5788586 ]
+             [0.6453551 ]]
+
         """
         idx = np.nonzero(np.ravel(self.data, order=self.order))[0]
         subs = tt_ind2sub(self.shape, idx)
