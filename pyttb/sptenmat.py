@@ -272,7 +272,7 @@ class sptenmat:
         return self.copy()
 
     def to_sptensor(self) -> ttb.sptensor:
-        """Construct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`.
+        """Construct a :class:`pyttb.sptensor` from :class:`pyttb.sptenmat`.
 
         Examples
         --------
