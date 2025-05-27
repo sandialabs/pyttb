@@ -296,13 +296,13 @@ class tensor:
         Observing the difference between a shallow copy and a deep copy. When the
         original tensor changes, so does the shallow copy, but the deep copy does not::
 
-            >>> T = ttb.tensor(np.ones((3, 2)))
+            >>> T = ttb.tensor(np.ones(8), (2, 2, 2))
             >>> T_shallow = T
             >>> T_deep = T.copy()
-            >>> T[0, 0] = 3
-            >>> T[0, 0] == T_shallow[0, 0]
+            >>> T[0, 0, 0] = 3
+            >>> T[0, 0, 0] == T_shallow[0, 0, 0]
             True
-            >>> T[0, 0] == T_deep[0, 0]
+            >>> T[0, 0, 0] == T_deep[0, 0, 0]
             False
         """
         return ttb.tensor(self.data, self.shape, copy=True)
