@@ -291,7 +291,7 @@ class sumtensor:
 
     def double(self) -> np.ndarray:
         """
-        Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
+        Convert :class:`pyttb.tensor` to an :class:`numpy.ndarray` of doubles.
 
         Returns
         -------
