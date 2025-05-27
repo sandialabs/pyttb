@@ -432,30 +432,35 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2, 2)))
-        >>> T.contract(0, 1)
-        2.0
-        >>> T = ttb.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-        >>> print(T)
-        tensor of shape (2, 2, 2) with order F
-        data[:, :, 0] =
-        [[1 3]
-         [5 7]]
-        data[:, :, 1] =
-        [[2 4]
-         [6 8]]
-        >>> T.contract(0, 1)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 8. 10.]
-        >>> T.contract(0, 2)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 7. 11.]
-        >>> T.contract(1, 2)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 5. 13.]
+        Contract a three-way 2 x 2 x 2 tensor along two dimensions
+        in three possible ways::
+
+            >>> T = ttb.tensor(np.ones(8), (2, 2, 2)) # All-ones 2 x 2 x 2 tensor
+            >>> T.contract(0, 1)
+            tensor of shape (2,) with order F
+            data[:] =
+            [2. 2.]
+            >>> T = ttb.tensor(np.arange(1, 9), (2, 2, 2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[1 3]
+             [2 4]]
+            data[:, :, 1] =
+            [[5 7]
+             [6 8]]
+            >>> T.contract(0, 1)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 5. 13.]
+            >>> T.contract(0, 2)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 7. 11.]
+            >>> T.contract(1, 2)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 8. 10.]
         """
         if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
