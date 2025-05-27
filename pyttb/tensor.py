@@ -602,17 +602,29 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[0, 2], [3, 0]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[0 2]
-         [3 0]]
-        >>> S = T.to_sptensor()
-        >>> print(S)
-        sparse tensor of shape (2, 2) with 2 nonzeros and order F
-        [1, 0] = 3
-        [0, 1] = 2
+        Construct a 2x2x2 tensor with some nonzero entries::
+
+            >>> np.random.seed(3) # reproducibility
+            >>> sprandint = lambda s: np.random.randint(0, 4, size=np.prod(s)) / 4;
+            >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.5  0.25]
+             [0.   0.75]]
+            data[:, :, 1] =
+            [[0.   0.  ]
+             [0.   0.25]]
+
+        Convert to a sparse tensor::
+
+            >>> S = T.to_sptensor()
+            >>> print(S)
+            sparse tensor of shape (2, 2, 2) with 4 nonzeros and order F
+            [0, 0, 0] = 0.5
+            [0, 1, 0] = 0.25
+            [1, 1, 0] = 0.75
+            [1, 1, 1] = 0.25
         """
         subs, vals = self.find()
         return ttb.sptensor(subs, vals, self.shape, copy=False)
