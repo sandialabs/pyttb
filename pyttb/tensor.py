@@ -506,10 +506,13 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2, 2)))
+        >>> T = ttb.tensor(np.ones(8), (2, 2, 2))  # All-ones 2 x 2 x 2 tensor
         >>> T.double()
-        array([[1., 1.],
-               [1., 1.]])
+        array([[[1., 1.],
+                [1., 1.]],
+        <BLANKLINE>
+               [[1., 1.],
+                [1., 1.]]])
         """
         return self.data.astype(np.float64, order=self.order, copy=True)
 
