@@ -524,10 +524,23 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> T.exp().data  # doctest: +ELLIPSIS
-        array([[ 2.7182...,  7.3890... ],
-               [20.0855..., 54.5981...]])
+        >>> T = ttb.tensor(np.arange(8), (2, 2, 2))  # Tensor with entries 0 to 7
+        >>> print(T)
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[0 2]
+         [1 3]]
+        data[:, :, 1] =
+        [[4 6]
+         [5 7]]
+        >>> print(T.exp())
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[ 1.          7.3890561 ]
+         [ 2.71828183 20.08553692]]
+        data[:, :, 1] =
+        [[  54.59815003  403.42879349]
+         [ 148.4131591  1096.63315843]]
         """
         return ttb.tensor(np.exp(self.data), copy=False)
 
