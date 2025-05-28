@@ -760,11 +760,11 @@ class tensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(2 * np.ones((2, 2)))
-        >>> T2 = 2 * ttb.tensor(np.ones((2, 2)))
+        >>> T1 = ttb.tensor(2 * np.ones((2, 2, 2)))
+        >>> T2 = 2 * ttb.tensor(np.ones((2, 2, 2)))
         >>> T1.isequal(T2)
         True
-        >>> T2[0, 0] = 1
+        >>> T2[1, 0, 1] = 1
         >>> T1.isequal(T2)
         False
         """
