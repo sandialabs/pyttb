@@ -84,6 +84,8 @@ ignore = [
     "B011",
     # There is ongoing discussion about logging/warning etc
     "B028",
+    # Personal preference on magic method
+    "D105",
 ]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
