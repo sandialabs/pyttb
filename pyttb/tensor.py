@@ -586,16 +586,18 @@ class tensor:
         subs, vals = self.find()
         return ttb.sptensor(subs, vals, self.shape, copy=False)
 
-    # TODO: do we need this, now that we have copy() and __deepcopy__()?
     def full(self) -> tensor:
         """
-        Convert dense tensor to dense tensor.
+        Create a dense tensor from dense tensor.
+
+        Convenience method to maintain common interface with other
+        tensor types.
 
         Returns
         -------
-        Deep copy
+        Shallow copy
         """
-        return ttb.tensor(self.data)
+        return self
 
     def to_tenmat(
         self,
