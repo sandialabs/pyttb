@@ -496,13 +496,18 @@ class tensor:
 
         return ttb.tensor(newdata, newsize, copy=False)
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
 
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
+
         Returns
         -------
-        Copy of tensor data.
+        Array of tensor data.
 
         Examples
         --------
@@ -511,7 +516,10 @@ class tensor:
         array([[1., 1.],
                [1., 1.]])
         """
-        return self.data.astype(np.float64, order=self.order, copy=True)
+        double = self.data.astype(np.float64, order=self.order, copy=not immutable)
+        if immutable:
+            double.flags.writeable = False
+        return double
 
     def exp(self) -> tensor:
         """

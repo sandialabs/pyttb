@@ -588,9 +588,14 @@ class sptensor:
             return y.to_tensor()
         return y
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert the :class:`pyttb.sptensor` to a :class:`numpy.ndarray`.
+
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Examples
         --------
@@ -608,6 +613,8 @@ class sptensor:
         a = np.zeros(self.shape, order=self.order)
         if self.nnz > 0:
             a[tuple(self.subs.transpose())] = self.vals.transpose()[0]
+        if immutable:
+            a.flags.writeable = False
         return a
 
     def elemfun(self, function_handle: Callable[[np.ndarray], np.ndarray]) -> sptensor:

@@ -639,9 +639,14 @@ class ktensor:
         """Return deep copy of ktensor."""
         return self.copy()
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert :class:`pyttb.ktensor` to :class:`numpy.ndarray`.
+
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Returns
         -------
@@ -660,7 +665,7 @@ class ktensor:
         >>> type(K.double())
         <class 'numpy.ndarray'>
         """
-        return self.full().double()
+        return self.full().double(immutable)
 
     def extract(
         self, idx: Optional[Union[int, tuple, list, np.ndarray]] = None
