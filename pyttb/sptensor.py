@@ -94,7 +94,7 @@ class sptensor:
     ):
         """Construct a :class:`pyttb.sptensor`.
 
-         Constructed from a set of `subs` (subscripts),
+        Constructed from a set of `subs` (subscripts),
         `vals` (values), and `shape`. No validation is performed. For
         initializer with error checking see :meth:`from_aggregator`.
 
@@ -268,7 +268,7 @@ class sptensor:
     ) -> sptensor:
         """Construct a :class:`pyttb.sptensor`.
 
-         Constructed from a set of `subs` (subscripts),
+        Constructed from a set of `subs` (subscripts),
         `vals` (values), and `shape` after an aggregation function is applied
         to the values.
 

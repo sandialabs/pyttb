@@ -58,11 +58,11 @@ class tensor:
     ----------
         data : numpy.ndarray
             Data of the tensor
-        shape : tuple of integers
+        shape : Tuple[int]
             Size of the tensor
 
-    Instances of :class:`pyttb.tensor` can be created using :meth:`__init__`
-    or the following methods:
+    Instances of :class:`pyttb.tensor` can be created using
+    :meth:`pyttb.tensor.tensor.__init__` or the following methods:
 
         * :meth:`from_function` - Create a tensor from a function
         * :meth:`copy` - Make a deep copy of a tensor
@@ -324,7 +324,7 @@ class tensor:
         dims: optional
             Dimensions to collapse (default: all).
         fun: optional
-            Method used to collapse dimensions (default: :meth:`numpy.sum`).
+            Function used to collapse dimensions (default: :func:`numpy.sum`).
 
         Returns
         -------
@@ -1917,8 +1917,8 @@ class tensor:
     ) -> ttb.tensor:
         """Apply a function to each element in a tensor or tensors.
 
-        See :meth:`pyttb.tensor.tenfun_binary` and
-        :meth:`pyttb.tensor.tenfun_binary_unary` for supported
+        See :meth:`pyttb.tensor.tensor.tenfun_binary` and
+        :meth:`pyttb.tensor.tensor.tenfun_unary` for supported
         options.
         """
         assert callable(function_handle), "function_handle must be callable"

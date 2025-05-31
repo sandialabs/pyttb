@@ -1170,7 +1170,7 @@ class ktensor:
     def mask(self, W: Union[ttb.tensor, ttb.sptensor]) -> np.ndarray:
         """Extract :class:`pyttb.ktensor` values as specified by `W`.
 
-         `W` is a
+        `W` is a
         :class:`pyttb.tensor` or :class:`pyttb.sptensor` containing
         only values of zeros (0) and ones (1). The values in the
         :class:`pyttb.ktensor` corresponding to the indices for the
@@ -2292,7 +2292,7 @@ class ktensor:
             of a factor.
             Function for mode i must have signature `f(v_i,ax)` where
             `v_i` is :class:`numpy.ndarray` vector of dimension `n_i` and
-            `ax` is a :class:`matplotlib.axes.Axes' on which to plot.
+            `ax` is a :class:`matplotlib.axes.Axes` on which to plot.
         show_figure:
             Boolean determining if the resulting figure should be shown.
         normalize:
@@ -2322,9 +2322,9 @@ class ktensor:
         Returns
         -------
         fig:
-            :class:`matplotlib.figure.Figure' handle for the generated figure
+            :class:`matplotlib.figure.Figure` handle for the generated figure
         axs:
-            :class:`matplotlib.axes.Axes' for the generated figure
+            :class:`matplotlib.axes.Axes` for the generated figure
 
         Examples
         --------
