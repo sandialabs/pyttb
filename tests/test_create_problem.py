@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 import pyttb as ttb
@@ -90,6 +91,19 @@ def test_generate_data_tucker():
 def test_create_problem_smoke():
     shape = (2, 2, 2)
     cp_params = CPProblem(shape)
+    data_params = DataParams()
+    missing_params = MissingData()
+    soln, data = create_problem(cp_params, missing_params, data_params)
+    assert soln.full().shape == data.shape
+
+    # TODO hit edge cases and symmetric
+
+
+def test_create_problem_smoke_sparse():
+    shape = (2, 2, 2)
+    cp_params = CPProblem(
+        shape, sparse_generation=0.99, factor_generator=np.random.random
+    )
     data_params = DataParams()
     missing_params = MissingData()
     soln, data = create_problem(cp_params, missing_params, data_params)

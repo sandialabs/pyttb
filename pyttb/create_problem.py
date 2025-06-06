@@ -1,9 +1,12 @@
 """Create test problems for  tensor factorizations."""
 
+import logging
+import math
 from dataclasses import dataclass
 from typing import Callable, Optional, Tuple, Union, cast, overload
 
 import numpy as np
+from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
 from pyttb.pyttb_utils import Shape
@@ -39,6 +42,7 @@ class CPProblem(BaseProblem):
     num_factors: int = 2
     # TODO probably rename weight generator for consistency
     weight_generator: solution_generator = np.random.random
+    sparse_generation: Optional[float] = None
 
 
 @dataclass
@@ -100,7 +104,9 @@ class MissingData:
 @overload
 def create_problem(
     problem_params: CPProblem, missing_params: MissingData, data_params: DataParams
-) -> Tuple[ttb.ktensor, ttb.tensor]: ...  # pragma: no cover see coveragepy/issues/970
+) -> Tuple[
+    ttb.ktensor, Union[ttb.tensor, ttb.sptensor]
+]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -113,7 +119,7 @@ def create_problem(
     problem_params: Union[CPProblem, TuckerProblem],
     missing_params: MissingData,
     data_params: DataParams,
-) -> Tuple[Union[ttb.ktensor, ttb.ttensor], ttb.tensor]:
+) -> Tuple[Union[ttb.ktensor, ttb.ttensor], Union[ttb.tensor, ttb.sptensor]]:
     """Generate a problem and solution."""
     if problem_params.symmetric is not None:
         missing_params.raise_symmetric()
@@ -123,7 +129,15 @@ def create_problem(
     if missing_params.sparse_model:
         raise NotImplementedError("Sparse generation not yet supported")
 
-    data = generate_data(solution, problem_params, data_params)
+    data: Union[ttb.tensor, ttb.sptensor]
+    if (
+        isinstance(problem_params, CPProblem)
+        and problem_params.sparse_generation is not None
+    ):
+        solution = cast(ttb.ktensor, solution)
+        solution, data = generate_data_sparse(solution, problem_params, data_params)
+    else:
+        data = generate_data(solution, problem_params, data_params)
     return solution, data
 
 
@@ -205,3 +219,72 @@ def generate_data(
     if problem_params.symmetric is not None:
         D = D.symmetrize(np.array(problem_params.symmetric))
     return D
+
+
+def prosample(nsamples: int, prob: np.ndarray) -> np.ndarray:
+    """Proportional Sampling."""
+    bins = np.minimum(np.cumsum(np.array([0, *prob])), 1)
+    bins[-1] = 1
+    indices = np.digitize(np.random.random(nsamples), bins=bins)
+    return indices - 1
+
+
+def generate_data_sparse(
+    solution: ttb.ktensor, problem_params: CPProblem, data_params: DataParams
+) -> Tuple[ttb.ktensor, ttb.sptensor]:
+    """Generate sparse CP data from a given solution."""
+    # Error check on solution
+    if np.any(solution.weights < 0):
+        raise ValueError("All weights must be nonnegative.")
+    if any(np.any(factor < 0) for factor in solution.factor_matrices):
+        raise ValueError("All factor matrices must be nonnegative.")
+    if problem_params.symmetric is not None:
+        logging.warning("Summetric constraints have been ignored.")
+    if problem_params.sparse_generation is None:
+        raise ValueError("Cannot generate sparse data without sparse_generation set.")
+
+    # Convert solution to probability tensor
+    P = solution.normalize(mode=0)
+    eta = np.sum(P.weights)
+    P.weights /= eta
+
+    # Determine how many samples per component
+    nedges = problem_params.sparse_generation
+    if nedges < 1:
+        nedges = np.round(nedges * math.prod(P.shape)).astype(int)
+    nedges = int(nedges)
+    nd = P.ndims
+    nc = P.ncomponents
+    csample = prosample(nedges, P.weights)
+    # TODO check this
+    csums = accumarray(csample, 1, size=nc)
+
+    # Determine the subscripts for each randomly sampled entry
+    shape = solution.shape
+    subs: list[np.ndarray] = []
+    for c in range(nc):
+        nsample = csums[c]
+        if nsample == 0:
+            continue
+        subs.append(np.zeros((nsample, nd), dtype=int))
+        for d in range(nd):
+            subs[-1][:, d] = prosample(nsample, P.factor_matrices[d][:, c])
+    # TODO could sum csums and allocate in place with slicing
+    allsubs = np.vstack(subs)
+    # Assemble final tensor. Note that duplicates are summed.
+    # TODO should we have sptenones for purposes like this?
+    Z = ttb.sptensor(
+        allsubs,
+        np.ones(
+            len(allsubs),
+        ),
+        shape=shape,
+    )
+
+    # Rescale S so that it is proportional to the number of edges inserted
+    solution = P
+    solution.weights *= nedges
+
+    # TODO no noise introduced in this special case in MATLAB
+
+    return solution, Z
