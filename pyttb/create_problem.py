@@ -38,7 +38,7 @@ class CPProblem(BaseProblem):
 
     num_factors: int = 2
     # TODO probably rename weight generator for consistency
-    lambda_generator: solution_generator = np.random.random
+    weight_generator: solution_generator = np.random.random
 
 
 @dataclass
@@ -180,7 +180,7 @@ def generate_solution(
         core = ttb.tensor(problem_params.core_generator(tuple(nfactors)))
         return ttb.ttensor(core, factor_matrices)
     elif isinstance(problem_params, CPProblem):
-        weights = problem_params.lambda_generator((problem_params.num_factors,))
+        weights = problem_params.weight_generator((problem_params.num_factors,))
         return ttb.ktensor(factor_matrices, weights)
     raise ValueError(f"Unsupported problem parameter type: {type(problem_params)=}")
 
