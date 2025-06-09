@@ -40,8 +40,8 @@ class CPProblem(BaseProblem):
     """Parameters specifying CP Solutions."""
 
     num_factors: int = 2
-    # TODO probably rename weight generator for consistency
     weight_generator: solution_generator = np.random.random
+    # TODO: This is in DataParams in MATLAB, but only works for CP problems
     sparse_generation: Optional[float] = None
 
 
@@ -63,7 +63,6 @@ class DataParams:
     """Parameters to control data quality."""
 
     noise: float = 0.10
-    # TODO handle weird sparse_generation option
 
     def __post_init__(
         self,
@@ -164,7 +163,6 @@ def generate_solution_factors(base_params: BaseProblem) -> list[np.ndarray]:
 
     if base_params.symmetric is not None:
         for grp in base_params.symmetric:
-            # TODO see if this can be a single indexed op
             for j in range(1, len(grp)):
                 factor_matrices[grp[j]] = factor_matrices[grp[0]]
 
