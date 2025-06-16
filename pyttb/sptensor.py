@@ -438,6 +438,20 @@ class sptensor:
 
         return s.astype(int)
 
+    @overload
+    def collapse(
+        self,
+        dims: None,
+        function_handle: Callable[[np.ndarray], Union[float, np.ndarray]],
+    ) -> float: ...  # pragma: no cover see coveragepy/issues/970
+
+    @overload
+    def collapse(
+        self,
+        dims: OneDArray,
+        function_handle: Callable[[np.ndarray], Union[float, np.ndarray]] = sum,
+    ) -> Union[np.ndarray, sptensor]: ...  # pragma: no cover see coveragepy/issues/970
+
     def collapse(
         self,
         dims: Optional[OneDArray] = None,
@@ -503,6 +517,8 @@ class sptensor:
                     size=newsize[0],
                     func=function_handle,
                 )
+            # TODO think about if this makes sense
+            # complicates return typing
             return np.zeros((newsize[0],))
 
         # Create Result
