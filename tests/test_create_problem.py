@@ -29,16 +29,11 @@ class TestDataclasses:
         with pytest.raises(ValueError):
             number_less_than_zero = -2.0
             MissingData(missing_ratio=number_less_than_zero)
-        with pytest.raises(ValueError):
-            non_zero = 0.5
-            MissingData(missing_ratio=non_zero, sparse_model=True)
 
         missing_params = MissingData(missing_ratio=0.1)
         assert missing_params.has_missing()
         with pytest.raises(ValueError):
             missing_params.raise_symmetric()
-        missing_params = MissingData(sparse_model=True)
-        assert missing_params.has_missing()
         with pytest.raises(ValueError):
             missing_params.raise_symmetric()
         missing_params = MissingData()
@@ -110,3 +105,16 @@ def test_create_problem_smoke_sparse():
     assert soln.full().shape == data.shape
 
     # TODO hit edge cases and symmetric
+
+
+def test_create_problem_smoke_missing():
+    shape = (4, 5, 6)
+    cp_params = CPProblem(shape, factor_generator=np.random.random)
+    data_params = DataParams()
+    missing_params = MissingData(missing_ratio=0.8)
+    soln, data = create_problem(cp_params, missing_params, data_params)
+    assert soln.full().shape == data.shape
+
+    missing_params = MissingData(missing_ratio=0.8, sparse_model=True)
+    soln, data = create_problem(cp_params, missing_params, data_params)
+    assert soln.full().shape == data.shape

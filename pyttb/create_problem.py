@@ -9,7 +9,7 @@ import numpy as np
 from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
-from pyttb.pyttb_utils import Shape
+from pyttb.pyttb_utils import Shape, parse_shape
 
 solution_generator = Callable[[Tuple[int, ...]], np.ndarray]
 
@@ -77,20 +77,22 @@ class MissingData:
 
     missing_ratio: float = 0.0
     sparse_model: bool = False
-    # TODO add spare pattern tensor
+    missing_pattern: Optional[Union[ttb.sptensor, ttb.tensor]] = None
 
     def __post_init__(self):
         if not 0.0 <= self.missing_ratio <= 1.0:
             raise ValueError(
                 f"Missing ratio must be in [0,1] but got {self.missing_ratio}"
             )
-
-        if self.sparse_model and self.missing_ratio > 0.0:
-            raise ValueError("Can't combine missing data and sparse generation.")
+        if self.missing_ratio > 0.0 and self.missing_pattern is not None:
+            raise ValueError(
+                "Can't set ratio and explicit pattern to specify missing data. "
+                "Select one or the other."
+            )
 
     def has_missing(self) -> bool:
         """Check if any form of missing data is requested."""
-        return self.sparse_model or self.missing_ratio > 0.0
+        return self.missing_ratio > 0.0 or self.missing_pattern is not None
 
     def raise_symmetric(self):
         """Raise for unsupported symmetry request."""
@@ -98,6 +100,107 @@ class MissingData:
             raise ValueError("Can't generate a symmetric problem with missing data.")
         if self.sparse_model:
             raise ValueError("Can't generate sparse symmetric problem.")
+
+    def get_pattern(self, shape: Shape) -> Union[None, ttb.tensor, ttb.sptensor]:
+        """Generate a tensor pattern of missing data."""
+        if self.missing_pattern is not None:
+            if self.missing_pattern.shape != shape:
+                raise ValueError(
+                    "Missing pattern and problem shapes are not compatible."
+                )
+            return self.missing_pattern
+
+        if self.missing_ratio == 0.0:
+            # All usages of this are internal, should we just rule out this situation?
+            return None
+        if self.missing_ratio < 0.8 and self.sparse_model:
+            logging.warning(
+                "Setting sparse to false because there are"
+                " fewer than 80% missing elements."
+            )
+        return _create_missing_data_pattern(
+            shape, self.missing_ratio, self.sparse_model
+        )
+
+
+def _create_missing_data_pattern(
+    shape: Shape, missing_ratio: float, sparse_model: bool = False
+) -> Union[ttb.tensor, ttb.sptensor]:
+    """Create a randomly missing element indicator tensor.
+
+    Creates a binary tensor of specified size with 0's indication missing data
+    and 1's indicating valid data. Will only return a tensor that has at least
+    one entry per N-1 dimensional slice.
+    """
+    shape = parse_shape(shape)
+    ndim = len(shape)
+    P = math.prod(shape)
+    Q = math.ceil((1 - missing_ratio) * P)
+    W: Union[ttb.tensor, ttb.sptensor]
+
+    # Create tensor
+    ## Keep iterating until tensor is created or we give up.
+    # TODO: make range configurable?
+    for _ in range(20):
+        if sparse_model:
+            # Start with 50% more than Q random subs
+            # Note in original matlab to work out expected value of a*Q to guarantee
+            # Q unique entries
+            subs = np.unique(
+                np.floor(
+                    np.random.random((int(np.ceil(1.5 * Q)), len(shape))).dot(
+                        np.diag(shape)
+                    )
+                ),
+                axis=0,
+            ).astype(int)
+            # Check if there are too many unique subs
+            if len(subs) > Q:
+                # TODO: check if note from matlab still relevant
+                # Note in original matlab: unique orders the subs and would bias toward
+                # first subs with lower values, so we sample to cut back
+                idx = np.random.permutation(subs.shape[0])
+                subs = subs[idx[:Q]]
+            elif subs.shape[0] < Q:
+                logging.warning(
+                    f"Only generated {subs.shape[0]} of " f"{Q} desired subscripts"
+                )
+            W = ttb.sptensor(
+                subs,
+                np.ones(
+                    (len(subs), 1),
+                ),
+                shape=shape,
+            )
+        else:
+            # Compute the linear indices of the missing entries.
+            idx = np.random.permutation(P)
+            idx = idx[:Q]
+            W = ttb.tenzeros(shape)
+            W[idx] = 1
+        # return W
+
+        # Check if W has any empty slices
+        isokay = True
+        for n in range(ndim):
+            all_but_n = np.arange(W.ndims)
+            all_but_n = np.delete(all_but_n, n)
+            collapse_W = W.collapse(all_but_n)
+            if isinstance(collapse_W, np.ndarray):
+                isokay &= bool(np.all(collapse_W))
+            else:
+                isokay &= bool(np.all(collapse_W.double()))
+
+        # Quit if okay
+        if isokay:
+            break
+
+    if not isokay:
+        raise ValueError(
+            f"After {iter} iterations, cannot produce a tensor with"
+            f"{missing_ratio*100} missing data without an empty slice."
+        )
+    return W
 
 
 @overload
@@ -125,16 +228,21 @@ def create_problem(
 
     solution = generate_solution(problem_params)
 
-    if missing_params.sparse_model:
-        raise NotImplementedError("Sparse generation not yet supported")
-
     data: Union[ttb.tensor, ttb.sptensor]
     if (
         isinstance(problem_params, CPProblem)
         and problem_params.sparse_generation is not None
     ):
+        if missing_params.has_missing():
+            raise ValueError(
+                f"Can't combine missing data {MissingData.__name__} and "
+                f" sparse generation {CPProblem.__name__}."
+            )
         solution = cast(ttb.ktensor, solution)
         solution, data = generate_data_sparse(solution, problem_params, data_params)
+    elif missing_params.has_missing():
+        pattern = missing_params.get_pattern(solution.shape)
+        data = generate_data(solution, problem_params, data_params, pattern)
     else:
         data = generate_data(solution, problem_params, data_params)
     return solution, data
@@ -197,20 +305,55 @@ def generate_solution(
     raise ValueError(f"Unsupported problem parameter type: {type(problem_params)=}")
 
 
+@overload
 def generate_data(
     solution: Union[ttb.ktensor, ttb.ttensor],
     problem_params: BaseProblem,
     data_params: DataParams,
-) -> ttb.tensor:
+    pattern: Optional[ttb.tensor] = None,
+) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
+
+
+@overload
+def generate_data(
+    solution: Union[ttb.ktensor, ttb.ttensor],
+    problem_params: BaseProblem,
+    data_params: DataParams,
+    pattern: ttb.sptensor,
+) -> ttb.sptensor: ...  # pragma: no cover see coveragepy/issues/970
+
+
+def generate_data(
+    solution: Union[ttb.ktensor, ttb.ttensor],
+    problem_params: BaseProblem,
+    data_params: DataParams,
+    pattern: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
+) -> Union[ttb.tensor, ttb.sptensor]:
     """Generate problem data."""
     shape = solution.shape
-    # TODO handle the sparsity pattern
-    # TODO don't we already have a randn tensor method?
-    Rdm = ttb.tensor(randn(shape))
-    Z = solution.full()
-    if problem_params.symmetric is not None:
-        # TODO Note in MATLAB code to follow up
-        Rdm = Rdm.symmetrize(np.array(problem_params.symmetric))
+    Rdm: Union[ttb.tensor, ttb.sptensor]
+    if pattern is not None:
+        if isinstance(pattern, ttb.sptensor):
+            Rdm = ttb.sptensor(pattern.subs, randn((pattern.nnz, 1)), pattern.shape)
+            try:
+                Z = pattern * solution
+            except Exception as E:
+                raise ValueError(
+                    f"{pattern.shape=}, {pattern.subs.shape}, {pattern.vals.shape}"
+                ) from E
+
+        elif isinstance(pattern, ttb.tensor):
+            Rdm = pattern * ttb.tensor(randn(shape))
+            Z = pattern * solution.full()
+        else:
+            raise ValueError(f"Unsupported sparsity pattern of type {type(pattern)}")
+    else:
+        # TODO don't we already have a randn tensor method?
+        Rdm = ttb.tensor(randn(shape))
+        Z = solution.full()
+        if problem_params.symmetric is not None:
+            # TODO Note in MATLAB code to follow up
+            Rdm = Rdm.symmetrize(np.array(problem_params.symmetric))
 
     D = Z + data_params.noise * Z.norm() * Rdm / Rdm.norm()
     # Make sure the final result is definitely symmetric
@@ -274,7 +417,7 @@ def generate_data_sparse(
     Z = ttb.sptensor(
         allsubs,
         np.ones(
-            len(allsubs),
+            (len(allsubs), 1),
         ),
         shape=shape,
     )
