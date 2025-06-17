@@ -12,6 +12,9 @@ import pyttb as ttb
 from pyttb.pyttb_utils import Shape, parse_shape
 
 solution_generator = Callable[[Tuple[int, ...]], np.ndarray]
+core_generator_t = Callable[
+    [Tuple[int, ...]], Union[ttb.tensor, ttb.sptensor, np.ndarray]
+]
 
 
 def randn(shape: Tuple[int, ...]) -> np.ndarray:
@@ -51,7 +54,7 @@ class TuckerProblem(BaseProblem):
 
     # TODO post_init set to [2, 2, 2]
     num_factors: Optional[list[int]] = None
-    core_generator: solution_generator = randn
+    core_generator: core_generator_t = randn
 
     def __post_init__(self):
         super().__post_init__()
@@ -297,7 +300,11 @@ def generate_solution(
     # Create final model
     if isinstance(problem_params, TuckerProblem):
         nfactors = cast(list[int], problem_params.num_factors)
-        core = ttb.tensor(problem_params.core_generator(tuple(nfactors)))
+        generated_core = problem_params.core_generator(tuple(nfactors))
+        if isinstance(generated_core, (ttb.tensor, ttb.sptensor)):
+            core = generated_core
+        else:
+            core = ttb.tensor(generated_core)
         return ttb.ttensor(core, factor_matrices)
     elif isinstance(problem_params, CPProblem):
         weights = problem_params.weight_generator((problem_params.num_factors,))
@@ -335,13 +342,7 @@ def generate_data(
     if pattern is not None:
         if isinstance(pattern, ttb.sptensor):
             Rdm = ttb.sptensor(pattern.subs, randn((pattern.nnz, 1)), pattern.shape)
-            try:
-                Z = pattern * solution
-            except Exception as E:
-                raise ValueError(
-                    f"{pattern.shape=}, {pattern.subs.shape}, {pattern.vals.shape}"
-                ) from E
-
+            Z = pattern * solution
         elif isinstance(pattern, ttb.tensor):
             Rdm = pattern * ttb.tensor(randn(shape))
             Z = pattern * solution.full()

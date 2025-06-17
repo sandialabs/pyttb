@@ -3,6 +3,7 @@ import pytest
 
 import pyttb as ttb
 from pyttb.create_problem import (
+    BaseProblem,
     CPProblem,
     DataParams,
     MissingData,
@@ -91,6 +92,20 @@ def test_create_problem_smoke():
     soln, data = create_problem(cp_params, missing_params, data_params)
     assert soln.full().shape == data.shape
 
+    cp_params.symmetric = [(0, 1)]
+    soln, data = create_problem(cp_params, missing_params, data_params)
+    assert soln.full().shape == data.shape
+
+    with pytest.raises(ValueError):
+        empty_num_factors = BaseProblem(shape)
+        create_problem(empty_num_factors, missing_params, data_params)
+    with pytest.raises(ValueError):
+        inconsistent_num_factors = BaseProblem(shape, num_factors=[2, 2])
+        create_problem(inconsistent_num_factors, missing_params, data_params)
+    with pytest.raises(ValueError):
+        bad_problem_type = BaseProblem(shape, num_factors=3)
+        create_problem(bad_problem_type, missing_params, data_params)
+
     # TODO hit edge cases and symmetric
 
 
@@ -104,6 +119,9 @@ def test_create_problem_smoke_sparse():
     soln, data = create_problem(cp_params, missing_params, data_params)
     assert soln.full().shape == data.shape
 
+    with pytest.raises(ValueError):
+        missing_AND_sparse_generation = MissingData(missing_ratio=0.1)
+        create_problem(cp_params, missing_AND_sparse_generation, data_params)
     # TODO hit edge cases and symmetric
 
 
@@ -118,3 +136,13 @@ def test_create_problem_smoke_missing():
     missing_params = MissingData(missing_ratio=0.8, sparse_model=True)
     soln, data = create_problem(cp_params, missing_params, data_params)
     assert soln.full().shape == data.shape
+
+    with pytest.raises(ValueError):
+        bad_pattern_shape = np.ones([dim + 1 for dim in soln.shape])
+        missing_params = MissingData(missing_pattern=bad_pattern_shape)
+        create_problem(cp_params, missing_params, data_params)
+
+    with pytest.raises(ValueError):
+        bad_pattern_type = np.ones(soln.shape)
+        missing_params = MissingData(missing_pattern=bad_pattern_type)
+        create_problem(cp_params, missing_params, data_params)
