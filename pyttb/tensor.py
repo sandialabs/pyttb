@@ -316,14 +316,14 @@ class tensor:
         self,
         dims: None,
         fun: Callable[[np.ndarray], Union[float, np.ndarray]],
-    ) -> float: ...
+    ) -> float: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
     def collapse(
         self,
         dims: OneDArray,
         fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
-    ) -> Union[np.ndarray, tensor]: ...
+    ) -> Union[np.ndarray, tensor]: ...  # pragma: no cover see coveragepy/issues/970
 
     def collapse(
         self,
