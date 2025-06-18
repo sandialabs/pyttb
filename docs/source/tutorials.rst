@@ -32,6 +32,11 @@ Tucker Decompositions
 Working with Tensors
 ====================
 
+.. toctree::
+   :maxdepth: 1
+
+   Creating Test Problems<tutorial/utility_test_problem.ipynb>   
+
 Converting Between Tensors and Matrices
 ---------------------------------------
 

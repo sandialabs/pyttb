@@ -2,7 +2,7 @@
 
 import logging
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Optional, Tuple, Union, cast, overload
 
 import numpy as np
@@ -27,30 +27,99 @@ def randn(shape: Tuple[int, ...]) -> np.ndarray:
 
 @dataclass
 class BaseProblem:
-    """Parameters general to all solutions."""
+    """Parameters general to all solutions.
 
-    shape: Shape
+    Attributes
+    ----------
+    shape:
+        Tensor shape for generated problem.
+    factor_generator:
+        Method to generate factor matrices.
+    symmetric:
+        List of modes that should be symmetric.
+        For instance, `[(1,2), (3,4)]` specifies that
+        modes 1 and 2 have identical factor matrices, and modes 3 and 4
+        also have identical factor matrices.
+    num_factors:
+        Number of factors.
+    noise:
+        Amount of Gaussian noise to add to solution.
+        If data is sparse noise is only added to nonzero entries.
+    """
+
+    shape: Shape = field(metadata={"doc": "A shape"})
     factor_generator: solution_generator = randn
     symmetric: Optional[list[Tuple[int, int]]] = None
     num_factors: Union[int, list[int], None] = None
+    noise: float = 0.10
 
     def __post_init__(self):
         self.shape = ttb.pyttb_utils.parse_shape(self.shape)
+        if not 0.0 <= self.noise <= 1.0:
+            raise ValueError(f"Noise must be in [0,1] but got {self.noise}")
 
 
 @dataclass
 class CPProblem(BaseProblem):
-    """Parameters specifying CP Solutions."""
+    """Parameters specifying CP Solutions.
+
+    Attributes
+    ----------
+    shape:
+        Tensor shape for generated problem.
+    factor_generator:
+        Method to generate factor matrices.
+    symmetric:
+        List of modes that should be symmetric.
+        For instance, `[(1,2), (3,4)]` specifies that
+        modes 1 and 2 have identical factor matrices, and modes 3 and 4
+        also have identical factor matrices.
+    num_factors:
+        Number of factors.
+    noise:
+        Amount of Gaussian noise to add to solution.
+        If data is sparse noise is only added to nonzero entries.
+    weight_generator:
+        Method to generate weights for ktensor solution.
+    sparse_generation:
+        Generate a sparse tensor that can be scaled so that the
+        column factors and weights are stochastic. Provide a number
+        of nonzeros to be inserted. A value in range [0,1) will be
+        interpreted as a ratio.
+    """
+
+    # NOTE inherited attributes are manually copy pasted, keep aligned between problems
 
     num_factors: int = 2
     weight_generator: solution_generator = np.random.random
-    # TODO: This is in DataParams in MATLAB, but only works for CP problems
+    # TODO: This is in DataParams in MATLAB, but only works for CP problems so
+    # feels more reasonable here
     sparse_generation: Optional[float] = None
 
 
 @dataclass
 class TuckerProblem(BaseProblem):
-    """Parameters specifying Tucker Solutions."""
+    """Parameters specifying Tucker Solutions.
+
+    Attributes
+    ----------
+    shape:
+        Tensor shape for generated problem.
+    factor_generator:
+        Method to generate factor matrices.
+    symmetric:
+        List of modes that should be symmetric.
+        For instance, `[(1,2), (3,4)]` specifies that
+        modes 1 and 2 have identical factor matrices, and modes 3 and 4
+        also have identical factor matrices.
+    num_factors:
+        Number of factors.
+    noise:
+        Amount of Gaussian noise to add to solution.
+        If data is sparse noise is only added to nonzero entries.
+    core_generator:
+        Method to generate weights for ttensor solution.
+    """
 
     # TODO post_init set to [2, 2, 2]
     num_factors: Optional[list[int]] = None
@@ -62,25 +131,24 @@ class TuckerProblem(BaseProblem):
 
 
 @dataclass
-class DataParams:
-    """Parameters to control data quality."""
-
-    noise: float = 0.10
-
-    def __post_init__(
-        self,
-    ):
-        if not 0.0 <= self.noise <= 1.0:
-            raise ValueError(f"Noise must be in [0,1] but got {self.noise}")
-
-
-@dataclass
 class MissingData:
-    """Parameters to control missing data."""
+    """Parameters to control missing data.
+
+    Attributes
+    ----------
+    missing_ratio:
+        Proportion of missing data.
+    missing_pattern:
+        An explicit tensor representing missing data locations.
+    sparse_model:
+        Whether to generate sparse rather than dense missing data pattern.
+        Only useful for large tensors that don't easily fit in memory and
+        when missing ratio > 0.8.
+    """
 
     missing_ratio: float = 0.0
-    sparse_model: bool = False
     missing_pattern: Optional[Union[ttb.sptensor, ttb.tensor]] = None
+    sparse_model: bool = False
 
     def __post_init__(self):
         if not 0.0 <= self.missing_ratio <= 1.0:
@@ -208,7 +276,7 @@ def _create_missing_data_pattern(
 
 @overload
 def create_problem(
-    problem_params: CPProblem, missing_params: MissingData, data_params: DataParams
+    problem_params: CPProblem, missing_params: MissingData
 ) -> Tuple[
     ttb.ktensor, Union[ttb.tensor, ttb.sptensor]
 ]: ...  # pragma: no cover see coveragepy/issues/970
@@ -216,16 +284,47 @@ def create_problem(
 
 @overload
 def create_problem(
-    problem_params: TuckerProblem, missing_params: MissingData, data_params: DataParams
+    problem_params: TuckerProblem,
+    missing_params: MissingData,
 ) -> Tuple[ttb.ttensor, ttb.tensor]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def create_problem(
     problem_params: Union[CPProblem, TuckerProblem],
     missing_params: MissingData,
-    data_params: DataParams,
 ) -> Tuple[Union[ttb.ktensor, ttb.ttensor], Union[ttb.tensor, ttb.sptensor]]:
-    """Generate a problem and solution."""
+    """Generate a problem and solution.
+
+    Arguments
+    ---------
+    problem_params:
+        Parameters related to the problem to generate.
+    missing_params:
+        Parameters to control missing data in the generated data/solution.
+
+    Examples
+    --------
+    Base example params
+
+    >>> shape = (5, 4, 3)
+
+    Generate a CP problem
+
+    >>> cp_specific_params = CPProblem(shape=shape, num_factors=3, noise=0.1)
+    >>> no_missing_data = MissingData()
+    >>> solution, data = create_problem(cp_specific_params, no_missing_data)
+    >>> diff = (solution.full() - data).norm() / solution.full().norm()
+    >>> bool(np.isclose(diff, 0.1))
+    True
+
+    Generate Tucker Problem
+
+    >>> tucker_specific_params = TuckerProblem(shape, num_factors=[3, 3, 2], noise=0.1)
+    >>> solution, data = create_problem(tucker_specific_params, no_missing_data)
+    >>> diff = (solution.full() - data).norm() / solution.full().norm()
+    >>> bool(np.isclose(diff, 0.1))
+    True
+    """
     if problem_params.symmetric is not None:
         missing_params.raise_symmetric()
 
@@ -242,12 +341,12 @@ def create_problem(
                 f" sparse generation {CPProblem.__name__}."
             )
         solution = cast(ttb.ktensor, solution)
-        solution, data = generate_data_sparse(solution, problem_params, data_params)
+        solution, data = generate_data_sparse(solution, problem_params)
     elif missing_params.has_missing():
         pattern = missing_params.get_pattern(solution.shape)
-        data = generate_data(solution, problem_params, data_params, pattern)
+        data = generate_data(solution, problem_params, pattern)
     else:
-        data = generate_data(solution, problem_params, data_params)
+        data = generate_data(solution, problem_params)
     return solution, data
 
 
@@ -316,7 +415,6 @@ def generate_solution(
 def generate_data(
     solution: Union[ttb.ktensor, ttb.ttensor],
     problem_params: BaseProblem,
-    data_params: DataParams,
     pattern: Optional[ttb.tensor] = None,
 ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
 
@@ -325,7 +423,6 @@ def generate_data(
 def generate_data(
     solution: Union[ttb.ktensor, ttb.ttensor],
     problem_params: BaseProblem,
-    data_params: DataParams,
     pattern: ttb.sptensor,
 ) -> ttb.sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
@@ -333,7 +430,6 @@ def generate_data(
 def generate_data(
     solution: Union[ttb.ktensor, ttb.ttensor],
     problem_params: BaseProblem,
-    data_params: DataParams,
     pattern: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
 ) -> Union[ttb.tensor, ttb.sptensor]:
     """Generate problem data."""
@@ -356,7 +452,7 @@ def generate_data(
             # TODO Note in MATLAB code to follow up
             Rdm = Rdm.symmetrize(np.array(problem_params.symmetric))
 
-    D = Z + data_params.noise * Z.norm() * Rdm / Rdm.norm()
+    D = Z + problem_params.noise * Z.norm() * Rdm / Rdm.norm()
     # Make sure the final result is definitely symmetric
     if problem_params.symmetric is not None:
         D = D.symmetrize(np.array(problem_params.symmetric))
@@ -372,7 +468,8 @@ def prosample(nsamples: int, prob: np.ndarray) -> np.ndarray:
 
 
 def generate_data_sparse(
-    solution: ttb.ktensor, problem_params: CPProblem, data_params: DataParams
+    solution: ttb.ktensor,
+    problem_params: CPProblem,
 ) -> Tuple[ttb.ktensor, ttb.sptensor]:
     """Generate sparse CP data from a given solution."""
     # Error check on solution
