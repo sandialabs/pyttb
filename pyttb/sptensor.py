@@ -163,6 +163,11 @@ class sptensor:
         if vals.size == 0:
             # In case user provides an empty array in weird format
             vals = np.array([], dtype=vals.dtype, ndmin=2)
+        elif len(vals.shape) == 1:
+            # Enforce column array
+            vals = vals.reshape((vals.shape[0], 1))
+        elif len(vals.shape) > 2:
+            raise ValueError("Values should be a column vector")
 
         if copy:
             self.subs = subs.copy()
