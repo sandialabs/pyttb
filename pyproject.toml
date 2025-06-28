@@ -32,7 +32,7 @@ documentation = "https://pyttb.readthedocs.io"
 
 [project.optional-dependencies]
 dev = [
-    "mypy>=1.10,<1.14.0",
+    "mypy>=1.15,<1.16.0",
     # Also in pre-commit
     "nbstripout>=0.8,<0.9",
     "pytest>8.0",
