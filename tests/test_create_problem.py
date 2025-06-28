@@ -5,6 +5,7 @@ import pyttb as ttb
 from pyttb.create_problem import (
     BaseProblem,
     CPProblem,
+    ExistingSolution,
     MissingData,
     TuckerProblem,
     create_problem,
@@ -63,6 +64,20 @@ class TestDataclasses:
         missing_params.get_pattern(arbitrary_shape)
         assert "missing elements" in caplog.text
 
+    def test_existing_solution(self, sample_ktensor_2way):
+        solution = sample_ktensor_2way
+        existing_solution = ExistingSolution(solution)
+        assert existing_solution.solution is solution
+        assert existing_solution.noise == 0.1
+
+        with pytest.raises(ValueError):
+            value_less_than_zero = -0.1
+            ExistingSolution(solution, noise=value_less_than_zero)
+
+        with pytest.raises(ValueError):
+            value_greater_than_one = 1.1
+            ExistingSolution(solution, noise=value_greater_than_one)
+
 
 def test_generate_solution_cp():
     # Smoke test with defaults
@@ -118,6 +133,12 @@ def test_create_problem_smoke():
     missing_params = MissingData()
     soln, data = create_problem(cp_params, missing_params)
     assert soln.full().shape == data.shape
+
+    existing_params = ExistingSolution(soln)
+    missing_params = MissingData()
+    soln, data = create_problem(existing_params, missing_params)
+    assert soln.full().shape == data.shape
+    assert soln is existing_params.solution, "Solution should be the same object"
 
     cp_params.symmetric = [(0, 1)]
     soln, data = create_problem(cp_params, missing_params)
