@@ -56,7 +56,7 @@ extensions = [
     "myst_nb",
 ]
 
-#autodoc_preserve_defaults = True
+# autodoc_preserve_defaults = True
 
 myst_enable_extensions = [
     "amsmath",

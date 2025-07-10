@@ -80,14 +80,14 @@ class tensor:
         tensor of shape (4, 3, 2) with order F
         data[:, :, 0] =
         [[ 1  5  9]
-            [ 2  6 10]
-            [ 3  7 11]
-            [ 4  8 12]]
+         [ 2  6 10]
+         [ 3  7 11]
+         [ 4  8 12]]
         data[:, :, 1] =
         [[13 17 21]
-            [14 18 22]
-            [15 19 23]
-            [16 20 24]]
+         [14 18 22]
+         [15 19 23]
+         [16 20 24]]
 
     Create a :class:`pyttb.tensor` from a :class:`numpy.ndarray` vector and
     reshape it::
@@ -99,14 +99,14 @@ class tensor:
         tensor of shape (4, 3, 2) with order F
         data[:, :, 0] =
         [[ 1  5  9]
-            [ 2  6 10]
-            [ 3  7 11]
-            [ 4  8 12]]
+         [ 2  6 10]
+         [ 3  7 11]
+         [ 4  8 12]]
         data[:, :, 1] =
         [[13 17 21]
-            [14 18 22]
-            [15 19 23]
-            [16 20 24]]
+         [14 18 22]
+         [15 19 23]
+         [16 20 24]]
 
     Create an empty :class:`pyttb.tensor`::
 
@@ -114,10 +114,9 @@ class tensor:
         >>> print(T)
         empty tensor of shape ()
         data = []
-    
 
     Notes
-    --------
+    -----
     Instances of :class:`pyttb.tensor` can also be created using the following methods:
 
         * :meth:`from_function` - Create a tensor from a function
