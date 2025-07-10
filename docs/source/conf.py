@@ -52,10 +52,11 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
     "myst_nb",
 ]
 
-autodoc_preserve_defaults = True
+#autodoc_preserve_defaults = True
 
 myst_enable_extensions = [
     "amsmath",
@@ -197,5 +198,7 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 # Autodoc settings
-autoclass_content = "class"
+autoclass_content = "both"
 autodoc_member_order = "bysource"
+autosummary_generate = True
+autosummary_generate_overwrite = False

@@ -1,8 +1,20 @@
-Reference (:mod:`pyttb`)
-========================
+Reference (:class:`pyttb`)
+==========================
 
-.. toctree::
-    :maxdepth: 2
+.. rubric:: Description
+.. automodule:: pyttb
+.. currentmodule:: pyttb
 
-    tensor_classes.rst
-    algorithms.rst
+
+.. rubric:: Classes
+.. autosummary::
+    :toctree: generated
+
+    pyttb.tensor
+    pyttb.sptensor
+    pyttb.ktensor
+    pyttb.ttensor
+    pyttb.sumtensor
+    pyttb.tenmat
+    pyttb.sptenmat
+    pyttb.pyttb_utils

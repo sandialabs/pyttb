@@ -71,7 +71,7 @@ This is relevant for indexing. In the future we hope to extend support for both.
 
    getting_started.rst
 
-Python API
+Python Reference
 ================
 
 .. toctree::
