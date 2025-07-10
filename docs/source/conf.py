@@ -198,7 +198,7 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 # Autodoc settings
-#autoclass_content = "both"
+# autoclass_content = "both"
 autodoc_member_order = "bysource"
 autosummary_generate = True
 autosummary_generate_overwrite = False
