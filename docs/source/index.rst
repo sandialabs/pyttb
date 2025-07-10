@@ -75,7 +75,7 @@ Python Reference
 ================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    reference.rst
 
