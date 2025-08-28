@@ -789,6 +789,11 @@ def test_tensor_double(sample_tensor_2way):
     assert np.array_equal(double_array, params["data"])
     assert_consistent_order(tensorInstance, double_array)
 
+    # Verify immutability
+    double_array = tensorInstance.double(True)
+    with pytest.raises(ValueError):
+        double_array[0] = 1
+
 
 def test_tensor_isequal(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way

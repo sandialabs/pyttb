@@ -58,11 +58,11 @@ class tensor:
     ----------
         data : numpy.ndarray
             Data of the tensor
-        shape : tuple of integers
+        shape : Tuple[int]
             Size of the tensor
 
-    Instances of :class:`pyttb.tensor` can be created using :meth:`__init__`
-    or the following methods:
+    Instances of :class:`pyttb.tensor` can be created using
+    :meth:`pyttb.tensor.tensor.__init__` or the following methods:
 
         * :meth:`from_function` - Create a tensor from a function
         * :meth:`copy` - Make a deep copy of a tensor
@@ -338,7 +338,7 @@ class tensor:
         dims: optional
             Dimensions to collapse (default: all).
         fun: optional
-            Method used to collapse dimensions (default: :meth:`numpy.sum`).
+            Function used to collapse dimensions (default: :func:`numpy.sum`).
 
         Returns
         -------
@@ -512,13 +512,18 @@ class tensor:
 
         return ttb.tensor(newdata, newsize, copy=False)
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
 
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
+
         Returns
         -------
-        Copy of tensor data.
+        Array of tensor data.
 
         Examples
         --------
@@ -527,7 +532,10 @@ class tensor:
         array([[1., 1.],
                [1., 1.]])
         """
-        return self.data.astype(np.float64, order=self.order, copy=True)
+        double = self.data.astype(np.float64, order=self.order, copy=not immutable)
+        if immutable:
+            double.flags.writeable = False
+        return double
 
     def exp(self) -> tensor:
         """
@@ -602,16 +610,18 @@ class tensor:
         subs, vals = self.find()
         return ttb.sptensor(subs, vals, self.shape, copy=False)
 
-    # TODO: do we need this, now that we have copy() and __deepcopy__()?
     def full(self) -> tensor:
         """
-        Convert dense tensor to dense tensor.
+        Create a dense tensor from dense tensor.
+
+        Convenience method to maintain common interface with other
+        tensor types.
 
         Returns
         -------
-        Deep copy
+        Shallow copy
         """
-        return ttb.tensor(self.data)
+        return self
 
     def to_tenmat(
         self,
@@ -1923,8 +1933,8 @@ class tensor:
     ) -> ttb.tensor:
         """Apply a function to each element in a tensor or tensors.
 
-        See :meth:`pyttb.tensor.tenfun_binary` and
-        :meth:`pyttb.tensor.tenfun_binary_unary` for supported
+        See :meth:`pyttb.tensor.tensor.tenfun_binary` and
+        :meth:`pyttb.tensor.tensor.tenfun_unary` for supported
         options.
         """
         assert callable(function_handle), "function_handle must be callable"

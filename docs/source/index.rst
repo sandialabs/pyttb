@@ -14,7 +14,6 @@ analysis.
 -  Reports of bugs and feature requests can be `submitted on github <https://github.com/sandialabs/pyttb/issues>`_.
 -  For more information or for feedback on this project, please `contact us`_.
 
-.. _`LICENSE`: ../../../LICENSE
 .. _contact us: #contact
 
 

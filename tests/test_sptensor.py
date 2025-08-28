@@ -1030,6 +1030,11 @@ def test_sptensor_double(sample_sptensor):
     assert double_array.shape == data["shape"]
     assert_consistent_order(sptensorInstance, double_array)
 
+    # Verify immutability
+    double_array = sptensorInstance.double(True)
+    with pytest.raises(ValueError):
+        double_array[0] = 1
+
 
 def test_sptensor_compare(sample_sptensor):
     # This is kind of a test just for coverage sake

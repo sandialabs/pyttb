@@ -228,14 +228,15 @@ class ttensor:
             recomposed_tensor = recomposed_tensor.to_tensor()
         return recomposed_tensor
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """Convert ttensor to an array of doubles.
 
-        Returns
-        -------
-        Copy of tensor data.
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
         """
-        return self.full().double()
+        return self.full().double(immutable)
 
     @property
     def ndims(self) -> int:

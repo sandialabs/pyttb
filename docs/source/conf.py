@@ -69,8 +69,9 @@ napoleon_use_param = False
 napoleon_use_rtype = False
 
 intersphinx_mapping = {
-    "numpy": ("http://docs.scipy.org/doc/numpy/", "numpy.inv"),
-    "python": ("http://docs.python.org/3.8/", "python.inv"),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "python": ("http://docs.python.org/3.9/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
