@@ -1,5 +1,5 @@
-Tucker tensor (:class:`ttensor`)
---------------------------------
+Tucker tensor (:class:`pyttb.ttensor`)
+--------------------------------------
 .. note::
     
      The ``ttensor`` class defined in ``ttensor.py`` has been promoted to the ``pyttb`` namespace.
