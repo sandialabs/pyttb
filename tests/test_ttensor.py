@@ -152,6 +152,11 @@ def test_ttensor_double(sample_ttensor):
     assert ttensorInstance.double() == np.prod(ttensorInstance.core.shape)
     assert_consistent_order(ttensorInstance, ttensorInstance.double())
 
+    # Verify immutability
+    double_array = ttensorInstance.double(True)
+    with pytest.raises(ValueError):
+        double_array[0] = 1
+
 
 def test_ttensor_ndims(sample_ttensor):
     ttensorInstance = sample_ttensor

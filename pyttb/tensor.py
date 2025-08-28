@@ -58,11 +58,11 @@ class tensor:
     ----------
         data : numpy.ndarray
             Data of the tensor
-        shape : tuple of integers
+        shape : Tuple[int]
             Size of the tensor
 
-    Instances of :class:`pyttb.tensor` can be created using :meth:`__init__`
-    or the following methods:
+    Instances of :class:`pyttb.tensor` can be created using
+    :meth:`pyttb.tensor.tensor.__init__` or the following methods:
 
         * :meth:`from_function` - Create a tensor from a function
         * :meth:`copy` - Make a deep copy of a tensor
@@ -296,13 +296,13 @@ class tensor:
         Observing the difference between a shallow copy and a deep copy. When the
         original tensor changes, so does the shallow copy, but the deep copy does not::
 
-            >>> T = ttb.tensor(np.ones((3, 2)))
+            >>> T = ttb.tensor(np.ones(8), (2, 2, 2))
             >>> T_shallow = T
             >>> T_deep = T.copy()
-            >>> T[0, 0] = 3
-            >>> T[0, 0] == T_shallow[0, 0]
+            >>> T[0, 0, 0] = 3
+            >>> T[0, 0, 0] == T_shallow[0, 0, 0]
             True
-            >>> T[0, 0] == T_deep[0, 0]
+            >>> T[0, 0, 0] == T_deep[0, 0, 0]
             False
         """
         return ttb.tensor(self.data, self.shape, copy=True)
@@ -324,7 +324,7 @@ class tensor:
         dims: optional
             Dimensions to collapse (default: all).
         fun: optional
-            Method used to collapse dimensions (default: :meth:`numpy.sum`).
+            Function used to collapse dimensions (default: :func:`numpy.sum`).
 
         Returns
         -------
@@ -432,30 +432,35 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2, 2)))
-        >>> T.contract(0, 1)
-        2.0
-        >>> T = ttb.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-        >>> print(T)
-        tensor of shape (2, 2, 2) with order F
-        data[:, :, 0] =
-        [[1 3]
-         [5 7]]
-        data[:, :, 1] =
-        [[2 4]
-         [6 8]]
-        >>> T.contract(0, 1)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 8. 10.]
-        >>> T.contract(0, 2)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 7. 11.]
-        >>> T.contract(1, 2)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 5. 13.]
+        Contract a three-way 2 x 2 x 2 tensor along two dimensions
+        in three possible ways::
+
+            >>> T = ttb.tensor(np.ones(8), (2, 2, 2)) # All-ones 2 x 2 x 2 tensor
+            >>> T.contract(0, 1)
+            tensor of shape (2,) with order F
+            data[:] =
+            [2. 2.]
+            >>> T = ttb.tensor(np.arange(1, 9), (2, 2, 2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[1 3]
+             [2 4]]
+            data[:, :, 1] =
+            [[5 7]
+             [6 8]]
+            >>> T.contract(0, 1)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 5. 13.]
+            >>> T.contract(0, 2)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 7. 11.]
+            >>> T.contract(1, 2)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 8. 10.]
         """
         if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
@@ -496,22 +501,33 @@ class tensor:
 
         return ttb.tensor(newdata, newsize, copy=False)
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
 
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
+
         Returns
         -------
-        Copy of tensor data.
+        Array of tensor data.
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2, 2)))
+        >>> T = ttb.tensor(np.ones(8), (2, 2, 2))  # All-ones 2 x 2 x 2 tensor
         >>> T.double()
-        array([[1., 1.],
-               [1., 1.]])
+        array([[[1., 1.],
+                [1., 1.]],
+        <BLANKLINE>
+               [[1., 1.],
+                [1., 1.]]])
         """
-        return self.data.astype(np.float64, order=self.order, copy=True)
+        double = self.data.astype(np.float64, order=self.order, copy=not immutable)
+        if immutable:
+            double.flags.writeable = False
+        return double
 
     def exp(self) -> tensor:
         """
@@ -524,10 +540,23 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> T.exp().data  # doctest: +ELLIPSIS
-        array([[ 2.7182...,  7.3890... ],
-               [20.0855..., 54.5981...]])
+        >>> T = ttb.tensor(np.arange(8), (2, 2, 2))  # Tensor with entries 0 to 7
+        >>> print(T)
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[0 2]
+         [1 3]]
+        data[:, :, 1] =
+        [[4 6]
+         [5 7]]
+        >>> print(T.exp())
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[ 1.          7.3890561 ]
+         [ 2.71828183 20.08553692]]
+        data[:, :, 1] =
+        [[  54.59815003  403.42879349]
+         [ 148.4131591  1096.63315843]]
         """
         return ttb.tensor(np.exp(self.data), copy=False)
 
@@ -542,20 +571,35 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[1 2]
-         [3 4]]
-        >>> T_threshold = T > 2
-        >>> subs, vals = T_threshold.find()
-        >>> subs.astype(int)
-        array([[1, 0],
-               [1, 1]])
-        >>> vals
-        array([[ True],
-               [ True]])
+        Create a random tensor with approximately 50% zero entries::
+
+            >>> np.random.seed(6) # reproducibility
+            >>> sprandint = lambda s: np.where(np.random.rand(np.prod(s)) < 0.5,
+            ...                                0.0, np.random.rand(np.prod(s)))
+            >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.33540785 0.43814143]
+             [0.         0.        ]]
+            data[:, :, 1] =
+            [[0.        0.6453551]
+             [0.5788586 0.       ]]
+
+        Find the nonzero entries in the tensor::
+
+            >>> subs, vals = T.find()
+            >>> print(subs)
+            [[0 0 0]
+             [0 1 0]
+             [1 0 1]
+             [0 1 1]]
+            >>> print(vals)
+            [[0.33540785]
+             [0.43814143]
+             [0.5788586 ]
+             [0.6453551 ]]
+
         """
         idx = np.nonzero(np.ravel(self.data, order=self.order))[0]
         subs = tt_ind2sub(self.shape, idx)
@@ -571,31 +615,45 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[0, 2], [3, 0]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[0 2]
-         [3 0]]
-        >>> S = T.to_sptensor()
-        >>> print(S)
-        sparse tensor of shape (2, 2) with 2 nonzeros and order F
-        [1, 0] = 3
-        [0, 1] = 2
+        Construct a 2x2x2 tensor with some nonzero entries::
+
+            >>> np.random.seed(3) # reproducibility
+            >>> sprandint = lambda s: np.random.randint(0, 4, size=np.prod(s)) / 4;
+            >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.5  0.25]
+             [0.   0.75]]
+            data[:, :, 1] =
+            [[0.   0.  ]
+             [0.   0.25]]
+
+        Convert to a sparse tensor::
+
+            >>> S = T.to_sptensor()
+            >>> print(S)
+            sparse tensor of shape (2, 2, 2) with 4 nonzeros and order F
+            [0, 0, 0] = 0.5
+            [0, 1, 0] = 0.25
+            [1, 1, 0] = 0.75
+            [1, 1, 1] = 0.25
         """
         subs, vals = self.find()
         return ttb.sptensor(subs, vals, self.shape, copy=False)
 
-    # TODO: do we need this, now that we have copy() and __deepcopy__()?
     def full(self) -> tensor:
         """
-        Convert dense tensor to dense tensor.
+        Create a dense tensor from dense tensor.
+
+        Convenience method to maintain common interface with other
+        tensor types.
 
         Returns
         -------
-        Deep copy
+        Shallow copy
         """
-        return ttb.tensor(self.data)
+        return self
 
     def to_tenmat(
         self,
@@ -760,11 +818,11 @@ class tensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(2 * np.ones((2, 2)))
-        >>> T2 = 2 * ttb.tensor(np.ones((2, 2)))
+        >>> T1 = ttb.tensor(2 * np.ones((2, 2, 2)))
+        >>> T2 = 2 * ttb.tensor(np.ones((2, 2, 2)))
         >>> T1.isequal(T2)
         True
-        >>> T2[0, 0] = 1
+        >>> T2[1, 0, 1] = 1
         >>> T1.isequal(T2)
         False
         """
@@ -1907,8 +1965,8 @@ class tensor:
     ) -> ttb.tensor:
         """Apply a function to each element in a tensor or tensors.
 
-        See :meth:`pyttb.tensor.tenfun_binary` and
-        :meth:`pyttb.tensor.tenfun_binary_unary` for supported
+        See :meth:`pyttb.tensor.tensor.tenfun_binary` and
+        :meth:`pyttb.tensor.tensor.tenfun_unary` for supported
         options.
         """
         assert callable(function_handle), "function_handle must be callable"

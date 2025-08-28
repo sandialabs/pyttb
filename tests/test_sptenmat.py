@@ -222,6 +222,9 @@ def test_sptenmat_double(sample_sptensor_2way):
         f"Spmatrix: {spmatrix}\n" f"Sptenmat: {sptenmat_matrix}"
     )
 
+    # Smoke test to make sure flag works coo_matrix is effectively already immutable
+    S.double(True)
+
 
 def test_sptenmat_full(sample_sptensor_2way):
     params3, sptensorInstance = sample_sptensor_2way
