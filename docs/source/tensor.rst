@@ -1,5 +1,5 @@
-Dense Tensor (:class:`tensor`)
-------------------------------
+Dense Tensor (:class:`pyttb.tensor`)
+------------------------------------
 .. note::
     
      Classes and functions defined in ``tensor.py`` have been promoted to the ``pyttb`` namespace.

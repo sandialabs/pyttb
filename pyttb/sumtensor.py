@@ -289,13 +289,14 @@ class sumtensor:
             result += part
         return result
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert :class:`pyttb.tensor` to an :class:`numpy.ndarray` of doubles.
 
-        Returns
-        -------
-        Copy of tensor data.
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Examples
         --------
@@ -305,7 +306,7 @@ class sumtensor:
         array([[2., 2.],
                [2., 2.]])
         """
-        return self.full().double()
+        return self.full().double(immutable)
 
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]

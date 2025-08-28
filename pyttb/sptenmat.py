@@ -40,7 +40,7 @@ class sptenmat:
         and values (vals) along with the mappings of the row (rdims) and column
         indices (cdims) and the shape of the original tensor (tshape).
 
-        If you already have an sparse tensor see :method:`pyttb.sptensor.to_sptenmat`.
+        If you already have an sparse tensor see :meth:`pyttb.sptensor.to_sptenmat`.
 
         Parameters
         ----------
@@ -328,9 +328,13 @@ class sptenmat:
             n = np.prod(np.array(self.tshape)[self.cdims])
             return int(m), int(n)
 
-    def double(self) -> sparse.coo_matrix:
+    def double(self, immutable: bool = False) -> sparse.coo_matrix:
         """
         Convert a :class:`pyttb.sptenmat` to a COO :class:`scipy.sparse.coo_matrix`.
+
+        Parameters
+        ----------
+        immutable: Parameter for compatibility but coo_matrix doesn't allow assignment.
 
         Examples
         --------
