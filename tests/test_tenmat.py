@@ -315,6 +315,11 @@ def test_tenmat_double(sample_tenmat_4way):
     assert (double_array == tenmatInstance.data.astype(np.float64)).all()
     assert_consistent_order(tenmatInstance, double_array)
 
+    # Verify immutability
+    double_array = tenmatInstance.double(True)
+    with pytest.raises(ValueError):
+        double_array[0] = 1
+
 
 def test_tenmat_ndims(sample_tenmat_4way):
     (params, tenmatInstance) = sample_tenmat_4way

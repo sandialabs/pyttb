@@ -14,7 +14,6 @@ analysis.
 -  Reports of bugs and feature requests can be `submitted on github <https://github.com/sandialabs/pyttb/issues>`_.
 -  For more information or for feedback on this project, please `contact us`_.
 
-.. _`LICENSE`: ../../../LICENSE
 .. _contact us: #contact
 
 
@@ -47,8 +46,13 @@ algorithms for computing low-rank tensor models.
    decompositions such as Poisson Tensor Factorization via alternating
    Poisson regression.
 
+- `IO`_
+
+   Storing and retrieving tensors from disk.
+
 .. _Tensor Classes: tensor_classes.html
 .. _Algorithms: algorithms.html
+.. _IO: io.html
 
 
 Getting Started

@@ -1,6 +1,6 @@
 """Non-negative CP decomposition with alternating Poisson regression."""
 
-# Copyright 2024 National Technology & Engineering Solutions of Sandia,
+# Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
@@ -313,7 +313,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
                 M.factor_matrices[n] *= Phi[n]
 
                 # Print status
-                if printinneritn != 0 and divmod(i, printinneritn)[1] == 0:
+                if (printinneritn > 0) and (divmod(i, printinneritn)[1] == 0):
                     print(
                         "\t\tMode = {n}, Inner Iter = {i}, "
                         f"KKT violation = {kktModeViolations[n]}"
@@ -323,7 +323,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
             M.normalize(normtype=1, mode=n)
 
         kktViolations[iteration] = np.max(kktModeViolations)
-        if divmod(iteration, printitn)[1] == 0:
+        if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
             print(
                 f"\tIter {iteration}: Inner Its = {nInnerIters[iteration]} "
                 f"KKT violation = {kktViolations[iteration]}, "
@@ -588,7 +588,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
                     if i == 0 and kkt_violation > kktModeViolations[n]:
                         kktModeViolations[n] = kkt_violation
 
-                    if printinneritn > 0 and np.mod(i, printinneritn) == 0:
+                    if (printinneritn > 0) and (divmod(i, printinneritn) == 0):
                         print(
                             f"\tMode = {n}, Row = {jj}, InnerIt = {i}",
                             end="",
@@ -675,7 +675,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
             rowsubprobStopTol = np.maximum(stoptol, kktViolations[iteration]) / 100.0
 
             # Print outer iteration status.
-            if printitn > 0 and np.mod(iteration, printitn) == 0:
+            if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
                 fnVals[iteration] = -tt_loglikelihood(input_tensor, M)
                 print(
                     f"{iteration}. Ttl Inner Its: {nInnerIters[iteration]}, "
@@ -966,7 +966,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                     if i == 0 and kkt_violation > kktModeViolations[n]:
                         kktModeViolations[n] = kkt_violation
 
-                    if printinneritn > 0 and np.mod(i, printinneritn) == 0:
+                    if (printinneritn > 0) and (divmod(i, printinneritn) == 0):
                         print(
                             f"\tMode = {n}, Row = {jj}, InnerIt = {i}",
                             end="",
@@ -1073,7 +1073,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
         kktViolations[iteration] = np.max(kktModeViolations)
 
         # Print outer iteration status.
-        if printitn > 0 and np.mod(iteration, printitn) == 0:
+        if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
             fnVals[iteration] = -tt_loglikelihood(input_tensor, M)
             print(
                 f"{iteration}. Ttl Inner Its: {nInnerIters[iteration]}, KKT viol = "

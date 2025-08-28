@@ -168,6 +168,11 @@ def test_sumtensor_full_double(example_ttensor, example_kensor):
     assert isinstance(double_array, np.ndarray)
     assert_consistent_order(S, double_array)
 
+    # Verify immutability
+    double_array = S.double(True)
+    with pytest.raises(ValueError):
+        double_array[0] = 1
+
 
 def test_sumtensor_innerprod(example_ttensor, example_kensor):
     T1 = ttb.tenones((2, 2))
