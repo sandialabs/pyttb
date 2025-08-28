@@ -1,6 +1,6 @@
 """Tucker Tensor Implementation."""
 
-# Copyright 2024 National Technology & Engineering Solutions of Sandia,
+# Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
@@ -228,14 +228,15 @@ class ttensor:
             recomposed_tensor = recomposed_tensor.to_tensor()
         return recomposed_tensor
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """Convert ttensor to an array of doubles.
 
-        Returns
-        -------
-        Copy of tensor data.
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
         """
-        return self.full().double()
+        return self.full().double(immutable)
 
     @property
     def ndims(self) -> int:

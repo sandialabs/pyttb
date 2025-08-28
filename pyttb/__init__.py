@@ -1,6 +1,6 @@
 """pyttb: Python Tensor Toolbox."""
 
-# Copyright 2024 National Technology & Engineering Solutions of Sandia,
+# Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
@@ -22,10 +22,7 @@ from pyttb.ktensor import ktensor
 from pyttb.matlab import matlab_support
 from pyttb.sptenmat import sptenmat
 from pyttb.sptensor import sptendiag, sptenrand, sptensor
-from pyttb.sptensor3 import sptensor3
 from pyttb.sumtensor import sumtensor
-from pyttb.symktensor import symktensor
-from pyttb.symtensor import symtensor
 from pyttb.tenmat import tenmat
 from pyttb.tensor import tendiag, teneye, tenones, tenrand, tensor, tenzeros
 from pyttb.ttensor import ttensor
@@ -55,10 +52,7 @@ __all__ = [  # noqa: PLE0604
     sptendiag.__name__,
     sptenrand.__name__,
     sptensor.__name__,
-    sptensor3.__name__,
     sumtensor.__name__,
-    symktensor.__name__,
-    symtensor.__name__,
     teneye.__name__,
     tenmat.__name__,
     tendiag.__name__,

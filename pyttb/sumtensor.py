@@ -1,6 +1,6 @@
 """Classes and functions for working with implicit sums of tensors."""
 
-# Copyright 2024 National Technology & Engineering Solutions of Sandia,
+# Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
@@ -289,13 +289,14 @@ class sumtensor:
             result += part
         return result
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
-        Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
+        Convert :class:`pyttb.tensor` to an :class:`numpy.ndarray` of doubles.
 
-        Returns
-        -------
-        Copy of tensor data.
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Examples
         --------
@@ -305,7 +306,7 @@ class sumtensor:
         array([[2., 2.],
                [2., 2.]])
         """
-        return self.full().double()
+        return self.full().double(immutable)
 
     def innerprod(
         self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]

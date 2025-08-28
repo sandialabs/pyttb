@@ -1,6 +1,6 @@
 """Classes and functions for working with sparse tensors."""
 
-# Copyright 2024 National Technology & Engineering Solutions of Sandia,
+# Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
 
@@ -94,7 +94,7 @@ class sptensor:
     ):
         """Construct a :class:`pyttb.sptensor`.
 
-         Constructed from a set of `subs` (subscripts),
+        Constructed from a set of `subs` (subscripts),
         `vals` (values), and `shape`. No validation is performed. For
         initializer with error checking see :meth:`from_aggregator`.
 
@@ -268,7 +268,7 @@ class sptensor:
     ) -> sptensor:
         """Construct a :class:`pyttb.sptensor`.
 
-         Constructed from a set of `subs` (subscripts),
+        Constructed from a set of `subs` (subscripts),
         `vals` (values), and `shape` after an aggregation function is applied
         to the values.
 
@@ -588,9 +588,14 @@ class sptensor:
             return y.to_tensor()
         return y
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert the :class:`pyttb.sptensor` to a :class:`numpy.ndarray`.
+
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Examples
         --------
@@ -608,6 +613,8 @@ class sptensor:
         a = np.zeros(self.shape, order=self.order)
         if self.nnz > 0:
             a[tuple(self.subs.transpose())] = self.vals.transpose()[0]
+        if immutable:
+            a.flags.writeable = False
         return a
 
     def elemfun(self, function_handle: Callable[[np.ndarray], np.ndarray]) -> sptensor:

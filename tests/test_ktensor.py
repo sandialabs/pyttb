@@ -779,23 +779,27 @@ def test_ktensor_redistribute(sample_ktensor_2way):
 
 def test_ktensor_score():
     A = ttb.ktensor(
-        [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))], np.array([2.0, 1.0, 3.0])
+        [np.ones((3, 3)) + 0.1, np.ones((4, 3)) + 0.2, np.ones((5, 3)) + 0.3],
+        np.array([2.0, 1.0, 3.0]),
     )
     B = ttb.ktensor(
-        [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))], np.array([2.0, 4.0])
+        [np.ones((3, 2)) + 0.1, np.ones((4, 2)) + 0.2, np.ones((5, 2)) + 0.3],
+        np.array([2.0, 4.0]),
     )
+
+    A_norm = A.copy().normalize()
 
     # defaults
     score, Aperm, flag, best_perm = A.score(B)
-    assert score == 0.875
-    assert np.allclose(Aperm.weights, np.array([15.49193338, 23.23790008, 7.74596669]))
+    assert np.isclose(score, 0.875)
+    assert np.allclose(Aperm.weights, A_norm.weights[best_perm])
     assert flag
     assert np.array_equal(best_perm, np.array([0, 2, 1]))
 
     # compare just factor matrices (i.e., do not use weights)
     score, Aperm, flag, best_perm = A.score(B, weight_penalty=False)
-    assert score == 1.0
-    assert np.allclose(Aperm.weights, np.array([15.49193338, 7.74596669, 23.23790008]))
+    assert np.isclose(score, 1.0)
+    assert np.allclose(Aperm.weights, A_norm.weights[best_perm])
     assert not flag
     assert np.array_equal(best_perm, np.array([0, 1, 2]))
 

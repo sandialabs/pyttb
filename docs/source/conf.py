@@ -69,8 +69,9 @@ napoleon_use_param = False
 napoleon_use_rtype = False
 
 intersphinx_mapping = {
-    "numpy": ("http://docs.scipy.org/doc/numpy/", "numpy.inv"),
-    "python": ("http://docs.python.org/3.8/", "python.inv"),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "python": ("http://docs.python.org/3.9/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -112,7 +113,10 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "navigation_depth": 6  # Adjust the number to control the depth
+}
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -194,5 +198,6 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 # Autodoc settings
-autoclass_content = "both"
+autoclass_content = "class"
 autodoc_member_order = "bysource"
+autodoc_class_signature = "separated"
