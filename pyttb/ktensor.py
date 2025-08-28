@@ -639,9 +639,14 @@ class ktensor:
         """Return deep copy of ktensor."""
         return self.copy()
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert :class:`pyttb.ktensor` to :class:`numpy.ndarray`.
+
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Returns
         -------
@@ -660,7 +665,7 @@ class ktensor:
         >>> type(K.double())
         <class 'numpy.ndarray'>
         """
-        return self.full().double()
+        return self.full().double(immutable)
 
     def extract(
         self, idx: Optional[Union[int, tuple, list, np.ndarray]] = None
@@ -1165,7 +1170,7 @@ class ktensor:
     def mask(self, W: Union[ttb.tensor, ttb.sptensor]) -> np.ndarray:
         """Extract :class:`pyttb.ktensor` values as specified by `W`.
 
-         `W` is a
+        `W` is a
         :class:`pyttb.tensor` or :class:`pyttb.sptensor` containing
         only values of zeros (0) and ones (1). The values in the
         :class:`pyttb.ktensor` corresponding to the indices for the
@@ -1606,7 +1611,7 @@ class ktensor:
         component :class:`pyttb.ktensor` instances that have been normalized
         so that their weights are `self.weights` and `other.weights`, and their
         factor matrices are single column vectors containing [a1,a2,...,an] and
-        [b1,b2,...bn], rescpetively, then the score is defined as
+        [b1,b2,...bn], respectively, then the score is defined as
 
             score = penalty * (a1.T*b1) * (a2.T*b2) * ... * (an.T*bn),
 
@@ -1653,23 +1658,31 @@ class ktensor:
         Create two :class:`pyttb.ktensor` instances and compute the score
         between them:
 
-        >>> factors = [np.ones((3, 3)), np.ones((4, 3)), np.ones((5, 3))]
+        >>> factors = [
+        ...     np.ones((3, 3)) + 0.1,
+        ...     np.ones((4, 3)) + 0.2,
+        ...     np.ones((5, 3)) + 0.3,
+        ... ]
         >>> weights = np.array([2.0, 1.0, 3.0])
         >>> K = ttb.ktensor(factors, weights)
-        >>> factors_2 = [np.ones((3, 2)), np.ones((4, 2)), np.ones((5, 2))]
+        >>> factors_2 = [
+        ...     np.ones((3, 2)) + 0.1,
+        ...     np.ones((4, 2)) + 0.2,
+        ...     np.ones((5, 2)) + 0.3,
+        ... ]
         >>> weights_2 = np.array([2.0, 4.0])
         >>> K2 = ttb.ktensor(factors_2, weights_2)
         >>> score, Kperm, flag, perm = K.score(K2)
-        >>> print(score)
-        0.875
+        >>> print(np.isclose(score, 0.875))
+        True
         >>> print(perm)
         [0 2 1]
 
         Compute score without using weights:
 
         >>> score, Kperm, flag, perm = K.score(K2, weight_penalty=False)
-        >>> print(score)
-        1.0
+        >>> print(np.isclose(score, 1.0))
+        True
         >>> print(perm)
         [0 1 2]
         """
@@ -1733,8 +1746,9 @@ class ktensor:
             best_perm = -1 * np.ones((RA), dtype=int)
             best_score = 0.0
             for _ in range(RB):
-                idx = np.argmax(C.reshape(prod(C.shape), order=self.order))
-                ij = tt_ind2sub((RA, RB), np.array(idx))
+                flatten_C = C.reshape(prod(C.shape), order=self.order)
+                idx = np.argmax(flatten_C)
+                ij = tt_ind2sub((RA, RB), np.array(idx, dtype=int), order=self.order)
                 best_score = best_score + C[ij[0], ij[1]]
                 C[ij[0], :] = -10
                 C[:, ij[1]] = -10
@@ -2278,7 +2292,7 @@ class ktensor:
             of a factor.
             Function for mode i must have signature `f(v_i,ax)` where
             `v_i` is :class:`numpy.ndarray` vector of dimension `n_i` and
-            `ax` is a :class:`matplotlib.axes.Axes' on which to plot.
+            `ax` is a :class:`matplotlib.axes.Axes` on which to plot.
         show_figure:
             Boolean determining if the resulting figure should be shown.
         normalize:
@@ -2308,9 +2322,9 @@ class ktensor:
         Returns
         -------
         fig:
-            :class:`matplotlib.figure.Figure' handle for the generated figure
+            :class:`matplotlib.figure.Figure` handle for the generated figure
         axs:
-            :class:`matplotlib.axes.Axes' for the generated figure
+            :class:`matplotlib.axes.Axes` for the generated figure
 
         Examples
         --------

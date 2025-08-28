@@ -317,9 +317,14 @@ class tenmat:
             copy=True,
         )
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert a :class:`pyttb.tenmat` to an array of doubles.
+
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Examples
         --------
@@ -335,12 +340,15 @@ class tenmat:
         >>> TM.double()  # doctest: +NORMALIZE_WHITESPACE
         array([[1., 1., 1., 1.],
                [1., 1., 1., 1.]])
-
-        Returns
-        -------
-        Copy of tenmat data.
         """
-        return to_memory_order(self.data, self.order, copy=True).astype(np.float64)
+        double = to_memory_order(self.data, self.order, copy=not immutable).astype(
+            np.float64
+        )
+        if immutable:
+            double.flags.writeable = False
+        elif np.shares_memory(double, self.data):
+            double = double.copy()
+        return double
 
     @property
     def ndims(self) -> int:
