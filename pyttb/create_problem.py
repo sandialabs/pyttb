@@ -402,6 +402,26 @@ def create_problem(
     >>> existing_params = ExistingSolution(existing_ktensor, noise=0.1)
     >>> solution, data = create_problem(existing_params, no_missing_data)
     >>> assert solution is existing_ktensor
+
+    Generate sparse count data from CP solution
+    If we assume each model parameter is the input to a Poisson process, then
+    we can generate a sparse test problems. This requires that all the factor
+    matrices and lambda be nonnegative. The default factor generator ('randn')
+    won't work since it produces both positive and negative values.
+
+    >>> shape = (20, 15, 10)
+    >>> num_factors = 4
+    >>> A = []
+    >>> for n in range(len(shape)):
+    ...     A.append(np.random.rand(shape[n], num_factors))
+    ...     for r in range(num_factors):
+    ...         p = np.random.permutation(np.arange(shape[n]))
+    ...         idx = p[1 : round(0.2 * shape[n])]
+    ...         A[n][idx, r] *= 10
+    >>> S = ttb.ktensor(A)
+    >>> _ = S.normalize(sort=True)
+    >>> existing_params = ExistingCPSolution(S, noise=0.0, sparse_generation=500)
+    >>> solution, data = create_problem(existing_params)
     """
     if missing_params is None:
         missing_params = MissingData()
