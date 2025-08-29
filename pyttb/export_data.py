@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TextIO, Union
+from typing import TextIO
 
 import numpy as np
 
@@ -15,10 +15,10 @@ from pyttb.pyttb_utils import Shape, parse_shape
 
 
 def export_data(
-    data: Union[ttb.tensor, ttb.ktensor, ttb.sptensor, np.ndarray],
+    data: ttb.tensor | ttb.ktensor | ttb.sptensor | np.ndarray,
     filename: str,
-    fmt_data: Optional[str] = None,
-    fmt_weights: Optional[str] = None,
+    fmt_data: str | None = None,
+    fmt_weights: str | None = None,
 ):
     """Export tensor-related data to a file."""
     if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
@@ -68,7 +68,7 @@ def export_rank(fp: TextIO, data: ttb.ktensor):
     print(f"{len(data.weights)}", file=fp)  # ktensor rank on one line
 
 
-def export_weights(fp: TextIO, data: ttb.ktensor, fmt_weights: Optional[str]):
+def export_weights(fp: TextIO, data: ttb.ktensor, fmt_weights: str | None):
     """Export KTensor weights."""
     if not fmt_weights:
         fmt_weights = "%.16e"
@@ -76,7 +76,7 @@ def export_weights(fp: TextIO, data: ttb.ktensor, fmt_weights: Optional[str]):
     print(file=fp)
 
 
-def export_array(fp: TextIO, data: np.ndarray, fmt_data: Optional[str]):
+def export_array(fp: TextIO, data: np.ndarray, fmt_data: str | None):
     """Export dense data."""
     if not fmt_data:
         fmt_data = "%.16e"
@@ -84,7 +84,7 @@ def export_array(fp: TextIO, data: np.ndarray, fmt_data: Optional[str]):
     print(file=fp)
 
 
-def export_factor(fp: TextIO, data: np.ndarray, fmt_data: Optional[str]):
+def export_factor(fp: TextIO, data: np.ndarray, fmt_data: str | None):
     """Export KTensor factor."""
     if not fmt_data:
         fmt_data = "%.16e"
@@ -102,7 +102,7 @@ def export_sparse_size(fp: TextIO, A: ttb.sptensor):
     print(f"{A.nnz}", file=fp)  # number of nonzeros
 
 
-def export_sparse_array(fp: TextIO, A: ttb.sptensor, fmt_data: Optional[str]):
+def export_sparse_array(fp: TextIO, A: ttb.sptensor, fmt_data: str | None):
     """Export sparse array data in coordinate format."""
     if not fmt_data:
         fmt_data = "%.16e"

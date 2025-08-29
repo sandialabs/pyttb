@@ -11,15 +11,14 @@ Probably best for everything here to be private functions.
 from __future__ import annotations
 
 import textwrap
-from typing import Optional, Tuple, Union
 
 import numpy as np
 
 
 def _matlab_array_str(
     array: np.ndarray,
-    format: Optional[str] = None,
-    name: Optional[str] = None,
+    format: str | None = None,
+    name: str | None = None,
     skip_name: bool = False,
 ) -> str:
     """Convert numpy array to string more similar to MATLAB."""
@@ -35,7 +34,7 @@ def _matlab_array_str(
         ):  # Skip the first two dimensions and reverse the order
             original_index = index[::-1]  # Reverse the order back to the original
             # Construct the slice indices
-            slice_indices: Tuple[Union[int, slice], ...] = (
+            slice_indices: tuple[int | slice, ...] = (
                 slice(None),
                 slice(None),
                 *original_index,

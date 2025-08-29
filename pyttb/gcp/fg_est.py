@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import List, Literal, Optional, Tuple, Union, overload
+from typing import Literal, overload
 
 import numpy as np
 from scipy.sparse import csr_array
@@ -25,8 +25,8 @@ def estimate(
     function_handle: Literal[None],
     gradient_handle: function_type,
     lambda_check: bool = True,
-    crng: Optional[np.ndarray] = None,
-) -> List[np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
+    crng: np.ndarray | None = None,
+) -> list[np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
@@ -38,7 +38,7 @@ def estimate(
     function_handle: function_type,
     gradient_handle: Literal[None] = None,
     lambda_check: bool = False,
-    crng: Optional[np.ndarray] = None,
+    crng: np.ndarray | None = None,
 ) -> float: ...  # pragma: no cover see coveragepy/issues/970
 
 
@@ -51,8 +51,8 @@ def estimate(
     function_handle: function_type,
     gradient_handle: function_type,
     lambda_check: bool,
-    crng: Optional[np.ndarray],
-) -> Tuple[float, List[np.ndarray]]: ...  # pragma: no cover see coveragepy/issues/970
+    crng: np.ndarray | None,
+) -> tuple[float, list[np.ndarray]]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def estimate(  # noqa: PLR0913
@@ -60,11 +60,11 @@ def estimate(  # noqa: PLR0913
     data_subs: np.ndarray,
     data_vals: np.ndarray,
     weights: np.ndarray,
-    function_handle: Optional[function_type] = None,
-    gradient_handle: Optional[function_type] = None,
+    function_handle: function_type | None = None,
+    gradient_handle: function_type | None = None,
     lambda_check: bool = True,
-    crng: Optional[np.ndarray] = None,
-) -> Union[float, List[np.ndarray], Tuple[float, List[np.ndarray]]]:
+    crng: np.ndarray | None = None,
+) -> float | list[np.ndarray] | tuple[float, list[np.ndarray]]:
     """Estimate the GCP function and gradient with a subsample.
 
     Parameters
@@ -100,8 +100,8 @@ def estimate(  # noqa: PLR0913
         model = model.normalize(0)
     model_vals, Zexp = estimate_helper(model.factor_matrices, data_subs)
 
-    F: Optional[float] = None
-    G: Optional[List[np.ndarray]] = None
+    F: float | None = None
+    G: list[np.ndarray] | None = None
 
     if function_handle is not None:
         Y = function_handle(data_vals, model_vals)
@@ -140,8 +140,8 @@ def estimate(  # noqa: PLR0913
 
 
 def estimate_helper(
-    factors: List[np.ndarray], subs: np.ndarray
-) -> Tuple[np.ndarray, List[np.ndarray]]:
+    factors: list[np.ndarray], subs: np.ndarray
+) -> tuple[np.ndarray, list[np.ndarray]]:
     """Extract model values at sample locations and exploded Zk's.
 
     Parameters
@@ -155,7 +155,7 @@ def estimate_helper(
     -------
         Model values at subs and exploded Zk's
     """
-    Zexp: List[np.ndarray] = []
+    Zexp: list[np.ndarray] = []
     if subs.size == 0:
         return np.array([]), Zexp
 

@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional, Tuple, Union
+from typing import Literal
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
@@ -27,11 +27,11 @@ class sptenmat:
 
     def __init__(  # noqa: PLR0913
         self,
-        subs: Optional[np.ndarray] = None,
-        vals: Optional[np.ndarray] = None,
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        tshape: Tuple[int, ...] = (),
+        subs: np.ndarray | None = None,
+        vals: np.ndarray | None = None,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        tshape: tuple[int, ...] = (),
         copy: bool = True,
     ):
         """Construct a :class:`pyttb.sptenmat`.
@@ -98,7 +98,7 @@ class sptenmat:
             self.vals = np.array([], ndmin=2)
             self.rdims = np.array([], dtype=int)
             self.cdims = np.array([], dtype=int)
-            self.tshape: Union[Tuple[()], Tuple[int, ...]] = ()
+            self.tshape: tuple[()] | tuple[int, ...] = ()
             return
 
         if subs is None:
@@ -168,10 +168,10 @@ class sptenmat:
     @classmethod
     def from_array(
         cls,
-        array: Union[sparse.coo_matrix, np.ndarray],
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        tshape: Tuple[int, ...] = (),
+        array: sparse.coo_matrix | np.ndarray,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        tshape: tuple[int, ...] = (),
     ):
         """Construct a :class:`pyttb.sptenmat`.
 
@@ -307,7 +307,7 @@ class sptenmat:
         return ttb.sptensor(subs, vals, self.tshape)
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """
         Return the shape of a :class:`pyttb.sptenmat`.
 

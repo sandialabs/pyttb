@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import os
-from typing import TextIO, Tuple, Union
+from typing import TextIO
 
 import numpy as np
 
@@ -16,7 +16,7 @@ import pyttb as ttb
 
 def import_data(
     filename: str, index_base: int = 1
-) -> Union[ttb.sptensor, ttb.ktensor, ttb.tensor, np.ndarray]:
+) -> ttb.sptensor | ttb.ktensor | ttb.tensor | np.ndarray:
     """Import tensor data.
 
     Parameters
@@ -31,7 +31,7 @@ def import_data(
         assert False, f"File path {filename} does not exist."
 
     # import
-    with open(filename, "r") as fp:
+    with open(filename) as fp:
         # tensor type should be on the first line
         # valid: tensor, sptensor, matrix, ktensor
         data_type = import_type(fp)
@@ -76,7 +76,7 @@ def import_type(fp: TextIO) -> str:
     return fp.readline().strip().split(" ")[0]
 
 
-def import_shape(fp: TextIO) -> Tuple[int, ...]:
+def import_shape(fp: TextIO) -> tuple[int, ...]:
     """Extract the shape of something from a file."""
     n = int(fp.readline().strip().split(" ")[0])
     shape = [int(d) for d in fp.readline().strip().split(" ")]
@@ -97,7 +97,7 @@ def import_rank(fp: TextIO) -> int:
 
 def import_sparse_array(
     fp: TextIO, n: int, nz: int, index_base: int = 1
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Extract sparse data subs and vals from coordinate format data."""
     subs = np.zeros((nz, n), dtype="int64")
     vals = np.zeros((nz, 1))
@@ -108,6 +108,6 @@ def import_sparse_array(
     return subs, vals
 
 
-def import_array(fp: TextIO, n: Union[int, np.integer]) -> np.ndarray:
+def import_array(fp: TextIO, n: int | np.integer) -> np.ndarray:
     """Extract numpy array from file."""
     return np.fromfile(fp, count=n, sep=" ")

@@ -14,11 +14,7 @@ from operator import ge, gt, le, lt
 from typing import (
     Any,
     Callable,
-    Dict,
     Literal,
-    Optional,
-    Tuple,
-    Union,
     cast,
     overload,
 )
@@ -87,9 +83,9 @@ class sptensor:
 
     def __init__(
         self,
-        subs: Optional[np.ndarray] = None,
-        vals: Optional[np.ndarray] = None,
-        shape: Optional[Shape] = None,
+        subs: np.ndarray | None = None,
+        vals: np.ndarray | None = None,
+        shape: Shape | None = None,
         copy: bool = True,
     ):
         """Construct a :class:`pyttb.sptensor`.
@@ -132,7 +128,7 @@ class sptensor:
             # Empty constructor
             self.subs = np.array([], ndmin=2, dtype=int)
             self.vals = np.array([], ndmin=2)
-            self.shape: Union[Tuple[()], Tuple[int, ...]] = ()
+            self.shape: tuple[()] | tuple[int, ...] = ()
             if shape is not None:
                 shape = parse_shape(shape)
                 # TODO do we need sizecheck or should that wrap in our share parser?
@@ -182,7 +178,7 @@ class sptensor:
     @classmethod
     def from_function(
         cls,
-        function_handle: Callable[[Tuple[int, ...]], np.ndarray],
+        function_handle: Callable[[tuple[int, ...]], np.ndarray],
         shape: Shape,
         nonzeros: float,
     ) -> sptensor:
@@ -268,8 +264,8 @@ class sptensor:
         cls,
         subs: np.ndarray,
         vals: np.ndarray,
-        shape: Optional[Shape] = None,
-        function_handle: Union[str, Callable[[Any], Union[float, np.ndarray]]] = "sum",
+        shape: Shape | None = None,
+        function_handle: str | Callable[[Any], float | np.ndarray] = "sum",
     ) -> sptensor:
         """Construct a :class:`pyttb.sptensor`.
 
@@ -447,21 +443,21 @@ class sptensor:
     def collapse(
         self,
         dims: None,
-        function_handle: Callable[[np.ndarray], Union[float, np.ndarray]],
+        function_handle: Callable[[np.ndarray], float | np.ndarray],
     ) -> float: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
     def collapse(
         self,
         dims: OneDArray,
-        function_handle: Callable[[np.ndarray], Union[float, np.ndarray]] = sum,
-    ) -> Union[np.ndarray, sptensor]: ...  # pragma: no cover see coveragepy/issues/970
+        function_handle: Callable[[np.ndarray], float | np.ndarray] = sum,
+    ) -> np.ndarray | sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
     def collapse(
         self,
-        dims: Optional[OneDArray] = None,
-        function_handle: Callable[[np.ndarray], Union[float, np.ndarray]] = sum,
-    ) -> Union[float, np.ndarray, sptensor]:
+        dims: OneDArray | None = None,
+        function_handle: Callable[[np.ndarray], float | np.ndarray] = sum,
+    ) -> float | np.ndarray | sptensor:
         """
         Collapse the :class:`pyttb.sptensor` along specified dimensions.
 
@@ -533,7 +529,7 @@ class sptensor:
             )
         return ttb.sptensor(np.array([]), np.array([]), tuple(newsize), copy=False)
 
-    def contract(self, i_0: int, i_1: int) -> Union[np.ndarray, sptensor, ttb.tensor]:
+    def contract(self, i_0: int, i_1: int) -> np.ndarray | sptensor | ttb.tensor:
         """Contract the :class:`pyttb.sptensor` along two dimensions.
 
         If the
@@ -708,7 +704,7 @@ class sptensor:
             a[valid] = non_zeros
         return a
 
-    def find(self) -> Tuple[np.ndarray, np.ndarray]:
+    def find(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Find subscripts of nonzero elements in the :class:`pyttb.sptensor`.
 
@@ -764,11 +760,9 @@ class sptensor:
 
     def to_sptenmat(
         self,
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        cdims_cyclic: Optional[
-            Union[Literal["fc"], Literal["bc"], Literal["t"]]
-        ] = None,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        cdims_cyclic: Literal["fc"] | Literal["bc"] | Literal["t"] | None = None,
     ) -> ttb.sptenmat:
         """Construct a :class:`pyttb.sptenmat` from a :class:`pyttb.sptensor`.
 
@@ -882,7 +876,7 @@ class sptensor:
         )
 
     def innerprod(
-        self, other: Union[sptensor, ttb.tensor, ttb.ktensor, ttb.ttensor]
+        self, other: sptensor | ttb.tensor | ttb.ktensor | ttb.ttensor
     ) -> float:
         """Compute inner product of the :class:`pyttb.sptensor` with another tensor.
 
@@ -950,7 +944,7 @@ class sptensor:
 
         assert False, f"Inner product between sptensor and {type(other)} not supported"
 
-    def isequal(self, other: Union[sptensor, ttb.tensor]) -> bool:
+    def isequal(self, other: sptensor | ttb.tensor) -> bool:
         """Determine if the :class:`pyttb.sptensor` is equal to another tensor.
 
         Equal when all elements are exactly the same in both tensors.
@@ -994,7 +988,7 @@ class sptensor:
             return other.isequal(self)
         return False
 
-    def logical_and(self, other: Union[float, sptensor, ttb.tensor]) -> sptensor:
+    def logical_and(self, other: float | sptensor | ttb.tensor) -> sptensor:
         """
         Logical AND between the :class:`pyttb.sptensor` and another object.
 
@@ -1092,7 +1086,7 @@ class sptensor:
 
     @overload
     def logical_or(
-        self, other: Union[float, ttb.tensor]
+        self, other: float | ttb.tensor
     ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
@@ -1100,9 +1094,7 @@ class sptensor:
         self, other: sptensor
     ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
-    def logical_or(
-        self, other: Union[float, ttb.tensor, sptensor]
-    ) -> Union[ttb.tensor, sptensor]:
+    def logical_or(self, other: float | ttb.tensor | sptensor) -> ttb.tensor | sptensor:
         """
         Logical OR between the :class:`pyttb.sptensor` and another object.
 
@@ -1163,7 +1155,7 @@ class sptensor:
 
     @overload
     def logical_xor(
-        self, other: Union[float, ttb.tensor]
+        self, other: float | ttb.tensor
     ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
@@ -1172,8 +1164,8 @@ class sptensor:
     ) -> sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
     def logical_xor(
-        self, other: Union[float, ttb.tensor, sptensor]
-    ) -> Union[ttb.tensor, sptensor]:
+        self, other: float | ttb.tensor | sptensor
+    ) -> ttb.tensor | sptensor:
         """
         Logical XOR between the :class:`pyttb.sptensor` and another object.
 
@@ -1293,7 +1285,7 @@ class sptensor:
         return vals
 
     def mttkrp(
-        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+        self, U: ttb.ktensor | Sequence[np.ndarray], n: int | np.integer
     ) -> np.ndarray:
         """Matricized tensor times Khatri-Rao product using :class:`pyttb.sptensor`.
 
@@ -1589,7 +1581,7 @@ class sptensor:
     def reshape(
         self,
         new_shape: Shape,
-        old_modes: Optional[Union[np.ndarray, int]] = None,
+        old_modes: np.ndarray | int | None = None,
     ) -> sptensor:
         """Reshape the :class:`pyttb.sptensor` to the `new_shape`.
 
@@ -1687,7 +1679,7 @@ class sptensor:
 
     def scale(
         self,
-        factor: Union[np.ndarray, ttb.tensor, ttb.sptensor],
+        factor: np.ndarray | ttb.tensor | ttb.sptensor,
         dims: OneDArray,
     ) -> sptensor:
         """
@@ -1793,7 +1785,7 @@ class sptensor:
             (self.vals.transpose()[0], self.subs.transpose()), self.shape
         )
 
-    def squeeze(self) -> Union[sptensor, float]:
+    def squeeze(self) -> sptensor | float:
         """Remove singleton dimensions from the :class:`pyttb.sptensor`.
 
         Examples
@@ -1831,7 +1823,7 @@ class sptensor:
             return ttb.sptensor(np.array([]), np.array([]), siz, copy=False)
         return ttb.sptensor(self.subs[:, idx], self.vals, siz)
 
-    def subdims(self, region: Sequence[Union[int, np.ndarray, slice]]) -> np.ndarray:
+    def subdims(self, region: Sequence[int | np.ndarray | slice]) -> np.ndarray:
         """
         Compute the locations of subscripts within a subdimension.
 
@@ -1920,10 +1912,10 @@ class sptensor:
 
     def ttv(
         self,
-        vector: Union[np.ndarray, Sequence[np.ndarray]],
-        dims: Optional[OneDArray] = None,
-        exclude_dims: Optional[OneDArray] = None,
-    ) -> Union[sptensor, ttb.tensor, float]:
+        vector: np.ndarray | Sequence[np.ndarray],
+        dims: OneDArray | None = None,
+        exclude_dims: OneDArray | None = None,
+    ) -> sptensor | ttb.tensor | float:
         """
         Multiplication of the :class:`pyttb.sptensor` with a vector.
 
@@ -2688,7 +2680,7 @@ class sptensor:
             return sptensor(
                 np.vstack((zzerosubs, znzsubs)),
                 True
-                * np.ones((zzerosubs.shape[0] + znzsubs.shape[0])).astype(
+                * np.ones(zzerosubs.shape[0] + znzsubs.shape[0]).astype(
                     self.vals.dtype
                 )[:, None],
                 self.shape,
@@ -3468,11 +3460,11 @@ class sptensor:
 
     def ttm(
         self,
-        matrices: Union[np.ndarray, Sequence[np.ndarray]],
-        dims: Optional[OneDArray] = None,
-        exclude_dims: Optional[OneDArray] = None,
+        matrices: np.ndarray | Sequence[np.ndarray],
+        dims: OneDArray | None = None,
+        exclude_dims: OneDArray | None = None,
         transpose: bool = False,
-    ) -> Union[ttb.tensor, sptensor]:
+    ) -> ttb.tensor | sptensor:
         """
         Multiplication of a :class:`pyttb.sptensor` with a matrix.
 
@@ -3592,11 +3584,9 @@ class sptensor:
     @overload
     def squash(
         self, return_inverse: Literal[True]
-    ) -> Tuple[sptensor, Dict]: ...  # pragma: no cover see coveragepy/issues/970
+    ) -> tuple[sptensor, dict]: ...  # pragma: no cover see coveragepy/issues/970
 
-    def squash(
-        self, return_inverse: bool = False
-    ) -> Union[sptensor, Tuple[sptensor, Dict]]:
+    def squash(self, return_inverse: bool = False) -> sptensor | tuple[sptensor, dict]:
         """
         Remove empty slices from a :class:`pyttb.sptensor`.
 
@@ -3649,8 +3639,8 @@ class sptensor:
 
 def sptenrand(
     shape: Shape,
-    density: Optional[float] = None,
-    nonzeros: Optional[float] = None,
+    density: float | None = None,
+    nonzeros: float | None = None,
 ) -> sptensor:
     """Create a :class:`pyttb.sptensor` with random entries and indices.
 
@@ -3700,13 +3690,13 @@ def sptenrand(
 
     # Typing doesn't play nice with partial
     # mypy issue: 1484
-    def unit_uniform(pass_through_shape: Tuple[int, ...]) -> np.ndarray:
+    def unit_uniform(pass_through_shape: tuple[int, ...]) -> np.ndarray:
         return np.random.uniform(low=0, high=1, size=pass_through_shape)
 
     return ttb.sptensor.from_function(unit_uniform, shape, valid_nonzeros)
 
 
-def sptendiag(elements: OneDArray, shape: Optional[Shape] = None) -> sptensor:
+def sptendiag(elements: OneDArray, shape: Shape | None = None) -> sptensor:
     """Create a :class:`pyttb.sptensor` with elements along the super diagonal.
 
     If provided shape is too small the sparse tensor will be enlarged to

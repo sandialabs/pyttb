@@ -9,7 +9,7 @@ from __future__ import annotations
 import warnings
 from copy import deepcopy
 from textwrap import indent
-from typing import List, Literal, Optional, Tuple, Union
+from typing import Literal
 
 import numpy as np
 
@@ -22,9 +22,8 @@ class sumtensor:
 
     def __init__(
         self,
-        tensors: Optional[
-            List[Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]]
-        ] = None,
+        tensors: list[ttb.tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor]
+        | None = None,
         copy: bool = True,
     ):
         """Create a :class:`pyttb.sumtensor` from a collection of tensors.
@@ -99,7 +98,7 @@ class sumtensor:
         return self.copy()
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Shape of a :class:`pyttb.sumtensor`."""
         if len(self.parts) == 0:
             return ()
@@ -309,7 +308,7 @@ class sumtensor:
         return self.full().double(immutable)
 
     def innerprod(
-        self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
+        self, other: ttb.tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor
     ) -> float:
         """Efficient inner product between a sumtensor and other `pyttb` tensors.
 
@@ -336,7 +335,7 @@ class sumtensor:
         return result
 
     def mttkrp(
-        self, U: Union[ttb.ktensor, List[np.ndarray]], n: Union[int, np.integer]
+        self, U: ttb.ktensor | list[np.ndarray], n: int | np.integer
     ) -> np.ndarray:
         """Matricized tensor times Khatri-Rao product.
 
@@ -375,10 +374,10 @@ class sumtensor:
 
     def ttv(
         self,
-        vector: Union[np.ndarray, List[np.ndarray]],
-        dims: Optional[Union[int, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
-    ) -> Union[float, sumtensor]:
+        vector: np.ndarray | list[np.ndarray],
+        dims: int | np.ndarray | None = None,
+        exclude_dims: int | np.ndarray | None = None,
+    ) -> float | sumtensor:
         """
         Tensor times vector.
 

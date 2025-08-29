@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from math import prod
-from typing import Literal, Optional, Tuple, Union
+from typing import Literal
 
 import numpy as np
 
@@ -29,10 +29,10 @@ class tenmat:
 
     def __init__(  # noqa: PLR0912
         self,
-        data: Optional[np.ndarray] = None,
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        tshape: Optional[Shape] = None,
+        data: np.ndarray | None = None,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        tshape: Shape | None = None,
         copy: bool = True,
     ):
         """Construct a :class:`pyttb.tenmat` from explicit components.
@@ -102,7 +102,7 @@ class tenmat:
                 rdims_empty and cdims_empty and tshape_empty
             ), "When data is empty, rdims, cdims, and tshape must also be empty."
 
-            self.tshape: Union[Tuple[()], Tuple[int, ...]] = ()
+            self.tshape: tuple[()] | tuple[int, ...] = ()
             self.rindices = np.array([])
             self.cindices = np.array([])
             self.data = np.array([], ndmin=2, order=self.order)
@@ -390,7 +390,7 @@ class tenmat:
         return float(np.linalg.norm(self.data))
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Return the shape of a :class:`pyttb.tenmat`.
 
         Examples

@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import partial
 from math import ceil
-from typing import Callable, Optional, Tuple, Union, cast
+from typing import Callable, Union, cast
 
 import numpy as np
 
@@ -20,7 +20,7 @@ from pyttb.pyttb_utils import tt_sub2ind
 from pyttb.sptensor import sptensor
 from pyttb.tensor import tensor
 
-sample_type = Tuple[np.ndarray, np.ndarray, np.ndarray]
+sample_type = tuple[np.ndarray, np.ndarray, np.ndarray]
 sampler_type = Callable[[Union[tensor, sptensor]], sample_type]
 
 
@@ -45,11 +45,11 @@ class GCPSampler:
 
     def __init__(  # noqa: PLR0913
         self,
-        data: Union[ttb.tensor, ttb.sptensor],
-        function_sampler: Optional[Samplers] = None,
-        function_samples: Optional[Union[int, StratifiedCount]] = None,
-        gradient_sampler: Optional[Samplers] = None,
-        gradient_samples: Optional[Union[int, StratifiedCount]] = None,
+        data: ttb.tensor | ttb.sptensor,
+        function_sampler: Samplers | None = None,
+        function_samples: int | StratifiedCount | None = None,
+        gradient_sampler: Samplers | None = None,
+        gradient_samples: int | StratifiedCount | None = None,
         max_iters: int = 1000,
         over_sample_rate: float = 1.1,
     ):
@@ -110,12 +110,12 @@ class GCPSampler:
 
     def _prepare_function_sampler(  # noqa: PLR0913
         self,
-        data: Union[ttb.tensor, ttb.sptensor],
+        data: ttb.tensor | ttb.sptensor,
         function_sampler: Samplers,
         num_zeros: int,
         num_nonzeros: int,
         over_sample_rate: float,
-        function_samples: Optional[Union[int, StratifiedCount]],
+        function_samples: int | StratifiedCount | None,
     ):
         if function_sampler == Samplers.STRATIFIED:
             if not isinstance(data, ttb.sptensor):
@@ -162,12 +162,12 @@ class GCPSampler:
 
     def _prepare_gradient_sampler(  # noqa: PLR0912,PLR0913
         self,
-        data: Union[ttb.tensor, ttb.sptensor],
+        data: ttb.tensor | ttb.sptensor,
         gradient_sampler: Samplers,
         num_zeros: int,
         num_nonzeros: int,
         over_sample_rate: float,
-        gradient_samples: Optional[Union[int, StratifiedCount]],
+        gradient_samples: int | StratifiedCount | None,
         max_iters: int,
     ):
         if gradient_sampler in (Samplers.STRATIFIED, Samplers.SEMISTRATIFIED):
@@ -236,11 +236,11 @@ class GCPSampler:
         else:
             raise ValueError("Invalid choice for function_sampler")
 
-    def function_sample(self, data: Union[ttb.tensor, ttb.sptensor]) -> sample_type:
+    def function_sample(self, data: ttb.tensor | ttb.sptensor) -> sample_type:
         """Draw a sample from the objective function."""
         return self._fsampler(data)
 
-    def gradient_sample(self, data: Union[ttb.tensor, ttb.sptensor]) -> sample_type:
+    def gradient_sample(self, data: ttb.tensor | ttb.sptensor) -> sample_type:
         """Draw a sample from the gradient function."""
         return self._gsampler(data)
 
@@ -252,7 +252,7 @@ class GCPSampler:
 
 def nonzeros(
     data: ttb.sptensor, samples: int, with_replacement: bool = True
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Sample nonzeros from a sparse tensor.
 
     Parameters
@@ -429,7 +429,7 @@ def semistrat(data: ttb.sptensor, num_nonzeros: int, num_zeros: int) -> sample_t
 
 
 def stratified(
-    data: Union[ttb.sptensor, ttb.tensor],
+    data: ttb.sptensor | ttb.tensor,
     nz_idx: np.ndarray,
     num_nonzeros: int,
     num_zeros: int,

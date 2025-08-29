@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable
 
 import numpy as np
 
@@ -16,13 +16,13 @@ from pyttb.gcp import handles
 from pyttb.gcp.handles import Objectives
 
 function_type = Callable[[np.ndarray, np.ndarray], np.ndarray]
-fg_return = Tuple[function_type, function_type, float]
+fg_return = tuple[function_type, function_type, float]
 
 
 def setup(  # noqa: PLR0912,PLR0915
     objective: Objectives,
-    data: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
-    additional_parameter: Optional[float] = None,
+    data: ttb.tensor | ttb.sptensor | None = None,
+    additional_parameter: float | None = None,
 ) -> fg_return:
     """Collect the function and gradient handles for GCP.
 
@@ -115,21 +115,21 @@ def setup(  # noqa: PLR0912,PLR0915
     return function_handle, gradient_handle, lower_bound
 
 
-def valid_nonneg(data: Union[ttb.tensor, ttb.sptensor]) -> bool:
+def valid_nonneg(data: ttb.tensor | ttb.sptensor) -> bool:
     """Check if provided data is valid non-negative tensor."""
     if isinstance(data, ttb.sptensor):
         return bool(np.all(data.vals > 0))
     return bool(np.all(data.data > 0))
 
 
-def valid_binary(data: Union[ttb.tensor, ttb.sptensor]) -> bool:
+def valid_binary(data: ttb.tensor | ttb.sptensor) -> bool:
     """Check if provided data is valid binary tensor."""
     if isinstance(data, ttb.sptensor):
         return bool(np.all(data.vals == 1))
     return bool(np.all(np.isin(np.unique(data.data), [0, 1])))
 
 
-def valid_natural(data: Union[ttb.tensor, ttb.sptensor]) -> bool:
+def valid_natural(data: ttb.tensor | ttb.sptensor) -> bool:
     """Check if provided data is valid natural number tensor."""
     if isinstance(data, ttb.sptensor):
         vals = data.vals

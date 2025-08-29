@@ -68,7 +68,7 @@ requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff.lint]
-select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D", "FA"]
+select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D", "FA", "UP"]
 ignore = [
     # Ignored in conversion to ruff since not previously enforced
     "PLR2004",
@@ -96,9 +96,9 @@ convention = "numpy"
 # Everything but I, F (to catch import mess and potential logic errors)
 "tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF", "B", "D"]
 # Ignore everything for now
-"docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
-"docs/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D", "FA"]
-"profiling/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D", "FA"]
+"docs/**.py" = ["E", "F", "PL", "W", "N", "NPY", "RUF", "B", "D"]
+"docs/**.ipynb" = ["E", "F", "PL", "W", "N", "NPY", "RUF", "B", "D"]
+"profiling/**.ipynb" = ["E", "F", "PL", "W", "N", "NPY", "RUF", "B", "D"]
 
 [tool.ruff.format]
 docstring-code-format = true

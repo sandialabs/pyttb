@@ -395,18 +395,18 @@ def test_tensor_logical_and(sample_tensor_2way):
 
     # Tensor And
     tensor_and = tensorInstance.logical_and(tensorInstance).data
-    assert np.array_equal(tensor_and, np.ones((params["shape"])))
+    assert np.array_equal(tensor_and, np.ones(params["shape"]))
     assert tensor_and.dtype == tensorInstance.data.dtype
     assert_consistent_order(tensorInstance, tensor_and)
 
     # Non-zero And
     non_zero_and = tensorInstance.logical_and(1).data
-    assert np.array_equal(non_zero_and, np.ones((params["shape"])))
+    assert np.array_equal(non_zero_and, np.ones(params["shape"]))
     assert non_zero_and.dtype == tensorInstance.data.dtype
 
     # Zero And
     zero_and = tensorInstance.logical_and(0).data
-    assert np.array_equal(zero_and, np.zeros((params["shape"])))
+    assert np.array_equal(zero_and, np.zeros(params["shape"]))
     assert zero_and.dtype == tensorInstance.data.dtype
 
 
@@ -640,18 +640,18 @@ def test_tensor_logical_or(sample_tensor_2way):
 
     # Tensor Or
     or_tensor = tensorInstance.logical_or(tensorInstance).data
-    assert np.array_equal(or_tensor, np.ones((params["shape"])))
+    assert np.array_equal(or_tensor, np.ones(params["shape"]))
     assert or_tensor.dtype == tensorInstance.data.dtype
     assert_consistent_order(tensorInstance, or_tensor)
 
     # Non-zero Or
     non_zero_or = tensorInstance.logical_or(1).data
-    assert np.array_equal(non_zero_or, np.ones((params["shape"])))
+    assert np.array_equal(non_zero_or, np.ones(params["shape"]))
     assert non_zero_or.dtype == tensorInstance.data.dtype
 
     # Zero Or
     zero_or = tensorInstance.logical_or(0).data
-    assert np.array_equal(zero_or, np.ones((params["shape"])))
+    assert np.array_equal(zero_or, np.ones(params["shape"]))
     assert zero_or.dtype == tensorInstance.data.dtype
 
 
@@ -660,18 +660,18 @@ def test_tensor_logical_xor(sample_tensor_2way):
 
     # Tensor xor
     xor_tensor = tensorInstance.logical_xor(tensorInstance).data
-    assert np.array_equal(xor_tensor, np.zeros((params["shape"])))
+    assert np.array_equal(xor_tensor, np.zeros(params["shape"]))
     assert xor_tensor.dtype == tensorInstance.data.dtype
     assert_consistent_order(tensorInstance, xor_tensor)
 
     # Non-zero xor
     non_zero_xor = tensorInstance.logical_xor(1).data
-    assert np.array_equal(non_zero_xor, np.zeros((params["shape"])))
+    assert np.array_equal(non_zero_xor, np.zeros(params["shape"]))
     assert non_zero_xor.dtype == tensorInstance.data.dtype
 
     # Zero xor
     zero_xor = tensorInstance.logical_xor(0).data
-    assert np.array_equal(zero_xor, np.ones((params["shape"])))
+    assert np.array_equal(zero_xor, np.ones(params["shape"]))
     assert zero_xor.dtype == tensorInstance.data.dtype
 
 
@@ -1587,7 +1587,7 @@ def test_tensor__str__(sample_tensor_2way):
     s += f"tensor of shape {tensorInstance.shape} with order F"
     for i in range(data.shape[-1]):
         s += "\ndata"
-        s += "[:, :, {}] =\n".format(i)
+        s += f"[:, :, {i}] =\n"
         s += data[:, :, i].__str__()
     assert s == tensorInstance.__str__()
 
@@ -1597,7 +1597,7 @@ def test_tensor__str__(sample_tensor_2way):
     s += f"tensor of shape {tensorInstance.shape} with order F"
     for i in range(data.shape[-1]):
         s += "\ndata"
-        s += "[:, :, {}] =\n".format(i)
+        s += f"[:, :, {i}] =\n"
         s += data[:, :, i].__str__()
     assert s == tensorInstance.__str__()
 
@@ -1609,7 +1609,7 @@ def test_tensor__str__(sample_tensor_2way):
     for i in range(data.shape[-1]):
         for j in range(data.shape[-2]):
             s += "\ndata"
-            s += "[:, :, {}, {}] =\n".format(j, i)
+            s += f"[:, :, {j}, {i}] =\n"
             s += data[:, :, j, i].__str__()
     assert s == tensorInstance.__str__()
 
@@ -1622,7 +1622,7 @@ def test_tensor__str__(sample_tensor_2way):
         for j in range(data.shape[-2]):
             for k in range(data.shape[-3]):
                 s += "\ndata"
-                s += "[:, :, {}, {}, {}] =\n".format(k, j, i)
+                s += f"[:, :, {k}, {j}, {i}] =\n"
                 s += data[:, :, k, j, i].__str__()
     assert s == tensorInstance.__str__()
 

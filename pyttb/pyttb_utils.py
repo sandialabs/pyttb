@@ -6,15 +6,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from enum import Enum
 from math import prod
 from typing import (
     Any,
-    Iterable,
     Literal,
-    Optional,
-    Sequence,
-    Tuple,
     Union,
     cast,
     get_args,
@@ -91,26 +88,26 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 def tt_dimscheck(
     N: int,
     M: None = None,
-    dims: Optional[OneDArray] = None,
-    exclude_dims: Optional[OneDArray] = None,
-) -> Tuple[np.ndarray, None]: ...  # pragma: no cover see coveragepy/issues/970
+    dims: OneDArray | None = None,
+    exclude_dims: OneDArray | None = None,
+) -> tuple[np.ndarray, None]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
 def tt_dimscheck(
     N: int,
     M: int,
-    dims: Optional[OneDArray] = None,
-    exclude_dims: Optional[OneDArray] = None,
-) -> Tuple[np.ndarray, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
+    dims: OneDArray | None = None,
+    exclude_dims: OneDArray | None = None,
+) -> tuple[np.ndarray, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def tt_dimscheck(  # noqa: PLR0912
     N: int,
-    M: Optional[int] = None,
-    dims: Optional[OneDArray] = None,
-    exclude_dims: Optional[OneDArray] = None,
-) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+    M: int | None = None,
+    dims: OneDArray | None = None,
+    exclude_dims: OneDArray | None = None,
+) -> tuple[np.ndarray, np.ndarray | None]:
     """Preprocess dimensions for tensor operations.
 
     Parameters
@@ -283,7 +280,7 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
 
 def tt_irenumber(
-    t: ttb.sptensor, shape: Tuple[int, ...], number_range: Sequence[IndexType]
+    t: ttb.sptensor, shape: tuple[int, ...], number_range: Sequence[IndexType]
 ) -> np.ndarray:
     """Renumber indices for sptensor __setitem__.
 
@@ -322,8 +319,8 @@ def tt_irenumber(
 
 
 def tt_renumber(
-    subs: np.ndarray, shape: Tuple[int, ...], number_range: Sequence[IndexType]
-) -> Tuple[np.ndarray, Tuple[int, ...]]:
+    subs: np.ndarray, shape: tuple[int, ...], number_range: Sequence[IndexType]
+) -> tuple[np.ndarray, tuple[int, ...]]:
     """Renumber indices for sptensor __getitem__.
 
     [NEWSUBS,NEWSZ] = RENUMBER(SUBS,SZ,RANGE) takes a set of
@@ -379,7 +376,7 @@ def tt_renumber(
 
 def tt_renumberdim(
     idx: np.ndarray, shape: int, number_range: IndexType
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """Renumber a single dimension.
 
     Helper function for RENUMBER.
@@ -422,7 +419,7 @@ def tt_renumberdim(
 # For thoughts on how to speed this up
 def tt_ismember_rows(
     search: np.ndarray, source: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Find location of search rows in source array.
 
     Parameters
@@ -465,7 +462,7 @@ def tt_ismember_rows(
 
 
 def tt_ind2sub(
-    shape: Tuple[int, ...],
+    shape: tuple[int, ...],
     idx: np.ndarray,
     order: MemoryLayout = "F",
 ) -> np.ndarray:
@@ -495,7 +492,7 @@ def tt_ind2sub(
     return np.array(np.unravel_index(idx, shape, order=order)).transpose()
 
 
-def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
+def tt_subsubsref(obj: np.ndarray, s: Any) -> float | np.ndarray:
     """Helper function for tensor toolbox subsref.
 
     Parameters
@@ -522,7 +519,7 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> Union[float, np.ndarray]:
 
 
 def tt_sub2ind(
-    shape: Tuple[int, ...],
+    shape: tuple[int, ...],
     subs: np.ndarray,
     order: MemoryLayout = "F",
 ) -> np.ndarray:
@@ -554,7 +551,7 @@ def tt_sub2ind(
     return idx
 
 
-def tt_sizecheck(shape: Tuple[int, ...], nargout: bool = True) -> bool:
+def tt_sizecheck(shape: tuple[int, ...], nargout: bool = True) -> bool:
     """
     TT_SIZECHECK Checks that the shape is valid.
 
@@ -793,7 +790,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 
 
 def get_mttkrp_factors(
-    U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer], ndims: int
+    U: ttb.ktensor | Sequence[np.ndarray], n: int | np.integer, ndims: int
 ) -> Sequence[np.ndarray]:
     """Apply standard checks and type conversions for mttkrp factors."""
     if isinstance(U, ttb.ktensor):
@@ -818,10 +815,10 @@ def get_mttkrp_factors(
 
 def gather_wrap_dims(
     ndims: int,
-    rdims: Optional[np.ndarray] = None,
-    cdims: Optional[np.ndarray] = None,
-    cdims_cyclic: Optional[Union[Literal["fc"], Literal["bc"], Literal["t"]]] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
+    rdims: np.ndarray | None = None,
+    cdims: np.ndarray | None = None,
+    cdims_cyclic: Literal["fc"] | Literal["bc"] | Literal["t"] | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
     """Extract tensor modes mapped to rows and columns for matricized tensors.
 
     Parameters
@@ -907,7 +904,7 @@ def np_to_python(
     )
 
 
-def parse_shape(shape: Shape) -> Tuple[int, ...]:
+def parse_shape(shape: Shape) -> tuple[int, ...]:
     """Parse flexible type into shape tuple.
 
     Examples
@@ -1003,8 +1000,8 @@ def to_memory_order(
 
 
 def to_memory_order(
-    array: Union[np.ndarray, sparse.coo_matrix], order: MemoryLayout, copy: bool = False
-) -> Union[np.ndarray, sparse.coo_matrix]:
+    array: np.ndarray | sparse.coo_matrix, order: MemoryLayout, copy: bool = False
+) -> np.ndarray | sparse.coo_matrix:
     """Convert an array to the specified memory layout.
 
     Parameters

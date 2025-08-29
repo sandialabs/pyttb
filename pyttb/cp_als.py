@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Literal, Optional, Tuple, Union
+from typing import Literal
 
 import numpy as np
 
@@ -15,16 +15,16 @@ from pyttb.pyttb_utils import OneDArray, parse_one_d
 
 
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: Union[ttb.tensor, ttb.sptensor, ttb.ttensor, ttb.sumtensor],
+    input_tensor: ttb.tensor | ttb.sptensor | ttb.ttensor | ttb.sumtensor,
     rank: int,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
-    dimorder: Optional[OneDArray] = None,
-    optdims: Optional[OneDArray] = None,
-    init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
+    dimorder: OneDArray | None = None,
+    optdims: OneDArray | None = None,
+    init: Literal["random"] | Literal["nvecs"] | ttb.ktensor = "random",
     printitn: int = 1,
     fixsigns: bool = True,
-) -> Tuple[ttb.ktensor, ttb.ktensor, Dict]:
+) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
     """Compute CP decomposition with alternating least squares.
 
     Parameters

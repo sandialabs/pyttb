@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import warnings
-from typing import Optional
 
 import numpy as np
 import scipy
@@ -20,9 +19,9 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: ttb.tensor,
     tol: float,
     verbosity: float = 1,
-    dimorder: Optional[OneDArray] = None,
+    dimorder: OneDArray | None = None,
     sequential: bool = True,
-    ranks: Optional[OneDArray] = None,
+    ranks: OneDArray | None = None,
 ) -> ttb.ttensor:
     """Compute sequentially-truncated higher-order SVD (Tucker).
 

@@ -8,15 +8,11 @@ from __future__ import annotations
 
 import logging
 import warnings
+from collections.abc import Sequence
 from math import prod
 from typing import (
     Callable,
-    List,
     Literal,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
     cast,
     overload,
 )
@@ -77,8 +73,8 @@ class ktensor:
 
     def __init__(  # noqa: PLR0912
         self,
-        factor_matrices: Optional[Sequence[np.ndarray]] = None,
-        weights: Optional[np.ndarray] = None,
+        factor_matrices: Sequence[np.ndarray] | None = None,
+        weights: np.ndarray | None = None,
         copy: bool = True,
     ):
         """Create a :class:`pyttb.ktensor`.
@@ -149,7 +145,7 @@ class ktensor:
         # Empty constructor
         if factor_matrices is None and weights is None:
             self.weights = np.array([], order=self.order)
-            self.factor_matrices: List[np.ndarray] = []
+            self.factor_matrices: list[np.ndarray] = []
             return
 
         # 'factor_matrices' must be a list
@@ -216,7 +212,7 @@ class ktensor:
     @classmethod
     def from_function(
         cls,
-        function_handle: Callable[[Tuple[int, ...]], np.ndarray],
+        function_handle: Callable[[tuple[int, ...]], np.ndarray],
         shape: Shape,
         num_components: int,
     ):
@@ -443,8 +439,8 @@ class ktensor:
 
     def arrange(
         self,
-        weight_factor: Optional[int] = None,
-        permutation: Optional[Union[Tuple, List, np.ndarray]] = None,
+        weight_factor: int | None = None,
+        permutation: tuple | list | np.ndarray | None = None,
     ):
         """Arrange the rank-1 components of a :class:`pyttb.ktensor` in place.
 
@@ -667,9 +663,7 @@ class ktensor:
         """
         return self.full().double(immutable)
 
-    def extract(
-        self, idx: Optional[Union[int, tuple, list, np.ndarray]] = None
-    ) -> ktensor:
+    def extract(self, idx: int | tuple | list | np.ndarray | None = None) -> ktensor:
         """Create a new :class:`pyttb.ktensor` with only the specified components.
 
         Parameters
@@ -749,7 +743,7 @@ class ktensor:
         else:
             assert False, "Input parameter must be an int, tuple, list or numpy.ndarray"
 
-    def fixsigns(self, other: Optional[ktensor] = None) -> ktensor:  # noqa: PLR0912
+    def fixsigns(self, other: ktensor | None = None) -> ktensor:  # noqa: PLR0912
         """Change the elements of a :class:`pyttb.ktensor` in place.
 
         Update so that the
@@ -934,7 +928,7 @@ class ktensor:
         <BLANKLINE>
         """
 
-        def min_split_dims(dims: Tuple[int, ...]):
+        def min_split_dims(dims: tuple[int, ...]):
             """Return Minimum split dimensions.
 
             Solve
@@ -957,11 +951,9 @@ class ktensor:
 
     def to_tenmat(
         self,
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        cdims_cyclic: Optional[
-            Union[Literal["fc"], Literal["bc"], Literal["t"]]
-        ] = None,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        cdims_cyclic: Literal["fc"] | Literal["bc"] | Literal["t"] | None = None,
         copy: bool = True,
     ) -> ttb.tenmat:
         """Construct a :class:`pyttb.tenmat` from a :class:`pyttb.ktensor`.
@@ -1026,7 +1018,7 @@ class ktensor:
         return self.full().to_tenmat(rdims, cdims, cdims_cyclic, copy)
 
     def innerprod(
-        self, other: Union[ttb.tensor, ttb.sptensor, ktensor, ttb.ttensor]
+        self, other: ttb.tensor | ttb.sptensor | ktensor | ttb.ttensor
     ) -> float:
         """
         Efficient inner product with a :class:`pyttb.ktensor`.
@@ -1111,11 +1103,9 @@ class ktensor:
     @overload
     def issymmetric(
         self, return_diffs: Literal[True]
-    ) -> Tuple[bool, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
+    ) -> tuple[bool, np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
-    def issymmetric(
-        self, return_diffs: bool = False
-    ) -> Union[bool, Tuple[bool, np.ndarray]]:
+    def issymmetric(self, return_diffs: bool = False) -> bool | tuple[bool, np.ndarray]:
         """Return True if :class:`pyttb.ktensor` is symmetric for every permutation.
 
         Parameters
@@ -1167,7 +1157,7 @@ class ktensor:
             return issym, diffs
         return issym
 
-    def mask(self, W: Union[ttb.tensor, ttb.sptensor]) -> np.ndarray:
+    def mask(self, W: ttb.tensor | ttb.sptensor) -> np.ndarray:
         """Extract :class:`pyttb.ktensor` values as specified by `W`.
 
         `W` is a
@@ -1223,7 +1213,7 @@ class ktensor:
         return vals
 
     def mttkrp(
-        self, U: Union[ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+        self, U: ktensor | Sequence[np.ndarray], n: int | np.integer
     ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for :class:`pyttb.ktensor`.
@@ -1312,10 +1302,10 @@ class ktensor:
 
     def normalize(
         self,
-        weight_factor: Optional[Union[int, Literal["all"]]] = None,
-        sort: Optional[bool] = False,
+        weight_factor: int | Literal["all"] | None = None,
+        sort: bool | None = False,
         normtype: float = 2,
-        mode: Optional[int] = None,
+        mode: int | None = None,
     ) -> ktensor:
         """Normalize the columns of the factor matrices in place.
 
@@ -1403,7 +1393,7 @@ class ktensor:
             self.factor_matrices[weight_factor] = self.factor_matrices[
                 weight_factor
             ] @ np.diag(self.weights)
-            self.weights = np.ones((self.weights.shape))
+            self.weights = np.ones(self.weights.shape)
 
         if sort:
             if self.ncomponents > 1:
@@ -1590,7 +1580,7 @@ class ktensor:
         return self
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Shape of a :class:`pyttb.ktensor`.
 
         Returns the lengths of all dimensions of the :class:`pyttb.ktensor`.
@@ -1602,9 +1592,9 @@ class ktensor:
         self,
         other: ktensor,
         weight_penalty: bool = True,
-        threshold: Optional[float] = None,
+        threshold: float | None = None,
         greedy: bool = True,
-    ) -> Tuple[float, ktensor, bool, np.ndarray]:
+    ) -> tuple[float, ktensor, bool, np.ndarray]:
         """Check if two :class:`pyttb.ktensor` with the same shape match.
 
         Matching is defined as follows. If `self` and `other` are single-
@@ -1841,7 +1831,7 @@ class ktensor:
 
         return ttb.ktensor([V.copy() for i in range(K.ndims)], weights)
 
-    def tolist(self, mode: Optional[int] = None) -> List[np.ndarray]:
+    def tolist(self, mode: int | None = None) -> list[np.ndarray]:
         """Convert :class:`pyttb.ktensor` to a list of factor matrices.
 
         Eevenly
@@ -1998,10 +1988,10 @@ class ktensor:
 
     def ttv(
         self,
-        vector: Union[Sequence[np.ndarray], np.ndarray],
-        dims: Optional[OneDArray] = None,
-        exclude_dims: Optional[OneDArray] = None,
-    ) -> Union[float, ktensor]:
+        vector: Sequence[np.ndarray] | np.ndarray,
+        dims: OneDArray | None = None,
+        exclude_dims: OneDArray | None = None,
+    ) -> float | ktensor:
         """
         Tensor times vector for a :class:`pyttb.ktensor`.
 
@@ -2266,22 +2256,22 @@ class ktensor:
 
     def viz(  # noqa: PLR0912, PLR0913
         self,
-        plots: Optional[Union[tuple, list]] = None,
+        plots: tuple | list | None = None,
         show_figure: bool = True,
         normalize: bool = True,
-        norm: Union[int, float] = 2,
+        norm: int | float = 2,
         rel_weights: bool = True,
-        rel_heights: Optional[Union[tuple, list]] = None,
-        rel_widths: Optional[Union[tuple, list]] = None,
-        horz_space: Optional[float] = None,
-        vert_space: Optional[float] = None,
-        left_space: Optional[float] = None,
-        right_space: Optional[float] = None,
-        top_space: Optional[float] = None,
-        bot_space: Optional[float] = None,
-        mode_titles: Optional[Union[tuple, list]] = None,
+        rel_heights: tuple | list | None = None,
+        rel_widths: tuple | list | None = None,
+        horz_space: float | None = None,
+        vert_space: float | None = None,
+        left_space: float | None = None,
+        right_space: float | None = None,
+        top_space: float | None = None,
+        bot_space: float | None = None,
+        mode_titles: tuple | list | None = None,
         title=None,
-    ) -> Tuple[Figure, Axes]:
+    ) -> tuple[Figure, Axes]:
         """
         Visualize factors for :class:`pyttb.ktensor`.
 

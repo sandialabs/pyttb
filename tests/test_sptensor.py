@@ -1304,7 +1304,7 @@ def test_sptensor_innerprod(sample_sptensor):
     # Wrong type for innerprod
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.innerprod(5)
-    assert f"Inner product between sptensor and {type(5)} not supported" in str(excinfo)
+    assert f"Inner product between sptensor and {int} not supported" in str(excinfo)
 
 
 def test_sptensor_logical_xor(sample_sptensor):
