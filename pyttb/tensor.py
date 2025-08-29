@@ -311,6 +311,20 @@ class tensor:
         """Return deep copy of this tensor."""
         return self.copy()
 
+    @overload
+    def collapse(
+        self,
+        dims: None,
+        fun: Callable[[np.ndarray], Union[float, np.ndarray]],
+    ) -> float: ...  # pragma: no cover see coveragepy/issues/970
+
+    @overload
+    def collapse(
+        self,
+        dims: OneDArray,
+        fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
+    ) -> Union[np.ndarray, tensor]: ...  # pragma: no cover see coveragepy/issues/970
+
     def collapse(
         self,
         dims: Optional[OneDArray] = None,
@@ -382,6 +396,8 @@ class tensor:
             Min value: -0.977277879876411
         """
         if self.data.size == 0:
+            # TODO verify this is the only thing that returns np array
+            # and remove
             return np.array([], order=self.order)
 
         if dims is None:

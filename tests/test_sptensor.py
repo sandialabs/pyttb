@@ -1362,7 +1362,7 @@ def test_sptensor_squeeze(sample_sptensor):
     )
     assert np.array_equal(
         ttb.sptensor(np.array([[0, 0, 0]]), np.array([4]), (2, 2, 1)).squeeze().vals,
-        np.array([4]),
+        np.array([[4]]),
     )
 
     # Singleton dimension with empty sptensor
