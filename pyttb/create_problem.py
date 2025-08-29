@@ -593,7 +593,7 @@ def generate_data_sparse(
 
     # Convert solution to probability tensor
     # NOTE: Make copy since normalize modifies in place
-    P = solution.copy().normalize(mode=0)
+    P = solution.copy().normalize(normtype=1)
     eta = np.sum(P.weights)
     P.weights /= eta
 
