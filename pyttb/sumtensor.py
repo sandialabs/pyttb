@@ -9,12 +9,13 @@ from __future__ import annotations
 import warnings
 from copy import deepcopy
 from textwrap import indent
-from typing import Literal
-
-import numpy as np
+from typing import TYPE_CHECKING, Literal
 
 import pyttb as ttb
 from pyttb.pyttb_utils import np_to_python
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class sumtensor:
@@ -52,9 +53,9 @@ class sumtensor:
             "Collection of tensors must be provided as a list "
             f"but received: {type(tensors)}"
         )
-        assert all(
-            tensors[0].shape == tensor_i.shape for tensor_i in tensors[1:]
-        ), "All tensors must be the same shape"
+        assert all(tensors[0].shape == tensor_i.shape for tensor_i in tensors[1:]), (
+            "All tensors must be the same shape"
+        )
         if copy:
             tensors = deepcopy(tensors)
         self.parts = tensors

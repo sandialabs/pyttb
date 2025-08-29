@@ -25,7 +25,7 @@ from pyttb.pyttb_utils import (
 class tenmat:
     """Store tensor as a matrix."""
 
-    __slots__ = ("tshape", "rindices", "cindices", "data")
+    __slots__ = ("cindices", "data", "rindices", "tshape")
 
     def __init__(  # noqa: PLR0912
         self,
@@ -98,9 +98,9 @@ class tenmat:
             cdims_empty = cdims is None or cdims.size == 0
             rdims_empty = rdims is None or rdims.size == 0
             tshape_empty = tshape is None or tshape == ()
-            assert (
-                rdims_empty and cdims_empty and tshape_empty
-            ), "When data is empty, rdims, cdims, and tshape must also be empty."
+            assert rdims_empty and cdims_empty and tshape_empty, (
+                "When data is empty, rdims, cdims, and tshape must also be empty."
+            )
 
             self.tshape: tuple[()] | tuple[int, ...] = ()
             self.rindices = np.array([])
@@ -146,9 +146,9 @@ class tenmat:
         if not np.prod(np.array(tshape)[rdims]) * np.prod(
             np.array(tshape)[cdims]
         ) == prod(data.shape):
-            assert (
-                False
-            ), "data.shape does not match shape specified by rdims, cdims, and tshape."
+            assert False, (
+                "data.shape does not match shape specified by rdims, cdims, and tshape."
+            )
 
         # if rdims or cdims is empty, hstack will output an array of float not int
         if rdims.size == 0:

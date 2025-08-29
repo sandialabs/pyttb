@@ -153,9 +153,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     if isinstance(init, ttb.ktensor):
         # User provided an initial ktensor; validate it
         assert init.ndims == N, f"Initial guess does not have {N} modes"
-        assert (
-            init.ncomponents == rank
-        ), f"Initial guess does not have {rank} components"
+        assert init.ncomponents == rank, (
+            f"Initial guess does not have {rank} components"
+        )
         for n in dimorder:
             if init.factor_matrices[n].shape != (input_tensor.shape[n], rank):
                 assert False, f"Mode {n} of the initial guess is the wrong size"
@@ -167,9 +167,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
             )
         init = ttb.ktensor(factor_matrices)
     elif isinstance(init, str) and init.lower() == "nvecs":
-        assert not isinstance(
-            input_tensor, ttb.sumtensor
-        ), "Sumtensor doesn't support nvecs"
+        assert not isinstance(input_tensor, ttb.sumtensor), (
+            "Sumtensor doesn't support nvecs"
+        )
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(input_tensor.nvecs(n, rank))

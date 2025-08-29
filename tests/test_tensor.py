@@ -60,34 +60,34 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
     # no shape specified
     tensorInstance1 = ttb.tensor(np.array([1, 2, 3]))
     data = np.array([1, 2, 3])
-    assert (
-        tensorInstance1.data.shape == data.shape
-    ), f"tensorInstance1:\n{tensorInstance1}"
-    assert np.array_equal(
-        tensorInstance1.data, data
-    ), f"tensorInstance1:\n{tensorInstance1}"
+    assert tensorInstance1.data.shape == data.shape, (
+        f"tensorInstance1:\n{tensorInstance1}"
+    )
+    assert np.array_equal(tensorInstance1.data, data), (
+        f"tensorInstance1:\n{tensorInstance1}"
+    )
     assert_consistent_order(tensorInstance, tensorInstance.data)
 
     # shape is 1 x 3
     tensorInstance1 = ttb.tensor(np.array([1, 2, 3]), (1, 3))
     data = np.array([[1, 2, 3]])
-    assert (
-        tensorInstance1.data.shape == data.shape
-    ), f"tensorInstance1:\n{tensorInstance1}"
-    assert np.array_equal(
-        tensorInstance1.data, data
-    ), f"tensorInstance1:\n{tensorInstance1}"
+    assert tensorInstance1.data.shape == data.shape, (
+        f"tensorInstance1:\n{tensorInstance1}"
+    )
+    assert np.array_equal(tensorInstance1.data, data), (
+        f"tensorInstance1:\n{tensorInstance1}"
+    )
     assert_consistent_order(tensorInstance, tensorInstance.data)
 
     # shape is 3 x 1
     tensorInstance1 = ttb.tensor(np.array([1, 2, 3]), (3, 1))
     data = np.array([[1], [2], [3]])
-    assert (
-        tensorInstance1.data.shape == data.shape
-    ), f"tensorInstance1:\n{tensorInstance1}"
-    assert np.array_equal(
-        tensorInstance1.data, data
-    ), f"tensorInstance1:\n{tensorInstance1}"
+    assert tensorInstance1.data.shape == data.shape, (
+        f"tensorInstance1:\n{tensorInstance1}"
+    )
+    assert np.array_equal(tensorInstance1.data, data), (
+        f"tensorInstance1:\n{tensorInstance1}"
+    )
     assert_consistent_order(tensorInstance, tensorInstance.data)
 
 
@@ -609,21 +609,21 @@ def test_tensor__lt__(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way
 def test_tensor_norm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     # 2-way tensor
     (params2, tensorInstance2) = sample_tensor_2way
-    assert tensorInstance2.norm() == np.linalg.norm(
-        params2["data"].ravel()
-    ), f"tensorInstace2.norm(): {tensorInstance2.norm()}"
+    assert tensorInstance2.norm() == np.linalg.norm(params2["data"].ravel()), (
+        f"tensorInstace2.norm(): {tensorInstance2.norm()}"
+    )
 
     # 3-way tensor
     (params3, tensorInstance3) = sample_tensor_3way
-    assert tensorInstance3.norm() == np.linalg.norm(
-        params3["data"].ravel()
-    ), f"tensorInstace3.norm(): {tensorInstance3.norm()}"
+    assert tensorInstance3.norm() == np.linalg.norm(params3["data"].ravel()), (
+        f"tensorInstace3.norm(): {tensorInstance3.norm()}"
+    )
 
     # 4-way tensor
     (params4, tensorInstance4) = sample_tensor_4way
-    assert tensorInstance4.norm() == np.linalg.norm(
-        params4["data"].ravel()
-    ), f"tensorInstace4.norm(): {tensorInstance4.norm()}"
+    assert tensorInstance4.norm() == np.linalg.norm(params4["data"].ravel()), (
+        f"tensorInstace4.norm(): {tensorInstance4.norm()}"
+    )
 
 
 def test_tensor_logical_not(sample_tensor_2way):
@@ -1121,21 +1121,21 @@ def test_tensor_innerprod(sample_tensor_2way, sample_tensor_3way, sample_tensor_
 
     # 2-way
     (params2, tensorInstance2) = sample_tensor_2way
-    assert (
-        tensorInstance2.innerprod(tensorInstance2) == 91
-    ), f"tensorInstance2.innerprod(tensorInstance2): {tensorInstance2.innerprod(tensorInstance2)}"
+    assert tensorInstance2.innerprod(tensorInstance2) == 91, (
+        f"tensorInstance2.innerprod(tensorInstance2): {tensorInstance2.innerprod(tensorInstance2)}"
+    )
 
     # 3-way
     (params3, tensorInstance3) = sample_tensor_3way
-    assert (
-        tensorInstance3.innerprod(tensorInstance3) == 650
-    ), f"tensorInstance3.innerprod(tensorInstance3): {tensorInstance3.innerprod(tensorInstance3)}"
+    assert tensorInstance3.innerprod(tensorInstance3) == 650, (
+        f"tensorInstance3.innerprod(tensorInstance3): {tensorInstance3.innerprod(tensorInstance3)}"
+    )
 
     # 4-way
     (params4, tensorInstance4) = sample_tensor_4way
-    assert (
-        tensorInstance4.innerprod(tensorInstance4) == 180441
-    ), f"tensorInstance4.innerprod(tensorInstance4): {tensorInstance4.innerprod(tensorInstance4)}"
+    assert tensorInstance4.innerprod(tensorInstance4) == 180441, (
+        f"tensorInstance4.innerprod(tensorInstance4): {tensorInstance4.innerprod(tensorInstance4)}"
+    )
 
 
 def test_tensor_mask(sample_tensor_2way):

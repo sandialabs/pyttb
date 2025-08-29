@@ -10,7 +10,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from math import inf
-from typing import Callable, TypedDict
+from typing import TYPE_CHECKING, Callable, TypedDict
 
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
@@ -18,8 +18,10 @@ from scipy.optimize import fmin_l_bfgs_b
 import pyttb as ttb
 from pyttb.gcp.fg import evaluate
 from pyttb.gcp.fg_est import estimate
-from pyttb.gcp.fg_setup import function_type
 from pyttb.gcp.samplers import GCPSampler
+
+if TYPE_CHECKING:
+    from pyttb.gcp.fg_setup import function_type
 
 
 class StochasticSolver(ABC):
@@ -234,7 +236,7 @@ class StochasticSolver(ABC):
                 "End Main Loop\n"
                 f"Final f-est: {f_est: 10.4e}\n"
                 f"Main loop time: {main_time: .2f}\n"
-                f"Total iterations: {n_epoch*self._epoch_iters}"
+                f"Total iterations: {n_epoch * self._epoch_iters}"
             )
             logging.info(msg)
 

@@ -7,13 +7,15 @@
 from __future__ import annotations
 
 from numbers import Real
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-import pyttb as ttb
 from pyttb.pyttb_utils import OneDArray, parse_one_d
 from pyttb.ttensor import ttensor
+
+if TYPE_CHECKING:
+    import pyttb as ttb
 
 
 def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915

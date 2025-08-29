@@ -46,7 +46,7 @@ from pyttb.pyttb_utils import (
 )
 
 
-class tensor:
+class tensor:  # noqa: PLW1641
     """Class for dense tensors.
 
     Attributes
@@ -170,9 +170,9 @@ class tensor:
                 assert False, "Empty tensor cannot contain any elements"
 
         elif prod(shape) != data.size:
-            assert (
-                False
-            ), "TTB:WrongSize, Size of data does not match specified size of tensor"
+            assert False, (
+                "TTB:WrongSize, Size of data does not match specified size of tensor"
+            )
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
@@ -1448,7 +1448,7 @@ class tensor:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
                 # Why is item annotated as str?
-                single_item: float = cast(float, self.data.item())
+                single_item: float = cast("float", self.data.item())
                 return single_item
             return ttb.tensor(np.squeeze(self.data))
 
@@ -1771,9 +1771,9 @@ class tensor:
         othershape = tuple(np.array(other.shape)[otherdims])
 
         if np.any(selfshape != othershape):
-            assert (
-                False
-            ), f"Specified dimensions do not match got {selfshape} and {othershape}"
+            assert False, (
+                f"Specified dimensions do not match got {selfshape} and {othershape}"
+            )
 
         # Compute the product
 
@@ -1950,7 +1950,7 @@ class tensor:
 
             # extract scalar if needed
             if len(y) == 1:
-                return cast(float, y.item())
+                return cast("float", y.item())
 
             return y
         assert False, "Invalid value for version; should be None, 1, or 2"
@@ -1984,7 +1984,7 @@ class tensor:
             # We manually inspected the function handle for the parameters
             # maybe there is a more clever way to convince mypy
             binary_function_handle = cast(
-                Callable[[np.ndarray, np.ndarray], np.ndarray], function_handle
+                "Callable[[np.ndarray, np.ndarray], np.ndarray]", function_handle
             )
             Y = inputs[0]
             if not isinstance(Y, (int, float)):
@@ -2006,9 +2006,9 @@ class tensor:
                     ttb.sumtensor,
                 ),
             ):
-                assert (
-                    False
-                ), f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
+                assert False, (
+                    f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
+                )
             input_tensors.append(self._tt_to_tensor(an_input))
 
         # Case II: Expects input to be matrix and applies operation on each columns
@@ -2018,7 +2018,7 @@ class tensor:
                 "function handle takes {nfunin} arguments."
             )
         unary_function_handle = cast(
-            Callable[[np.ndarray], np.ndarray], function_handle
+            "Callable[[np.ndarray], np.ndarray]", function_handle
         )
         return self.tenfun_unary(unary_function_handle, *input_tensors)
 
@@ -2087,9 +2087,9 @@ class tensor:
             if isinstance(an_input, (float, int)):
                 assert False, f"Argument {i} is a scalar but expected a tensor"
             elif sz != an_input.shape:
-                assert (
-                    False
-                ), f"Tensor {i} is not the same size as the first tensor input"
+                assert False, (
+                    f"Tensor {i} is not the same size as the first tensor input"
+                )
         if len(inputs) == 0:
             X = self.data
             X = np.reshape(X, (1, -1), order=self.order)
@@ -2171,9 +2171,9 @@ class tensor:
     def _set_linear(self, key, value):
         idx = key
         if not isinstance(idx, slice) and (idx > np.prod(self.shape)).any():
-            assert (
-                False
-            ), "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+            assert False, (
+                "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+            )
         if isinstance(key, (int, float, np.generic)):
             idx = np.array([key])
         elif isinstance(key, slice):

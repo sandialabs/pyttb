@@ -10,7 +10,7 @@ import logging
 import time
 from collections.abc import Sequence
 from math import prod
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
@@ -18,7 +18,9 @@ import pyttb as ttb
 from pyttb.gcp.fg_setup import function_type, setup
 from pyttb.gcp.handles import Objectives
 from pyttb.gcp.optimizers import LBFGSB, StochasticSolver
-from pyttb.gcp.samplers import GCPSampler
+
+if TYPE_CHECKING:
+    from pyttb.gcp.samplers import GCPSampler
 
 
 def gcp_opt(  # noqa:  PLR0912,PLR0913
@@ -112,7 +114,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
         )
         if nmissing > 0:
             welcome_msg += (
-                f"Missing entries: {nmissing} ({100*nmissing/tensor_size:.2g}%)"
+                f"Missing entries: {nmissing} ({100 * nmissing / tensor_size:.2g}%)"
             )
         logging.info(welcome_msg)
 

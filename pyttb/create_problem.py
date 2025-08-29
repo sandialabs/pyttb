@@ -296,7 +296,7 @@ def _create_missing_data_pattern(
                 subs = subs[idx[:Q]]
             elif subs.shape[0] < Q:
                 logging.warning(
-                    f"Only generated {subs.shape[0]} of " f"{Q} desired subscripts"
+                    f"Only generated {subs.shape[0]} of {Q} desired subscripts"
                 )
             W = ttb.sptensor(
                 subs,
@@ -331,7 +331,7 @@ def _create_missing_data_pattern(
     if not isokay:
         raise ValueError(
             f"After {iter} iterations, cannot produce a tensor with"
-            f"{missing_ratio*100} missing data without an empty slice."
+            f"{missing_ratio * 100} missing data without an empty slice."
         )
     return W
 
@@ -443,7 +443,7 @@ def create_problem(
                 f"Can't combine missing data {MissingData.__name__} and "
                 f" sparse generation {CPProblem.__name__}."
             )
-        solution = cast(ttb.ktensor, solution)
+        solution = cast("ttb.ktensor", solution)
         solution, data = generate_data_sparse(solution, problem_params)
     elif missing_params.has_missing():
         pattern = missing_params.get_pattern(solution.shape)
@@ -456,7 +456,7 @@ def create_problem(
 def generate_solution_factors(base_params: BaseProblem) -> list[np.ndarray]:
     """Generate the factor matrices for either type of solution."""
     # Get shape of final tensor
-    shape = cast(tuple[int, ...], base_params.shape)
+    shape = cast("tuple[int, ...]", base_params.shape)
 
     # Get shape of factors
     if isinstance(base_params.num_factors, int):
@@ -509,7 +509,7 @@ def generate_solution(
     factor_matrices = generate_solution_factors(problem_params)
     # Create final model
     if isinstance(problem_params, TuckerProblem):
-        nfactors = cast(list[int], problem_params.num_factors)
+        nfactors = cast("list[int]", problem_params.num_factors)
         generated_core = problem_params.core_generator(tuple(nfactors))
         if isinstance(generated_core, (ttb.tensor, ttb.sptensor)):
             core = generated_core

@@ -7,13 +7,14 @@
 from __future__ import annotations
 
 import warnings
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
 from scipy.sparse import csr_array
 
-import pyttb as ttb
-from pyttb.gcp.fg_setup import function_type
+if TYPE_CHECKING:
+    import pyttb as ttb
+    from pyttb.gcp.fg_setup import function_type
 
 
 @overload

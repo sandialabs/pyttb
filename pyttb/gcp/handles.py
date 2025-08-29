@@ -7,10 +7,12 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-import pyttb as ttb
+if TYPE_CHECKING:
+    import pyttb as ttb
 
 # Epsilon values for distributions
 EPS = 1e-10

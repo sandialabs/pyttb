@@ -7,6 +7,6 @@ from __future__ import annotations
 
 
 def assert_consistent_order(tensor, array):
-    assert tensor._matches_order(
-        array
-    ), f"Expected array of order {tensor.order} but got {array.flags}."
+    assert tensor._matches_order(array), (
+        f"Expected array of order {tensor.order} but got {array.flags}."
+    )

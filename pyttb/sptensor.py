@@ -52,7 +52,7 @@ from pyttb.pyttb_utils import (
 )
 
 
-class sptensor:
+class sptensor:  # noqa: PLW1641
     """
     SPTENSOR Class for sparse tensors.
 
@@ -79,7 +79,7 @@ class sptensor:
     >>> import numpy as np
     """
 
-    __slots__ = ("subs", "vals", "shape")
+    __slots__ = ("shape", "subs", "vals")
 
     def __init__(
         self,
@@ -691,7 +691,7 @@ class sptensor:
             badsubs = searchsubs[badloc, :]
             for i in np.arange(0, badloc[0].size):
                 error_msg += f"\tsubscript = {np.array2string(badsubs[i, :])} \n"
-            assert False, f"{error_msg}" "Invalid subscripts"
+            assert False, f"{error_msg}Invalid subscripts"
 
         # Set the default answer to zero
         a = np.zeros(shape=(p, 1), dtype=self.vals.dtype, order=self.order)
@@ -1893,9 +1893,9 @@ class sptensor:
             # TODO: Consider cleaner typing coercion
             # Find subscripts that match in dimension i
             if isinstance(region[i], (int, np.generic)):
-                tf = np.isin(self.subs[loc, i], cast(int, region[i]))
+                tf = np.isin(self.subs[loc, i], cast("int", region[i]))
             elif isinstance(region[i], (np.ndarray, list)):
-                tf = np.isin(self.subs[loc, i], cast(np.ndarray, region[i]))
+                tf = np.isin(self.subs[loc, i], cast("np.ndarray", region[i]))
             elif isinstance(region[i], slice):
                 sliceRegion = range(0, self.shape[i])[region[i]]
                 tf = np.isin(self.subs[loc, i], sliceRegion)

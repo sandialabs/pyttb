@@ -6,12 +6,14 @@
 
 from __future__ import annotations
 
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
 
 import pyttb as ttb
-from pyttb.gcp.fg_setup import function_type
+
+if TYPE_CHECKING:
+    from pyttb.gcp.fg_setup import function_type
 
 
 @overload

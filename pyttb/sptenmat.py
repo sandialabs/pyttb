@@ -23,7 +23,7 @@ from pyttb.pyttb_utils import (
 class sptenmat:
     """Store sparse tensor as a sparse matrix."""
 
-    __slots__ = ("tshape", "rdims", "cdims", "subs", "vals")
+    __slots__ = ("cdims", "rdims", "subs", "tshape", "vals")
 
     def __init__(  # noqa: PLR0913
         self,
@@ -91,9 +91,9 @@ class sptenmat:
         """
         # Empty case
         if rdims is None and cdims is None:
-            assert (
-                subs is None and vals is None
-            ), "Must provide rdims or cdims with values"
+            assert subs is None and vals is None, (
+                "Must provide rdims or cdims with values"
+            )
             self.subs = np.array([], ndmin=2, dtype=int)
             self.vals = np.array([], ndmin=2)
             self.rdims = np.array([], dtype=int)

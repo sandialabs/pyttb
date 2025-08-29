@@ -94,17 +94,17 @@ def cp_apr(  # noqa: PLR0913
 
     # Check that the data is non-negative.
     tmp = input_tensor < 0.0
-    assert (
-        tmp.nnz == 0
-    ), "Data tensor must be nonnegative for Poisson-based factorization"
+    assert tmp.nnz == 0, (
+        "Data tensor must be nonnegative for Poisson-based factorization"
+    )
 
     # Set up an initial guess for the factor matrices.
     if isinstance(init, ttb.ktensor):
         # User provided an initial ktensor; validate it
         assert init.ndims == N, "Initial guess does not have the right number of modes"
-        assert (
-            init.ncomponents == rank
-        ), "Initial guess does not have the right number of components"
+        assert init.ncomponents == rank, (
+            "Initial guess does not have the right number of components"
+        )
         for n in range(N):
             if init.shape[n] != input_tensor.shape[n]:
                 assert False, f"Mode {n} of the initial guess is the wrong size"

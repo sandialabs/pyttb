@@ -11,6 +11,7 @@ import warnings
 from collections.abc import Sequence
 from math import prod
 from typing import (
+    TYPE_CHECKING,
     Callable,
     Literal,
     cast,
@@ -20,8 +21,6 @@ from typing import (
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse.linalg
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
@@ -37,6 +36,10 @@ from pyttb.pyttb_utils import (
     tt_dimscheck,
     tt_ind2sub,
 )
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
 
 
 class ktensor:
@@ -69,7 +72,7 @@ class ktensor:
     >>> import numpy as np
     """
 
-    __slots__ = ("weights", "factor_matrices")
+    __slots__ = ("factor_matrices", "weights")
 
     def __init__(  # noqa: PLR0912
         self,
@@ -163,9 +166,9 @@ class ktensor:
         # the number of columns of all factor_matrices must be equal
         num_components = factor_matrices[0].shape[1]
         if not all(fm.shape[1] == num_components for fm in factor_matrices):
-            assert (
-                False
-            ), "The number of columns each item in 'factor_matrices' must be the same."
+            assert False, (
+                "The number of columns each item in 'factor_matrices' must be the same."
+            )
 
         # process weights
         if weights is not None:
@@ -302,9 +305,9 @@ class ktensor:
         # CONSTRUCTOR FROM FUNCTION HANDLE
         assert callable(function_handle), "Input parameter 'fun' must be a function."
         shape = parse_shape(shape)
-        assert isinstance(
-            num_components, int
-        ), "Input parameter 'num_components' must be an int."
+        assert isinstance(num_components, int), (
+            "Input parameter 'num_components' must be an int."
+        )
         nd = len(shape)
         weights = np.ones(num_components)
         factor_matrices = []
@@ -385,9 +388,9 @@ class ktensor:
         """
         assert isvector(data), "Input parameter 'data' must be a numpy.array vector."
         shape = parse_shape(shape)
-        assert isinstance(
-            contains_weights, bool
-        ), "Input parameter 'contains_weights' must be a bool."
+        assert isinstance(contains_weights, bool), (
+            "Input parameter 'contains_weights' must be a bool."
+        )
 
         if isrow(data):
             data = data.T
@@ -525,9 +528,9 @@ class ktensor:
          [71.5541... 22.1359...]]
         """
         if permutation is not None and weight_factor is not None:
-            assert (
-                False
-            ), "Weighting and permuting the ktensor at the same time is not allowed."
+            assert False, (
+                "Weighting and permuting the ktensor at the same time is not allowed."
+            )
 
         # arrange columns of factor matrices using the permutation provided
         if permutation is not None and isinstance(
@@ -1676,9 +1679,9 @@ class ktensor:
         >>> print(perm)
         [0 1 2]
         """
-        assert (
-            greedy
-        ), "Not yet implemented. Only greedy method is implemented currently."
+        assert greedy, (
+            "Not yet implemented. Only greedy method is implemented currently."
+        )
 
         assert isinstance(other, ktensor), "The first input should be a ktensor"
 
@@ -1710,7 +1713,7 @@ class ktensor:
             Cbig[:, :, n] = np.abs(A.factor_matrices[n].T @ B.factor_matrices[n])
 
         # Collapse across all modes using the product
-        collapsed = cast(ttb.ttensor, Cbig.collapse(np.array([2]), np.prod))
+        collapsed = cast("ttb.ttensor", Cbig.collapse(np.array([2]), np.prod))
         C = collapsed.double()
 
         # Calculate penalty based on differences in the weights
@@ -1800,9 +1803,9 @@ class ktensor:
          [4.5960... 8.0124...]]
         """
         # Check tensor dimensions for compatibility with symmetrization
-        assert np.array_equal(
-            self.shape, self.shape[0] * np.ones(self.ndims)
-        ), "Tensor is not cubic -- cannot be symmetrized"
+        assert np.array_equal(self.shape, self.shape[0] * np.ones(self.ndims)), (
+            "Tensor is not cubic -- cannot be symmetrized"
+        )
 
         # Distribute lambda evenly into factors
         K = self.copy()
@@ -2221,9 +2224,9 @@ class ktensor:
 
         """
         modes = parse_one_d(modes)
-        assert np.all(
-            modes[:-1] <= modes[1:]
-        ), "Modes must be sorted in ascending order"
+        assert np.all(modes[:-1] <= modes[1:]), (
+            "Modes must be sorted in ascending order"
+        )
 
         loc = 0  # Location in data array
         for k in modes:
@@ -2535,9 +2538,9 @@ class ktensor:
         if isinstance(other, (float, int)):
             return ttb.ktensor(self.factor_matrices, other * self.weights)
 
-        assert (
-            False
-        ), "Multiplication by ktensors only allowed for scalars, tensors, or sptensors"
+        assert False, (
+            "Multiplication by ktensors only allowed for scalars, tensors, or sptensors"
+        )
 
     def __rmul__(self, other):
         """Elementwise (including scalar) multiplication for :class:`pyttb.ktensor`.

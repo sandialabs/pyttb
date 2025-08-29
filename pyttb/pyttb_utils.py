@@ -514,7 +514,7 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> float | np.ndarray:
     #   return obj[s[1:]]
     if isinstance(obj, np.ndarray) and obj.size == 1:
         # TODO: Globally figure out why typing thinks item is a string
-        return cast(float, obj.item())
+        return cast("float", obj.item())
     return obj
 
 
@@ -804,9 +804,9 @@ def get_mttkrp_factors(
         # Extract the factor matrices
         U = U.factor_matrices
 
-    assert isinstance(
-        U, (Sequence, np.ndarray)
-    ), "Second argument must be a sequence of numpy.ndarray's or a ktensor"
+    assert isinstance(U, (Sequence, np.ndarray)), (
+        "Second argument must be a sequence of numpy.ndarray's or a ktensor"
+    )
 
     assert len(U) == ndims, "List of factor matrices is the wrong length"
 
@@ -871,8 +871,7 @@ def gather_wrap_dims(
                 )
             else:
                 assert False, (
-                    "Unrecognized value for cdims_cyclic pattern, "
-                    'must be "fc" or "bc".'
+                    'Unrecognized value for cdims_cyclic pattern, must be "fc" or "bc".'
                 )
         else:
             # Multiple row mapping
