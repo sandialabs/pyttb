@@ -1,4 +1,5 @@
 """Create test problems for tensor factorizations."""
+from __future__ import annotations
 
 import logging
 import math
