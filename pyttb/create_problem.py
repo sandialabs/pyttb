@@ -1,4 +1,4 @@
-"""Create test problems for  tensor factorizations."""
+"""Create test problems for tensor factorizations."""
 
 import logging
 import math
@@ -154,7 +154,7 @@ class ExistingSolution:
 
 @dataclass
 class ExistingTuckerSolution(ExistingSolution):
-    """Parameters for using an existing tucket tensor solution.
+    """Parameters for using an existing Tucker tensor solution.
 
     Attributes
     ----------
@@ -170,7 +170,7 @@ class ExistingTuckerSolution(ExistingSolution):
 
 @dataclass
 class ExistingCPSolution(ExistingSolution):
-    """Parameters for using an existing tucket tensor solution.
+    """Parameters for using an existing CP tensor solution.
 
     Attributes
     ----------
@@ -587,7 +587,7 @@ def generate_data_sparse(
     if any(np.any(factor < 0) for factor in solution.factor_matrices):
         raise ValueError("All factor matrices must be nonnegative.")
     if problem_params.symmetric is not None:
-        logging.warning("Summetric constraints have been ignored.")
+        logging.warning("Symmetric constraints have been ignored.")
     if problem_params.sparse_generation is None:
         raise ValueError("Cannot generate sparse data without sparse_generation set.")
 
