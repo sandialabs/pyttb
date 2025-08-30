@@ -67,13 +67,11 @@ class tensor:
         Whether to deep copy (versus reference) the data.
         By default, the data is deep copied.
 
-
     **Attributes**
 
     - **data** (:class:`numpy.ndarray`) : Data of the tensor
     - **shape** (:class:`tuple`) : Size of the tensor
 
- 
     Examples
     --------
     Create a :class:`pyttb.tensor` from a three-way :class:`numpy.ndarray`::
