@@ -2392,7 +2392,7 @@ class ktensor:
             self.normalize(normtype=norm, sort=True)
 
         # compute factor weights (and optionally normalize)
-        weights = self.weights
+        weights = self.weights.copy()
         weight_labels = [format(w, ".2e") for w in weights]
         if rel_weights:
             weights /= np.max(weights)
