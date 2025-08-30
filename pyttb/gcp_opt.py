@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Sequence
 from math import prod
-from typing import Dict, Literal, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
@@ -17,19 +18,21 @@ import pyttb as ttb
 from pyttb.gcp.fg_setup import function_type, setup
 from pyttb.gcp.handles import Objectives
 from pyttb.gcp.optimizers import LBFGSB, StochasticSolver
-from pyttb.gcp.samplers import GCPSampler
+
+if TYPE_CHECKING:
+    from pyttb.gcp.samplers import GCPSampler
 
 
 def gcp_opt(  # noqa:  PLR0912,PLR0913
-    data: Union[ttb.tensor, ttb.sptensor],
+    data: ttb.tensor | ttb.sptensor,
     rank: int,
-    objective: Union[Objectives, Tuple[function_type, function_type, float]],
-    optimizer: Union[StochasticSolver, LBFGSB],
-    init: Union[Literal["random"], ttb.ktensor, Sequence[np.ndarray]] = "random",
-    mask: Optional[Union[ttb.tensor, np.ndarray]] = None,
-    sampler: Optional[GCPSampler] = None,
+    objective: Objectives | tuple[function_type, function_type, float],
+    optimizer: StochasticSolver | LBFGSB,
+    init: Literal["random"] | ttb.ktensor | Sequence[np.ndarray] = "random",
+    mask: ttb.tensor | np.ndarray | None = None,
+    sampler: GCPSampler | None = None,
     printitn: int = 1,
-) -> Tuple[ttb.ktensor, ttb.ktensor, Dict]:
+) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
     """Fits Generalized CP decomposition with user-specified function.
 
     Parameters
@@ -111,7 +114,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
         )
         if nmissing > 0:
             welcome_msg += (
-                f"Missing entries: {nmissing} ({100*nmissing/tensor_size:.2g}%)"
+                f"Missing entries: {nmissing} ({100 * nmissing / tensor_size:.2g}%)"
             )
         logging.info(welcome_msg)
 
@@ -133,9 +136,9 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
 
 
 def _get_initial_guess(
-    data: Union[ttb.tensor, ttb.sptensor],
+    data: ttb.tensor | ttb.sptensor,
     rank: int,
-    init: Union[Literal["random"], ttb.ktensor, Sequence[np.ndarray]],
+    init: Literal["random"] | ttb.ktensor | Sequence[np.ndarray],
 ) -> ttb.ktensor:
     """Get initial guess for gcp_opt.
 

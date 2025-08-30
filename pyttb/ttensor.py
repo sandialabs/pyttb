@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import logging
 import textwrap
-from typing import List, Literal, Optional, Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Literal
 
 import numpy as np
 import scipy
@@ -28,8 +29,8 @@ class ttensor:
 
     def __init__(
         self,
-        core: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
-        factors: Optional[Sequence[np.ndarray]] = None,
+        core: ttb.tensor | ttb.sptensor | None = None,
+        factors: Sequence[np.ndarray] | None = None,
         copy: bool = True,
     ) -> None:
         """
@@ -66,8 +67,8 @@ class ttensor:
         if core is None and factors is None:
             # Empty constructor
             # TODO explore replacing with typing protocol
-            self.core: Union[ttb.tensor, ttb.sptensor] = ttb.tensor()
-            self.factor_matrices: List[np.ndarray] = []
+            self.core: ttb.tensor | ttb.sptensor = ttb.tensor()
+            self.factor_matrices: list[np.ndarray] = []
             return
 
         if core is None or factors is None:
@@ -188,7 +189,7 @@ class ttensor:
                 )
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Shape of the tensor this deconstruction represents."""
         return tuple(factor.shape[0] for factor in self.factor_matrices)
 
@@ -200,7 +201,7 @@ class ttensor:
         str
             Contains the core, and factor matrices as strings on different lines.
         """
-        display_string = f"Tensor of shape: {self.shape}\n" f"\tCore is a\n"
+        display_string = f"TTensor of shape: {self.shape}\n\tCore is a\n"
         display_string += textwrap.indent(str(self.core), "\t\t")
         display_string += "\n"
 
@@ -228,14 +229,15 @@ class ttensor:
             recomposed_tensor = recomposed_tensor.to_tensor()
         return recomposed_tensor
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """Convert ttensor to an array of doubles.
 
-        Returns
-        -------
-        Copy of tensor data.
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
         """
-        return self.full().double()
+        return self.full().double(immutable)
 
     @property
     def ndims(self) -> int:
@@ -291,7 +293,7 @@ class ttensor:
         return ttensor(-self.core, self.factor_matrices)
 
     def innerprod(
-        self, other: Union[ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
+        self, other: ttb.tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor
     ) -> float:
         """Efficient inner product with a ttensor.
 
@@ -329,7 +331,7 @@ class ttensor:
                     f"{other.shape}"
                 )
             if np.prod(self.shape) < np.prod(self.core.shape):
-                Z: Union[ttb.tensor, ttb.sptensor] = self.full()
+                Z: ttb.tensor | ttb.sptensor = self.full()
                 return Z.innerprod(other)
             Z = other.ttm(self.factor_matrices, transpose=True)
             return Z.innerprod(self.core)
@@ -375,10 +377,10 @@ class ttensor:
 
     def ttv(
         self,
-        vector: Union[Sequence[np.ndarray], np.ndarray],
-        dims: Optional[OneDArray] = None,
-        exclude_dims: Optional[OneDArray] = None,
-    ) -> Union[float, ttensor]:
+        vector: Sequence[np.ndarray] | np.ndarray,
+        dims: OneDArray | None = None,
+        exclude_dims: OneDArray | None = None,
+    ) -> float | ttensor:
         """TTensor times vector.
 
         Parameters
@@ -427,7 +429,7 @@ class ttensor:
         return ttensor(newcore, [self.factor_matrices[dim] for dim in remdims])
 
     def mttkrp(
-        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+        self, U: ttb.ktensor | Sequence[np.ndarray], n: int | np.integer
     ) -> np.ndarray:
         """
         Matricized tensor times Khatri-Rao product for ttensors.
@@ -502,9 +504,9 @@ class ttensor:
 
     def ttm(
         self,
-        matrix: Union[np.ndarray, Sequence[np.ndarray]],
-        dims: Optional[Union[float, np.ndarray]] = None,
-        exclude_dims: Optional[Union[int, np.ndarray]] = None,
+        matrix: np.ndarray | Sequence[np.ndarray],
+        dims: float | np.ndarray | None = None,
+        exclude_dims: int | np.ndarray | None = None,
         transpose: bool = False,
     ) -> ttensor:
         """Tensor times matrix for ttensor.
@@ -556,8 +558,8 @@ class ttensor:
 
     def reconstruct(  # noqa: PLR0912
         self,
-        samples: Optional[Union[np.ndarray, Sequence[np.ndarray]]] = None,
-        modes: Optional[Union[np.ndarray, Sequence[np.ndarray]]] = None,
+        samples: np.ndarray | Sequence[np.ndarray] | None = None,
+        modes: np.ndarray | Sequence[np.ndarray] | None = None,
     ) -> ttb.tensor:
         """
         Reconstruct or partially reconstruct tensor from ttensor.

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 import warnings
-from typing import Dict, Literal, Optional, Tuple, Union, overload
+from typing import Literal, overload
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
@@ -17,13 +17,13 @@ import pyttb as ttb
 
 
 def cp_apr(  # noqa: PLR0913
-    input_tensor: Union[ttb.tensor, ttb.sptensor],
+    input_tensor: ttb.tensor | ttb.sptensor,
     rank: int,
-    algorithm: Union[Literal["mu"], Literal["pdnr"], Literal["pqnr"]] = "mu",
+    algorithm: Literal["mu"] | Literal["pdnr"] | Literal["pqnr"] = "mu",
     stoptol: float = 1e-4,
     stoptime: float = 1e6,
     maxiters: int = 1000,
-    init: Union[ttb.ktensor, Literal["random"]] = "random",
+    init: ttb.ktensor | Literal["random"] = "random",
     maxinneriters: int = 10,
     epsDivZero: float = 1e-10,
     printitn: int = 1,
@@ -35,7 +35,7 @@ def cp_apr(  # noqa: PLR0913
     precompinds: bool = True,
     inexact: bool = True,
     lbfgsMem: int = 3,
-) -> Tuple[ttb.ktensor, ttb.ktensor, Dict]:
+) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
     """
     Compute non-negative CP with alternating Poisson regression.
 
@@ -94,17 +94,17 @@ def cp_apr(  # noqa: PLR0913
 
     # Check that the data is non-negative.
     tmp = input_tensor < 0.0
-    assert (
-        tmp.nnz == 0
-    ), "Data tensor must be nonnegative for Poisson-based factorization"
+    assert tmp.nnz == 0, (
+        "Data tensor must be nonnegative for Poisson-based factorization"
+    )
 
     # Set up an initial guess for the factor matrices.
     if isinstance(init, ttb.ktensor):
         # User provided an initial ktensor; validate it
         assert init.ndims == N, "Initial guess does not have the right number of modes"
-        assert (
-            init.ncomponents == rank
-        ), "Initial guess does not have the right number of components"
+        assert init.ncomponents == rank, (
+            "Initial guess does not have the right number of components"
+        )
         for n in range(N):
             if init.shape[n] != input_tensor.shape[n]:
                 assert False, f"Mode {n} of the initial guess is the wrong size"
@@ -188,7 +188,7 @@ def cp_apr(  # noqa: PLR0913
 
 
 def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: Union[ttb.tensor, ttb.sptensor],
+    input_tensor: ttb.tensor | ttb.sptensor,
     rank: int,
     init: ttb.ktensor,
     stoptol: float,
@@ -200,7 +200,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
     printinneritn: int,
     kappa: float,
     kappatol: float,
-) -> Tuple[ttb.ktensor, Dict]:
+) -> tuple[ttb.ktensor, dict]:
     """
     Compute nonnegative CP with alternating Poisson regression.
 
@@ -313,7 +313,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
                 M.factor_matrices[n] *= Phi[n]
 
                 # Print status
-                if printinneritn != 0 and divmod(i, printinneritn)[1] == 0:
+                if (printinneritn > 0) and (divmod(i, printinneritn)[1] == 0):
                     print(
                         "\t\tMode = {n}, Inner Iter = {i}, "
                         f"KKT violation = {kktModeViolations[n]}"
@@ -323,7 +323,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
             M.normalize(normtype=1, mode=n)
 
         kktViolations[iteration] = np.max(kktModeViolations)
-        if divmod(iteration, printitn)[1] == 0:
+        if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
             print(
                 f"\tIter {iteration}: Inner Its = {nInnerIters[iteration]} "
                 f"KKT violation = {kktViolations[iteration]}, "
@@ -387,7 +387,7 @@ def tt_cp_apr_mu(  # noqa: PLR0912,PLR0913,PLR0915
 
 
 def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: Union[ttb.tensor, ttb.sptensor],
+    input_tensor: ttb.tensor | ttb.sptensor,
     rank: int,
     init: ttb.ktensor,
     stoptol: float,
@@ -401,7 +401,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     mu0: float,
     precompinds: bool,
     inexact: bool,
-) -> Tuple[ttb.ktensor, Dict]:
+) -> tuple[ttb.ktensor, dict]:
     """Compute nonnegative CP with alternating Poisson regression.
 
     Computes an estimate of the best rank-R
@@ -588,7 +588,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
                     if i == 0 and kkt_violation > kktModeViolations[n]:
                         kktModeViolations[n] = kkt_violation
 
-                    if printinneritn > 0 and np.mod(i, printinneritn) == 0:
+                    if (printinneritn > 0) and (divmod(i, printinneritn) == 0):
                         print(
                             f"\tMode = {n}, Row = {jj}, InnerIt = {i}",
                             end="",
@@ -675,7 +675,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
             rowsubprobStopTol = np.maximum(stoptol, kktViolations[iteration]) / 100.0
 
             # Print outer iteration status.
-            if printitn > 0 and np.mod(iteration, printitn) == 0:
+            if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
                 fnVals[iteration] = -tt_loglikelihood(input_tensor, M)
                 print(
                     f"{iteration}. Ttl Inner Its: {nInnerIters[iteration]}, "
@@ -742,7 +742,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
 
 
 def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: Union[ttb.tensor, ttb.sptensor],
+    input_tensor: ttb.tensor | ttb.sptensor,
     rank: int,
     init: ttb.ktensor,
     stoptol: float,
@@ -755,7 +755,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
     epsActive: float,
     lbfgsMem: int,
     precompinds: bool,
-) -> Tuple[ttb.ktensor, Dict]:
+) -> tuple[ttb.ktensor, dict]:
     """
     Compute nonnegative CP with alternating Poisson regression.
 
@@ -966,7 +966,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                     if i == 0 and kkt_violation > kktModeViolations[n]:
                         kktModeViolations[n] = kkt_violation
 
-                    if printinneritn > 0 and np.mod(i, printinneritn) == 0:
+                    if (printinneritn > 0) and (divmod(i, printinneritn) == 0):
                         print(
                             f"\tMode = {n}, Row = {jj}, InnerIt = {i}",
                             end="",
@@ -1073,7 +1073,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
         kktViolations[iteration] = np.max(kktModeViolations)
 
         # Print outer iteration status.
-        if printitn > 0 and np.mod(iteration, printitn) == 0:
+        if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
             fnVals[iteration] = -tt_loglikelihood(input_tensor, M)
             print(
                 f"{iteration}. Ttl Inner Its: {nInnerIters[iteration]}, KKT viol = "
@@ -1162,13 +1162,13 @@ def tt_calcpi_prowsubprob(
 
 
 def tt_calcpi_prowsubprob(  # noqa: PLR0913
-    Data: Union[ttb.sptensor, ttb.tensor],
+    Data: ttb.sptensor | ttb.tensor,
     Model: ttb.ktensor,
     rank: int,
     factorIndex: int,
     ndims: int,
     isSparse: bool = False,
-    sparse_indices: Optional[np.ndarray] = None,
+    sparse_indices: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     Compute Pi for a row subproblem.
@@ -1228,7 +1228,7 @@ def calc_partials(
     epsilon: float,
     data_row: np.ndarray,
     model_row: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     r"""
     Compute derivative quantities for a PDNR row subproblem.
 
@@ -1272,7 +1272,7 @@ def get_search_dir_pdnr(  # noqa: PLR0913
     model_row: np.ndarray,
     mu: float,
     epsActSet: float,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Compute the search direction using a two-metric projection with damped Hessian.
 
     Parameters
@@ -1370,7 +1370,7 @@ def tt_linesearch_prowsubprob(  # noqa: PLR0913
     Pi: np.ndarray,
     phi_row: np.ndarray,
     display_warning: bool,
-) -> Tuple[np.ndarray, float, float, float, int]:
+) -> tuple[np.ndarray, float, float, float, int]:
     """Perform a line search on a row subproblem.
 
     Parameters
@@ -1673,7 +1673,7 @@ def calc_grad(
     eps_div_zero: float,
     data_row: np.ndarray,
     model_row: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Compute the gradient for a PQNR row subproblem.
 
     Parameters
@@ -1707,7 +1707,7 @@ def calc_grad(
 # TODO verify what pi is
 # Mu helper functions
 def calculate_pi(
-    Data: Union[ttb.sptensor, ttb.tensor],
+    Data: ttb.sptensor | ttb.tensor,
     Model: ttb.ktensor,
     rank: int,
     factorIndex: int,
@@ -1744,7 +1744,7 @@ def calculate_pi(
 
 
 def calculate_phi(  # noqa: PLR0913
-    Data: Union[ttb.sptensor, ttb.tensor],
+    Data: ttb.sptensor | ttb.tensor,
     Model: ttb.ktensor,
     rank: int,
     factorIndex: int,
@@ -1785,9 +1785,7 @@ def calculate_phi(  # noqa: PLR0913
     return Phi
 
 
-def tt_loglikelihood(
-    Data: Union[ttb.tensor, ttb.sptensor], Model: ttb.ktensor
-) -> float:
+def tt_loglikelihood(Data: ttb.tensor | ttb.sptensor, Model: ttb.ktensor) -> float:
     """
     Compute log-likelihood of data with model.
 

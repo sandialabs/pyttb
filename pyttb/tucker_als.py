@@ -7,13 +7,15 @@
 from __future__ import annotations
 
 from numbers import Real
-from typing import Dict, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-import pyttb as ttb
 from pyttb.pyttb_utils import OneDArray, parse_one_d
 from pyttb.ttensor import ttensor
+
+if TYPE_CHECKING:
+    import pyttb as ttb
 
 
 def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
@@ -21,10 +23,10 @@ def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
     rank: OneDArray,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
-    dimorder: Optional[OneDArray] = None,
-    init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
+    dimorder: OneDArray | None = None,
+    init: Literal["random"] | Literal["nvecs"] | ttb.ktensor = "random",
     printitn: int = 1,
-) -> Tuple[ttensor, ttensor, Dict]:
+) -> tuple[ttensor, ttensor, dict]:
     """Compute Tucker decomposition with alternating least squares.
 
     Parameters
@@ -161,7 +163,7 @@ def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
         fit = 1 - (normresidual / normX)  # fraction explained by model
         fitchange = abs(fitold - fit)
 
-        if iteration % printitn == 0:
+        if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
             print(f" Iter {iteration}: fit = {fit:e} fitdelta = {fitchange:7.1e}")
 
         # Check for convergence

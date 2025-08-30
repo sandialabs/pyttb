@@ -8,19 +8,14 @@ from __future__ import annotations
 
 import logging
 import textwrap
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from inspect import signature
 from itertools import combinations_with_replacement, permutations
 from math import factorial, prod
 from typing import (
     Any,
     Callable,
-    List,
     Literal,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
     cast,
     overload,
 )
@@ -51,7 +46,7 @@ from pyttb.pyttb_utils import (
 )
 
 
-class tensor:
+class tensor:  # noqa: PLW1641
     """Class for dense tensors.
 
     Parameters
@@ -143,14 +138,14 @@ class tensor:
 
     def __init__(
         self,
-        data: Optional[np.ndarray] = None,
-        shape: Optional[Shape] = None,
+        data: np.ndarray | None = None,
+        shape: Shape | None = None,
         copy: bool = True,
     ):
         if data is None:
             # EMPTY / DEFAULT CONSTRUCTOR
             self.data: np.ndarray = np.array([], order=self.order)
-            self.shape: Tuple = ()
+            self.shape: tuple = ()
             return
 
         # CONVERT A MULTIDIMENSIONAL ARRAY
@@ -170,9 +165,9 @@ class tensor:
                 assert False, "Empty tensor cannot contain any elements"
 
         elif prod(shape) != data.size:
-            assert (
-                False
-            ), "TTB:WrongSize, Size of data does not match specified size of tensor"
+            assert False, (
+                "TTB:WrongSize, Size of data does not match specified size of tensor"
+            )
 
         # Make sure the data is indeed the right shape
         if data.size > 0 and len(shape) > 0:
@@ -208,7 +203,7 @@ class tensor:
     @classmethod
     def from_function(
         cls,
-        function_handle: Callable[[Tuple[int, ...]], np.ndarray],
+        function_handle: Callable[[tuple[int, ...]], np.ndarray],
         shape: Shape,
     ) -> tensor:
         """Construct a :class:`pyttb.tensor` with data from a function.
@@ -291,13 +286,13 @@ class tensor:
         Observing the difference between a shallow copy and a deep copy. When the
         original tensor changes, so does the shallow copy, but the deep copy does not::
 
-            >>> T = ttb.tensor(np.ones((3, 2)))
+            >>> T = ttb.tensor(np.ones(8), (2, 2, 2))
             >>> T_shallow = T
             >>> T_deep = T.copy()
-            >>> T[0, 0] = 3
-            >>> T[0, 0] == T_shallow[0, 0]
+            >>> T[0, 0, 0] = 3
+            >>> T[0, 0, 0] == T_shallow[0, 0, 0]
             True
-            >>> T[0, 0] == T_deep[0, 0]
+            >>> T[0, 0, 0] == T_deep[0, 0, 0]
             False
         """
         return ttb.tensor(self.data, self.shape, copy=True)
@@ -306,11 +301,25 @@ class tensor:
         """Return deep copy of this tensor."""
         return self.copy()
 
+    @overload
     def collapse(
         self,
-        dims: Optional[OneDArray] = None,
-        fun: Callable[[np.ndarray], Union[float, np.ndarray]] = np.sum,
-    ) -> Union[float, np.ndarray, tensor]:
+        dims: None,
+        fun: Callable[[np.ndarray], float | np.ndarray],
+    ) -> float: ...  # pragma: no cover see coveragepy/issues/970
+
+    @overload
+    def collapse(
+        self,
+        dims: OneDArray,
+        fun: Callable[[np.ndarray], float | np.ndarray] = np.sum,
+    ) -> np.ndarray | tensor: ...  # pragma: no cover see coveragepy/issues/970
+
+    def collapse(
+        self,
+        dims: OneDArray | None = None,
+        fun: Callable[[np.ndarray], float | np.ndarray] = np.sum,
+    ) -> float | np.ndarray | tensor:
         """
         Collapse tensor along specified dimensions using a function.
 
@@ -319,7 +328,7 @@ class tensor:
         dims: optional
             Dimensions to collapse (default: all).
         fun: optional
-            Method used to collapse dimensions (default: :meth:`numpy.sum`).
+            Function used to collapse dimensions (default: :func:`numpy.sum`).
 
         Returns
         -------
@@ -377,6 +386,8 @@ class tensor:
             Min value: -0.977277879876411
         """
         if self.data.size == 0:
+            # TODO verify this is the only thing that returns np array
+            # and remove
             return np.array([], order=self.order)
 
         if dims is None:
@@ -410,7 +421,7 @@ class tensor:
         ## Form and return the final result
         return ttb.tensor(B, newshape, copy=False)
 
-    def contract(self, i1: int, i2: int) -> Union[np.ndarray, tensor]:
+    def contract(self, i1: int, i2: int) -> np.ndarray | tensor:
         """
         Contract tensor along two dimensions (array trace).
 
@@ -427,30 +438,35 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2, 2)))
-        >>> T.contract(0, 1)
-        2.0
-        >>> T = ttb.tensor(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-        >>> print(T)
-        tensor of shape (2, 2, 2) with order F
-        data[:, :, 0] =
-        [[1 3]
-         [5 7]]
-        data[:, :, 1] =
-        [[2 4]
-         [6 8]]
-        >>> T.contract(0, 1)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 8. 10.]
-        >>> T.contract(0, 2)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 7. 11.]
-        >>> T.contract(1, 2)
-        tensor of shape (2,) with order F
-        data[:] =
-        [ 5. 13.]
+        Contract a three-way 2 x 2 x 2 tensor along two dimensions
+        in three possible ways::
+
+            >>> T = ttb.tensor(np.ones(8), (2, 2, 2)) # All-ones 2 x 2 x 2 tensor
+            >>> T.contract(0, 1)
+            tensor of shape (2,) with order F
+            data[:] =
+            [2. 2.]
+            >>> T = ttb.tensor(np.arange(1, 9), (2, 2, 2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[1 3]
+             [2 4]]
+            data[:, :, 1] =
+            [[5 7]
+             [6 8]]
+            >>> T.contract(0, 1)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 5. 13.]
+            >>> T.contract(0, 2)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 7. 11.]
+            >>> T.contract(1, 2)
+            tensor of shape (2,) with order F
+            data[:] =
+            [ 8. 10.]
         """
         if self.shape[i1] != self.shape[i2]:
             assert False, "Must contract along equally sized dimensions"
@@ -491,22 +507,33 @@ class tensor:
 
         return ttb.tensor(newdata, newsize, copy=False)
 
-    def double(self) -> np.ndarray:
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert `:class:pyttb.tensor` to an `:class:numpy.ndarray` of doubles.
 
+        Parameters
+        ----------
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
+
         Returns
         -------
-        Copy of tensor data.
+        Array of tensor data.
 
         Examples
         --------
-        >>> T = ttb.tensor(np.ones((2, 2)))
+        >>> T = ttb.tensor(np.ones(8), (2, 2, 2))  # All-ones 2 x 2 x 2 tensor
         >>> T.double()
-        array([[1., 1.],
-               [1., 1.]])
+        array([[[1., 1.],
+                [1., 1.]],
+        <BLANKLINE>
+               [[1., 1.],
+                [1., 1.]]])
         """
-        return self.data.astype(np.float64, order=self.order, copy=True)
+        double = self.data.astype(np.float64, order=self.order, copy=not immutable)
+        if immutable:
+            double.flags.writeable = False
+        return double
 
     def exp(self) -> tensor:
         """
@@ -519,14 +546,27 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> T.exp().data  # doctest: +ELLIPSIS
-        array([[ 2.7182...,  7.3890... ],
-               [20.0855..., 54.5981...]])
+        >>> T = ttb.tensor(np.arange(8), (2, 2, 2))  # Tensor with entries 0 to 7
+        >>> print(T)
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[0 2]
+         [1 3]]
+        data[:, :, 1] =
+        [[4 6]
+         [5 7]]
+        >>> print(T.exp())
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[ 1.          7.3890561 ]
+         [ 2.71828183 20.08553692]]
+        data[:, :, 1] =
+        [[  54.59815003  403.42879349]
+         [ 148.4131591  1096.63315843]]
         """
         return ttb.tensor(np.exp(self.data), copy=False)
 
-    def find(self) -> Tuple[np.ndarray, np.ndarray]:
+    def find(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Find subscripts of nonzero elements in a tensor.
 
@@ -537,20 +577,35 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1,2],[3,4]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[1 2]
-         [3 4]]
-        >>> T_threshold = T > 2
-        >>> subs, vals = T_threshold.find()
-        >>> subs.astype(int)
-        array([[1, 0],
-               [1, 1]])
-        >>> vals
-        array([[ True],
-               [ True]])
+        Create a random tensor with approximately 50% zero entries::
+
+            >>> np.random.seed(6) # reproducibility
+            >>> sprandint = lambda s: np.where(np.random.rand(np.prod(s)) < 0.5,
+            ...                                0.0, np.random.rand(np.prod(s)))
+            >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.33540785 0.43814143]
+             [0.         0.        ]]
+            data[:, :, 1] =
+            [[0.        0.6453551]
+             [0.5788586 0.       ]]
+
+        Find the nonzero entries in the tensor::
+
+            >>> subs, vals = T.find()
+            >>> print(subs)
+            [[0 0 0]
+             [0 1 0]
+             [1 0 1]
+             [0 1 1]]
+            >>> print(vals)
+            [[0.33540785]
+             [0.43814143]
+             [0.5788586 ]
+             [0.6453551 ]]
+
         """
         idx = np.nonzero(np.ravel(self.data, order=self.order))[0]
         subs = tt_ind2sub(self.shape, idx)
@@ -566,39 +621,51 @@ class tensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[0, 2], [3, 0]]))
-        >>> print(T)
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[0 2]
-         [3 0]]
-        >>> S = T.to_sptensor()
-        >>> print(S)
-        sparse tensor of shape (2, 2) with 2 nonzeros and order F
-        [1, 0] = 3
-        [0, 1] = 2
+        Construct a 2x2x2 tensor with some nonzero entries::
+
+            >>> np.random.seed(3) # reproducibility
+            >>> sprandint = lambda s: np.random.randint(0, 4, size=np.prod(s)) / 4;
+            >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.5  0.25]
+             [0.   0.75]]
+            data[:, :, 1] =
+            [[0.   0.  ]
+             [0.   0.25]]
+
+        Convert to a sparse tensor::
+
+            >>> S = T.to_sptensor()
+            >>> print(S)
+            sparse tensor of shape (2, 2, 2) with 4 nonzeros and order F
+            [0, 0, 0] = 0.5
+            [0, 1, 0] = 0.25
+            [1, 1, 0] = 0.75
+            [1, 1, 1] = 0.25
         """
         subs, vals = self.find()
         return ttb.sptensor(subs, vals, self.shape, copy=False)
 
-    # TODO: do we need this, now that we have copy() and __deepcopy__()?
     def full(self) -> tensor:
         """
-        Convert dense tensor to dense tensor.
+        Create a dense tensor from dense tensor.
+
+        Convenience method to maintain common interface with other
+        tensor types.
 
         Returns
         -------
-        Deep copy
+        Shallow copy
         """
-        return ttb.tensor(self.data)
+        return self
 
     def to_tenmat(
         self,
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        cdims_cyclic: Optional[
-            Union[Literal["fc"], Literal["bc"], Literal["t"]]
-        ] = None,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        cdims_cyclic: Literal["fc"] | Literal["bc"] | Literal["t"] | None = None,
         copy: bool = True,
     ) -> ttb.tenmat:
         """Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor`.
@@ -715,7 +782,7 @@ class tensor:
         return ttb.tenmat(data, rdims, cdims, tshape=tshape, copy=copy)
 
     def innerprod(
-        self, other: Union[tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor]
+        self, other: tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor
     ) -> float:
         """Efficient inner product between a tensor and other `pyttb` tensors.
 
@@ -744,7 +811,7 @@ class tensor:
             return other.innerprod(self)
         assert False, "Inner product between tensor and that class is not supported"
 
-    def isequal(self, other: Union[tensor, ttb.sptensor]) -> bool:
+    def isequal(self, other: tensor | ttb.sptensor) -> bool:
         """
         Exact equality for tensors.
 
@@ -755,11 +822,11 @@ class tensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(2 * np.ones((2, 2)))
-        >>> T2 = 2 * ttb.tensor(np.ones((2, 2)))
+        >>> T1 = ttb.tensor(2 * np.ones((2, 2, 2)))
+        >>> T2 = 2 * ttb.tensor(np.ones((2, 2, 2)))
         >>> T1.isequal(T2)
         True
-        >>> T2[0, 0] = 1
+        >>> T2[1, 0, 1] = 1
         >>> T1.isequal(T2)
         False
         """
@@ -772,28 +839,28 @@ class tensor:
     @overload
     def issymmetric(
         self,
-        grps: Optional[np.ndarray],
-        version: Optional[Any],
+        grps: np.ndarray | None,
+        version: Any | None,
         return_details: Literal[False],
     ) -> bool: ...  # pragma: no cover see coveragepy/issues/970
 
     @overload
     def issymmetric(
         self,
-        grps: Optional[np.ndarray],
-        version: Optional[Any],
+        grps: np.ndarray | None,
+        version: Any | None,
         return_details: Literal[True],
-    ) -> Tuple[
+    ) -> tuple[
         bool, np.ndarray, np.ndarray
     ]: ...  # pragma: no cover see coveragepy/issues/970
 
     # TODO: We should probably always return details and let caller drop them
     def issymmetric(  # noqa: PLR0912
         self,
-        grps: Optional[np.ndarray] = None,
-        version: Optional[Any] = None,
+        grps: np.ndarray | None = None,
+        version: Any | None = None,
         return_details: bool = False,
-    ) -> Union[bool, Tuple[bool, np.ndarray, np.ndarray]]:
+    ) -> bool | tuple[bool, np.ndarray, np.ndarray]:
         """
         Determine if a dense tensor is symmetric in specified modes.
 
@@ -894,7 +961,7 @@ class tensor:
                 return bool((all_diffs == 0).all())
             return bool((all_diffs == 0).all()), all_diffs, all_perms
 
-    def logical_and(self, other: Union[float, tensor]) -> tensor:
+    def logical_and(self, other: float | tensor) -> tensor:
         """
         Logical and for tensors.
 
@@ -928,7 +995,7 @@ class tensor:
         # Np logical not dtype argument seems to not work here
         return ttb.tensor(np.logical_not(self.data).astype(self.data.dtype), copy=False)
 
-    def logical_or(self, other: Union[float, tensor]) -> tensor:
+    def logical_or(self, other: float | tensor) -> tensor:
         """
         Logical or for tensors.
 
@@ -949,7 +1016,7 @@ class tensor:
 
         return self.tenfun(tensor_or, other)
 
-    def logical_xor(self, other: Union[float, tensor]) -> tensor:
+    def logical_xor(self, other: float | tensor) -> tensor:
         """
         Logical xor for tensors.
 
@@ -1001,7 +1068,7 @@ class tensor:
         return self.data[tuple(wsubs.transpose())]
 
     def mttkrp(
-        self, U: Union[ttb.ktensor, Sequence[np.ndarray]], n: Union[int, np.integer]
+        self, U: ttb.ktensor | Sequence[np.ndarray], n: int | np.integer
     ) -> np.ndarray:
         """Matricized tensor times Khatri-Rao product.
 
@@ -1071,7 +1138,7 @@ class tensor:
                 V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
             return to_memory_order(V, self.order)
 
-    def mttkrps(self, U: Union[ttb.ktensor, Sequence[np.ndarray]]) -> List[np.ndarray]:
+    def mttkrps(self, U: ttb.ktensor | Sequence[np.ndarray]) -> list[np.ndarray]:
         """
         Sequence of MTTKRP calculations for a tensor.
 
@@ -1293,8 +1360,8 @@ class tensor:
 
     def scale(
         self,
-        factor: Union[np.ndarray, ttb.tensor],
-        dims: Union[float, np.ndarray],
+        factor: np.ndarray | ttb.tensor,
+        dims: float | np.ndarray,
     ) -> tensor:
         """
         Scale along specified dimensions for tensors.
@@ -1353,7 +1420,7 @@ class tensor:
         result = vector_self * vector_factor
         return ttb.tenmat(result, dims, remdims, self.shape, copy=False).to_tensor()
 
-    def squeeze(self) -> Union[tensor, float]:
+    def squeeze(self) -> tensor | float:
         """Remove singleton dimensions from the tensor.
 
         Returns
@@ -1376,12 +1443,12 @@ class tensor:
             idx = np.where(shapeArray > 1)
             if idx[0].size == 0:
                 # Why is item annotated as str?
-                single_item: float = cast(float, self.data.item())
+                single_item: float = cast("float", self.data.item())
                 return single_item
             return ttb.tensor(np.squeeze(self.data))
 
     def symmetrize(  # noqa: PLR0912,PLR0915
-        self, grps: Optional[np.ndarray] = None, version: Optional[Any] = None
+        self, grps: np.ndarray | None = None, version: Any | None = None
     ) -> tensor:
         """
         Symmetrize a tensor in the specified modes.
@@ -1526,9 +1593,9 @@ class tensor:
 
     def ttm(
         self,
-        matrix: Union[np.ndarray, Sequence[np.ndarray]],
-        dims: Optional[OneDArray] = None,
-        exclude_dims: Optional[OneDArray] = None,
+        matrix: np.ndarray | Sequence[np.ndarray],
+        dims: OneDArray | None = None,
+        exclude_dims: OneDArray | None = None,
         transpose: bool = False,
     ) -> tensor:
         """
@@ -1629,8 +1696,8 @@ class tensor:
     def ttt(
         self,
         other: tensor,
-        selfdims: Optional[Union[int, np.ndarray]] = None,
-        otherdims: Optional[Union[int, np.ndarray]] = None,
+        selfdims: int | np.ndarray | None = None,
+        otherdims: int | np.ndarray | None = None,
     ) -> tensor:
         """
         Tensor multiplication (tensor times tensor).
@@ -1699,9 +1766,9 @@ class tensor:
         othershape = tuple(np.array(other.shape)[otherdims])
 
         if np.any(selfshape != othershape):
-            assert (
-                False
-            ), f"Specified dimensions do not match got {selfshape} and {othershape}"
+            assert False, (
+                f"Specified dimensions do not match got {selfshape} and {othershape}"
+            )
 
         # Compute the product
 
@@ -1717,10 +1784,10 @@ class tensor:
 
     def ttv(
         self,
-        vector: Union[np.ndarray, Sequence[np.ndarray]],
-        dims: Optional[OneDArray] = None,
-        exclude_dims: Optional[OneDArray] = None,
-    ) -> Union[float, tensor]:
+        vector: np.ndarray | Sequence[np.ndarray],
+        dims: OneDArray | None = None,
+        exclude_dims: OneDArray | None = None,
+    ) -> float | tensor:
         """
         Tensor times vector.
 
@@ -1806,9 +1873,9 @@ class tensor:
     def ttsv(
         self,
         vector: OneDArray,
-        skip_dim: Optional[int] = None,
-        version: Optional[int] = None,
-    ) -> Union[float, np.ndarray, tensor]:
+        skip_dim: int | None = None,
+        version: int | None = None,
+    ) -> float | np.ndarray | tensor:
         """
         Tensor times same vector in multiple modes.
 
@@ -1878,32 +1945,28 @@ class tensor:
 
             # extract scalar if needed
             if len(y) == 1:
-                return cast(float, y.item())
+                return cast("float", y.item())
 
             return y
         assert False, "Invalid value for version; should be None, 1, or 2"
 
     def tenfun(
         self,
-        function_handle: Union[
-            Callable[[np.ndarray, np.ndarray], np.ndarray],
-            Callable[[np.ndarray], np.ndarray],
-        ],
-        *inputs: Union[
-            float,
-            int,
-            np.ndarray,
-            ttb.tensor,
-            ttb.ktensor,
-            ttb.ttensor,
-            ttb.sptensor,
-            ttb.sumtensor,
-        ],
+        function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray]
+        | Callable[[np.ndarray], np.ndarray],
+        *inputs: float
+        | int
+        | np.ndarray
+        | ttb.tensor
+        | ttb.ktensor
+        | ttb.ttensor
+        | ttb.sptensor
+        | ttb.sumtensor,
     ) -> ttb.tensor:
         """Apply a function to each element in a tensor or tensors.
 
-        See :meth:`pyttb.tensor.tenfun_binary` and
-        :meth:`pyttb.tensor.tenfun_binary_unary` for supported
+        See :meth:`pyttb.tensor.tensor.tenfun_binary` and
+        :meth:`pyttb.tensor.tensor.tenfun_unary` for supported
         options.
         """
         assert callable(function_handle), "function_handle must be callable"
@@ -1916,7 +1979,7 @@ class tensor:
             # We manually inspected the function handle for the parameters
             # maybe there is a more clever way to convince mypy
             binary_function_handle = cast(
-                Callable[[np.ndarray, np.ndarray], np.ndarray], function_handle
+                "Callable[[np.ndarray, np.ndarray], np.ndarray]", function_handle
             )
             Y = inputs[0]
             if not isinstance(Y, (int, float)):
@@ -1925,7 +1988,7 @@ class tensor:
 
         # Convert inputs to tensors if they aren't already
         # Allow inputs to be mutable in case of type conversion
-        input_tensors: list[Union[ttb.tensor]] = []
+        input_tensors: list[ttb.tensor] = []
         for an_input in inputs:
             if not isinstance(
                 an_input,
@@ -1938,9 +2001,9 @@ class tensor:
                     ttb.sumtensor,
                 ),
             ):
-                assert (
-                    False
-                ), f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
+                assert False, (
+                    f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
+                )
             input_tensors.append(self._tt_to_tensor(an_input))
 
         # Case II: Expects input to be matrix and applies operation on each columns
@@ -1950,14 +2013,14 @@ class tensor:
                 "function handle takes {nfunin} arguments."
             )
         unary_function_handle = cast(
-            Callable[[np.ndarray], np.ndarray], function_handle
+            "Callable[[np.ndarray], np.ndarray]", function_handle
         )
         return self.tenfun_unary(unary_function_handle, *input_tensors)
 
     def tenfun_binary(
         self,
         function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray],
-        other: Union[ttb.tensor, int, float],
+        other: ttb.tensor | int | float,
         first: bool = True,
     ) -> ttb.tensor:
         """Apply a binary operation to two tensors or a tensor and a scalar.
@@ -2019,9 +2082,9 @@ class tensor:
             if isinstance(an_input, (float, int)):
                 assert False, f"Argument {i} is a scalar but expected a tensor"
             elif sz != an_input.shape:
-                assert (
-                    False
-                ), f"Tensor {i} is not the same size as the first tensor input"
+                assert False, (
+                    f"Tensor {i} is not the same size as the first tensor input"
+                )
         if len(inputs) == 0:
             X = self.data
             X = np.reshape(X, (1, -1), order=self.order)
@@ -2037,14 +2100,12 @@ class tensor:
 
     def _tt_to_tensor(
         self,
-        some_tensor: Union[
-            np.ndarray,
-            ttb.tensor,
-            ttb.ktensor,
-            ttb.ttensor,
-            ttb.sptensor,
-            ttb.sumtensor,
-        ],
+        some_tensor: np.ndarray
+        | ttb.tensor
+        | ttb.ktensor
+        | ttb.ttensor
+        | ttb.sptensor
+        | ttb.sumtensor,
     ) -> ttb.tensor:
         """Convert a variety of data structures to a dense tensor."""
         if isinstance(some_tensor, np.ndarray):
@@ -2105,9 +2166,9 @@ class tensor:
     def _set_linear(self, key, value):
         idx = key
         if not isinstance(idx, slice) and (idx > np.prod(self.shape)).any():
-            assert (
-                False
-            ), "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+            assert False, (
+                "TTB:BadIndex In assignment X[I] = Y, a tensor X cannot be resized"
+            )
         if isinstance(key, (int, float, np.generic)):
             idx = np.array([key])
         elif isinstance(key, slice):
@@ -2837,9 +2898,7 @@ class tensor:
 
     __str__ = __repr__
 
-    def _matlab_str(
-        self, format: Optional[str] = None, name: Optional[str] = None
-    ) -> str:
+    def _matlab_str(self, format: str | None = None, name: str | None = None) -> str:
         """Non-standard representation to be more similar to MATLAB."""
         header = name
         if name is None:
@@ -2885,7 +2944,7 @@ def tenones(shape: Shape, order: MemoryLayout = "F") -> tensor:
      [1. 1. 1.]]
     """
 
-    def ones(shape: Tuple[int, ...]) -> np.ndarray:
+    def ones(shape: tuple[int, ...]) -> np.ndarray:
         return np.ones(shape, order=order)
 
     return tensor.from_function(ones, shape)
@@ -2921,7 +2980,7 @@ def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
      [0. 0. 0.]]
     """
 
-    def zeros(shape: Tuple[int, ...]) -> np.ndarray:
+    def zeros(shape: tuple[int, ...]) -> np.ndarray:
         return np.zeros(shape, order=order)
 
     return tensor.from_function(zeros, shape)
@@ -2953,7 +3012,7 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
 
     # Typing doesn't play nice with partial
     # mypy issue: 1484
-    def unit_uniform(pass_through_shape: Tuple[int, ...]) -> np.ndarray:
+    def unit_uniform(pass_through_shape: tuple[int, ...]) -> np.ndarray:
         data = np.random.uniform(low=0, high=1, size=np.prod(pass_through_shape))
         return data
 
@@ -2962,7 +3021,7 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
 
 def tendiag(
     elements: OneDArray,
-    shape: Optional[Shape] = None,
+    shape: Shape | None = None,
     order: MemoryLayout = "F",
 ) -> tensor:
     """Create a tensor with elements along super diagonal.

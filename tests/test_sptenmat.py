@@ -1,6 +1,7 @@
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 from copy import deepcopy
 
@@ -209,18 +210,17 @@ def test_sptenmat_double(sample_sptensor_2way):
     spmatrix = sptensorInstance.spmatrix()
     sptenmat_matrix = S.double()
     differences, _, _ = sparse.find(spmatrix - sptenmat_matrix)
-    assert differences.size == 0, (
-        f"Spmatrix: {spmatrix}\n" f"Sptenmat: {sptenmat_matrix}"
-    )
+    assert differences.size == 0, f"Spmatrix: {spmatrix}\nSptenmat: {sptenmat_matrix}"
 
     empty_sptensor = ttb.sptensor(shape=(4, 3))
     S = empty_sptensor.to_sptenmat(rdims=np.array([0]), cdims=np.array([1]))
     spmatrix = empty_sptensor.spmatrix()
     sptenmat_matrix = S.double()
     differences, _, _ = sparse.find(spmatrix - sptenmat_matrix)
-    assert differences.size == 0, (
-        f"Spmatrix: {spmatrix}\n" f"Sptenmat: {sptenmat_matrix}"
-    )
+    assert differences.size == 0, f"Spmatrix: {spmatrix}\nSptenmat: {sptenmat_matrix}"
+
+    # Smoke test to make sure flag works coo_matrix is effectively already immutable
+    S.double(True)
 
 
 def test_sptenmat_full(sample_sptensor_2way):
@@ -249,9 +249,7 @@ def test_sptenmat_pos(sample_sptensor_2way):
     spmatrix = sptensorInstance.spmatrix()
     sptenmat_matrix = S.double()
     differences, _, _ = sparse.find(spmatrix - sptenmat_matrix)
-    assert differences.size == 0, (
-        f"Spmatrix: {spmatrix}\n" f"Sptenmat: {sptenmat_matrix}"
-    )
+    assert differences.size == 0, f"Spmatrix: {spmatrix}\nSptenmat: {sptenmat_matrix}"
 
 
 def test_sptenmat_neg(sample_sptensor_2way):
@@ -260,9 +258,7 @@ def test_sptenmat_neg(sample_sptensor_2way):
     spmatrix = (-sptensorInstance).spmatrix()
     sptenmat_matrix = S.double()
     differences, _, _ = sparse.find(spmatrix - sptenmat_matrix)
-    assert differences.size == 0, (
-        f"Spmatrix: {spmatrix}\n" f"Sptenmat: {sptenmat_matrix}"
-    )
+    assert differences.size == 0, f"Spmatrix: {spmatrix}\nSptenmat: {sptenmat_matrix}"
 
 
 def test_sptenmat_setitem(sample_sptensor_2way):
@@ -295,7 +291,7 @@ def test_sptenmat_to_sptensor(sample_sptensor_2way):
     S = sptensorInstance.to_sptenmat(rdims=np.array([0]), cdims=np.array([1]))
     round_trip = S.to_sptensor()
     assert sptensorInstance.isequal(round_trip), (
-        f"Original: {sptensorInstance}\n" f"Reconstructed: {round_trip}"
+        f"Original: {sptensorInstance}\nReconstructed: {round_trip}"
     )
 
 

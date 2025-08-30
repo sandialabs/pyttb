@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional, Tuple, Union
+from typing import Literal
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
@@ -23,15 +23,15 @@ from pyttb.pyttb_utils import (
 class sptenmat:
     """Store sparse tensor as a sparse matrix."""
 
-    __slots__ = ("tshape", "rdims", "cdims", "subs", "vals")
+    __slots__ = ("cdims", "rdims", "subs", "tshape", "vals")
 
     def __init__(  # noqa: PLR0913
         self,
-        subs: Optional[np.ndarray] = None,
-        vals: Optional[np.ndarray] = None,
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        tshape: Tuple[int, ...] = (),
+        subs: np.ndarray | None = None,
+        vals: np.ndarray | None = None,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        tshape: tuple[int, ...] = (),
         copy: bool = True,
     ):
         """Construct a :class:`pyttb.sptenmat`.
@@ -40,7 +40,7 @@ class sptenmat:
         and values (vals) along with the mappings of the row (rdims) and column
         indices (cdims) and the shape of the original tensor (tshape).
 
-        If you already have an sparse tensor see :method:`pyttb.sptensor.to_sptenmat`.
+        If you already have an sparse tensor see :meth:`pyttb.sptensor.to_sptenmat`.
 
         Parameters
         ----------
@@ -91,14 +91,14 @@ class sptenmat:
         """
         # Empty case
         if rdims is None and cdims is None:
-            assert (
-                subs is None and vals is None
-            ), "Must provide rdims or cdims with values"
+            assert subs is None and vals is None, (
+                "Must provide rdims or cdims with values"
+            )
             self.subs = np.array([], ndmin=2, dtype=int)
             self.vals = np.array([], ndmin=2)
             self.rdims = np.array([], dtype=int)
             self.cdims = np.array([], dtype=int)
-            self.tshape: Union[Tuple[()], Tuple[int, ...]] = ()
+            self.tshape: tuple[()] | tuple[int, ...] = ()
             return
 
         if subs is None:
@@ -168,10 +168,10 @@ class sptenmat:
     @classmethod
     def from_array(
         cls,
-        array: Union[sparse.coo_matrix, np.ndarray],
-        rdims: Optional[np.ndarray] = None,
-        cdims: Optional[np.ndarray] = None,
-        tshape: Tuple[int, ...] = (),
+        array: sparse.coo_matrix | np.ndarray,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        tshape: tuple[int, ...] = (),
     ):
         """Construct a :class:`pyttb.sptenmat`.
 
@@ -272,7 +272,7 @@ class sptenmat:
         return self.copy()
 
     def to_sptensor(self) -> ttb.sptensor:
-        """Construct a :class:`pyttb.sptensor` from `:class:pyttb.sptenmat`.
+        """Construct a :class:`pyttb.sptensor` from :class:`pyttb.sptenmat`.
 
         Examples
         --------
@@ -307,7 +307,7 @@ class sptenmat:
         return ttb.sptensor(subs, vals, self.tshape)
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """
         Return the shape of a :class:`pyttb.sptenmat`.
 
@@ -328,9 +328,13 @@ class sptenmat:
             n = np.prod(np.array(self.tshape)[self.cdims])
             return int(m), int(n)
 
-    def double(self) -> sparse.coo_matrix:
+    def double(self, immutable: bool = False) -> sparse.coo_matrix:
         """
         Convert a :class:`pyttb.sptenmat` to a COO :class:`scipy.sparse.coo_matrix`.
+
+        Parameters
+        ----------
+        immutable: Parameter for compatibility but coo_matrix doesn't allow assignment.
 
         Examples
         --------

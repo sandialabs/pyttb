@@ -32,13 +32,13 @@ documentation = "https://pyttb.readthedocs.io"
 
 [project.optional-dependencies]
 dev = [
-    "mypy>=1.10,<1.14.0",
+    "mypy>=1.15,<1.16.0",
     # Also in pre-commit
     "nbstripout>=0.8,<0.9",
     "pytest>8.0",
     "pytest-cov>5.0",
     # Also in pre-commit
-    "ruff>=0.7,<0.8",
+    "ruff>=0.12,<0.13",
     "pre-commit>=4.0,<5.0",
     "codespell>=2.3.0,<2.4.0"
 ]
@@ -68,7 +68,7 @@ requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff.lint]
-select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
+select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D", "FA", "UP", "TC"]
 ignore = [
     # Ignored in conversion to ruff since not previously enforced
     "PLR2004",
@@ -84,6 +84,8 @@ ignore = [
     "B011",
     # There is ongoing discussion about logging/warning etc
     "B028",
+    # Personal preference on magic method
+    "D105",
 ]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
@@ -94,12 +96,16 @@ convention = "numpy"
 # Everything but I, F (to catch import mess and potential logic errors)
 "tests/**.py" = ["E", "PL", "W", "N", "NPY", "RUF", "B", "D"]
 # Ignore everything for now
-"docs/**.py" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
-"docs/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
-"profiling/**.ipynb" = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D"]
+"docs/**.py" = ["E", "F", "PL", "W", "N", "NPY", "RUF", "B", "D"]
+"docs/**.ipynb" = ["E", "F", "PL", "W", "N", "NPY", "RUF", "B", "D"]
+"profiling/**.ipynb" = ["E", "F", "PL", "W", "N", "NPY", "RUF", "B", "D"]
 
 [tool.ruff.format]
 docstring-code-format = true
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+combine-as-imports = true
 
 [tool.mypy]
 warn_unused_configs = true

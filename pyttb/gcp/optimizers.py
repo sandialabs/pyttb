@@ -10,7 +10,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from math import inf
-from typing import Callable, Dict, List, Optional, Tuple, TypedDict, Union
+from typing import TYPE_CHECKING, Callable, TypedDict
 
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
@@ -18,8 +18,10 @@ from scipy.optimize import fmin_l_bfgs_b
 import pyttb as ttb
 from pyttb.gcp.fg import evaluate
 from pyttb.gcp.fg_est import estimate
-from pyttb.gcp.fg_setup import function_type
 from pyttb.gcp.samplers import GCPSampler
+
+if TYPE_CHECKING:
+    from pyttb.gcp.fg_setup import function_type
 
 
 class StochasticSolver(ABC):
@@ -67,9 +69,9 @@ class StochasticSolver(ABC):
     def update_step(
         self,
         model: ttb.ktensor,
-        gradient: List[np.ndarray],
+        gradient: list[np.ndarray],
         lower_bound: float,
-    ) -> Tuple[List[np.ndarray], float]:
+    ) -> tuple[list[np.ndarray], float]:
         """Calculate the update step for the solver.
 
         Parameters
@@ -94,12 +96,12 @@ class StochasticSolver(ABC):
     def solve(  # noqa: PLR0913
         self,
         initial_model: ttb.ktensor,
-        data: Union[ttb.tensor, ttb.sptensor],
+        data: ttb.tensor | ttb.sptensor,
         function_handle: function_type,
         gradient_handle: function_type,
         lower_bound: float = -np.inf,
-        sampler: Optional[GCPSampler] = None,
-    ) -> Tuple[ttb.ktensor, Dict]:
+        sampler: GCPSampler | None = None,
+    ) -> tuple[ttb.ktensor, dict]:
         """Run solver until completion.
 
         Parameters
@@ -234,7 +236,7 @@ class StochasticSolver(ABC):
                 "End Main Loop\n"
                 f"Final f-est: {f_est: 10.4e}\n"
                 f"Main loop time: {main_time: .2f}\n"
-                f"Total iterations: {n_epoch*self._epoch_iters}"
+                f"Total iterations: {n_epoch * self._epoch_iters}"
             )
             logging.info(msg)
 
@@ -245,8 +247,8 @@ class SGD(StochasticSolver):
     """General Stochastic Gradient Descent."""
 
     def update_step(  # noqa: D102
-        self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
-    ) -> Tuple[List[np.ndarray], float]:
+        self, model: ttb.ktensor, gradient: list[np.ndarray], lower_bound: float
+    ) -> tuple[list[np.ndarray], float]:
         step = self._decay**self._nfails * self._rate
         factor_matrices = [
             np.maximum(lower_bound, factor - step * grad)
@@ -313,10 +315,10 @@ class Adam(StochasticSolver):
         self._beta_1 = beta_1
         self._beta_2 = beta_2
         self._epsilon = epsilon
-        self._m: List[np.ndarray] = []
-        self._m_prev: List[np.ndarray] = []
-        self._v: List[np.ndarray] = []
-        self._v_prev: List[np.ndarray] = []
+        self._m: list[np.ndarray] = []
+        self._m_prev: list[np.ndarray] = []
+        self._v: list[np.ndarray] = []
+        self._v_prev: list[np.ndarray] = []
 
     def set_failed_epoch(  # noqa: D102
         self,
@@ -326,8 +328,8 @@ class Adam(StochasticSolver):
         self._v = self._v_prev.copy()
 
     def update_step(  # noqa: D102
-        self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
-    ) -> Tuple[List[np.ndarray], float]:
+        self, model: ttb.ktensor, gradient: list[np.ndarray], lower_bound: float
+    ) -> tuple[list[np.ndarray], float]:
         if self._total_iterations == 0:
             for shape_i in model.shape:
                 self._m.append(
@@ -393,8 +395,8 @@ class Adagrad(StochasticSolver):
         self._gnormsum = 0.0
 
     def update_step(  # noqa: D102
-        self, model: ttb.ktensor, gradient: List[np.ndarray], lower_bound: float
-    ) -> Tuple[List[np.ndarray], float]:
+        self, model: ttb.ktensor, gradient: list[np.ndarray], lower_bound: float
+    ) -> tuple[list[np.ndarray], float]:
         self._gnormsum += np.sum([np.sum(gk**2) for gk in gradient])
         step = 1.0 / np.sqrt(self._gnormsum)
         factor_matrices = [
@@ -414,37 +416,35 @@ class LBFGSB:
 
     def __init__(  # noqa: PLR0913
         self,
-        m: Optional[int] = None,
+        m: int | None = None,
         factr: float = 1e7,
-        pgtol: Optional[float] = None,
-        epsilon: Optional[float] = None,
-        iprint: Optional[int] = None,
-        disp: Optional[int] = None,
-        maxfun: Optional[int] = None,
+        pgtol: float | None = None,
+        epsilon: float | None = None,
+        iprint: int | None = None,
+        disp: int | None = None,
+        maxfun: int | None = None,
         maxiter: int = 1000,
-        callback: Optional[Callable[[np.ndarray], None]] = None,
-        maxls: Optional[int] = None,
+        callback: Callable[[np.ndarray], None] | None = None,
+        maxls: int | None = None,
     ):
         """Prepare all hyper-parameters for solver.
 
         See scipy for details and standard defaults.
         A variety of defaults are set specifically for gcp opt.
         """
-        ArgType = TypedDict(
-            "ArgType",
-            {
-                "m": Optional[int],
-                "factr": float,
-                "pgtol": Optional[float],
-                "epsilon": Optional[float],
-                "iprint": Optional[int],
-                "disp": Optional[int],
-                "maxfun": Optional[int],
-                "maxiter": int,
-                "callback": Optional[Callable[[np.ndarray], None]],
-                "maxls": Optional[int],
-            },
-        )
+
+        class ArgType(TypedDict):
+            m: int | None
+            factr: float
+            pgtol: float | None
+            epsilon: float | None
+            iprint: int | None
+            disp: int | None
+            maxfun: int | None
+            maxiter: int
+            callback: Callable[[np.ndarray], None] | None
+            maxls: int | None
+
         self._solver_kwargs: ArgType = {
             "m": m,
             "factr": factr,
@@ -473,8 +473,8 @@ class LBFGSB:
         function_handle: function_type,
         gradient_handle: function_type,
         lower_bound: float = -np.inf,
-        mask: Optional[np.ndarray] = None,
-    ) -> Tuple[ttb.ktensor, Dict]:
+        mask: np.ndarray | None = None,
+    ) -> tuple[ttb.ktensor, dict]:
         """Solves the defined optimization problem."""
         model = initial_model.copy()
 
@@ -524,7 +524,7 @@ class LBFGSB:
         def __init__(
             self,
             maxiter: int,
-            callback: Optional[Callable[[np.ndarray], None]] = None,  # type: ignore
+            callback: Callable[[np.ndarray], None] | None = None,  # type: ignore
         ):
             self.startTime = time.perf_counter()
             self.time_trace = np.zeros((maxiter,))

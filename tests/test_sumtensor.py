@@ -1,6 +1,7 @@
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 from copy import deepcopy
 
@@ -167,6 +168,11 @@ def test_sumtensor_full_double(example_ttensor, example_kensor):
     double_array = S.double()
     assert isinstance(double_array, np.ndarray)
     assert_consistent_order(S, double_array)
+
+    # Verify immutability
+    double_array = S.double(True)
+    with pytest.raises(ValueError):
+        double_array[0] = 1
 
 
 def test_sumtensor_innerprod(example_ttensor, example_kensor):

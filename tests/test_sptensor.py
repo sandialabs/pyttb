@@ -1,6 +1,7 @@
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 import copy
 import logging
@@ -751,7 +752,7 @@ def test_sptensor__eq__(sample_sptensor):
     logging.debug(f"\nsptensorInstance = {sptensorInstance}")
     logging.debug(f"\ntype(eqSptensor.subs) = \n{type(eqSptensor.subs)}")
     for i in range(eqSptensor.subs.shape[0]):
-        logging.debug(f"{i}\t{eqSptensor.subs[i,:]}")
+        logging.debug(f"{i}\t{eqSptensor.subs[i, :]}")
     logging.debug(f"\neqSptensor.subs = \n{eqSptensor.subs}")
     logging.debug(f"\neqSptensor.subs.shape[0] = {eqSptensor.subs.shape[0]}")
     logging.debug(f"\nsptensorInstance.shape = {sptensorInstance.shape}")
@@ -1030,6 +1031,11 @@ def test_sptensor_double(sample_sptensor):
     assert double_array.shape == data["shape"]
     assert_consistent_order(sptensorInstance, double_array)
 
+    # Verify immutability
+    double_array = sptensorInstance.double(True)
+    with pytest.raises(ValueError):
+        double_array[0] = 1
+
 
 def test_sptensor_compare(sample_sptensor):
     # This is kind of a test just for coverage sake
@@ -1298,7 +1304,7 @@ def test_sptensor_innerprod(sample_sptensor):
     # Wrong type for innerprod
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.innerprod(5)
-    assert f"Inner product between sptensor and {type(5)} not supported" in str(excinfo)
+    assert f"Inner product between sptensor and {int} not supported" in str(excinfo)
 
 
 def test_sptensor_logical_xor(sample_sptensor):
@@ -1357,7 +1363,7 @@ def test_sptensor_squeeze(sample_sptensor):
     )
     assert np.array_equal(
         ttb.sptensor(np.array([[0, 0, 0]]), np.array([4]), (2, 2, 1)).squeeze().vals,
-        np.array([4]),
+        np.array([[4]]),
     )
 
     # Singleton dimension with empty sptensor
@@ -1900,9 +1906,9 @@ def test_sptendiag():
     X = ttb.sptendiag(elements)
     for i in range(N):
         diag_index = (i,) * N
-        assert (
-            X[diag_index] == i
-        ), f"Idx: {diag_index} expected: {i} got: {X[diag_index]}"
+        assert X[diag_index] == i, (
+            f"Idx: {diag_index} expected: {i} got: {X[diag_index]}"
+        )
 
     # Exact shape
     X = ttb.sptendiag(elements, tuple(exact_shape))

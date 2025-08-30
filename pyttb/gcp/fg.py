@@ -6,29 +6,31 @@
 
 from __future__ import annotations
 
-from typing import List, Literal, Optional, Tuple, Union, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
 
 import pyttb as ttb
-from pyttb.gcp.fg_setup import function_type
+
+if TYPE_CHECKING:
+    from pyttb.gcp.fg_setup import function_type
 
 
 @overload
 def evaluate(
     model: ttb.ktensor,
-    data: Union[ttb.tensor, ttb.sptensor],
-    weights: Optional[np.ndarray],
+    data: ttb.tensor | ttb.sptensor,
+    weights: np.ndarray | None,
     function_handle: Literal[None],
     gradient_handle: function_type,
-) -> List[np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
+) -> list[np.ndarray]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
 def evaluate(
     model: ttb.ktensor,
-    data: Union[ttb.tensor, ttb.sptensor],
-    weights: Optional[np.ndarray],
+    data: ttb.tensor | ttb.sptensor,
+    weights: np.ndarray | None,
     function_handle: function_type,
     gradient_handle: Literal[None],
 ) -> float: ...  # pragma: no cover see coveragepy/issues/970
@@ -37,20 +39,20 @@ def evaluate(
 @overload
 def evaluate(
     model: ttb.ktensor,
-    data: Union[ttb.tensor, ttb.sptensor],
-    weights: Optional[np.ndarray],
+    data: ttb.tensor | ttb.sptensor,
+    weights: np.ndarray | None,
     function_handle: function_type,
     gradient_handle: function_type,
-) -> Tuple[float, List[np.ndarray]]: ...  # pragma: no cover see coveragepy/issues/970
+) -> tuple[float, list[np.ndarray]]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def evaluate(
     model: ttb.ktensor,
-    data: Union[ttb.tensor, ttb.sptensor],
-    weights: Optional[np.ndarray] = None,
-    function_handle: Optional[function_type] = None,
-    gradient_handle: Optional[function_type] = None,
-) -> Union[float, List[np.ndarray], Tuple[float, List[np.ndarray]]]:
+    data: ttb.tensor | ttb.sptensor,
+    weights: np.ndarray | None = None,
+    function_handle: function_type | None = None,
+    gradient_handle: function_type | None = None,
+) -> float | list[np.ndarray] | tuple[float, list[np.ndarray]]:
     """Evaluate an objective function and/or gradient function.
 
     Parameters
@@ -82,8 +84,8 @@ def evaluate(
     # TODO should we early check shapes?
     # I don't think we always get vectorization for free in python
     # we should be able to operate on underlying np arrays directly though
-    F: Optional[float] = None
-    G: Optional[List[np.ndarray]] = None
+    F: float | None = None
+    G: list[np.ndarray] | None = None
     if function_handle is not None:
         Y = function_handle(data.data, full_model.data)
         if weights is not None:

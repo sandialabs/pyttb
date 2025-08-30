@@ -6,3 +6,4 @@ Reference (:mod:`pyttb`)
 
     tensor_classes.rst
     algorithms.rst
+    io.rst
