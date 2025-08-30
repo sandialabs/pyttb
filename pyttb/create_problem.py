@@ -1,9 +1,11 @@
 """Create test problems for tensor factorizations."""
 
+from __future__ import annotations
+
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Callable, Optional, Tuple, Union, cast, overload
+from typing import Callable, Union, cast, overload
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
@@ -11,13 +13,13 @@ from numpy_groupies import aggregate as accumarray
 import pyttb as ttb
 from pyttb.pyttb_utils import Shape, parse_shape
 
-solution_generator = Callable[[Tuple[int, ...]], np.ndarray]
+solution_generator = Callable[[tuple[int, ...]], np.ndarray]
 core_generator_t = Callable[
-    [Tuple[int, ...]], Union[ttb.tensor, ttb.sptensor, np.ndarray]
+    [tuple[int, ...]], Union[ttb.tensor, ttb.sptensor, np.ndarray]
 ]
 
 
-def randn(shape: Tuple[int, ...]) -> np.ndarray:
+def randn(shape: tuple[int, ...]) -> np.ndarray:
     """Stub for MATLAB randn.
 
     TODO move somewhere shareable.
@@ -49,8 +51,8 @@ class BaseProblem:
 
     shape: Shape = field(metadata={"doc": "A shape"})
     factor_generator: solution_generator = randn
-    symmetric: Optional[list[Tuple[int, int]]] = None
-    num_factors: Union[int, list[int], None] = None
+    symmetric: list[tuple[int, int]] | None = None
+    num_factors: int | list[int] | None = None
     noise: float = 0.10
 
     def __post_init__(self):
@@ -89,7 +91,7 @@ class CPProblem(BaseProblem):
     weight_generator: solution_generator = np.random.random
     # TODO: This is in DataParams in MATLAB, but only works for CP problems so
     # feels more reasonable here
-    sparse_generation: Optional[float] = None
+    sparse_generation: float | None = None
 
 
 @dataclass
@@ -117,7 +119,7 @@ class TuckerProblem(BaseProblem):
     """
 
     # TODO post_init set to [2, 2, 2]
-    num_factors: Optional[list[int]] = None
+    num_factors: list[int] | None = None
     core_generator: core_generator_t = randn
 
     def __post_init__(self):
@@ -138,7 +140,7 @@ class ExistingSolution:
         If data is sparse noise is only added to nonzero entries.
     """
 
-    solution: Union[ttb.ktensor, ttb.ttensor]
+    solution: ttb.ktensor | ttb.ttensor
     noise: float = 0.10
 
     def __post_init__(self):
@@ -187,7 +189,7 @@ class ExistingCPSolution(ExistingSolution):
     """
 
     solution: ttb.ktensor
-    sparse_generation: Optional[float] = None
+    sparse_generation: float | None = None
 
 
 @dataclass
@@ -207,7 +209,7 @@ class MissingData:
     """
 
     missing_ratio: float = 0.0
-    missing_pattern: Optional[Union[ttb.sptensor, ttb.tensor]] = None
+    missing_pattern: ttb.sptensor | ttb.tensor | None = None
     sparse_model: bool = False
 
     def __post_init__(self):
@@ -232,7 +234,7 @@ class MissingData:
         if self.sparse_model:
             raise ValueError("Can't generate sparse symmetric problem.")
 
-    def get_pattern(self, shape: Shape) -> Union[None, ttb.tensor, ttb.sptensor]:
+    def get_pattern(self, shape: Shape) -> None | ttb.tensor | ttb.sptensor:
         """Generate a tensor pattern of missing data."""
         if self.missing_pattern is not None:
             if self.missing_pattern.shape != shape:
@@ -256,7 +258,7 @@ class MissingData:
 
 def _create_missing_data_pattern(
     shape: Shape, missing_ratio: float, sparse_model: bool = False
-) -> Union[ttb.tensor, ttb.sptensor]:
+) -> ttb.tensor | ttb.sptensor:
     """Create a randomly missing element indicator tensor.
 
     Creates a binary tensor of specified size with 0's indication missing data
@@ -267,7 +269,7 @@ def _create_missing_data_pattern(
     ndim = len(shape)
     P = math.prod(shape)
     Q = math.ceil((1 - missing_ratio) * P)
-    W: Union[ttb.tensor, ttb.sptensor]
+    W: ttb.tensor | ttb.sptensor
 
     # Create tensor
     ## Keep iterating until tensor is created or we give up.
@@ -294,7 +296,7 @@ def _create_missing_data_pattern(
                 subs = subs[idx[:Q]]
             elif subs.shape[0] < Q:
                 logging.warning(
-                    f"Only generated {subs.shape[0]} of " f"{Q} desired subscripts"
+                    f"Only generated {subs.shape[0]} of {Q} desired subscripts"
                 )
             W = ttb.sptensor(
                 subs,
@@ -329,39 +331,39 @@ def _create_missing_data_pattern(
     if not isokay:
         raise ValueError(
             f"After {iter} iterations, cannot produce a tensor with"
-            f"{missing_ratio*100} missing data without an empty slice."
+            f"{missing_ratio * 100} missing data without an empty slice."
         )
     return W
 
 
 @overload
 def create_problem(
-    problem_params: CPProblem, missing_params: Optional[MissingData] = None
-) -> Tuple[
-    ttb.ktensor, Union[ttb.tensor, ttb.sptensor]
+    problem_params: CPProblem, missing_params: MissingData | None = None
+) -> tuple[
+    ttb.ktensor, ttb.tensor | ttb.sptensor
 ]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
 def create_problem(
     problem_params: TuckerProblem,
-    missing_params: Optional[MissingData] = None,
-) -> Tuple[ttb.ttensor, ttb.tensor]: ...  # pragma: no cover see coveragepy/issues/970
+    missing_params: MissingData | None = None,
+) -> tuple[ttb.ttensor, ttb.tensor]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
 def create_problem(
     problem_params: ExistingSolution,
-    missing_params: Optional[MissingData] = None,
-) -> Tuple[
-    Union[ttb.ktensor, ttb.ttensor], Union[ttb.tensor, ttb.sptensor]
+    missing_params: MissingData | None = None,
+) -> tuple[
+    ttb.ktensor | ttb.ttensor, ttb.tensor | ttb.sptensor
 ]: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def create_problem(
-    problem_params: Union[CPProblem, TuckerProblem, ExistingSolution],
-    missing_params: Optional[MissingData] = None,
-) -> Tuple[Union[ttb.ktensor, ttb.ttensor], Union[ttb.tensor, ttb.sptensor]]:
+    problem_params: CPProblem | TuckerProblem | ExistingSolution,
+    missing_params: MissingData | None = None,
+) -> tuple[ttb.ktensor | ttb.ttensor, ttb.tensor | ttb.sptensor]:
     """Generate a problem and solution.
 
     Arguments
@@ -431,7 +433,7 @@ def create_problem(
 
     solution = generate_solution(problem_params)
 
-    data: Union[ttb.tensor, ttb.sptensor]
+    data: ttb.tensor | ttb.sptensor
     if (
         isinstance(problem_params, (CPProblem, ExistingCPSolution))
         and problem_params.sparse_generation is not None
@@ -441,7 +443,7 @@ def create_problem(
                 f"Can't combine missing data {MissingData.__name__} and "
                 f" sparse generation {CPProblem.__name__}."
             )
-        solution = cast(ttb.ktensor, solution)
+        solution = cast("ttb.ktensor", solution)
         solution, data = generate_data_sparse(solution, problem_params)
     elif missing_params.has_missing():
         pattern = missing_params.get_pattern(solution.shape)
@@ -454,7 +456,7 @@ def create_problem(
 def generate_solution_factors(base_params: BaseProblem) -> list[np.ndarray]:
     """Generate the factor matrices for either type of solution."""
     # Get shape of final tensor
-    shape = cast(Tuple[int, ...], base_params.shape)
+    shape = cast("tuple[int, ...]", base_params.shape)
 
     # Get shape of factors
     if isinstance(base_params.num_factors, int):
@@ -495,19 +497,19 @@ def generate_solution(
 @overload
 def generate_solution(
     problem_params: ExistingSolution,
-) -> Union[ttb.ktensor, ttb.ttensor]: ...
+) -> ttb.ktensor | ttb.ttensor: ...
 
 
 def generate_solution(
-    problem_params: Union[CPProblem, TuckerProblem, ExistingSolution],
-) -> Union[ttb.ktensor, ttb.ttensor]:
+    problem_params: CPProblem | TuckerProblem | ExistingSolution,
+) -> ttb.ktensor | ttb.ttensor:
     """Generate problem solution."""
     if isinstance(problem_params, ExistingSolution):
         return problem_params.solution
     factor_matrices = generate_solution_factors(problem_params)
     # Create final model
     if isinstance(problem_params, TuckerProblem):
-        nfactors = cast(list[int], problem_params.num_factors)
+        nfactors = cast("list[int]", problem_params.num_factors)
         generated_core = problem_params.core_generator(tuple(nfactors))
         if isinstance(generated_core, (ttb.tensor, ttb.sptensor)):
             core = generated_core
@@ -522,28 +524,28 @@ def generate_solution(
 
 @overload
 def generate_data(
-    solution: Union[ttb.ktensor, ttb.ttensor],
-    problem_params: Union[BaseProblem, ExistingSolution],
-    pattern: Optional[ttb.tensor] = None,
+    solution: ttb.ktensor | ttb.ttensor,
+    problem_params: BaseProblem | ExistingSolution,
+    pattern: ttb.tensor | None = None,
 ) -> ttb.tensor: ...  # pragma: no cover see coveragepy/issues/970
 
 
 @overload
 def generate_data(
-    solution: Union[ttb.ktensor, ttb.ttensor],
-    problem_params: Union[BaseProblem, ExistingSolution],
+    solution: ttb.ktensor | ttb.ttensor,
+    problem_params: BaseProblem | ExistingSolution,
     pattern: ttb.sptensor,
 ) -> ttb.sptensor: ...  # pragma: no cover see coveragepy/issues/970
 
 
 def generate_data(
-    solution: Union[ttb.ktensor, ttb.ttensor],
-    problem_params: Union[BaseProblem, ExistingSolution],
-    pattern: Optional[Union[ttb.tensor, ttb.sptensor]] = None,
-) -> Union[ttb.tensor, ttb.sptensor]:
+    solution: ttb.ktensor | ttb.ttensor,
+    problem_params: BaseProblem | ExistingSolution,
+    pattern: ttb.tensor | ttb.sptensor | None = None,
+) -> ttb.tensor | ttb.sptensor:
     """Generate problem data."""
     shape = solution.shape
-    Rdm: Union[ttb.tensor, ttb.sptensor]
+    Rdm: ttb.tensor | ttb.sptensor
     if pattern is not None:
         if isinstance(pattern, ttb.sptensor):
             Rdm = ttb.sptensor(pattern.subs, randn((pattern.nnz, 1)), pattern.shape)
@@ -578,8 +580,8 @@ def prosample(nsamples: int, prob: np.ndarray) -> np.ndarray:
 
 def generate_data_sparse(
     solution: ttb.ktensor,
-    problem_params: Union[CPProblem, ExistingCPSolution],
-) -> Tuple[ttb.ktensor, ttb.sptensor]:
+    problem_params: CPProblem | ExistingCPSolution,
+) -> tuple[ttb.ktensor, ttb.sptensor]:
     """Generate sparse CP data from a given solution."""
     # Error check on solution
     if np.any(solution.weights < 0):

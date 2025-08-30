@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import warnings
-from typing import Optional
 
 import numpy as np
 import scipy
@@ -20,9 +19,9 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     input_tensor: ttb.tensor,
     tol: float,
     verbosity: float = 1,
-    dimorder: Optional[OneDArray] = None,
+    dimorder: OneDArray | None = None,
     sequential: bool = True,
-    ranks: Optional[OneDArray] = None,
+    ranks: OneDArray | None = None,
 ) -> ttb.ttensor:
     """Compute sequentially-truncated higher-order SVD (Tucker).
 
@@ -143,7 +142,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
         relnorm = np.sqrt(diffnormsqr / normxsqr)
         print(f"Shape of core: {G.shape}")
         if relnorm <= tol:
-            print(f"||X-T||/||X|| = {relnorm: g} <=" f"{tol: f} (tol)")
+            print(f"||X-T||/||X|| = {relnorm: g} <={tol: f} (tol)")
         else:
             print(
                 "Tolerance not satisfied!! "

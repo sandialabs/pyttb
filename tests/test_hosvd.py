@@ -1,6 +1,7 @@
 # Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -34,16 +35,16 @@ def test_hosvd_simple_convergence(capsys, sample_tensor):
 
     tol = 1e-4
     result = ttb.hosvd(T, tol, sequential=False)
-    assert (
-        result.full() - T
-    ).norm() / T.norm() < tol, "Failed to converge for non-sequential option"
+    assert (result.full() - T).norm() / T.norm() < tol, (
+        "Failed to converge for non-sequential option"
+    )
 
     impossible_tol = 1e-20
     with pytest.warns(UserWarning):
         result = ttb.hosvd(T, impossible_tol)
-    assert (
-        result.full() - T
-    ).norm() / T.norm() > impossible_tol, "Converged beyond provided precision"
+    assert (result.full() - T).norm() / T.norm() > impossible_tol, (
+        "Converged beyond provided precision"
+    )
 
 
 def test_hosvd_default_init(capsys, sample_tensor):

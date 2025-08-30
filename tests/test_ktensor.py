@@ -1,6 +1,7 @@
 # Copyright 2024 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
 import copy
 
@@ -257,7 +258,7 @@ def test_ktensor_extract(sample_ktensor_3way):
     K_extracted = K.extract(1)
     assert K_new.isequal(K_extracted)
     # tuple
-    K_extracted = K.extract((1))
+    K_extracted = K.extract(1)
     assert K_new.isequal(K_extracted)
     # list
     K_extracted = K.extract([1])
@@ -287,7 +288,7 @@ def test_ktensor_extract(sample_ktensor_3way):
 
     # component index out of range
     with pytest.raises(AssertionError) as excinfo:
-        K.extract((5))
+        K.extract(5)
     assert "Invalid component indices to be extracted: [5] not in range(2)" in str(
         excinfo
     )

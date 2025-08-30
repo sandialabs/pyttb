@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Literal, Optional, Tuple, Union
+from typing import Literal
 
 import numpy as np
 
@@ -15,16 +15,16 @@ from pyttb.pyttb_utils import OneDArray, parse_one_d
 
 
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: Union[ttb.tensor, ttb.sptensor, ttb.ttensor, ttb.sumtensor],
+    input_tensor: ttb.tensor | ttb.sptensor | ttb.ttensor | ttb.sumtensor,
     rank: int,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
-    dimorder: Optional[OneDArray] = None,
-    optdims: Optional[OneDArray] = None,
-    init: Union[Literal["random"], Literal["nvecs"], ttb.ktensor] = "random",
+    dimorder: OneDArray | None = None,
+    optdims: OneDArray | None = None,
+    init: Literal["random"] | Literal["nvecs"] | ttb.ktensor = "random",
     printitn: int = 1,
     fixsigns: bool = True,
-) -> Tuple[ttb.ktensor, ttb.ktensor, Dict]:
+) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
     """Compute CP decomposition with alternating least squares.
 
     Parameters
@@ -153,9 +153,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     if isinstance(init, ttb.ktensor):
         # User provided an initial ktensor; validate it
         assert init.ndims == N, f"Initial guess does not have {N} modes"
-        assert (
-            init.ncomponents == rank
-        ), f"Initial guess does not have {rank} components"
+        assert init.ncomponents == rank, (
+            f"Initial guess does not have {rank} components"
+        )
         for n in dimorder:
             if init.factor_matrices[n].shape != (input_tensor.shape[n], rank):
                 assert False, f"Mode {n} of the initial guess is the wrong size"
@@ -167,9 +167,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
             )
         init = ttb.ktensor(factor_matrices)
     elif isinstance(init, str) and init.lower() == "nvecs":
-        assert not isinstance(
-            input_tensor, ttb.sumtensor
-        ), "Sumtensor doesn't support nvecs"
+        assert not isinstance(input_tensor, ttb.sumtensor), (
+            "Sumtensor doesn't support nvecs"
+        )
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(input_tensor.nvecs(n, rank))

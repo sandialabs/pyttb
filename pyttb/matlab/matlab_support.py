@@ -3,8 +3,9 @@
 # Copyright 2025 National Technology & Engineering Solutions of Sandia,
 # LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the
 # U.S. Government retains certain rights in this software.
+from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 
@@ -16,9 +17,9 @@ PRINT_CLASSES = Union[tensor, np.ndarray]
 
 
 def matlab_print(
-    data: Union[tensor, np.ndarray],
-    format: Optional[str] = None,
-    name: Optional[str] = None,
+    data: tensor | np.ndarray,
+    format: str | None = None,
+    name: str | None = None,
 ):
     """Print data in a format more similar to MATLAB.
 

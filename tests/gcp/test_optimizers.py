@@ -127,7 +127,7 @@ def test_lbfgsb_callback(generate_problem):
         _, info = solver.solve(model, dense_data, gaussian, gaussian_grad)
 
     # Test user-defined callback
-    class Callback(object):
+    class Callback:
         def __init__(self, rows: int = 0, cols: int = 0):
             self.i = 0
             self.xk = np.zeros((rows, cols))
