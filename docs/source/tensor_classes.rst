@@ -12,4 +12,5 @@ Tensor Classes
     tenmat.rst
     sptenmat.rst
     pyttb_utils.rst
+    create_problem.rst
 
