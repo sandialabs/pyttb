@@ -211,3 +211,25 @@ def test_beta_grad(sample_data_model):
             beta - 2
         )
     np.testing.assert_allclose(result, expected)
+
+
+def test_ztp(sample_data_model):
+    data, model = sample_data_model
+    result = handles.ztp(data, model)
+    expected = np.zeros_like(result)
+    for i, _ in enumerate(expected):
+        expected[i] = handles.poisson(data[i], model[i]) + np.log(
+            1 - np.exp(-model[i]) + EPS
+        )
+    np.testing.assert_allclose(result, expected)
+
+
+def test_ztp_grad(sample_data_model):
+    data, model = sample_data_model
+    result = handles.ztp_grad(data, model)
+    expected = np.zeros_like(result)
+    for i, _ in enumerate(expected):
+        expected[i] = handles.poisson_grad(data[i], model[i]) + 1 / (
+            np.exp(model[i]) - 1 + EPS
+        )
+    np.testing.assert_allclose(result, expected)

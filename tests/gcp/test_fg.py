@@ -148,6 +148,7 @@ def test_evaluate_sptensor():
         "HUBER": 1.659013125911521,
         "NEGATIVE_BINOMIAL": 18.038214072232726,
         "BETA": 438.0174726326384,
+        "ZT_POISSON": -3911.3193230730776122,
     }
 
     # Computed with MATLAB TTB v3.5
@@ -162,6 +163,7 @@ def test_evaluate_sptensor():
         "HUBER": 0.403829517433526,
         "NEGATIVE_BINOMIAL": 6.952818383681525,
         "BETA": 5748639985.372480,
+        "ZT_POISSON": 57486401131.6107635498046875,
     }
 
     for an_objective in Objectives:

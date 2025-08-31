@@ -31,6 +31,7 @@ class Objectives(Enum):
     HUBER = 7
     NEGATIVE_BINOMIAL = 8
     BETA = 9
+    ZT_POISSON = 10
 
 
 def gaussian(data: np.ndarray, model: np.ndarray) -> np.ndarray:
@@ -147,3 +148,13 @@ def beta(data: np.ndarray, model: np.ndarray, b: float) -> np.ndarray:
 def beta_grad(data: np.ndarray, model: np.ndarray, b: float) -> np.ndarray:
     """Return gradient function for beta distributions."""
     return (model + EPS) ** (b - 1) - data * (model + EPS) ** (b - 2)
+
+
+def ztp(data: np.ndarray, model: np.ndarray) -> np.ndarray:
+    """Return objective function for zero-truncated poisson distributions."""
+    return poisson(data, model) + np.log(1 - np.exp(-model) + EPS)
+
+
+def ztp_grad(data: np.ndarray, model: np.ndarray) -> np.ndarray:
+    """Return gradient function for zero-truncated poisson distributions."""
+    return poisson_grad(data, model) + 1 / ((np.exp(model) - 1) + EPS)
