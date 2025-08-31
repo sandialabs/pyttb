@@ -1,10 +1,10 @@
-Helper Functions (:mod:`pyttb_utils`, :mod:`khatrirao`)
---------------------------------------------------------
+Helper Functions (:mod:`pyttb.pyttb_utils`, :mod:`pyttb.khatrirao`)
+===================================================================
 
-.. autofunction:: pyttb.khatrirao.khatrirao
-
-.. automodule:: pyttb.pyttb_utils
+.. autoclass:: pyttb.pyttb_utils
     :members:
     :special-members:
     :exclude-members: __dict__, __weakref__, __slots__
     :show-inheritance:
+
+.. autofunction:: pyttb.khatrirao
