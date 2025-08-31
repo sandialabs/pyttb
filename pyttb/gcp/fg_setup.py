@@ -109,6 +109,12 @@ def setup(  # noqa: PLR0912,PLR0915
         function_handle = partial(handles.beta, b=additional_parameter)
         gradient_handle = partial(handles.beta_grad, b=additional_parameter)
         lower_bound = 0
+    elif objective == Objectives.ZT_POISSON:
+        if data is not None and not valid_natural(data):
+            raise ValueError(f"{objective.name} requires a count tensor")
+        function_handle = handles.ztp
+        gradient_handle = handles.ztp_grad
+        lower_bound = 0.0
     else:
         raise ValueError(f" Unknown objective: {objective}")
 
