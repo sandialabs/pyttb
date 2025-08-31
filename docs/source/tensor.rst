@@ -12,7 +12,7 @@ For *all* examples in this document, the following module imports are assumed::
 .. autoclass:: pyttb.tensor
     :members:
     :special-members:
-    :exclude-members: __dict__, __weakref__, __slots__, __deepcopy__
+    :exclude-members: __init__, __dict__, __weakref__, __slots__, __deepcopy__
     :show-inheritance:
 
 .. autofunction:: pyttb.tenones
