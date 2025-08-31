@@ -57,7 +57,7 @@ extensions = [
     "myst_nb",
 ]
 
-# autodoc_preserve_defaults = True
+autodoc_preserve_defaults = True
 
 myst_enable_extensions = [
     "amsmath",
@@ -202,3 +202,4 @@ texinfo_documents = [
 # Autodoc settings
 autoclass_content = "class"
 autodoc_member_order = "bysource"
+autodoc_class_signature = "separated"

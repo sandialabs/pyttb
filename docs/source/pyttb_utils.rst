@@ -1,7 +1,7 @@
 Helper Functions (:mod:`pyttb.pyttb_utils`, :mod:`pyttb.khatrirao`)
 ===================================================================
 
-.. autoclass:: pyttb.pyttb_utils
+.. automodule:: pyttb.pyttb_utils
     :members:
     :special-members:
     :exclude-members: __dict__, __weakref__, __slots__
