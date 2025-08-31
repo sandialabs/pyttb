@@ -19,6 +19,7 @@ def export_data(
     filename: str,
     fmt_data: str | None = None,
     fmt_weights: str | None = None,
+    index_base: int = 1,
 ):
     """Export tensor-related data to a file."""
     if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
@@ -37,7 +38,7 @@ def export_data(
         elif isinstance(data, ttb.sptensor):
             print("sptensor", file=fp)
             export_sparse_size(fp, data)
-            export_sparse_array(fp, data, fmt_data)
+            export_sparse_array(fp, data, fmt_data, index_base)
 
         elif isinstance(data, ttb.ktensor):
             print("ktensor", file=fp)
@@ -102,14 +103,16 @@ def export_sparse_size(fp: TextIO, A: ttb.sptensor):
     print(f"{A.nnz}", file=fp)  # number of nonzeros
 
 
-def export_sparse_array(fp: TextIO, A: ttb.sptensor, fmt_data: str | None):
+def export_sparse_array(
+    fp: TextIO, A: ttb.sptensor, fmt_data: str | None, index_base: int = 1
+):
     """Export sparse array data in coordinate format."""
     if not fmt_data:
         fmt_data = "%.16e"
     # TODO: looping through all values may take a long time, can this be more efficient?
     for i in range(A.nnz):
         # 0-based indexing in package, 1-based indexing in file
-        subs = A.subs[i, :] + 1
+        subs = A.subs[i, :] + index_base
         subs.tofile(fp, sep=" ", format="%d")
         print(end=" ", file=fp)
         val = A.vals[i][0]
