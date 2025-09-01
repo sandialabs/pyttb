@@ -76,7 +76,7 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
    ```
       1. For the CI version which is more strict
       ```commandline
-      sphinx-build ./docs/source ./docs/build -W -n --keep-going
+      sphinx-build ./docs/source ./docs/build -E -W --keep-going
       ```
       2. If not on Windows optionally add `-j auto` for parallelization
    2. Clear notebook outputs if run locally see `nbstripout` in our [pre-commit configuration](.pre-commit-config.yaml)
