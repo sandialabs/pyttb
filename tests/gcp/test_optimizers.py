@@ -35,7 +35,7 @@ def generate_problem():
 def test_sgd(generate_problem):
     dense_data, model, sampler = generate_problem
 
-    solver = SGD(max_iters=2, epoch_iters=1)
+    solver = SGD(max_iters=3, epoch_iters=1)
     result, info = solver.solve(
         model, dense_data, gaussian, gaussian_grad, sampler=sampler
     )
@@ -58,7 +58,7 @@ def test_sgd(generate_problem):
 def test_adam(generate_problem):
     dense_data, model, sampler = generate_problem
 
-    solver = Adam(max_iters=1, epoch_iters=1)
+    solver = Adam(max_iters=3, epoch_iters=1)
     result, info = solver.solve(
         model, dense_data, gaussian, gaussian_grad, sampler=sampler
     )
@@ -66,7 +66,7 @@ def test_adam(generate_problem):
     assert (model.full() - dense_data).norm() > (result.full() - dense_data).norm()
 
     # Force bad step
-    solver = Adam(max_iters=1, epoch_iters=1)
+    solver = Adam(max_iters=3, epoch_iters=1)
     result, info = solver.solve(
         model, dense_data, diverging_function_handle, gaussian_grad, sampler=sampler
     )
@@ -79,7 +79,7 @@ def test_adam(generate_problem):
 def test_adagrad(generate_problem):
     dense_data, model, sampler = generate_problem
 
-    solver = Adagrad(max_iters=1, epoch_iters=1)
+    solver = Adagrad(max_iters=3, epoch_iters=1)
     result, info = solver.solve(
         model, dense_data, gaussian, gaussian_grad, sampler=sampler
     )
@@ -87,7 +87,7 @@ def test_adagrad(generate_problem):
     assert (model.full() - dense_data).norm() > (result.full() - dense_data).norm()
 
     # Force bad step
-    solver = Adagrad(max_iters=1, epoch_iters=1)
+    solver = Adagrad(max_iters=3, epoch_iters=1)
     result, info = solver.solve(
         model, dense_data, diverging_function_handle, gaussian_grad, sampler=sampler
     )
