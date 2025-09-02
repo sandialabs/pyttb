@@ -16,12 +16,12 @@ import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 
 import pyttb as ttb
-from pyttb.gcp.fg import evaluate
-from pyttb.gcp.fg_est import estimate
-from pyttb.gcp.samplers import GCPSampler
+from pyttb.decompositions.cp.gcp.fg import evaluate
+from pyttb.decompositions.cp.gcp.fg_est import estimate
+from pyttb.decompositions.cp.gcp.samplers import GCPSampler
 
 if TYPE_CHECKING:
-    from pyttb.gcp.fg_setup import function_type
+    from pyttb.decompositions.cp.gcp.fg_setup import function_type
 
 
 class StochasticSolver(ABC):

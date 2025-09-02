@@ -6,8 +6,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-import pyttb as ttb
-from pyttb.cp_apr import (
+from pyttb.decompositions.cp import cp_apr
+from pyttb.decompositions.cp.apr import (
     calc_partials,
     calculate_phi,
     calculate_pi,
@@ -20,6 +20,7 @@ from pyttb.cp_apr import (
     tt_loglikelihood_row,
     vectorize_for_mu,
 )
+from pyttb.tensors import ktensor, tensor
 
 
 @pytest.fixture()
@@ -28,7 +29,7 @@ def sample_tensor1():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     return tensorInstance, ktensorInstance
 
@@ -39,7 +40,7 @@ def sample_tensor2():
     fm0 = np.array([[1.0, 1.0], [3.0, 4.0]])
     fm1 = np.array([[1.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     return tensorInstance, ktensorInstance
 
@@ -50,7 +51,7 @@ def default_init_ktensor():
     fm0 = np.array([[1.0, 1.0], [1.0, 1.0]])
     fm1 = np.array([[1.0, 1.0], [1.0, 1.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices=factor_matrices, weights=weights)
+    ktensorInstance = ktensor(factor_matrices=factor_matrices, weights=weights)
     return ktensorInstance
 
 
@@ -59,7 +60,7 @@ def rand_ktensor():
     fm0 = np.array([[0.69646919, 0.28613933], [0.22685145, 0.55131477]])
     fm1 = np.array([[0.71946897, 0.42310646], [0.9807642, 0.68482974]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices=factor_matrices)
+    ktensorInstance = ktensor(factor_matrices=factor_matrices)
     return ktensorInstance
 
 
@@ -75,7 +76,7 @@ def test_loglikelihood():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     sptensorInstance = tensorInstance.to_sptensor()
 
@@ -96,8 +97,8 @@ def test_loglikelihood():
     factor_matrices = []
     for i in range(n):
         factor_matrices.append(np.abs(np.random.normal(size=(5, n))))
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ttb.tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
+    ktensorInstance = ktensor(factor_matrices, weights)
+    tensorInstance = tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
     sptensorInstance = tensorInstance.to_sptensor()
 
     vector = ktensorInstance.full().data.ravel()
@@ -121,7 +122,7 @@ def test_calculatePi():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     sptensorInstance = tensorInstance.to_sptensor()
     answer = np.array([[0, 6], [7, 8]])
@@ -148,8 +149,8 @@ def test_calculatePi():
     factor_matrices = []
     for i in range(n):
         factor_matrices.append(np.abs(np.random.normal(size=(5, n))))
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
-    tensorInstance = ttb.tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
+    ktensorInstance = ktensor(factor_matrices, weights)
+    tensorInstance = tensor(np.abs(np.random.normal(size=ktensorInstance.shape)))
     sptensorInstance = tensorInstance.to_sptensor()
 
     print(tensorInstance.shape)
@@ -168,7 +169,7 @@ def test_calculatePhi():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     sptensorInstance = tensorInstance.to_sptensor()
     answer = np.array([[0, 0], [11.226415094339623, 24.830188679245282]])
@@ -185,7 +186,7 @@ def test_cpapr_mu(capsys, sample_tensor1, default_init_ktensor):
     # Test simple case
     tensorInstance, ktensorSolnInstance = sample_tensor1
     ktensorInitInstance = default_init_ktensor
-    M, _, _ = ttb.cp_apr(
+    M, _, _ = cp_apr(
         input_tensor=tensorInstance, rank=2, init=ktensorInitInstance, printinneritn=1
     )
 
@@ -194,14 +195,12 @@ def test_cpapr_mu(capsys, sample_tensor1, default_init_ktensor):
     assert np.isclose(M.full().data, ktensorSolnInstance.full().data).all()
 
     # Assert given an initial guess of the final answer yields immediate convergence
-    M, _, output = ttb.cp_apr(
-        input_tensor=tensorInstance, rank=2, init=ktensorSolnInstance
-    )
+    M, _, output = cp_apr(input_tensor=tensorInstance, rank=2, init=ktensorSolnInstance)
     capsys.readouterr()
     assert output["nTotalIters"] == 2
 
     # Assert that params from previous run can be provided as input
-    M, _, output2 = ttb.cp_apr(
+    M, _, output2 = cp_apr(
         input_tensor=tensorInstance,
         rank=2,
         init=ktensorSolnInstance,
@@ -212,7 +211,7 @@ def test_cpapr_mu(capsys, sample_tensor1, default_init_ktensor):
 
     # Edge cases
     # Confirm timeout works
-    _ = ttb.cp_apr(
+    _ = cp_apr(
         input_tensor=tensorInstance, rank=2, init=ktensorInitInstance, stoptime=-1
     )
     out, _ = capsys.readouterr()
@@ -226,7 +225,7 @@ def test_cpapr_pdnr(capsys, sample_tensor1, default_init_ktensor):
     # Test simple case
     tensorInstance, ktensorSolnInstance = sample_tensor1
     ktensorInitInstance = default_init_ktensor
-    M, _, _ = ttb.cp_apr(
+    M, _, _ = cp_apr(
         input_tensor=tensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -241,14 +240,14 @@ def test_cpapr_pdnr(capsys, sample_tensor1, default_init_ktensor):
 
     # Try solve with sptensor
     sptensorInstance = tensorInstance.to_sptensor()
-    M, _, _ = ttb.cp_apr(
+    M, _, _ = cp_apr(
         input_tensor=tensorInstance, rank=2, init=ktensorInitInstance, algorithm="pdnr"
     )
     capsys.readouterr()
     assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-04).all()
 
     # Do not precompute indices
-    M, _, output = ttb.cp_apr(
+    M, _, output = cp_apr(
         input_tensor=sptensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -259,13 +258,13 @@ def test_cpapr_pdnr(capsys, sample_tensor1, default_init_ktensor):
     assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-04).all()
 
     # Assert that params from previous run can be provided as input
-    M, _, output2 = ttb.cp_apr(input_tensor=tensorInstance, rank=2, **output["params"])
+    M, _, output2 = cp_apr(input_tensor=tensorInstance, rank=2, **output["params"])
     capsys.readouterr()
     assert output["params"] == output2["params"]
 
     # Edge cases
     # Confirm timeout works
-    _ = ttb.cp_apr(
+    _ = cp_apr(
         input_tensor=tensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -291,7 +290,7 @@ def test_cpapr_pqnr(
     ktensorInitInstance = default_init_ktensor
 
     with pytest.raises(AssertionError) as excinfo:
-        M, _, _ = ttb.cp_apr(
+        M, _, _ = cp_apr(
             input_tensor=tensorInstance,
             rank=2,
             init=ktensorInitInstance,
@@ -303,7 +302,7 @@ def test_cpapr_pqnr(
     # Test simple case
     tensorInstance, ktensorSolnInstance = sample_tensor2
     ktensorInitInstance = rand_ktensor
-    M, _, _ = ttb.cp_apr(
+    M, _, _ = cp_apr(
         input_tensor=tensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -315,7 +314,7 @@ def test_cpapr_pqnr(
 
     # Try solve with sptensor
     sptensorInstance = tensorInstance.to_sptensor()
-    M, _, _ = ttb.cp_apr(
+    M, _, _ = cp_apr(
         input_tensor=sptensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -325,7 +324,7 @@ def test_cpapr_pqnr(
     assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-01).all()
 
     # Do not precompute indices
-    M, _, output = ttb.cp_apr(
+    M, _, output = cp_apr(
         input_tensor=sptensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -336,7 +335,7 @@ def test_cpapr_pqnr(
     assert np.isclose(M.full().data, ktensorSolnInstance.full().data, rtol=1e-01).all()
 
     # Assert that params from previous run can be provided as input
-    M, _, output2 = ttb.cp_apr(
+    M, _, output2 = cp_apr(
         input_tensor=sptensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -347,7 +346,7 @@ def test_cpapr_pqnr(
 
     # Edge cases
     # Confirm timeout works
-    _ = ttb.cp_apr(
+    _ = cp_apr(
         input_tensor=tensorInstance,
         rank=2,
         init=ktensorInitInstance,
@@ -367,7 +366,7 @@ def test_calculatepi_prowsubprob():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     sptensorInstance = tensorInstance.to_sptensor()
     answer = np.array([[0, 6], [7, 8]])
@@ -402,7 +401,7 @@ def test_calc_partials():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = tensorInstance.to_sptensor()
@@ -473,7 +472,7 @@ def test_getHessian():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     free_indices = [0, 1]
@@ -521,7 +520,7 @@ def test_getSearchDirPdnr():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = tensorInstance.to_sptensor()
@@ -559,7 +558,7 @@ def test_tt_loglikelihood_row():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = tensorInstance.to_sptensor()
@@ -576,7 +575,7 @@ def test_tt_linesearch_prowsubprob():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = tensorInstance.to_sptensor()
@@ -617,7 +616,7 @@ def test_getSearchDirPqnr():
     fm0 = np.array([[0.0, 0.0], [3.0, 4.0]])
     fm1 = np.array([[0.0, 6.0], [7.0, 8.0]])
     factor_matrices = [fm0, fm1]
-    ktensorInstance = ttb.ktensor(factor_matrices, weights)
+    ktensorInstance = ktensor(factor_matrices, weights)
     tensorInstance = ktensorInstance.full()
     # print(tensorInstance[:, 0])
     sptensorInstance = tensorInstance.to_sptensor()
@@ -635,23 +634,23 @@ def test_getSearchDirPqnr():
 
 
 def test_cp_apr_negative_tests():
-    dense_tensor = ttb.tensor(np.ones((2, 2, 2)))
+    dense_tensor = tensor(np.ones((2, 2, 2)))
     bad_weights = np.array([8.0])
     bad_factors = [np.array([[1.0]])] * 3
-    bad_initial_guess_shape = ttb.ktensor(bad_factors, bad_weights)
+    bad_initial_guess_shape = ktensor(bad_factors, bad_weights)
     with pytest.raises(AssertionError):
-        ttb.cp_apr(dense_tensor, init=bad_initial_guess_shape, rank=1)
+        cp_apr(dense_tensor, init=bad_initial_guess_shape, rank=1)
     good_weights = np.array([8.0] * 3)
     good_factor = np.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]])
-    bad_initial_guess_factors = ttb.ktensor([-1.0 * good_factor] * 3, good_weights)
+    bad_initial_guess_factors = ktensor([-1.0 * good_factor] * 3, good_weights)
     with pytest.raises(AssertionError):
-        ttb.cp_apr(dense_tensor, init=bad_initial_guess_factors, rank=3)
-    bad_initial_guess_weight = ttb.ktensor([good_factor] * 3, -1.0 * good_weights)
+        cp_apr(dense_tensor, init=bad_initial_guess_factors, rank=3)
+    bad_initial_guess_weight = ktensor([good_factor] * 3, -1.0 * good_weights)
     with pytest.raises(AssertionError):
-        ttb.cp_apr(dense_tensor, init=bad_initial_guess_weight, rank=3)
+        cp_apr(dense_tensor, init=bad_initial_guess_weight, rank=3)
 
     with pytest.raises(AssertionError):
-        ttb.cp_apr(dense_tensor, rank=1, algorithm="UNSUPPORTED_ALG")
+        cp_apr(dense_tensor, rank=1, algorithm="UNSUPPORTED_ALG")
 
     with pytest.raises(ValueError):
-        ttb.cp_apr(dense_tensor, rank=1, init="Bad initial guess")
+        cp_apr(dense_tensor, rank=1, init="Bad initial guess")

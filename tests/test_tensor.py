@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.tensor import min_split, mttv_left, mttv_mid
+from pyttb.tensors.dense import min_split, mttv_left, mttv_mid
 from tests.test_utils import assert_consistent_order
 
 

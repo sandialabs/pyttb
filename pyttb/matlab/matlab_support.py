@@ -9,7 +9,7 @@ from typing import Union
 
 import numpy as np
 
-from pyttb.tensor import tensor
+from pyttb.tensors.dense import tensor
 
 from .matlab_utilities import _matlab_array_str
 

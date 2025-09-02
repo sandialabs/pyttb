@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.gcp.fg_est import estimate, estimate_helper
+from pyttb.decompositions.cp.gcp.fg_est import estimate, estimate_helper
 
 
 def test_estimate_helper():

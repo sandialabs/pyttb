@@ -14,7 +14,7 @@ from scipy.sparse import csr_array
 
 if TYPE_CHECKING:
     import pyttb as ttb
-    from pyttb.gcp.fg_setup import function_type
+    from pyttb.decompositions.cp.gcp.fg_setup import function_type
 
 
 @overload

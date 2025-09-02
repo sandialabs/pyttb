@@ -12,19 +12,20 @@ import numpy as np
 
 import pyttb as ttb
 from pyttb.pyttb_utils import OneDArray, parse_one_d
+from pyttb.tensors import ktensor, sptensor, tensor, ttensor
 
 
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: ttb.tensor | ttb.sptensor | ttb.ttensor | ttb.sumtensor,
+    input_tensor: tensor | sptensor | ttensor | ttb.sumtensor,
     rank: int,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
     dimorder: OneDArray | None = None,
     optdims: OneDArray | None = None,
-    init: Literal["random"] | Literal["nvecs"] | ttb.ktensor = "random",
+    init: Literal["random"] | Literal["nvecs"] | ktensor = "random",
     printitn: int = 1,
     fixsigns: bool = True,
-) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
+) -> tuple[ktensor, ktensor, dict]:
     """Compute CP decomposition with alternating least squares.
 
     Parameters
@@ -150,7 +151,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     assert rank > 0, "Number of components requested must be positive"
 
     # Set up and error checking on initial guess
-    if isinstance(init, ttb.ktensor):
+    if isinstance(init, ktensor):
         # User provided an initial ktensor; validate it
         assert init.ndims == N, f"Initial guess does not have {N} modes"
         assert init.ncomponents == rank, (
@@ -165,7 +166,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
             factor_matrices.append(
                 np.random.uniform(0, 1, (input_tensor.shape[n], rank))
             )
-        init = ttb.ktensor(factor_matrices)
+        init = ktensor(factor_matrices)
     elif isinstance(init, str) and init.lower() == "nvecs":
         assert not isinstance(input_tensor, ttb.sumtensor), (
             "Sumtensor doesn't support nvecs"
@@ -173,7 +174,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         factor_matrices = []
         for n in range(N):
             factor_matrices.append(input_tensor.nvecs(n, rank))
-        init = ttb.ktensor(factor_matrices)
+        init = ktensor(factor_matrices)
     else:
         assert False, "The selected initialization method is not supported"
 
@@ -234,7 +235,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
             U[n] = Unew
             UtU[:, :, n] = U[n].T @ U[n]
 
-        M = ttb.ktensor(U, weights)
+        M = ktensor(U, weights)
 
         # This is equivalent to innerprod(X,P).
         iprod = np.sum(
