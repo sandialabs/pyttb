@@ -1,8 +1,13 @@
-Kruskal Tensor (:class:`ktensor`)
----------------------------------
+Kruskal Tensor (:class:`pyttb.ktensor`)
+=======================================
 .. note::
     
-     The ``ktensor`` class defined in ``ktensor.py`` has been promoted to the ``pyttb`` namespace.
+     Classes and functions defined in ``ktensor.py`` have been promoted to the ``pyttb`` namespace.
+
+For *all* examples in this document, the following module imports are assumed::
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
 
 .. autoclass:: pyttb.ktensor
     :members:

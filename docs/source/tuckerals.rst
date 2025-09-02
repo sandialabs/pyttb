@@ -2,6 +2,11 @@ Tucker Alternating Least Squares (:obj:`pyttb.tucker_als`)
 ==========================================================
 .. note::
     
-     The ``tucker_als`` function defined in ``tucker_als.py`` has been promoted to the ``pyttb`` namespace.
+     Functions defined in ``tucker_als.py`` have been promoted to the ``pyttb`` namespace.
+
+For *all* examples in this document, the following module imports are assumed::
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
 
 .. autofunction:: pyttb.tucker_als

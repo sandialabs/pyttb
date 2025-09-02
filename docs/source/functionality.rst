@@ -1,6 +1,0 @@
-:orphan:
-
-Functionality
-*************
-
-In construction
