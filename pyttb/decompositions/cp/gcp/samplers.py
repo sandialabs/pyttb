@@ -17,8 +17,8 @@ import numpy as np
 
 import pyttb as ttb
 from pyttb.pyttb_utils import tt_sub2ind
-from pyttb.sptensor import sptensor
-from pyttb.tensor import tensor
+from pyttb.tensors.dense import tensor
+from pyttb.tensors.sparse import sptensor
 
 sample_type = tuple[np.ndarray, np.ndarray, np.ndarray]
 sampler_type = Callable[[Union[tensor, sptensor]], sample_type]

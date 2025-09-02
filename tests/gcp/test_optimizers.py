@@ -10,9 +10,9 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.gcp import samplers
-from pyttb.gcp.handles import gaussian, gaussian_grad
-from pyttb.gcp.optimizers import LBFGSB, SGD, Adagrad, Adam
+from pyttb.decompositions.cp.gcp import samplers
+from pyttb.decompositions.cp.gcp.handles import gaussian, gaussian_grad
+from pyttb.decompositions.cp.gcp.optimizers import LBFGSB, SGD, Adagrad, Adam
 
 if TYPE_CHECKING:
     from pyttb.gcp.fg_setup import function_type

@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 
 from pyttb.pyttb_utils import OneDArray, parse_one_d
-from pyttb.ttensor import ttensor
+from pyttb.tensors.tucker import ttensor
 
 if TYPE_CHECKING:
     import pyttb as ttb

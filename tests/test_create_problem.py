@@ -15,6 +15,7 @@ from pyttb.create_problem import (
     generate_data_sparse,
     generate_solution,
 )
+from pyttb.tensors import ktensor, tensor, ttensor
 
 
 class TestDataclasses:
@@ -86,7 +87,7 @@ def test_generate_solution_cp():
     shape = (2, 2, 2)
     cp_params = CPProblem(shape)
     model = generate_solution(cp_params)
-    assert isinstance(model, ttb.ktensor)
+    assert isinstance(model, ktensor)
     assert model.shape == shape
 
     # TODO could test with different generators and enforce that they actually get used
@@ -98,7 +99,7 @@ def test_generate_data_cp():
     cp_params = CPProblem(shape)
     model = generate_solution(cp_params)
     data = generate_data(model, cp_params)
-    assert isinstance(data, ttb.tensor)
+    assert isinstance(data, tensor)
     assert data.shape == model.shape
 
 
@@ -107,14 +108,14 @@ def test_generate_solution_tucker():
     shape = (2, 2, 2)
     tucker_params = TuckerProblem(shape)
     model = generate_solution(tucker_params)
-    assert isinstance(model, ttb.ttensor)
+    assert isinstance(model, ttensor)
     assert model.shape == shape
 
     # Smoke test with a tensor core generator
     shape = (2, 2, 2)
     tucker_params = TuckerProblem(shape, core_generator=ttb.tenrand)
     model = generate_solution(tucker_params)
-    assert isinstance(model, ttb.ttensor)
+    assert isinstance(model, ttensor)
     assert model.shape == shape
     # TODO could test with different generators and enforce that they actually get used
 
@@ -125,7 +126,7 @@ def test_generate_data_tucker():
     tucker_params = TuckerProblem(shape)
     model = generate_solution(tucker_params)
     data = generate_data(model, tucker_params)
-    assert isinstance(data, ttb.tensor)
+    assert isinstance(data, tensor)
     assert data.shape == model.shape
 
 
@@ -203,7 +204,7 @@ def test_generate_data_sparse_value_errors():
     # Test negative weights
     factor_matrices = [np.random.random((3, 2)) for _ in range(3)]
     negative_weights = np.array([-1.0, 1.0])  # One negative weight
-    solution = ttb.ktensor(factor_matrices, negative_weights)
+    solution = ktensor(factor_matrices, negative_weights)
     problem_params = CPProblem(shape, sparse_generation=0.5)
 
     with pytest.raises(ValueError):
@@ -213,7 +214,7 @@ def test_generate_data_sparse_value_errors():
     factor_matrices = [np.random.random((3, 2)) for _ in range(3)]
     factor_matrices[0][0, 0] = -1.0  # Make one element negative
     positive_weights = np.array([1.0, 1.0])
-    solution = ttb.ktensor(factor_matrices, positive_weights)
+    solution = ktensor(factor_matrices, positive_weights)
     problem_params = CPProblem(shape, sparse_generation=0.5)
 
     with pytest.raises(ValueError):
@@ -222,7 +223,7 @@ def test_generate_data_sparse_value_errors():
     # Test missing sparse_generation
     factor_matrices = [np.random.random((3, 2)) for _ in range(3)]
     positive_weights = np.array([1.0, 1.0])
-    solution = ttb.ktensor(factor_matrices, positive_weights)
+    solution = ktensor(factor_matrices, positive_weights)
     problem_params = CPProblem(shape, sparse_generation=None)
 
     with pytest.raises(ValueError):

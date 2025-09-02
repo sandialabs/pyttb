@@ -11,8 +11,8 @@ import pytest
 import scipy
 
 import pyttb as ttb
-from pyttb.gcp import handles
-from pyttb.gcp.handles import EPS
+from pyttb.decompositions.cp.gcp import handles
+from pyttb.decompositions.cp.gcp.handles import EPS
 
 
 @pytest.fixture()

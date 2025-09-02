@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.gcp import fg_setup
-from pyttb.gcp.fg import evaluate
-from pyttb.gcp.handles import Objectives
+from pyttb.decompositions.cp.gcp import fg_setup
+from pyttb.decompositions.cp.gcp.fg import evaluate
+from pyttb.decompositions.cp.gcp.handles import Objectives
 
 
 def test_evaluate():

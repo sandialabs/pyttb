@@ -1,7 +1,7 @@
-pyttb.gcp.handles
-====================
+pyttb.decompositions.cp.gcp.handles
+===================================
 
-.. automodule:: pyttb.gcp.handles
+.. automodule:: pyttb.decompositions.cp.gcp.handles
     :members:
     :undoc-members:
     :show-inheritance:

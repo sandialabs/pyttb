@@ -7,13 +7,16 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
-import pyttb as ttb
-from pyttb.gcp import handles
-from pyttb.gcp.handles import Objectives
+from pyttb.decompositions.cp.gcp import handles
+from pyttb.decompositions.cp.gcp.handles import Objectives
+from pyttb.tensors.sparse import sptensor
+
+if TYPE_CHECKING:
+    from pyttb.tensors.dense import tensor
 
 function_type = Callable[[np.ndarray, np.ndarray], np.ndarray]
 fg_return = tuple[function_type, function_type, float]
@@ -21,7 +24,7 @@ fg_return = tuple[function_type, function_type, float]
 
 def setup(  # noqa: PLR0912,PLR0915
     objective: Objectives,
-    data: ttb.tensor | ttb.sptensor | None = None,
+    data: tensor | sptensor | None = None,
     additional_parameter: float | None = None,
 ) -> fg_return:
     """Collect the function and gradient handles for GCP.
@@ -121,23 +124,23 @@ def setup(  # noqa: PLR0912,PLR0915
     return function_handle, gradient_handle, lower_bound
 
 
-def valid_nonneg(data: ttb.tensor | ttb.sptensor) -> bool:
+def valid_nonneg(data: tensor | sptensor) -> bool:
     """Check if provided data is valid non-negative tensor."""
-    if isinstance(data, ttb.sptensor):
+    if isinstance(data, sptensor):
         return bool(np.all(data.vals > 0))
     return bool(np.all(data.data > 0))
 
 
-def valid_binary(data: ttb.tensor | ttb.sptensor) -> bool:
+def valid_binary(data: tensor | sptensor) -> bool:
     """Check if provided data is valid binary tensor."""
-    if isinstance(data, ttb.sptensor):
+    if isinstance(data, sptensor):
         return bool(np.all(data.vals == 1))
     return bool(np.all(np.isin(np.unique(data.data), [0, 1])))
 
 
-def valid_natural(data: ttb.tensor | ttb.sptensor) -> bool:
+def valid_natural(data: tensor | sptensor) -> bool:
     """Check if provided data is valid natural number tensor."""
-    if isinstance(data, ttb.sptensor):
+    if isinstance(data, sptensor):
         vals = data.vals
     else:
         vals = data.data

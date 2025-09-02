@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.gcp import samplers
+from pyttb.decompositions.cp.gcp import samplers
 from pyttb.pyttb_utils import tt_sub2ind
 
 

@@ -10,8 +10,8 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.gcp import fg_setup
-from pyttb.gcp.handles import Objectives
+from pyttb.decompositions.cp.gcp import fg_setup
+from pyttb.decompositions.cp.gcp.handles import Objectives
 
 
 def test_setup_success():

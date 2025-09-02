@@ -1,7 +1,7 @@
-pyttb.gcp.optimizers
-====================
+pyttb.decompositions.cp.gcp.optimizers
+======================================
 
-.. automodule:: pyttb.gcp.optimizers
+.. automodule:: pyttb.decompositions.cp.gcp.optimizers
     :members:
     :undoc-members:
     :special-members: __init__

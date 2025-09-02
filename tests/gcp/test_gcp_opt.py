@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.gcp.handles import Objectives, gaussian, gaussian_grad
-from pyttb.gcp.optimizers import LBFGSB, SGD
+from pyttb.decompositions.cp.gcp.handles import Objectives, gaussian, gaussian_grad
+from pyttb.decompositions.cp.gcp.optimizers import LBFGSB, SGD
 
 
 class TestGcpOpt:

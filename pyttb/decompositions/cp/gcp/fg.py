@@ -13,7 +13,7 @@ import numpy as np
 import pyttb as ttb
 
 if TYPE_CHECKING:
-    from pyttb.gcp.fg_setup import function_type
+    from pyttb.decompositions.cp.gcp.fg_setup import function_type
 
 
 @overload

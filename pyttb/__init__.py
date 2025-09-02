@@ -11,22 +11,23 @@ __version__ = "1.8.4-dev"
 
 import warnings
 
-from pyttb.cp_als import cp_als
-from pyttb.cp_apr import cp_apr
+from pyttb.decompositions.cp import cp_als, cp_apr, gcp_opt
+from pyttb.decompositions.tucker import hosvd, tucker_als
 from pyttb.export_data import export_data
-from pyttb.gcp_opt import gcp_opt
-from pyttb.hosvd import hosvd
 from pyttb.import_data import import_data
 from pyttb.khatrirao import khatrirao
-from pyttb.ktensor import ktensor
 from pyttb.matlab import matlab_support
-from pyttb.sptenmat import sptenmat
-from pyttb.sptensor import sptendiag, sptenrand, sptensor
-from pyttb.sumtensor import sumtensor
-from pyttb.tenmat import tenmat
-from pyttb.tensor import tendiag, teneye, tenones, tenrand, tensor, tenzeros
-from pyttb.ttensor import ttensor
-from pyttb.tucker_als import tucker_als
+from pyttb.tensors import (
+    ktensor,
+    sptenmat,
+    sptensor,
+    sumtensor,
+    tenmat,
+    tensor,
+    ttensor,
+)
+from pyttb.tensors.dense import tendiag, teneye, tenones, tenrand, tenzeros
+from pyttb.tensors.sparse import sptendiag, sptenrand
 
 
 def ignore_warnings(ignore=True):

@@ -6,7 +6,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-import pyttb as ttb
+from pyttb.decompositions.tucker import hosvd
+from pyttb.tensors import tensor, ttensor
 
 
 @pytest.fixture()
@@ -14,7 +15,7 @@ def sample_tensor():
     data = np.array([[29, 39.0], [63.0, 85.0]])
     shape = (2, 2)
     params = {"data": data, "shape": shape}
-    tensorInstance = ttb.tensor(data, shape)
+    tensorInstance = tensor(data, shape)
     return params, tensorInstance
 
 
@@ -23,25 +24,25 @@ def sample_tensor_3way():
     shape = (3, 3, 3)
     data = np.array(range(1, 28)).reshape(shape, order="F")
     params = {"data": data, "shape": shape}
-    tensorInstance = ttb.tensor(data, shape)
+    tensorInstance = tensor(data, shape)
     return params, tensorInstance
 
 
 def test_hosvd_simple_convergence(capsys, sample_tensor):
     (data, T) = sample_tensor
     tol = 1e-4
-    result = ttb.hosvd(T, tol)
+    result = hosvd(T, tol)
     assert (result.full() - T).norm() / T.norm() < tol, "Failed to converge"
 
     tol = 1e-4
-    result = ttb.hosvd(T, tol, sequential=False)
+    result = hosvd(T, tol, sequential=False)
     assert (result.full() - T).norm() / T.norm() < tol, (
         "Failed to converge for non-sequential option"
     )
 
     impossible_tol = 1e-20
     with pytest.warns(UserWarning):
-        result = ttb.hosvd(T, impossible_tol)
+        result = hosvd(T, impossible_tol)
     assert (result.full() - T).norm() / T.norm() > impossible_tol, (
         "Converged beyond provided precision"
     )
@@ -49,36 +50,36 @@ def test_hosvd_simple_convergence(capsys, sample_tensor):
 
 def test_hosvd_default_init(capsys, sample_tensor):
     (data, T) = sample_tensor
-    _ = ttb.hosvd(T, 1)
+    _ = hosvd(T, 1)
 
 
 def test_hosvd_smoke_test_verbosity(capsys, sample_tensor):
     """For now just make sure verbosity calcs don't crash"""
     (data, T) = sample_tensor
-    ttb.hosvd(T, 1, verbosity=10)
+    hosvd(T, 1, verbosity=10)
 
 
 def test_hosvd_incorrect_ranks(capsys, sample_tensor):
     (data, T) = sample_tensor
     ranks = list(range(T.ndims - 1))
     with pytest.raises(ValueError):
-        _ = ttb.hosvd(T, 1, ranks=ranks)
+        _ = hosvd(T, 1, ranks=ranks)
 
 
 def test_hosvd_incorrect_dimorder(capsys, sample_tensor):
     (data, T) = sample_tensor
     dimorder = list(range(T.ndims - 1))
     with pytest.raises(ValueError):
-        _ = ttb.hosvd(T, 1, dimorder=dimorder)
+        _ = hosvd(T, 1, dimorder=dimorder)
 
     dimorder = 1
     with pytest.raises(ValueError):
-        _ = ttb.hosvd(T, 1, dimorder=dimorder)
+        _ = hosvd(T, 1, dimorder=dimorder)
 
 
 def test_hosvd_3way(capsys, sample_tensor_3way):
     (data, T) = sample_tensor_3way
-    M = ttb.hosvd(T, 1e-4, verbosity=0)
+    M = hosvd(T, 1e-4, verbosity=0)
     capsys.readouterr()
     print(f"M=\n{M}")
     core = np.array(
@@ -114,7 +115,7 @@ def test_hosvd_3way(capsys, sample_tensor_3way):
             [-8.359253825873615e-01, -3.668270547267537e-01],
         ]
     )
-    expected = ttb.ttensor(ttb.tensor(core), [fm0, fm1, fm2])
+    expected = ttensor(tensor(core), [fm0, fm1, fm2])
     assert np.allclose(M.double(), expected.double())
     assert np.allclose(np.abs(M.core.data), np.abs(core))
     assert np.allclose(np.abs(M.factor_matrices[0]), np.abs(fm0))
