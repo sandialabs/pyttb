@@ -1,7 +1,7 @@
-pyttb.gcp.samplers
-====================
+pyttb.decompositions.cp.gcp.samplers
+====================================
 
-.. automodule:: pyttb.gcp.samplers
+.. automodule:: pyttb.decompositions.cp.gcp.samplers
     :members:
     :undoc-members:
     :special-members: __init__
