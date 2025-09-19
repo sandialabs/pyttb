@@ -134,7 +134,7 @@ class tensor:  # noqa: PLW1641
     -----
 
     **Tutorial**
-    
+
     See the :doc:`/tutorial/class_tensor` tutorial for getting started with
     the tensor class.
 
@@ -143,10 +143,7 @@ class tensor:  # noqa: PLW1641
     **Attributes and Methods**
     """
 
-    __slots__ = {
-        "data": "Source data as :class:`numpy.ndarray`", 
-        "shape": "Shape of the tensor as a :class:`tuple` or any iterable array of integers."
-    }
+    __slots__ = {"data": "Source data", "shape": "Shape of the tensor"}
 
     def __init__(
         self,

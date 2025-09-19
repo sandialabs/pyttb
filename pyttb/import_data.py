@@ -66,7 +66,7 @@ def import_data(
                 fac_shape = import_shape(fp)
                 fac = import_array(fp, np.prod(fac_shape))
                 fac = np.reshape(fac, np.array(fac_shape))
-                #fac = np.asfortranarray(np.reshape(fac, np.array(fac_shape)))
+                # fac = np.asfortranarray(np.reshape(fac, np.array(fac_shape)))
                 factor_matrices.append(fac)
             return ttb.ktensor(factor_matrices, weights, copy=False)
     raise ValueError("Failed to load tensor data")  # pragma: no cover
