@@ -1132,15 +1132,11 @@ class tensor:  # noqa: PLW1641
             return to_memory_order(Y.T @ Ul, self.order)
         else:
             Ul = ttb.khatrirao(*U[n + 1 :], reverse=True)
-            Ur = np.reshape(
-                ttb.khatrirao(*U[0:n], reverse=True), (szl, 1, R), order=self.order
-            )
+            Ur = ttb.khatrirao(*U[0:n], reverse=True)
             Y = np.reshape(self.data, (-1, szr), order=self.order)
             Y = Y @ Ul
             Y = np.reshape(Y, (szl, szn, R), order=self.order)
-            V = np.zeros((szn, R), order=self.order)
-            for r in range(R):
-                V[:, [r]] = Y[:, :, r].T @ Ur[:, :, r]
+            V = np.einsum('ijk, ik -> jk', Y, Ur)
             return to_memory_order(V, self.order)
 
     def mttkrps(self, U: ttb.ktensor | Sequence[np.ndarray]) -> list[np.ndarray]:
