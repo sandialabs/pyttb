@@ -4,11 +4,11 @@ Tensor Types
 .. toctree::
     :maxdepth: 1
 
-    Dense Tensors<tutorial/class_tensor.ipynb>
-    Sparse Tensors<tutorial/class_sptensor.ipynb>
-    Tucker Tensors<tutorial/class_ttensor.ipynb>
-    Kruskal Tensors<tutorial/class_ktensor.ipynb>
-    Sum of Structured Tensors<tutorial/class_sumtensor.ipynb>
+    Dense Tensors (tensor)<tutorial/class_tensor.ipynb>
+    Sparse Tensors (sptensor)<tutorial/class_sptensor.ipynb>
+    Tucker Tensors (sptensor)<tutorial/class_ttensor.ipynb>
+    Kruskal Tensors (ktensor)<tutorial/class_ktensor.ipynb>
+    Sum of Structured Tensors (sumtensor)<tutorial/class_sumtensor.ipynb>
 
 CP Decompositions
 =================
@@ -16,9 +16,9 @@ CP Decompositions
 .. toctree::
    :maxdepth: 1
 
-   Alternating Least Squares (CP-ALS)<tutorial/algorithm_cp_als.ipynb>
-   Alternating Poisson Regression (CP-APR)<tutorial/algorithm_cp_apr.ipynb>
-   Generalized CP (GCP-OPT)<tutorial/algorithm_gcp_opt.ipynb>
+   Alternating Least Squares (cp_als)<tutorial/algorithm_cp_als.ipynb>
+   Alternating Poisson Regression (cp_apr)<tutorial/algorithm_cp_apr.ipynb>
+   Generalized CP (gcp_opt)<tutorial/algorithm_gcp_opt.ipynb>
 
 Tucker Decompositions
 =====================
@@ -26,8 +26,8 @@ Tucker Decompositions
 .. toctree::
    :maxdepth: 1
 
-   Higher-order SVD (HOSVD)<tutorial/algorithm_hosvd.ipynb>
-   Alternating Least Squares (ALS)<tutorial/algorithm_tucker_als.ipynb>
+   Higher-order SVD (hosvd)<tutorial/algorithm_hosvd.ipynb>
+   Alternating Least Squares (tucker_als)<tutorial/algorithm_tucker_als.ipynb>
 
 Working with Tensors
 ====================

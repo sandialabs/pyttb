@@ -62,10 +62,8 @@ class tensor:  # noqa: PLW1641
         Whether to deep copy (versus reference) the data.
         By default, the data is deep copied.
 
-    **Attributes**
 
-    - **data** (:class:`numpy.ndarray`) : Data of the tensor
-    - **shape** (:class:`tuple`) : Size of the tensor
+    -----
 
     Examples
     --------
@@ -115,6 +113,8 @@ class tensor:  # noqa: PLW1641
         empty tensor of shape ()
         data = []
 
+    -----
+
     Notes
     -----
     Instances of :class:`pyttb.tensor` can also be created using the following methods:
@@ -131,10 +131,22 @@ class tensor:  # noqa: PLW1641
         * :meth:`pyttb.ttensor.to_tensor` - Convert a Tucker tensor to a dense tensor
         * :meth:`pyttb.tenmat.to_tensor` - Convert a tenmat to a dense tensor
 
-    See :doc:`/tutorial/class_tensor` for getting started with the tensor class.
+    -----
+
+    **Tutorial**
+    
+    See the :doc:`/tutorial/class_tensor` tutorial for getting started with
+    the tensor class.
+
+    -----
+
+    **Attributes and Methods**
     """
 
-    __slots__ = ("data", "shape")
+    __slots__ = {
+        "data": "Source data as :class:`numpy.ndarray`", 
+        "shape": "Shape of the tensor as a :class:`tuple` or any iterable array of integers."
+    }
 
     def __init__(
         self,
