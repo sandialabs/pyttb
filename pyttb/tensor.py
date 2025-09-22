@@ -1136,7 +1136,7 @@ class tensor:  # noqa: PLW1641
             Y = np.reshape(self.data, (-1, szr), order=self.order)
             Y = Y @ Ul
             Y = np.reshape(Y, (szl, szn, R), order=self.order)
-            V = np.einsum('ijk, ik -> jk', Y, Ur)
+            V = np.einsum("ijk, ik -> jk", Y, Ur)
             return to_memory_order(V, self.order)
 
     def mttkrps(self, U: ttb.ktensor | Sequence[np.ndarray]) -> list[np.ndarray]:
