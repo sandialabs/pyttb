@@ -281,10 +281,10 @@ class tensor:  # noqa: PLW1641
              [ 0.9787...  0.9500...  0.1440...]
              [ 2.2408... -0.1513...  1.4542...]]
             data[:, :, 1] =
-            [[ 0.7610...  1.4940... -2.55298982]
-             [ 0.1216... -0.2051...  0.6536186 ]
-             [ 0.4438...  0.3130...  0.8644362 ]
-             [ 0.3336... -0.8540... -0.74216502]]
+            [[ 0.7610...  1.4940... -2.5529...]
+             [ 0.1216... -0.2051...  0.6536...]
+             [ 0.4438...  0.3130...  0.8644...]
+             [ 0.3336... -0.8540... -0.7421...]]
 
         Create a :class:`pyttb.tensor` with all entries equal to 1 using
         :func:`numpy.ones`. Observe that we specifically specify Fortran order::
@@ -645,11 +645,11 @@ class tensor:  # noqa: PLW1641
              [0 1 0]
              [1 0 1]
              [0 1 1]]
-            >>> print(vals)
-            [[0.33540785]
-             [0.43814143]
-             [0.5788586 ]
-             [0.6453551 ]]
+            >>> print(vals)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+            [[0.3354...]
+             [0.4381...]
+             [0.5788...]
+             [0.6453...]]
 
         """
         idx = np.nonzero(np.ravel(self.data, order=self.order))[0]
