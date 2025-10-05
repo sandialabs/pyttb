@@ -273,18 +273,18 @@ class tensor:  # noqa: PLW1641
             >>> randn = lambda s : np.random.randn(np.prod(s))
             >>> np.random.seed(0) # reproducibility
             >>> T = ttb.tensor.from_function(randn, (4, 3, 2))
-            >>> print(T)
+            >>> print(T)  # doctest: +ELLIPSIS
             tensor of shape (4, 3, 2) with order F
             data[:, :, 0] =
-            [[ 1.76405235  1.86755799 -0.10321885]
-             [ 0.40015721 -0.97727788  0.4105985 ]
-             [ 0.97873798  0.95008842  0.14404357]
-             [ 2.2408932  -0.15135721  1.45427351]]
+            [[ 1.7640...  1.8675... -0.1032...]
+             [ 0.4001... -0.9772...  0.4105...]
+             [ 0.9787...  0.9500...  0.1440...]
+             [ 2.2408... -0.1513...  1.4542...]]
             data[:, :, 1] =
-            [[ 0.76103773  1.49407907 -2.55298982]
-             [ 0.12167502 -0.20515826  0.6536186 ]
-             [ 0.44386323  0.3130677   0.8644362 ]
-             [ 0.33367433 -0.85409574 -0.74216502]]
+            [[ 0.7610...  1.4940... -2.55298982]
+             [ 0.1216... -0.2051...  0.6536186 ]
+             [ 0.4438...  0.3130...  0.8644362 ]
+             [ 0.3336... -0.8540... -0.74216502]]
 
         Create a :class:`pyttb.tensor` with all entries equal to 1 using
         :func:`numpy.ones`. Observe that we specifically specify Fortran order::
@@ -383,20 +383,20 @@ class tensor:  # noqa: PLW1641
             >>> randn = lambda s: np.random.randn(np.prod(s))
             >>> np.random.seed(0)  # reproducibility
             >>> T = ttb.tensor.from_function(randn, (2, 2, 2))
-            >>> print(T)
+            >>> print(T)  # doctest: +ELLIPSIS
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
-            [[1.76405235 0.97873798]
-             [0.40015721 2.2408932 ]]
+            [[1.7640... 0.9787...]
+             [0.4001... 2.2408...]]
             data[:, :, 1] =
-            [[ 1.86755799  0.95008842]
-             [-0.97727788 -0.15135721]]
+            [[ 1.8675...  0.9500...]
+             [-0.9772... -0.1513...]]
             >>> max_val = T.collapse(fun=np.max)
             >>> min_val = T.collapse(fun=np.min)
-            >>> print(f"Max value: {max_val}")
-            Max value: 2.240893199201458
-            >>> print(f"Min value: {min_val}")
-            Min value: -0.977277879876411
+            >>> print(f"Max value: {max_val:1.4f}")
+            Max value: 2.2409
+            >>> print(f"Min value: {min_val:1.4f}")
+            Min value: -0.9773
         """
         if self.data.size == 0:
             # TODO verify this is the only thing that returns np array
@@ -600,14 +600,14 @@ class tensor:  # noqa: PLW1641
             data[:, :, 1] =
             [[4 6]
              [5 7]]
-            >>> print(T.exp())
+            >>> print(T.exp())  # doctest: +ELLIPSIS
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
-            [[ 1.          7.3890561 ]
-             [ 2.71828183 20.08553692]]
+            [[ 1.          7.3890...]
+             [ 2.7182... 20.0855...]]
             data[:, :, 1] =
-            [[  54.59815003  403.42879349]
-             [ 148.4131591  1096.63315843]]
+            [[  54.5981...  403.4287...]
+             [ 148.4131... 1096.6331...]]
         """
         return ttb.tensor(np.exp(self.data), copy=False)
 
@@ -628,14 +628,14 @@ class tensor:  # noqa: PLW1641
             >>> sprandint = lambda s: np.where(np.random.rand(np.prod(s)) < 0.5,
             ...                                0.0, np.random.rand(np.prod(s)))
             >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
-            >>> print(T)
+            >>> print(T)  # doctest: +ELLIPSIS
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
-            [[0.33540785 0.43814143]
+            [[0.3354... 0.4381...]
              [0.         0.        ]]
             data[:, :, 1] =
-            [[0.        0.6453551]
-             [0.5788586 0.       ]]
+            [[0.        0.6453...]
+             [0.5788... 0.       ]]
 
         Find the nonzero entries in the tensor::
 
@@ -3217,19 +3217,19 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
     Examples
     --------
         >>> T = ttb.teneye(ndims=4, size=2)
-        >>> T
+        >>> T  # doctest: +ELLIPSIS
         tensor of shape (2, 2, 2, 2) with order F
         data[:, :, 0, 0] =
         [[1.         0.        ]
-         [0.         0.33333333]]
+         [0.         0.3333...]]
         data[:, :, 1, 0] =
-        [[0.         0.33333333]
-         [0.33333333 0.        ]]
+        [[0.         0.3333...]
+         [0.3333... 0.        ]]
         data[:, :, 0, 1] =
-        [[0.         0.33333333]
-         [0.33333333 0.        ]]
+        [[0.         0.3333...]
+         [0.3333... 0.        ]]
         data[:, :, 1, 1] =
-        [[0.33333333 0.        ]
+        [[0.3333... 0.        ]
          [0.         1.        ]]
         >>> # check identity tensor using ttsv method and unit vector x
         >>> x = np.ones(2)
