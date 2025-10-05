@@ -273,7 +273,7 @@ class tensor:  # noqa: PLW1641
             >>> randn = lambda s : np.random.randn(np.prod(s))
             >>> np.random.seed(0) # reproducibility
             >>> T = ttb.tensor.from_function(randn, (4, 3, 2))
-            >>> print(T)  # doctest: +ELLIPSIS
+            >>> print(T)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
             tensor of shape (4, 3, 2) with order F
             data[:, :, 0] =
             [[ 1.7640...  1.8675... -0.1032...]
@@ -383,7 +383,7 @@ class tensor:  # noqa: PLW1641
             >>> randn = lambda s: np.random.randn(np.prod(s))
             >>> np.random.seed(0)  # reproducibility
             >>> T = ttb.tensor.from_function(randn, (2, 2, 2))
-            >>> print(T)  # doctest: +ELLIPSIS
+            >>> print(T)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
             [[1.7640... 0.9787...]
@@ -600,10 +600,10 @@ class tensor:  # noqa: PLW1641
             data[:, :, 1] =
             [[4 6]
              [5 7]]
-            >>> print(T.exp())  # doctest: +ELLIPSIS
+            >>> print(T.exp())  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
-            [[ 1.          7.3890...]
+            [[ 1.         7.3890...]
              [ 2.7182... 20.0855...]]
             data[:, :, 1] =
             [[  54.5981...  403.4287...]
@@ -628,11 +628,11 @@ class tensor:  # noqa: PLW1641
             >>> sprandint = lambda s: np.where(np.random.rand(np.prod(s)) < 0.5,
             ...                                0.0, np.random.rand(np.prod(s)))
             >>> T = ttb.tensor.from_function(sprandint, (2,2,2))
-            >>> print(T)  # doctest: +ELLIPSIS
+            >>> print(T)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
             [[0.3354... 0.4381...]
-             [0.         0.        ]]
+             [0.        0.        ]]
             data[:, :, 1] =
             [[0.        0.6453...]
              [0.5788... 0.       ]]
@@ -1397,14 +1397,14 @@ class tensor:  # noqa: PLW1641
 
         Symmetrize the tensor::
 
-            >>> T.symmetrize()  # doctest: +ELLIPSIS
+            >>> T.symmetrize()  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
             tensor of shape (2, 2, 2) with order F
             data[:, :, 0] =
-            [[0...       2.3333...]
+            [[0.        2.3333...]
              [2.3333... 4.6666...]]
             data[:, :, 1] =
             [[2.3333... 4.6666...]
-             [4.6666... 7...      ]]
+             [4.6666... 7.       ]]
         """
         n = self.ndims
         sz = np.array(self.shape)
@@ -3217,20 +3217,20 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
     Examples
     --------
         >>> T = ttb.teneye(ndims=4, size=2)
-        >>> T  # doctest: +ELLIPSIS
+        >>> T  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         tensor of shape (2, 2, 2, 2) with order F
         data[:, :, 0, 0] =
-        [[1.         0.        ]
-         [0.         0.3333...]]
+        [[1.        0.        ]
+         [0.        0.3333...]]
         data[:, :, 1, 0] =
-        [[0.         0.3333...]
+        [[0.        0.3333...]
          [0.3333... 0.        ]]
         data[:, :, 0, 1] =
-        [[0.         0.3333...]
+        [[0.        0.3333...]
          [0.3333... 0.        ]]
         data[:, :, 1, 1] =
         [[0.3333... 0.        ]
-         [0.         1.        ]]
+         [0.        1.        ]]
         >>> # check identity tensor using ttsv method and unit vector x
         >>> x = np.ones(2)
         >>> x /= np.linalg.norm(x)
