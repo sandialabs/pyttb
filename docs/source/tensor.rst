@@ -12,8 +12,8 @@ For *all* examples in this document, the following imports are assumed::
     :exclude-members: __init__, __dict__, __weakref__, __deepcopy__
     :show-inheritance:
 
-.. autofunction:: pyttb.tenones
-.. autofunction:: pyttb.tenzeros
-.. autofunction:: pyttb.tenrand
 .. autofunction:: pyttb.tendiag
 .. autofunction:: pyttb.teneye
+.. autofunction:: pyttb.tenones
+.. autofunction:: pyttb.tenrand
+.. autofunction:: pyttb.tenzeros
