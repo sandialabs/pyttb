@@ -450,7 +450,7 @@ class ttensor:
         W = [np.empty((), order=self.order)] * self.ndims
         if isinstance(U, ttb.ktensor):
             U = U.factor_matrices
-        for i in range(0, self.ndims):
+        for i in range(self.ndims):
             if i == n:
                 continue
             W[i] = self.factor_matrices[i].transpose().dot(U[i])

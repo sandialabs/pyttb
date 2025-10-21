@@ -346,7 +346,7 @@ def tt_renumber(
     """
     newshape = np.array(shape)
     newsubs = subs
-    for i in range(0, len(shape)):
+    for i in range(len(shape)):
         if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
@@ -364,7 +364,7 @@ def tt_renumber(
                     #   without assert
                     number_range_i = number_range[i]
                     assert isinstance(number_range_i, slice)
-                    newshape[i] = len(range(0, shape[i])[number_range_i])
+                    newshape[i] = len(range(shape[i])[number_range_i])
             else:
                 newsubs[:, i], newshape[i] = tt_renumberdim(
                     subs[:, i], shape[i], number_range[i]
@@ -396,7 +396,7 @@ def tt_renumberdim(
         number_range = [int(number_range)]
         newshape = 0
     elif isinstance(number_range, slice):
-        number_range = list(range(0, shape))[number_range]
+        number_range = list(range(shape))[number_range]
         newshape = len(number_range)
     elif isinstance(number_range, (Sequence, np.ndarray)):
         newshape = len(number_range)
@@ -405,7 +405,7 @@ def tt_renumberdim(
 
     # Create map from old range to the new range
     idx_map = np.zeros(shape=shape)
-    for i in range(0, newshape):
+    for i in range(newshape):
         idx_map[number_range[i]] = int(i)
 
     # Do the mapping

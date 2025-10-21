@@ -331,7 +331,7 @@ def test_sptenmat__str__(sample_sptensor_3way):
     s += "[ " + (", ").join([str(int(d)) for d in sptenmatInstance3.cdims]) + " ] "
     s += "(modes of sptensor corresponding to columns)\n"
 
-    for i in range(0, sptenmatInstance3.subs.shape[0]):
+    for i in range(sptenmatInstance3.subs.shape[0]):
         s += "\t"
         s += "["
         idx = sptenmatInstance3.subs[i, :]

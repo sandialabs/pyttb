@@ -621,7 +621,7 @@ class sptenmat:
 
         # An empty ndarray with minimum dimensions still has a shape
         if self.subs.size > 0:
-            for i in range(0, self.subs.shape[0]):
+            for i in range(self.subs.shape[0]):
                 s += "\t"
                 s += "["
                 idx = self.subs[i, :]

@@ -668,9 +668,9 @@ def test_sptensor_norm(sample_sptensor):
 def test_sptensor_allsubs(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
-    for i in range(0, data["shape"][0]):
-        for j in range(0, data["shape"][1]):
-            for k in range(0, data["shape"][2]):
+    for i in range(data["shape"][0]):
+        for j in range(data["shape"][1]):
+            for k in range(data["shape"][2]):
                 result.append([i, j, k])
     assert np.array_equal(sptensorInstance.allsubs(), np.array(result))
 
@@ -682,9 +682,9 @@ def test_sptensor_logical_not(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
     data_subs = data["subs"].tolist()
-    for i in range(0, data["shape"][0]):
-        for j in range(0, data["shape"][1]):
-            for k in range(0, data["shape"][2]):
+    for i in range(data["shape"][0]):
+        for j in range(data["shape"][1]):
+            for k in range(data["shape"][2]):
                 if [i, j, k] not in data_subs:
                     result.append([i, j, k])
     notSptensorInstance = sptensorInstance.logical_not()
