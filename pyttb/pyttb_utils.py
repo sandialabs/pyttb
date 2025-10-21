@@ -12,7 +12,6 @@ from math import prod
 from typing import (
     Any,
     Literal,
-    Union,
     cast,
     get_args,
     overload,
@@ -23,16 +22,16 @@ from scipy import sparse
 
 import pyttb as ttb
 
-Shape = Union[int, Iterable[int]]
+Shape = int | Iterable[int]
 """Shape represents the object size or dimensions. It can be specified as
 either a single integer or an iterable of integers, which will be normalized
 to a tuple internally."""
 
-OneDArray = Union[int, float, Iterable[int], Iterable[float], np.ndarray]
+OneDArray = int | float | Iterable[int] | Iterable[float] | np.ndarray
 """OneDArray represents any one-dimensional array, which can be a single
 integer or float, and iterable of integerss or floats, or a NumPy array."""
 
-MemoryLayout = Union[Literal["F"], Literal["C"]]
+MemoryLayout = Literal["F"] | Literal["C"]
 """MemoryLayout is the set of options for the layout of a tensor.
 It can be "F", meaning Fortran ordered and analogous to column-major for matrices,
 or "C", meaning C ordered and analogous to row-major for matrices.
@@ -759,8 +758,8 @@ class IndexVariant(Enum):
 
 
 # We probably want to create a specific file for utility types
-LinearIndexType = Union[int, np.integer, slice]
-IndexType = Union[LinearIndexType, Sequence[int], np.ndarray]
+LinearIndexType = int | np.integer | slice
+IndexType = LinearIndexType | Sequence[int] | np.ndarray
 
 
 def get_index_variant(indices: IndexType) -> IndexVariant:

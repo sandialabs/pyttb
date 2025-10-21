@@ -361,7 +361,9 @@ class Adam(StochasticSolver):
             np.maximum(
                 lower_bound, factor_k - step * mhk / (np.sqrt(vhk) + self._epsilon)
             )
-            for factor_k, mhk, vhk in zip(model.factor_matrices, mhat, vhat, strict=False)
+            for factor_k, mhk, vhk in zip(
+                model.factor_matrices, mhat, vhat, strict=False
+            )
         ]
         return factor_matrices, step
 

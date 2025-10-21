@@ -15,9 +15,7 @@ import pyttb as ttb
 from pyttb.pyttb_utils import Shape, parse_shape
 
 solution_generator = Callable[[tuple[int, ...]], np.ndarray]
-core_generator_t = Callable[
-    [tuple[int, ...]], ttb.tensor | ttb.sptensor | np.ndarray
-]
+core_generator_t = Callable[[tuple[int, ...]], ttb.tensor | ttb.sptensor | np.ndarray]
 
 
 def randn(shape: tuple[int, ...]) -> np.ndarray:
