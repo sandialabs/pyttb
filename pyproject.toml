@@ -7,7 +7,7 @@ authors = [
 ]
 license = { text="BSD 2-Clause License" }
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 dependencies = [
     "numpy<3.0,>=1.24",
@@ -19,10 +19,11 @@ dependencies = [
 classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.urls]
@@ -86,6 +87,8 @@ ignore = [
     "B028",
     # Personal preference on magic method
     "D105",
+    # Rule removed in newer version of ruff
+    "UP038",
 ]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

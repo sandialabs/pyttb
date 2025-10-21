@@ -9,8 +9,9 @@ from __future__ import annotations
 import logging
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from math import inf
-from typing import TYPE_CHECKING, Callable, TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
@@ -252,7 +253,7 @@ class SGD(StochasticSolver):
         step = self._decay**self._nfails * self._rate
         factor_matrices = [
             np.maximum(lower_bound, factor - step * grad)
-            for factor, grad in zip(model.factor_matrices, gradient)
+            for factor, grad in zip(model.factor_matrices, gradient, strict=False)
         ]
         return factor_matrices, step
 
@@ -348,11 +349,11 @@ class Adam(StochasticSolver):
         self._v_prev = self._v.copy()
         self._m = [
             self._beta_1 * mk + (1 - self._beta_1) * gk
-            for mk, gk in zip(self._m, gradient)
+            for mk, gk in zip(self._m, gradient, strict=False)
         ]
         self._v = [
             self._beta_2 * vk + (1 - self._beta_2) * gk**2
-            for vk, gk in zip(self._v, gradient)
+            for vk, gk in zip(self._v, gradient, strict=False)
         ]
         mhat = [mk / (1 - self._beta_1**self._total_iterations) for mk in self._m]
         vhat = [vk / (1 - self._beta_2**self._total_iterations) for vk in self._v]
@@ -360,7 +361,7 @@ class Adam(StochasticSolver):
             np.maximum(
                 lower_bound, factor_k - step * mhk / (np.sqrt(vhk) + self._epsilon)
             )
-            for factor_k, mhk, vhk in zip(model.factor_matrices, mhat, vhat)
+            for factor_k, mhk, vhk in zip(model.factor_matrices, mhat, vhat, strict=False)
         ]
         return factor_matrices, step
 
@@ -401,7 +402,7 @@ class Adagrad(StochasticSolver):
         step = 1.0 / np.sqrt(self._gnormsum)
         factor_matrices = [
             np.maximum(lower_bound, factor_k - step * gk)
-            for factor_k, gk in zip(model.factor_matrices, gradient)
+            for factor_k, gk in zip(model.factor_matrices, gradient, strict=False)
         ]
         return factor_matrices, step
 

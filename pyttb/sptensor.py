@@ -8,12 +8,11 @@ from __future__ import annotations
 
 import logging
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from math import prod
 from operator import ge, gt, le, lt
 from typing import (
     Any,
-    Callable,
     Literal,
     cast,
     overload,

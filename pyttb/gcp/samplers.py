@@ -7,11 +7,12 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from functools import partial
 from math import ceil
-from typing import Callable, Union, cast
+from typing import cast
 
 import numpy as np
 
@@ -21,7 +22,7 @@ from pyttb.sptensor import sptensor
 from pyttb.tensor import tensor
 
 sample_type = tuple[np.ndarray, np.ndarray, np.ndarray]
-sampler_type = Callable[[Union[tensor, sptensor]], sample_type]
+sampler_type = Callable[[tensor | sptensor], sample_type]
 
 
 @dataclass

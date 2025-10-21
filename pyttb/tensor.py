@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import logging
 import textwrap
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from inspect import signature
 from itertools import combinations_with_replacement, permutations
 from math import factorial, prod
 from typing import (
     Any,
-    Callable,
     Literal,
     cast,
     overload,
@@ -3114,7 +3113,7 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
         for j in range(ndims // 2):
             s[:, j] = p[:, 2 * j - 1] == p[:, 2 * j]
         v = np.sum(np.sum(s, axis=1) == ndims // 2)
-        A[tuple(zip(*p))] = v / factorial(ndims)
+        A[tuple(zip(*p, strict=False))] = v / factorial(ndims)
     return A
 
 
