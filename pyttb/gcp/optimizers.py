@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import time
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from math import inf
 from typing import TYPE_CHECKING, TypedDict
 
@@ -22,6 +21,8 @@ from pyttb.gcp.fg_est import estimate
 from pyttb.gcp.samplers import GCPSampler
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pyttb.gcp.fg_setup import function_type
 
 
