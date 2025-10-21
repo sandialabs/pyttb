@@ -3018,6 +3018,7 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
     # mypy issue: 1484
     def unit_uniform(pass_through_shape: tuple[int, ...]) -> np.ndarray:
         data = np.random.uniform(low=0, high=1, size=np.prod(pass_through_shape))
+        data = data.reshape(pass_through_shape, order=order)
         return data
 
     return tensor.from_function(unit_uniform, shape)

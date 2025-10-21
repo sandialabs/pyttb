@@ -80,7 +80,7 @@ def test_sptensor_initialization_from_data(sample_sptensor):
 
 def test_sptensor_initialization_from_function():
     # Random Tensor Success
-    def function_handle(*args):
+    def function_handle(*args):  # noqa: ARG001
         return np.array([[0.5], [1.5], [2.5], [3.5], [4.5], [5.5]])
 
     np.random.seed(123)
@@ -117,7 +117,7 @@ def test_sptensor_initialization_from_function():
     )
 
 
-def test_sptensor_initialization_from_aggregator(sample_sptensor):
+def test_sptensor_initialization_from_aggregator():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3], [1, 1, 1], [1, 1, 1]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5], [4.5], [5.5]])
     shape = (4, 4, 4)
@@ -1037,7 +1037,7 @@ def test_sptensor_double(sample_sptensor):
         double_array[0] = 1
 
 
-def test_sptensor_compare(sample_sptensor):
+def test_sptensor_compare():
     # This is kind of a test just for coverage sake
     # mostly make clear that the operator check was intentional
     empty_sptensor = ttb.sptensor()

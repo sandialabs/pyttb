@@ -491,7 +491,7 @@ def tt_ind2sub(
     return np.array(np.unravel_index(idx, shape, order=order)).transpose()
 
 
-def tt_subsubsref(obj: np.ndarray, s: Any) -> float | np.ndarray:
+def tt_subsubsref(obj: np.ndarray, s: Any) -> float | np.ndarray:  # noqa: ARG001
     """Helper function for tensor toolbox subsref.
 
     Parameters
