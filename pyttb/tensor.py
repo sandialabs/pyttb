@@ -1213,7 +1213,7 @@ class tensor:  # noqa: PLW1641
         >>> T.nnz
         8
         """
-        return np.count_nonzero(self.data)
+        return int(np.count_nonzero(self.data))
 
     def norm(self) -> float:
         """Frobenius norm of the tensor.
