@@ -46,8 +46,8 @@ def import_data(
 
         if data_type == "sptensor":
             shape = import_shape(fp)
-            nz = import_nnz(fp)
-            subs, vals = import_sparse_array(fp, len(shape), nz, index_base)
+            _ = import_nnz(fp)  # Could remove this line from export
+            subs, vals = import_sparse_array(fp, index_base)
             return ttb.sptensor(subs, vals, shape)
 
         if data_type == "matrix":
@@ -96,15 +96,12 @@ def import_rank(fp: TextIO) -> int:
 
 
 def import_sparse_array(
-    fp: TextIO, n: int, nz: int, index_base: int = 1
+    fp: TextIO, index_base: int = 1
 ) -> tuple[np.ndarray, np.ndarray]:
     """Extract sparse data subs and vals from coordinate format data."""
-    subs = np.zeros((nz, n), dtype="int64")
-    vals = np.zeros((nz, 1))
-    for k in range(nz):
-        line = fp.readline().strip().split(" ")
-        subs[k, :] = [np.int64(i) - index_base for i in line[:-1]]
-        vals[k, 0] = line[-1]
+    data = np.loadtxt(fp)
+    subs = data[:, :-1].astype("int64") - index_base
+    vals = data[:, -1].reshape(-1, 1)
     return subs, vals
 
 

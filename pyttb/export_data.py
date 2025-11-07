@@ -100,7 +100,7 @@ def export_sparse_size(fp: TextIO, A: ttb.sptensor):
     print(f"{len(A.shape)}", file=fp)  # # of dimensions on one line
     shape_str = " ".join([str(d) for d in A.shape])
     print(f"{shape_str}", file=fp)  # size of each dimensions on the next line
-    print(f"{A.nnz}", file=fp)  # number of nonzeros
+    print(f"{A.nnz}", file=fp)  # number of nonzeros (could eliminate)
 
 
 def export_sparse_array(
@@ -109,12 +109,7 @@ def export_sparse_array(
     """Export sparse array data in coordinate format."""
     if not fmt_data:
         fmt_data = "%.16e"
-    # TODO: looping through all values may take a long time, can this be more efficient?
-    for i in range(A.nnz):
-        # 0-based indexing in package, 1-based indexing in file
-        subs = A.subs[i, :] + index_base
-        subs.tofile(fp, sep=" ", format="%d")
-        print(end=" ", file=fp)
-        val = A.vals[i][0]
-        val.tofile(fp, sep=" ", format=fmt_data)
-        print(file=fp)
+    # 0-based indexing in package, 1-based indexing in file
+    subs = A.subs + index_base
+    vals = A.vals[:, 0].reshape(-1, 1)
+    np.savetxt(fp, np.hstack((subs, vals)), fmt="%d " * subs.shape[1] + fmt_data)
