@@ -75,7 +75,7 @@ def export_data_bin(
         elif isinstance(data, ttb.sptensor):
             _export_sptensor_bin(fp, data, index_base)
         elif isinstance(data, ttb.ktensor):
-            raise NotImplementedError("Binary export not implemented for ktensors.")
+            _export_ktensor_bin(fp, data)
         elif isinstance(data, np.ndarray):
             _export_matrix_bin(fp, data)
 
@@ -94,7 +94,7 @@ def export_data_mat(
     elif isinstance(data, ttb.sptensor):
         _export_sptensor_mat(filename, data, index_base)
     elif isinstance(data, ttb.ktensor):
-        raise NotImplementedError("Binary export not implemented for ktensors.")
+        _export_ktensor_mat(filename, data)
     elif isinstance(data, np.ndarray):
         _export_matrix_mat(filename, data)
 
@@ -144,6 +144,26 @@ def _export_matrix_bin(fp: BufferedWriter, data: np.ndarray):
     )
 
 
+def _export_ktensor_bin(fp: BufferedWriter, data: ttb.ktensor):
+    """Export ktensor using NumPy."""
+    # TODO add utility for consistent header creation
+    header = np.array(["ktensor", "F"])
+    factor_matrices = data.factor_matrices
+    num_factor_matrices = len(factor_matrices)
+    all_factor_matrices = {
+        f"factor_matrix_{i}": factor_matrices[i] for i in range(num_factor_matrices)
+    }
+    weights = data.weights
+    np.savez(
+        fp,
+        allow_pickle=False,
+        header=header,
+        num_factor_matrices=num_factor_matrices,
+        weights=weights,
+        **all_factor_matrices,
+    )
+
+
 def _export_sptensor_mat(filename: str, data: ttb.sptensor, index_base: int = 1):
     """Export sparse array data in coordinate format using savemat."""
     header = np.array(["sptensor", "F"])
@@ -162,10 +182,20 @@ def _export_tensor_mat(filename: str, data: ttb.tensor):
 
 
 def _export_matrix_mat(filename: str, data: np.ndarray):
-    """Export dense tensor data using savemat."""
+    """Export dense matrix data using savemat."""
     header = np.array(["matrix", "F"])
     internal_data = data
     savemat(filename, dict(header=header, data=internal_data))
+
+
+def _export_ktensor_mat(filename: str, data: ttb.ktensor):
+    """Export ktensor data using savemat."""
+    header = np.array(["ktensor", "F"])
+    factor_matrices = data.factor_matrices
+    weights = data.weights
+    savemat(
+        filename, dict(header=header, factor_matrices=factor_matrices, weights=weights)
+    )
 
 
 def export_size(fp: TextIO, shape: Shape):

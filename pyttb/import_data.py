@@ -87,7 +87,7 @@ def import_data_bin(
     data_type = header[0]
 
     if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
-        raise ValueError(f"Invalid data type found: {data_type}")
+        raise ValueError(f"Invalid data type found: '{data_type}'")
     if data_type == "tensor":
         data = npzfile["data"]
         return ttb.tensor(data)
@@ -99,6 +99,13 @@ def import_data_bin(
     elif data_type == "matrix":
         data = npzfile["data"]
         return data
+    elif data_type == "ktensor":
+        num_factor_matrices = int(npzfile["num_factor_matrices"])
+        factor_matrices = [
+            npzfile[f"factor_matrix_{i}"] for i in range(num_factor_matrices)
+        ]
+        weights = npzfile["weights"]
+        return ttb.ktensor(factor_matrices, weights)
     raise ValueError(f"Invalid data type found: {data_type}")
 
 
@@ -128,6 +135,13 @@ def import_data_mat(
     elif data_type == "matrix":
         data = mat_data["data"]
         return data
+    elif data_type == "ktensor":
+        factor_matrices = [
+            mat_data["factor_matrices"][0, n]
+            for n in range(mat_data["factor_matrices"].shape[1])
+        ]
+        weights = mat_data["weights"].flatten()
+        return ttb.ktensor(factor_matrices, weights)
     raise ValueError(f"Invalid data type found: {data_type}")
 
 

@@ -236,23 +236,33 @@ def test_export_data_sptensor_fmt(sample_sptensor):
     os.unlink(data_filename)
 
 
-def test_export_data_ktensor(sample_ktensor):
+@pytest.mark.parametrize(
+    ["save_method", "import_method"],
+    [
+        (ttb.export_data, ttb.import_data),
+        (ttb.export_data_bin, ttb.import_data_bin),
+        (ttb.export_data_mat, ttb.import_data_mat),
+    ],
+)
+def test_export_data_ktensor(sample_ktensor, save_method, import_method):
     # truth data
     K = sample_ktensor
 
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__), "data", "ktensor.out")
-    ttb.export_data(K, data_filename)
+    save_method(K, data_filename)
 
-    X = ttb.import_data(data_filename)
+    X = import_method(data_filename)
     assert K.isequal(X)
     os.unlink(data_filename)
 
+
+def test_export_data_ktensor_format(sample_ktensor):
     data_filename = os.path.join(os.path.dirname(__file__), "data", "ktensor_int.out")
-    ttb.export_data(K, data_filename, fmt_data="%d", fmt_weights="%d")
+    ttb.export_data(sample_ktensor, data_filename, fmt_data="%d", fmt_weights="%d")
 
     X = ttb.import_data(data_filename)
-    assert K.isequal(X)
+    assert sample_ktensor.isequal(X)
     os.unlink(data_filename)
 
 
