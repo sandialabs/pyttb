@@ -766,9 +766,9 @@ class tensor:  # noqa: PLW1641
         rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
         # if rdims or cdims is empty, hstack will output an array of float not int
         if rdims.size == 0:
-            dims = cdims.copy()
+            dims = cdims.copy("K")
         elif cdims.size == 0:
-            dims = rdims.copy()
+            dims = rdims.copy("K")
         else:
             dims = np.hstack([rdims, cdims])
         if not len(dims) == n or not (alldims == np.sort(dims)).all():
@@ -1493,7 +1493,7 @@ class tensor:  # noqa: PLW1641
         if len(grps.shape) == 1:
             grps = np.array([grps])
 
-        data = self.data.copy()
+        data = self.data.copy("K")
 
         # Use default newer faster version
         if version is None:
@@ -1765,7 +1765,7 @@ class tensor:  # noqa: PLW1641
         selfshape = tuple(np.array(self.shape)[selfdims])
 
         if otherdims is None:
-            otherdims = selfdims.copy()
+            otherdims = selfdims.copy("K")
         elif isinstance(otherdims, int):
             otherdims = np.array([otherdims])
         othershape = tuple(np.array(other.shape)[otherdims])
@@ -1852,7 +1852,7 @@ class tensor:  # noqa: PLW1641
                 assert False, "Multiplicand is wrong size"
 
         # Extract the data
-        c = self.data.copy()
+        c = self.data.copy("K")
 
         # Permute it so that the dimensions we're working with come last
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
@@ -1932,7 +1932,7 @@ class tensor:  # noqa: PLW1641
             dnew = skip_dim + 1  # Number of modes in result
             drem = d - dnew  # Number of modes multiplied out
 
-            y = self.data.copy()
+            y = self.data.copy(order=self.order)
             for i in range(drem, 0, -1):
                 yy = np.reshape(y, (sz ** (dnew + i - 1), sz), order=self.order)
                 y = yy.dot(vector)

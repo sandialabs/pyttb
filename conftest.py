@@ -93,9 +93,9 @@ def sample_tenmat_4way():  # noqa: D103
     cdims = np.array([2, 3])
     tenmatInstance = ttb.tenmat()
     tenmatInstance.tshape = tshape
-    tenmatInstance.rindices = rdims.copy()
-    tenmatInstance.cindices = cdims.copy()
-    tenmatInstance.data = data.copy()
+    tenmatInstance.rindices = rdims.copy("K")
+    tenmatInstance.cindices = cdims.copy("K")
+    tenmatInstance.data = data.copy("K")
     params = {
         "data": data,
         "rdims": rdims,

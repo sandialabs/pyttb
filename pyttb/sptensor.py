@@ -166,8 +166,8 @@ class sptensor:  # noqa: PLW1641
             raise ValueError("Values should be a column vector")
 
         if copy:
-            self.subs = subs.copy()
-            self.vals = vals.copy()
+            self.subs = subs.copy("K")
+            self.vals = vals.copy("K")
             self.shape = shape
             return
         self.subs = subs
@@ -869,7 +869,7 @@ class sptensor:  # noqa: PLW1641
 
         return ttb.sptenmat(
             np.hstack([ridx, cidx], dtype=int),
-            self.vals.copy(),
+            self.vals.copy("K"),
             rdims.astype(int),
             cdims.astype(int),
             self.shape,
@@ -1524,7 +1524,7 @@ class sptensor:  # noqa: PLW1641
         [0, 1] = 1.0
         [1, 0] = 1.0
         """
-        oneVals = self.vals.copy()
+        oneVals = self.vals.copy("K")
         oneVals.fill(1)
         return ttb.sptensor(self.subs, oneVals, self.shape)
 
@@ -2003,8 +2003,8 @@ class sptensor:  # noqa: PLW1641
                 assert False, "Multiplicand is wrong size"
 
         # Multiply each value by the appropriate elements of the appropriate vector
-        newvals = self.vals.copy()
-        subs = self.subs.copy()
+        newvals = self.vals.copy("K")
+        subs = self.subs.copy("K")
         if subs.size == 0:  # No nonzeros in tensor
             newsubs = np.array([], dtype=int)
         else:
@@ -2117,11 +2117,11 @@ class sptensor:  # noqa: PLW1641
             loc = self.subdims(region)
             # Handle slicing an sptensor with no entries
             if self.subs.size == 0:
-                subs = self.subs.copy()
+                subs = self.subs.copy("K")
             else:
                 subs = self.subs[loc, :]
             if self.vals.size == 0:
-                vals = self.vals.copy()
+                vals = self.vals.copy("K")
             else:
                 vals = self.vals[loc]
 

@@ -148,7 +148,7 @@ def test_sptensor_initialization_from_aggregator(sample_sptensor):
         )
     assert "More subscripts than specified by shape" in str(excinfo)
 
-    badSubs = subs.copy()
+    badSubs = subs.copy("K")
     badSubs[0, 0] = 11
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_aggregator(badSubs, vals, shape)

@@ -1020,7 +1020,10 @@ def to_memory_order(
     if copy:
         # This could be slightly optimized
         # in worst case two copies occur
-        array = array.copy()
+        if isinstance(array, np.ndarray):
+            array = array.copy("K")
+        else:
+            array = array.copy()
     if isinstance(array, sparse.coo_matrix):
         return array
     if order == "F":
