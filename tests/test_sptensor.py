@@ -910,6 +910,14 @@ def test_sptensor__add__(sample_sptensor):
     assert np.array_equal(subSptensor.data, sptensorInstance.to_tensor().data)
 
 
+def test_sptensor__radd__(sample_sptensor):
+    (data, sptensorInstance) = sample_sptensor
+
+    # scalar + Sptensor
+    subSptensor = 0 + sptensorInstance
+    assert np.array_equal(subSptensor.data, sptensorInstance.to_tensor().data)
+
+
 def test_sptensor_isequal(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 

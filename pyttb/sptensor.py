@@ -2901,6 +2901,29 @@ class sptensor:  # noqa: PLW1641
         # Otherwise return negated sub
         return self.__sub__(-other)
 
+    def __radd__(self, other):
+        """
+        Right binary addition operator (+).
+
+        Parameters
+        ----------
+        other:
+            Object to add to the sparse tensor.
+
+        Examples
+        --------
+        Add a scalar value, returning a dense tensor:
+
+        >>> S = ttb.sptensor(shape=(2, 2))
+        >>> S[1, 1] = 1.0
+        >>> 1 + S
+        tensor of shape (2, 2) with order F
+        data[:, :] =
+        [[1. 1.]
+         [1. 2.]]
+        """
+        return self.__add__(other)
+
     def __pos__(self):
         """
         Unary plus operator (+).
