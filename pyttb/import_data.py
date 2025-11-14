@@ -76,7 +76,7 @@ def import_data(
 def import_data_bin(
     filename: str,
     index_base: int = 1,
-):
+) -> ttb.sptensor | ttb.ktensor | ttb.tensor | np.ndarray:
     """Import tensor-related data from a binary file."""
     # Check if file exists
     if not os.path.isfile(filename):
@@ -88,18 +88,24 @@ def import_data_bin(
 
     if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
         raise ValueError(f"Invalid data type found: {data_type}")
-    if data_type == "sptensor":
+    if data_type == "tensor":
+        data = npzfile["data"]
+        return ttb.tensor(data)
+    elif data_type == "sptensor":
         shape = tuple(npzfile["shape"])
         subs = npzfile["subs"] - index_base
         vals = npzfile["vals"]
-        A = ttb.sptensor(subs, vals, shape)
-        return A
+        return ttb.sptensor(subs, vals, shape)
+    elif data_type == "matrix":
+        data = npzfile["data"]
+        return data
+    raise ValueError(f"Invalid data type found: {data_type}")
 
 
 def import_data_mat(
     filename: str,
     index_base: int = 1,
-):
+) -> ttb.sptensor | ttb.ktensor | ttb.tensor | np.ndarray:
     """Import tensor-related data from a binary file."""
     # Check if file exists
     if not os.path.isfile(filename):
@@ -111,12 +117,18 @@ def import_data_mat(
 
     if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
         raise ValueError(f"Invalid data type found: {data_type}")
-    if data_type == "sptensor":
+    if data_type == "tensor":
+        data = mat_data["data"]
+        return ttb.tensor(data)
+    elif data_type == "sptensor":
         shape = tuple(mat_data["shape"][0])
         subs = mat_data["subs"] - index_base
         vals = mat_data["vals"]
-        A = ttb.sptensor(subs, vals, shape)
-        return A
+        return ttb.sptensor(subs, vals, shape)
+    elif data_type == "matrix":
+        data = mat_data["data"]
+        return data
+    raise ValueError(f"Invalid data type found: {data_type}")
 
 
 def import_type(fp: TextIO) -> str:

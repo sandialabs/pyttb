@@ -71,15 +71,13 @@ def export_data_bin(
 
     with open(filename, "wb") as fp:
         if isinstance(data, ttb.tensor):
-            raise NotImplementedError(
-                "Binary export not implemented for dense tensors."
-            )
+            _export_tensor_bin(fp, data)
         elif isinstance(data, ttb.sptensor):
             _export_sptensor_bin(fp, data, index_base)
         elif isinstance(data, ttb.ktensor):
             raise NotImplementedError("Binary export not implemented for ktensors.")
         elif isinstance(data, np.ndarray):
-            raise NotImplementedError("Binary export not implemented for dense arrays.")
+            _export_matrix_bin(fp, data)
 
 
 def export_data_mat(
@@ -92,13 +90,13 @@ def export_data_mat(
         raise NotImplementedError(f"Invalid data type for export: {type(data)}")
 
     if isinstance(data, ttb.tensor):
-        raise NotImplementedError("Binary export not implemented for dense tensors.")
+        _export_tensor_mat(filename, data)
     elif isinstance(data, ttb.sptensor):
         _export_sptensor_mat(filename, data, index_base)
     elif isinstance(data, ttb.ktensor):
         raise NotImplementedError("Binary export not implemented for ktensors.")
     elif isinstance(data, np.ndarray):
-        raise NotImplementedError("Binary export not implemented for dense arrays.")
+        _export_matrix_mat(filename, data)
 
 
 def _export_sptensor_bin(fp: BufferedWriter, data: ttb.sptensor, index_base: int = 1):
@@ -120,6 +118,32 @@ def _export_sptensor_bin(fp: BufferedWriter, data: ttb.sptensor, index_base: int
     )
 
 
+def _export_tensor_bin(fp: BufferedWriter, data: ttb.tensor):
+    """Export dense tensor using NumPy."""
+    # TODO add utility for consistent header creation
+    header = np.array(["tensor", "F"])
+    internal_data = data.data
+    np.savez(
+        fp,
+        allow_pickle=False,
+        header=header,
+        data=internal_data,
+    )
+
+
+def _export_matrix_bin(fp: BufferedWriter, data: np.ndarray):
+    """Export dense matrix using NumPy."""
+    # TODO add utility for consistent header creation
+    header = np.array(["matrix", "F"])
+    internal_data = data
+    np.savez(
+        fp,
+        allow_pickle=False,
+        header=header,
+        data=internal_data,
+    )
+
+
 def _export_sptensor_mat(filename: str, data: ttb.sptensor, index_base: int = 1):
     """Export sparse array data in coordinate format using savemat."""
     header = np.array(["sptensor", "F"])
@@ -128,6 +152,20 @@ def _export_sptensor_mat(filename: str, data: ttb.sptensor, index_base: int = 1)
     subs = data.subs + index_base
     vals = data.vals
     savemat(filename, dict(header=header, shape=shape, nnz=nnz, subs=subs, vals=vals))
+
+
+def _export_tensor_mat(filename: str, data: ttb.tensor):
+    """Export dense tensor data using savemat."""
+    header = np.array(["tensor", "F"])
+    internal_data = data.data
+    savemat(filename, dict(header=header, data=internal_data))
+
+
+def _export_matrix_mat(filename: str, data: np.ndarray):
+    """Export dense tensor data using savemat."""
+    header = np.array(["matrix", "F"])
+    internal_data = data
+    savemat(filename, dict(header=header, data=internal_data))
 
 
 def export_size(fp: TextIO, shape: Shape):
