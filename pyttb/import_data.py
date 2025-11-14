@@ -78,70 +78,104 @@ def import_data_bin(
     index_base: int = 1,
 ) -> ttb.sptensor | ttb.ktensor | ttb.tensor | np.ndarray:
     """Import tensor-related data from a binary file."""
-    # Check if file exists
-    if not os.path.isfile(filename):
-        raise FileNotFoundError(f"File path {filename} does not exist.")
 
-    npzfile = np.load(filename, allow_pickle=False)
-    header = npzfile["header"]
-    data_type = header[0]
+    def load_bin_data(filename: str):
+        npzfile = np.load(filename, allow_pickle=False)
+        return {
+            "header": npzfile["header"][0],
+            "data": npzfile.get("data"),
+            "shape": tuple(npzfile["shape"]) if "shape" in npzfile else None,
+            "subs": npzfile.get("subs"),
+            "vals": npzfile.get("vals"),
+            "num_factor_matrices": int(npzfile["num_factor_matrices"])
+            if "num_factor_matrices" in npzfile
+            else None,
+            "factor_matrices": [
+                npzfile[f"factor_matrix_{i}"]
+                for i in range(int(npzfile["num_factor_matrices"]))
+            ]
+            if "num_factor_matrices" in npzfile
+            else None,
+            "weights": npzfile.get("weights"),
+        }
 
-    if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
-        raise ValueError(f"Invalid data type found: '{data_type}'")
-    if data_type == "tensor":
-        data = npzfile["data"]
-        return ttb.tensor(data)
-    elif data_type == "sptensor":
-        shape = tuple(npzfile["shape"])
-        subs = npzfile["subs"] - index_base
-        vals = npzfile["vals"]
-        return ttb.sptensor(subs, vals, shape)
-    elif data_type == "matrix":
-        data = npzfile["data"]
-        return data
-    elif data_type == "ktensor":
-        num_factor_matrices = int(npzfile["num_factor_matrices"])
-        factor_matrices = [
-            npzfile[f"factor_matrix_{i}"] for i in range(num_factor_matrices)
-        ]
-        weights = npzfile["weights"]
-        return ttb.ktensor(factor_matrices, weights)
-    raise ValueError(f"Invalid data type found: {data_type}")
+    return _import_tensor_data(filename, index_base, load_bin_data)
 
 
 def import_data_mat(
     filename: str,
     index_base: int = 1,
 ) -> ttb.sptensor | ttb.ktensor | ttb.tensor | np.ndarray:
-    """Import tensor-related data from a binary file."""
+    """Import tensor-related data from a MATLAB file."""
+
+    def load_mat_data(filename: str):
+        mat_data = loadmat(filename)
+        header = mat_data["header"][0]
+        return {
+            "header": header.split()[0],
+            "data": mat_data.get("data"),
+            "shape": tuple(mat_data["shape"][0]) if "shape" in mat_data else None,
+            "subs": mat_data.get("subs"),
+            "vals": mat_data.get("vals"),
+            "num_factor_matrices": int(mat_data["num_factor_matrices"])
+            if "num_factor_matrices" in mat_data
+            else None,
+            "factor_matrices": [
+                mat_data[f"factor_matrix_{i}"]
+                for i in range(int(mat_data["num_factor_matrices"]))
+            ]
+            if "num_factor_matrices" in mat_data
+            else None,
+            "weights": mat_data.get("weights").flatten()
+            if "weights" in mat_data
+            else None,
+        }
+
+    return _import_tensor_data(filename, index_base, load_mat_data)
+
+
+def _import_tensor_data(
+    filename: str,
+    index_base: int,
+    data_loader,
+) -> ttb.sptensor | ttb.ktensor | ttb.tensor | np.ndarray:
+    """Generalized function to import tensor data from different file formats.
+
+    Parameters
+    ----------
+    filename:
+        File to import.
+    index_base:
+        Index basing allows interoperability (Primarily between python and MATLAB).
+    data_loader:
+        Function that loads and structures the data from the file.
+    """
     # Check if file exists
     if not os.path.isfile(filename):
         raise FileNotFoundError(f"File path {filename} does not exist.")
 
-    mat_data = loadmat(filename)
-    header = mat_data["header"][0]
-    data_type = header.split()[0]
+    loaded_data = data_loader(filename)
+    data_type = loaded_data["header"]
 
     if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
-        raise ValueError(f"Invalid data type found: {data_type}")
+        raise ValueError(f"Invalid data type found: '{data_type}'")
+
     if data_type == "tensor":
-        data = mat_data["data"]
+        data = loaded_data["data"]
         return ttb.tensor(data)
     elif data_type == "sptensor":
-        shape = tuple(mat_data["shape"][0])
-        subs = mat_data["subs"] - index_base
-        vals = mat_data["vals"]
+        shape = loaded_data["shape"]
+        subs = loaded_data["subs"] - index_base
+        vals = loaded_data["vals"]
         return ttb.sptensor(subs, vals, shape)
     elif data_type == "matrix":
-        data = mat_data["data"]
+        data = loaded_data["data"]
         return data
     elif data_type == "ktensor":
-        factor_matrices = [
-            mat_data["factor_matrices"][0, n]
-            for n in range(mat_data["factor_matrices"].shape[1])
-        ]
-        weights = mat_data["weights"].flatten()
+        factor_matrices = loaded_data["factor_matrices"]
+        weights = loaded_data["weights"]
         return ttb.ktensor(factor_matrices, weights)
+
     raise ValueError(f"Invalid data type found: {data_type}")
 
 
