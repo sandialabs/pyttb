@@ -10,8 +10,10 @@ import os
 from typing import TextIO
 
 import numpy as np
+from scipy.io import loadmat
 
 import pyttb as ttb
+from pyttb.pyttb_utils import to_memory_order
 
 
 def import_data(
@@ -65,10 +67,56 @@ def import_data(
                 fp.readline().strip()  # Skip factor type
                 fac_shape = import_shape(fp)
                 fac = import_array(fp, np.prod(fac_shape))
-                fac = np.reshape(fac, np.array(fac_shape))
+                fac = to_memory_order(np.reshape(fac, np.array(fac_shape)), order="F")
                 factor_matrices.append(fac)
             return ttb.ktensor(factor_matrices, weights, copy=False)
     raise ValueError("Failed to load tensor data")  # pragma: no cover
+
+
+def import_data_bin(
+    filename: str,
+    index_base: int = 1,
+):
+    """Import tensor-related data from a binary file."""
+    # Check if file exists
+    if not os.path.isfile(filename):
+        raise FileNotFoundError(f"File path {filename} does not exist.")
+
+    npzfile = np.load(filename, allow_pickle=False)
+    header = npzfile["header"]
+    data_type = header[0]
+
+    if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
+        raise ValueError(f"Invalid data type found: {data_type}")
+    if data_type == "sptensor":
+        shape = tuple(npzfile["shape"])
+        subs = npzfile["subs"] - index_base
+        vals = npzfile["vals"]
+        A = ttb.sptensor(subs, vals, shape)
+        return A
+
+
+def import_data_mat(
+    filename: str,
+    index_base: int = 1,
+):
+    """Import tensor-related data from a binary file."""
+    # Check if file exists
+    if not os.path.isfile(filename):
+        raise FileNotFoundError(f"File path {filename} does not exist.")
+
+    mat_data = loadmat(filename)
+    header = mat_data["header"][0]
+    data_type = header.split()[0]
+
+    if data_type not in ["tensor", "sptensor", "matrix", "ktensor"]:
+        raise ValueError(f"Invalid data type found: {data_type}")
+    if data_type == "sptensor":
+        shape = tuple(mat_data["shape"][0])
+        subs = mat_data["subs"] - index_base
+        vals = mat_data["vals"]
+        A = ttb.sptensor(subs, vals, shape)
+        return A
 
 
 def import_type(fp: TextIO) -> str:

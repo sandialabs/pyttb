@@ -6,12 +6,16 @@
 
 from __future__ import annotations
 
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
 import numpy as np
+from scipy.io import savemat
 
 import pyttb as ttb
 from pyttb.pyttb_utils import Shape, parse_shape
+
+if TYPE_CHECKING:
+    from io import BufferedWriter
 
 
 def export_data(
@@ -54,6 +58,76 @@ def export_data(
             print("matrix", file=fp)
             export_size(fp, data.shape)
             export_array(fp, data, fmt_data)
+
+
+def export_data_bin(
+    data: ttb.tensor | ttb.ktensor | ttb.sptensor | np.ndarray,
+    filename: str,
+    index_base: int = 1,
+):
+    """Export tensor-related data to a binary file."""
+    if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
+        raise NotImplementedError(f"Invalid data type for export: {type(data)}")
+
+    with open(filename, "wb") as fp:
+        if isinstance(data, ttb.tensor):
+            raise NotImplementedError(
+                "Binary export not implemented for dense tensors."
+            )
+        elif isinstance(data, ttb.sptensor):
+            _export_sptensor_bin(fp, data, index_base)
+        elif isinstance(data, ttb.ktensor):
+            raise NotImplementedError("Binary export not implemented for ktensors.")
+        elif isinstance(data, np.ndarray):
+            raise NotImplementedError("Binary export not implemented for dense arrays.")
+
+
+def export_data_mat(
+    data: ttb.tensor | ttb.ktensor | ttb.sptensor | np.ndarray,
+    filename: str,
+    index_base: int = 1,
+):
+    """Export tensor-related data to a matlab compatible binary file."""
+    if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
+        raise NotImplementedError(f"Invalid data type for export: {type(data)}")
+
+    if isinstance(data, ttb.tensor):
+        raise NotImplementedError("Binary export not implemented for dense tensors.")
+    elif isinstance(data, ttb.sptensor):
+        _export_sptensor_mat(filename, data, index_base)
+    elif isinstance(data, ttb.ktensor):
+        raise NotImplementedError("Binary export not implemented for ktensors.")
+    elif isinstance(data, np.ndarray):
+        raise NotImplementedError("Binary export not implemented for dense arrays.")
+
+
+def _export_sptensor_bin(fp: BufferedWriter, data: ttb.sptensor, index_base: int = 1):
+    """Export sparse array data in coordinate format using NumPy."""
+    # TODO add utility for consistent header creation
+    header = np.array(["sptensor", "F"])
+    shape = np.array(data.shape)
+    nnz = np.array([data.nnz])
+    subs = data.subs + index_base
+    vals = data.vals
+    np.savez(
+        fp,
+        allow_pickle=False,
+        header=header,
+        shape=shape,
+        nnz=nnz,
+        subs=subs,
+        vals=vals,
+    )
+
+
+def _export_sptensor_mat(filename: str, data: ttb.sptensor, index_base: int = 1):
+    """Export sparse array data in coordinate format using savemat."""
+    header = np.array(["sptensor", "F"])
+    shape = np.array(data.shape)
+    nnz = np.array([data.nnz])
+    subs = data.subs + index_base
+    vals = data.vals
+    savemat(filename, dict(header=header, shape=shape, nnz=nnz, subs=subs, vals=vals))
 
 
 def export_size(fp: TextIO, shape: Shape):

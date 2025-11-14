@@ -114,6 +114,7 @@ plugins = "numpy.typing.mypy_plugin"
 [[tool.mypy.overrides]]
 module = [
     "scipy",
+    "scipy.io",
     "scipy.sparse",
     "scipy.sparse.linalg",
     "scipy.optimize",
