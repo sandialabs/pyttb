@@ -100,7 +100,7 @@ def export_sparse_size(fp: TextIO, A: ttb.sptensor):
     print(f"{len(A.shape)}", file=fp)  # # of dimensions on one line
     shape_str = " ".join([str(d) for d in A.shape])
     print(f"{shape_str}", file=fp)  # size of each dimensions on the next line
-    print(f"{A.nnz}", file=fp)  # number of nonzeros (could eliminate)
+    print(f"{A.nnz}", file=fp)  # number of nonzeros
 
 
 def export_sparse_array(
