@@ -12,6 +12,7 @@ from typing import TextIO
 import numpy as np
 
 import pyttb as ttb
+from pyttb.pyttb_utils import to_memory_order
 
 
 def import_data(
@@ -65,7 +66,7 @@ def import_data(
                 fp.readline().strip()  # Skip factor type
                 fac_shape = import_shape(fp)
                 fac = import_array(fp, np.prod(fac_shape))
-                fac = np.reshape(fac, np.array(fac_shape))
+                fac = to_memory_order(np.reshape(fac, np.array(fac_shape)), order="F")
                 factor_matrices.append(fac)
             return ttb.ktensor(factor_matrices, weights, copy=False)
     raise ValueError("Failed to load tensor data")  # pragma: no cover
