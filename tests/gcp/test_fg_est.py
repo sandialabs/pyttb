@@ -44,7 +44,7 @@ def test_estimate():
     data_vals = np.ones((2,))
     weights = np.ones_like(data_vals)
 
-    def no_op(data, model):
+    def no_op(data, model):  # noqa: ARG001
         """Function handle that does nothing"""
         return data
 

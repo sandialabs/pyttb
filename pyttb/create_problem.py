@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 import math
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Union, cast, overload
+from typing import cast, overload
 
 import numpy as np
 from numpy_groupies import aggregate as accumarray
@@ -14,9 +15,7 @@ import pyttb as ttb
 from pyttb.pyttb_utils import Shape, parse_shape
 
 solution_generator = Callable[[tuple[int, ...]], np.ndarray]
-core_generator_t = Callable[
-    [tuple[int, ...]], Union[ttb.tensor, ttb.sptensor, np.ndarray]
-]
+core_generator_t = Callable[[tuple[int, ...]], ttb.tensor | ttb.sptensor | np.ndarray]
 
 
 def randn(shape: tuple[int, ...]) -> np.ndarray:
@@ -471,7 +470,7 @@ def generate_solution_factors(base_params: BaseProblem) -> list[np.ndarray]:
             f"{nfactors} and {shape}"
         )
     factor_matrices = []
-    for shape_i, nfactors_i in zip(shape, nfactors):
+    for shape_i, nfactors_i in zip(shape, nfactors, strict=False):
         factor_matrices.append(base_params.factor_generator((shape_i, nfactors_i)))
 
     if base_params.symmetric is not None:
