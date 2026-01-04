@@ -664,7 +664,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
             nInnerIters[iteration] += countInnerIters[n]
 
         # Save output items for the outer iteration.
-        num_zero = 0
+        num_zero = np.intp(0)
         for n in range(N):
             num_zero += np.count_nonzero(M.factor_matrices[n] == 0)  # [0].size
 
@@ -1065,7 +1065,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
             nInnerIters[iteration] += countInnerIters[n]
 
         # Save output items for the outer iteration.
-        num_zero = 0
+        num_zero = np.intp(0)
         for n in range(N):
             num_zero += np.count_nonzero(M.factor_matrices[n] == 0)  # [0].size
 
