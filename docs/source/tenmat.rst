@@ -1,8 +1,5 @@
 Tensor as Matrix (:class:`pyttb.tenmat`)
 ========================================
-.. note::
-    
-     Classes and functions defined in ``tenmat.py`` have been promoted to the ``pyttb`` namespace.
 
 For *all* examples in this document, the following module imports are assumed::
 
@@ -12,5 +9,5 @@ For *all* examples in this document, the following module imports are assumed::
 .. autoclass:: pyttb.tenmat
     :members:
     :special-members:
-    :exclude-members: __dict__, __weakref__, __slots__
+    :exclude-members: __init__, __dict__, __weakref__, __deepcopy__
     :show-inheritance:
