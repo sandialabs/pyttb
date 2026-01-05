@@ -2576,10 +2576,7 @@ class sptensor:  # noqa: PLW1641
             # Generate appropriately sized ones vectors
             o = []
             for n in range(N):
-                try:
-                    o.append(np.ones((int(nssubs[n].item()), 1)))
-                except Exception as e:
-                    raise TypeError(f"{nssubs[n]}") from e
+                o.append(np.ones((int(nssubs[n].item()), 1)))
 
             # Generate each column of the subscripts in turn
             for n in range(N):
