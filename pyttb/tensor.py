@@ -223,7 +223,7 @@ class tensor:  # noqa: PLW1641
             >>> T.nnz
             8
         """
-        return np.count_nonzero(self.data)
+        return int(np.count_nonzero(self.data))
 
     @property
     def order(self) -> Literal["F"]:
@@ -988,7 +988,7 @@ class tensor:  # noqa: PLW1641
         Parameters
         ----------
         U:
-            Factor matrix or list of factor matrices 
+            Factor matrix or list of factor matrices.
         n:
             Mode used to matricize tensor.
 
@@ -1074,112 +1074,23 @@ class tensor:  # noqa: PLW1641
         """
         if isinstance(U, ttb.ktensor):
             U = U.factor_matrices
-        split_idx = self._min_split(self.shape)
+        split_idx = _min_split(self.shape)
         V = [np.empty_like(self.data, shape=())] * self.ndims
         K = ttb.khatrirao(*U[split_idx + 1 :], reverse=True)
         W = np.reshape(self.data, (-1, K.shape[0]), order=self.order).dot(K)
         for k in range(split_idx):
             # Loop entry invariant: W has modes (mk x ... x ms, C)
-            V[k] = self._mttv_mid(W, U[k + 1 : split_idx + 1])
-            W = self._mttv_left(W, U[k])
+            V[k] = _mttv_mid(W, U[k + 1 : split_idx + 1])
+            W = _mttv_left(W, U[k])
         V[split_idx] = W
         K = ttb.khatrirao(*U[0 : split_idx + 1], reverse=True)
         W = np.reshape(self.data, (K.shape[0], -1), order=self.order).transpose().dot(K)
         for k in range(split_idx + 1, self.ndims - 1):
             # Loop invariant: W has modes (mk x .. x md, C)
-            V[k] = self._mttv_mid(W, U[k + 1 :])
-            W = self._mttv_left(W, U[k])
+            V[k] = _mttv_mid(W, U[k + 1 :])
+            W = _mttv_left(W, U[k])
         V[-1] = W
         return V
-
-    def _mttv_left(self, W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
-        """
-        Contract leading mode in partial MTTKRP W_in using factor matrix U1.
-
-        The leading mode is the mode for which consecutive increases in index address
-        elements at consecutive increases in the memory offset.
-
-        Parameters
-        ----------
-        W_in:
-            Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
-            the component mode corresponding to the columns in factor matrices.
-        U1:
-            Factor matrix with modes (m1, C).
-
-        Returns
-        -------
-        Matrix with modes (m2 x ... x mN, C).
-        """
-        r = U1.shape[1]
-        W_in = np.reshape(W_in, (U1.shape[0], -1, r), order="F")
-        W_out = np.zeros_like(W_in, shape=(W_in.shape[1], r))
-        # TODO this can be replaced with tensordot and slice,
-        #  even better if we can skip slice
-        #  W_out = np.dot(W_in.transpose(), U1)[range(r), :, range(r)].transpose()
-        for j in range(r):
-            W_out[:, j] = W_in[:, :, j].transpose().dot(U1[:, j])
-        return W_out
-
-    def _mttv_mid(self, W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
-        """
-        Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
-
-        Parameters
-        ----------
-        W_in:
-            Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
-            the component mode corresponding to the columns in factor matrices.
-        U_mid:
-            Factor matrices with modes (m2, C), (m3, C), ..., (mN, C).
-
-        Returns
-        -------
-        Matrix with modes (m1, C).
-        """
-        if len(U_mid) == 0:
-            return W_in
-        K = ttb.khatrirao(*U_mid, reverse=True)
-        r = K.shape[1]
-        W_in = np.reshape(W_in, (-1, K.shape[0], r), order="F")
-        V = np.zeros_like(W_in, shape=(W_in.shape[0], r))
-        for j in range(r):
-            V[:, j] = W_in[:, :, j].dot(K[:, j])
-        return V
-
-    def _min_split(self, shape: Shape) -> int:
-        """
-        Scan for optimal splitting with minimal memory footprint.
-
-        Parameters
-        ----------
-        shape:
-            Shape of original tensor in natural descending order.
-
-        Returns
-        -------
-        Optimal splitting to minimize partial MTTKRP memory footprint. Modes 0:split
-        will contract in left-partial computation and the rest will contract in
-        right-partial.
-        """
-        shape = parse_shape(shape)
-        m_left = shape[0]
-        m_right = prod(shape[1:])
-        idx_min = 0
-
-        # Minimize m_left + m_right
-        for idx, s in enumerate(shape[1:], 1):
-            # Peel mode idx off right and test placement.
-            m_right = m_right // s
-            if m_left < m_right:
-                # Sum is reduced by placing mode idx on left
-                idx_min = idx
-                m_left *= s
-            else:
-                # The sum would be reduced by placing mode s back on the right.
-                # Stop collecting modes on the left.
-                break
-        return idx_min
 
     def norm(self) -> float:
         """
@@ -3328,7 +3239,7 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
         for j in range(ndims // 2):
             s[:, j] = p[:, 2 * j - 1] == p[:, 2 * j]
         v = np.sum(np.sum(s, axis=1) == ndims // 2)
-        A[tuple(zip(*p))] = v / factorial(ndims)
+        A[tuple(zip(*p, strict=False))] = v / factorial(ndims)
     return A
 
 
@@ -3440,6 +3351,98 @@ def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
         return np.zeros(shape, order=order)
 
     return tensor.from_function(zeros, shape)
+
+
+def _mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
+    """
+    Contract leading mode in partial MTTKRP W_in using factor matrix U1.
+
+    The leading mode is the mode for which consecutive increases in index address
+    elements at consecutive increases in the memory offset.
+
+    Parameters
+    ----------
+    W_in:
+        Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
+        the component mode corresponding to the columns in factor matrices.
+    U1:
+        Factor matrix with modes (m1, C).
+
+    Returns
+    -------
+    Matrix with modes (m2 x ... x mN, C).
+    """
+    r = U1.shape[1]
+    W_in = np.reshape(W_in, (U1.shape[0], -1, r), order="F")
+    W_out = np.zeros_like(W_in, shape=(W_in.shape[1], r))
+    # TODO this can be replaced with tensordot and slice,
+    #  even better if we can skip slice
+    #  W_out = np.dot(W_in.transpose(), U1)[range(r), :, range(r)].transpose()
+    for j in range(r):
+        W_out[:, j] = W_in[:, :, j].transpose().dot(U1[:, j])
+    return W_out
+
+
+def _mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
+    """
+    Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
+
+    Parameters
+    ----------
+    W_in:
+        Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
+        the component mode corresponding to the columns in factor matrices.
+    U_mid:
+        Factor matrices with modes (m2, C), (m3, C), ..., (mN, C).
+
+    Returns
+    -------
+    Matrix with modes (m1, C).
+    """
+    if len(U_mid) == 0:
+        return W_in
+    K = ttb.khatrirao(*U_mid, reverse=True)
+    r = K.shape[1]
+    W_in = np.reshape(W_in, (-1, K.shape[0], r), order="F")
+    V = np.zeros_like(W_in, shape=(W_in.shape[0], r))
+    for j in range(r):
+        V[:, j] = W_in[:, :, j].dot(K[:, j])
+    return V
+
+
+def _min_split(shape: Shape) -> int:
+    """
+    Scan for optimal splitting with minimal memory footprint.
+
+    Parameters
+    ----------
+    shape:
+        Shape of original tensor in natural descending order.
+
+    Returns
+    -------
+    Optimal splitting to minimize partial MTTKRP memory footprint. Modes 0:split
+    will contract in left-partial computation and the rest will contract in
+    right-partial.
+    """
+    shape = parse_shape(shape)
+    m_left = shape[0]
+    m_right = prod(shape[1:])
+    idx_min = 0
+
+    # Minimize m_left + m_right
+    for idx, s in enumerate(shape[1:], 1):
+        # Peel mode idx off right and test placement.
+        m_right = m_right // s
+        if m_left < m_right:
+            # Sum is reduced by placing mode idx on left
+            idx_min = idx
+            m_left *= s
+        else:
+            # The sum would be reduced by placing mode s back on the right.
+            # Stop collecting modes on the left.
+            break
+    return idx_min
 
 
 if __name__ == "__main__":

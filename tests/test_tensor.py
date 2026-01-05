@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 import pyttb as ttb
-from pyttb.tensor import min_split, mttv_left, mttv_mid
+from pyttb.tensor import _min_split, _mttv_left, _mttv_mid
 from tests.test_utils import assert_consistent_order
 
 
@@ -1817,7 +1817,7 @@ def test_mttv_left():
     C = 5
     U = np.ones((m1, C))
     W = np.ones((m1 * np.prod(mi), C))
-    W_out = mttv_left(W, U)
+    W_out = _mttv_left(W, U)
     assert W_out.shape == (np.prod(mi), C)
 
 
@@ -1827,16 +1827,16 @@ def test_mttv_mid():
     C = 5
     U = [np.ones((m, C)) for m in mi]
     W = np.ones((m1 * np.prod(mi), C))
-    W_out = mttv_mid(W, U)
+    W_out = _mttv_mid(W, U)
     assert W_out.shape == (m1, C)
 
-    W_out = mttv_mid(W, [])
+    W_out = _mttv_mid(W, [])
     assert W_out is W
 
 
 def test_min_split():
     shape = (3, 3, 3, 3)
-    idx = min_split(shape)
+    idx = _min_split(shape)
     assert idx == 1
 
 

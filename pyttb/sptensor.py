@@ -2889,6 +2889,29 @@ class sptensor:  # noqa: PLW1641
         """
         return self.copy()
 
+    def __radd__(self, other):
+        """
+        Right binary addition operator (+).
+
+        Parameters
+        ----------
+        other:
+            Object to add to the sparse tensor.
+
+        Examples
+        --------
+        Add a scalar value, returning a dense tensor:
+
+        >>> S = ttb.sptensor(shape=(2, 2))
+        >>> S[1, 1] = 1.0
+        >>> 1 + S
+        tensor of shape (2, 2) with order F
+        data[:, :] =
+        [[1. 1.]
+         [1. 2.]]
+        """
+        return self.__add__(other)
+
     def __repr__(self):  # pragma: no cover
         """Return string representation of a :class:`pyttb.sptensor`.
 
@@ -2921,7 +2944,7 @@ class sptensor:  # noqa: PLW1641
             r = input("Are you sure you want to print all nonzeros? (Y/N)")
             if r.upper() != "Y":
                 return s
-        for i in range(0, self.subs.shape[0]):
+        for i in range(self.subs.shape[0]):
             s += "["
             idx = self.subs[i, :]
             s += str(idx.tolist())[1:]
