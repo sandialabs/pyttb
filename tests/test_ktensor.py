@@ -1184,7 +1184,7 @@ def test_ktensor__sub__(sample_ktensor_2way, sample_ktensor_3way):
     assert "Cannot subtract instance of this type from a ktensor" in str(excinfo)
 
 
-def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
+def test_ktensor__mul__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
     K1 = 2 * K0
     assert np.array_equal(2 * data0["weights"], K1.weights)

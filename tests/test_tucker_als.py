@@ -38,7 +38,7 @@ def test_tucker_als_tensor_default_init(capsys, sample_tensor):
     assert pytest.approx(output["fit"], 1) == 0
 
 
-def test_tucker_als_tensor_incorrect_init(capsys, sample_tensor):
+def test_tucker_als_tensor_incorrect_init(sample_tensor):
     (data, T) = sample_tensor
 
     non_list = np.array([1])  # TODO: Consider generalizing to iterable
@@ -59,7 +59,7 @@ def test_tucker_als_tensor_incorrect_init(capsys, sample_tensor):
         _ = ttb.tucker_als(T, 2, init=wrong_shape)
 
 
-def test_tucker_als_tensor_incorrect_steptol(capsys, sample_tensor):
+def test_tucker_als_tensor_incorrect_steptol(sample_tensor):
     (data, T) = sample_tensor
 
     non_scalar = np.array([1])
@@ -67,7 +67,7 @@ def test_tucker_als_tensor_incorrect_steptol(capsys, sample_tensor):
         _ = ttb.tucker_als(T, 2, stoptol=non_scalar)
 
 
-def test_tucker_als_tensor_incorrect_maxiters(capsys, sample_tensor):
+def test_tucker_als_tensor_incorrect_maxiters(sample_tensor):
     (data, T) = sample_tensor
 
     negative_value = -1
@@ -79,7 +79,7 @@ def test_tucker_als_tensor_incorrect_maxiters(capsys, sample_tensor):
         _ = ttb.tucker_als(T, 2, maxiters=non_scalar)
 
 
-def test_tucker_als_tensor_incorrect_printitn(capsys, sample_tensor):
+def test_tucker_als_tensor_incorrect_printitn(sample_tensor):
     (data, T) = sample_tensor
 
     non_scalar = np.array([1])
@@ -87,7 +87,7 @@ def test_tucker_als_tensor_incorrect_printitn(capsys, sample_tensor):
         _ = ttb.tucker_als(T, 2, printitn=non_scalar)
 
 
-def test_tucker_als_tensor_incorrect_dimorder(capsys, sample_tensor):
+def test_tucker_als_tensor_incorrect_dimorder(sample_tensor):
     (data, T) = sample_tensor
 
     non_list = np.array([1])  # TODO: Consider generalizing to iterable

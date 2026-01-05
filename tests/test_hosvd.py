@@ -27,7 +27,7 @@ def sample_tensor_3way():
     return params, tensorInstance
 
 
-def test_hosvd_simple_convergence(capsys, sample_tensor):
+def test_hosvd_simple_convergence(sample_tensor):
     (data, T) = sample_tensor
     tol = 1e-4
     result = ttb.hosvd(T, tol)
@@ -47,25 +47,25 @@ def test_hosvd_simple_convergence(capsys, sample_tensor):
     )
 
 
-def test_hosvd_default_init(capsys, sample_tensor):
+def test_hosvd_default_init(sample_tensor):
     (data, T) = sample_tensor
     _ = ttb.hosvd(T, 1)
 
 
-def test_hosvd_smoke_test_verbosity(capsys, sample_tensor):
+def test_hosvd_smoke_test_verbosity(sample_tensor):
     """For now just make sure verbosity calcs don't crash"""
     (data, T) = sample_tensor
     ttb.hosvd(T, 1, verbosity=10)
 
 
-def test_hosvd_incorrect_ranks(capsys, sample_tensor):
+def test_hosvd_incorrect_ranks(sample_tensor):
     (data, T) = sample_tensor
     ranks = list(range(T.ndims - 1))
     with pytest.raises(ValueError):
         _ = ttb.hosvd(T, 1, ranks=ranks)
 
 
-def test_hosvd_incorrect_dimorder(capsys, sample_tensor):
+def test_hosvd_incorrect_dimorder(sample_tensor):
     (data, T) = sample_tensor
     dimorder = list(range(T.ndims - 1))
     with pytest.raises(ValueError):

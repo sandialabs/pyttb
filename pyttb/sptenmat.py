@@ -328,7 +328,7 @@ class sptenmat:
             n = np.prod(np.array(self.tshape)[self.cdims])
             return int(m), int(n)
 
-    def double(self, immutable: bool = False) -> sparse.coo_matrix:
+    def double(self, immutable: bool = False) -> sparse.coo_matrix:  # noqa: ARG002
         """
         Convert a :class:`pyttb.sptenmat` to a COO :class:`scipy.sparse.coo_matrix`.
 
@@ -621,7 +621,7 @@ class sptenmat:
 
         # An empty ndarray with minimum dimensions still has a shape
         if self.subs.size > 0:
-            for i in range(0, self.subs.shape[0]):
+            for i in range(self.subs.shape[0]):
                 s += "\t"
                 s += "["
                 idx = self.subs[i, :]
