@@ -1202,7 +1202,7 @@ class sptensor:  # noqa: PLW1641
             >>> W[1, 1, 1] = 1
             >>> S.mask(W)
             array([[1.],
-                  [2.]])
+                   [2.]])
 
         Create mask :class:`pyttb.sptensor` and extract some nonzero values and some
         zero values::
