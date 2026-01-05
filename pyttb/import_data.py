@@ -100,12 +100,13 @@ def import_sparse_array(
     fp: TextIO, n: int, nz: int, index_base: int = 1
 ) -> tuple[np.ndarray, np.ndarray]:
     """Extract sparse data subs and vals from coordinate format data."""
-    subs = np.zeros((nz, n), dtype="int64")
-    vals = np.zeros((nz, 1))
-    for k in range(nz):
-        line = fp.readline().strip().split(" ")
-        subs[k, :] = [np.int64(i) - index_base for i in line[:-1]]
-        vals[k, 0] = line[-1]
+    data = np.loadtxt(fp)
+    subs = data[:, :-1].astype("int64") - index_base
+    vals = data[:, -1].reshape(-1, 1)
+    if subs.shape[0] != nz:
+        raise ValueError("Imported nonzeros are not of expected size")
+    if subs.shape[1] != n:
+        raise ValueError("Imported tensor is not of expected shape")
     return subs, vals
 
 
