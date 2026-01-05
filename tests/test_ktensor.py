@@ -129,7 +129,7 @@ def test_ktensor_from_vector(sample_ktensor_3way):
     assert np.array_equal(K1.factor_matrices[2], data["factor_matrices"][2])
 
     # data as a row vector will work, but will be transposed
-    transposed_data = data["vector"].copy().reshape((1, len(data["vector"])))
+    transposed_data = data["vector"].copy("K").reshape((1, len(data["vector"])))
     K2 = ttb.ktensor.from_vector(transposed_data, data["shape"], False)
     assert np.array_equal(K2.weights, np.ones((2,)))
     assert np.array_equal(K2.factor_matrices[0], data["factor_matrices"][0])
@@ -1184,7 +1184,7 @@ def test_ktensor__sub__(sample_ktensor_2way, sample_ktensor_3way):
     assert "Cannot subtract instance of this type from a ktensor" in str(excinfo)
 
 
-def test_ktensor__mul__(sample_ktensor_2way, sample_ktensor_3way):
+def test_ktensor__mul__(sample_ktensor_2way):
     (data0, K0) = sample_ktensor_2way
     K1 = 2 * K0
     assert np.array_equal(2 * data0["weights"], K1.weights)

@@ -119,7 +119,7 @@ class tenmat:
                 assert False, "tshape must be specified when data is 1d array."
             else:
                 # make data a 2d array with shape (1, data.shape[0]), i.e., a row vector
-                data = np.reshape(data.copy(), (1, data.shape[0]), order=self.order)
+                data = np.reshape(data.copy("K"), (1, data.shape[0]), order=self.order)
 
         if len(data.shape) != 2:
             raise ValueError(
@@ -152,9 +152,9 @@ class tenmat:
 
         # if rdims or cdims is empty, hstack will output an array of float not int
         if rdims.size == 0:
-            dims = cdims.copy()
+            dims = cdims.copy("K")
         elif cdims.size == 0:
-            dims = rdims.copy()
+            dims = rdims.copy("K")
         else:
             dims = np.hstack([rdims, cdims])
         if not len(dims) == n or not (alldims == np.sort(dims)).all():
@@ -164,8 +164,8 @@ class tenmat:
             )
 
         self.tshape = tshape
-        self.rindices = rdims.copy()
-        self.cindices = cdims.copy()
+        self.rindices = rdims.copy("K")
+        self.cindices = cdims.copy("K")
 
         if not copy and not self._matches_order(data):
             logging.warning(
@@ -271,7 +271,7 @@ class tenmat:
         order = np.hstack([self.rindices, self.cindices])
         data = self.data
         if copy:
-            data = self.data.copy()
+            data = self.data.copy("K")
         data = np.reshape(data, np.array(shape)[order], order=self.order)
         if order.size > 1:
             if not copy:
@@ -347,7 +347,7 @@ class tenmat:
         if immutable:
             double.flags.writeable = False
         elif np.shares_memory(double, self.data):
-            double = double.copy()
+            double = double.copy("K")
         return double
 
     @property
