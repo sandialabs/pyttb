@@ -1,3 +1,21 @@
+# v1.8.4 (2026-01-05)
+- Version Support:
+  - Added support for Python 3.14; dropped support for Python 3.9 (https://github.com/sandialabs/pyttb/pull/459)
+  - Updated support for recent versions of `numpy` and `spicy` (https://github.com/sandialabs/pyttb/pull/471)
+- Added:
+  - Added ability to choose zero-truncated Poisson distribution in `gcp_opt` (https://github.com/sandialabs/pyttb/pull/450)
+  - Added `__radd__` support in `sptensor` (https://github.com/sandialabs/pyttb/pull/461)
+  - Added `index_base` parameter in `export_data` (https://github.com/sandialabs/pyttb/pull/449)
+- Fixed:
+  - Fixed `copy` methods in data classes to use correct layout or underlying data (https://github.com/sandialabs/pyttb/pull/463)
+  - Fixed `tensor` data layout in `import_data` (https://github.com/sandialabs/pyttb/pull/464)
+  - Fixed edge case in testing `gcp_opt` (https://github.com/sandialabs/pyttb/pull/452)
+  - Fixed type handling in `tensor.scale` (https://github.com/sandialabs/pyttb/pull/462)
+- Improved:
+  - Now using `numpy` method for improved performance in `export_data` and `import_data` (https://github.com/sandialabs/pyttb/pull/465)
+- Dev:
+  - Update ruff version used in CI testing (https://github.com/sandialabs/pyttb/pull/446)
+
 # v1.8.3 (2025-08-29)
 - Added:
   - Added `create_problem` data and solution generator to match TTB for MATLAB (https://github.com/sandialabs/pyttb/pull/442)

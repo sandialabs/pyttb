@@ -7,22 +7,23 @@ authors = [
 ]
 license = { text="BSD 2-Clause License" }
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 dependencies = [
-    "numpy<3.0,>=1.24",
+    "numpy<2.4,>=1.24",
     "numpy_groupies>0.11",
-    "scipy<1.15,>1.9",
+    "scipy<1.17,>1.9",
     "matplotlib>3.7",
 ]
 
 classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.urls]
@@ -68,7 +69,7 @@ requires = ["setuptools>=61.0", "numpy", "numpy_groupies", "scipy", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff.lint]
-select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D", "FA", "UP", "TC"]
+select = ["E", "F", "PL", "W", "I", "N", "NPY", "RUF", "B", "D", "FA", "UP", "TC", "ARG", "PIE"]
 ignore = [
     # Ignored in conversion to ruff since not previously enforced
     "PLR2004",
@@ -86,6 +87,8 @@ ignore = [
     "B028",
     # Personal preference on magic method
     "D105",
+    # Rule removed in newer version of ruff
+    "UP038",
 ]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
@@ -109,7 +112,6 @@ combine-as-imports = true
 
 [tool.mypy]
 warn_unused_configs = true
-plugins = "numpy.typing.mypy_plugin"
 
 [[tool.mypy.overrides]]
 module = [

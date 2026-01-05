@@ -20,6 +20,8 @@ U.S. Government retains certain rights in this software.
 **Other Contributors:**
 - [Gabriel Brown](https://github.com/ghbrown) - performance improvements, visualization
 [PRs](https://github.com/sandialabs/pyttb/commits?author=ghbrown)
+- [Gavin Collins](https://github.com/gqcollins) - I/O
+[PRs](https://github.com/sandialabs/pyttb/commits?author=gqcollins)  
 - [Brian Kelley](https://github.com/brian-kelley) - dependencies 
 [PRs](https://github.com/sandialabs/pyttb/commits?author=brian-kelley)
 - [Tammy Kolda](https://github.com/tgkolda) - bug fixes, documentation

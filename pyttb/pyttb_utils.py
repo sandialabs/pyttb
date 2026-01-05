@@ -12,7 +12,6 @@ from math import prod
 from typing import (
     Any,
     Literal,
-    Union,
     cast,
     get_args,
     overload,
@@ -23,16 +22,16 @@ from scipy import sparse
 
 import pyttb as ttb
 
-Shape = Union[int, Iterable[int]]
+Shape = int | Iterable[int]
 """Shape represents the object size or dimensions. It can be specified as
 either a single integer or an iterable of integers, which will be normalized
 to a tuple internally."""
 
-OneDArray = Union[int, float, Iterable[int], Iterable[float], np.ndarray]
+OneDArray = int | float | Iterable[int] | Iterable[float] | np.ndarray
 """OneDArray represents any one-dimensional array, which can be a single
 integer or float, and iterable of integerss or floats, or a NumPy array."""
 
-MemoryLayout = Union[Literal["F"], Literal["C"]]
+MemoryLayout = Literal["F"] | Literal["C"]
 """MemoryLayout is the set of options for the layout of a tensor.
 It can be "F", meaning Fortran ordered and analogous to column-major for matrices,
 or "C", meaning C ordered and analogous to row-major for matrices.
@@ -347,7 +346,7 @@ def tt_renumber(
     """
     newshape = np.array(shape)
     newsubs = subs
-    for i in range(0, len(shape)):
+    for i in range(len(shape)):
         if not number_range[i] == slice(None, None, None):
             if subs.size == 0:
                 if not isinstance(number_range[i], slice):
@@ -365,7 +364,7 @@ def tt_renumber(
                     #   without assert
                     number_range_i = number_range[i]
                     assert isinstance(number_range_i, slice)
-                    newshape[i] = len(range(0, shape[i])[number_range_i])
+                    newshape[i] = len(range(shape[i])[number_range_i])
             else:
                 newsubs[:, i], newshape[i] = tt_renumberdim(
                     subs[:, i], shape[i], number_range[i]
@@ -397,7 +396,7 @@ def tt_renumberdim(
         number_range = [int(number_range)]
         newshape = 0
     elif isinstance(number_range, slice):
-        number_range = list(range(0, shape))[number_range]
+        number_range = list(range(shape))[number_range]
         newshape = len(number_range)
     elif isinstance(number_range, (Sequence, np.ndarray)):
         newshape = len(number_range)
@@ -406,7 +405,7 @@ def tt_renumberdim(
 
     # Create map from old range to the new range
     idx_map = np.zeros(shape=shape)
-    for i in range(0, newshape):
+    for i in range(newshape):
         idx_map[number_range[i]] = int(i)
 
     # Do the mapping
@@ -492,7 +491,7 @@ def tt_ind2sub(
     return np.array(np.unravel_index(idx, shape, order=order)).transpose()
 
 
-def tt_subsubsref(obj: np.ndarray, s: Any) -> float | np.ndarray:
+def tt_subsubsref(obj: np.ndarray, s: Any) -> float | np.ndarray:  # noqa: ARG001
     """Helper function for tensor toolbox subsref.
 
     Parameters
@@ -759,8 +758,8 @@ class IndexVariant(Enum):
 
 
 # We probably want to create a specific file for utility types
-LinearIndexType = Union[int, np.integer, slice]
-IndexType = Union[LinearIndexType, Sequence[int], np.ndarray]
+LinearIndexType = int | np.integer | slice
+IndexType = LinearIndexType | Sequence[int] | np.ndarray
 
 
 def get_index_variant(indices: IndexType) -> IndexVariant:
@@ -1020,7 +1019,10 @@ def to_memory_order(
     if copy:
         # This could be slightly optimized
         # in worst case two copies occur
-        array = array.copy()
+        if isinstance(array, np.ndarray):
+            array = array.copy("K")
+        else:
+            array = array.copy()
     if isinstance(array, sparse.coo_matrix):
         return array
     if order == "F":

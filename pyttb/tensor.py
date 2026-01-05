@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import logging
 import textwrap
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from inspect import signature
 from itertools import combinations_with_replacement, permutations
 from math import factorial, prod
 from typing import (
     Any,
-    Callable,
     Literal,
     cast,
     overload,
@@ -428,7 +427,7 @@ class tensor:  # noqa: PLW1641
 
         ## Apply the collapse function
         B = np.zeros((A.shape[0], 1), order=self.order)
-        for i in range(0, A.shape[0]):
+        for i in range(A.shape[0]):
             B[i] = fun(A[i, :])
 
         ## Form and return the final result
@@ -514,7 +513,7 @@ class tensor:  # noqa: PLW1641
 
         # Add diagonal entries for each slice
         newdata = np.zeros((m, 1), order=self.order)
-        for idx in range(0, n):
+        for idx in range(n):
             newdata += data[:, idx, idx][:, None]
 
         # Reshape result
@@ -1340,7 +1339,7 @@ class tensor:  # noqa: PLW1641
     def scale(
         self,
         factor: np.ndarray | ttb.tensor,
-        dims: float | np.ndarray,
+        dims: OneDArray,
     ) -> tensor:
         """
         Scale along specified dimensions for tensors.
@@ -1384,11 +1383,6 @@ class tensor:  # noqa: PLW1641
                    [ 1.,  4.,  7., 10.],
                    [ 2.,  5.,  8., 11.]])
         """
-        if isinstance(dims, list):
-            dims = np.array(dims)
-        elif isinstance(dims, (float, int, np.generic)):
-            dims = np.array([dims])
-
         # TODO update tt_dimscheck overload so I don't need explicit
         #   Nones to appease mypy
         dims, _ = tt_dimscheck(self.ndims, None, dims, None)
@@ -1504,12 +1498,12 @@ class tensor:  # noqa: PLW1641
         if len(grps.shape) == 1:
             grps = np.array([grps])
 
-        data = self.data.copy()
+        data = self.data.copy("K")
 
         # Use default newer faster version
         if version is None:
             ngrps = len(grps)
-            for i in range(0, ngrps):
+            for i in range(ngrps):
                 # Extract current group
                 thisgrp = grps[i]
 
@@ -1555,36 +1549,36 @@ class tensor:  # noqa: PLW1641
         else:  # Original version
             # Check tensor dimensions for compatibility with symmetrization
             ngrps = len(grps)
-            for i in range(0, ngrps):
+            for i in range(ngrps):
                 dims = grps[i]
                 for j in dims[1:]:
                     if sz[j] != sz[dims[0]]:
                         assert False, "Dimension mismatch for symmetrization"
 
             # Check for no overlap in sets
-            for i in range(0, ngrps):
+            for i in range(ngrps):
                 for j in range(i + 1, ngrps):
                     if not np.intersect1d(grps[i, :], grps[j, :]).size == 0:
                         assert False, "Cannot have overlapping symmetries"
 
             # Create the combinations for each symmetrized subset
             combos = []
-            for i in range(0, ngrps):
+            for i in range(ngrps):
                 combos.append(np.array(list(permutations(grps[i, :]))))
 
             # Create all the permutations to be averaged
             combo_lengths = [len(perm) for perm in combos]
             total_perms = prod(combo_lengths)
             sym_perms = np.tile(np.arange(0, n), [total_perms, 1])
-            for i in range(0, ngrps):
+            for i in range(ngrps):
                 ntimes = np.prod(combo_lengths[0:i], dtype=int)
                 ncopies = np.prod(combo_lengths[i + 1 :], dtype=int)
                 nelems = len(combos[i])
 
                 perm_idx = 0
-                for _ in range(0, ntimes):
-                    for k in range(0, nelems):
-                        for _ in range(0, ncopies):
+                for _ in range(ntimes):
+                    for k in range(nelems):
+                        for _ in range(ncopies):
                             # TODO: Does this do anything? Matches MATLAB
                             # at very least should be able to flatten
                             sym_perms[perm_idx, grps[i]] = combos[i][k, :]
@@ -1592,7 +1586,7 @@ class tensor:  # noqa: PLW1641
 
             # Create an average tensor
             Y = ttb.tensor(np.zeros(self.shape), copy=False)
-            for i in range(0, total_perms):
+            for i in range(total_perms):
                 Y += self.permute(sym_perms[i, :])
 
             Y /= total_perms
@@ -1601,7 +1595,7 @@ class tensor:  # noqa: PLW1641
             # summations and so on, so let's fix that.
             # Idea borrowed from Gergana Bounova:
             # http://www.mit.edu/~gerganaa/downloads/matlab/symmetrize.m
-            for i in range(0, total_perms):
+            for i in range(total_perms):
                 Z = Y.permute(sym_perms[i, :])
                 Y.data[:] = np.maximum(Y.data[:], Z.data[:])
 
@@ -1693,9 +1687,9 @@ class tensor:  # noqa: PLW1641
         # old version (ver=0)
         shape = np.array(self.shape, dtype=int)
         n = dims[0]
-        order = np.array([n, *list(range(0, n)), *list(range(n + 1, self.ndims))])
+        order = np.array([n, *list(range(n)), *list(range(n + 1, self.ndims))])
         newdata = self.permute(order).data
-        ids = np.array(list(range(0, n)) + list(range(n + 1, self.ndims)))
+        ids = np.array(list(range(n)) + list(range(n + 1, self.ndims)))
         second_dim = 1
         if len(ids) > 0:
             second_dim = np.prod(shape[ids])
@@ -1708,7 +1702,7 @@ class tensor:  # noqa: PLW1641
             p = matrix.shape[0]
 
         newshape = np.array(
-            [p, *list(shape[range(0, n)]), *list(shape[range(n + 1, self.ndims)])]
+            [p, *list(shape[range(n)]), *list(shape[range(n + 1, self.ndims)])]
         )
         Y_data: np.ndarray = np.reshape(newdata, newshape, order=self.order)
         Y_data = np.transpose(Y_data, np.argsort(order))
@@ -1771,7 +1765,7 @@ class tensor:  # noqa: PLW1641
             dnew = skip_dim + 1  # Number of modes in result
             drem = d - dnew  # Number of modes multiplied out
 
-            y = self.data.copy()
+            y = self.data.copy(order=self.order)
             for i in range(drem, 0, -1):
                 yy = np.reshape(y, (sz ** (dnew + i - 1), sz), order=self.order)
                 y = yy.dot(vector)
@@ -1781,9 +1775,7 @@ class tensor:  # noqa: PLW1641
                 return np.reshape(y, [sz, sz], order=self.order)
             if dnew > 2:
                 return ttb.tensor(
-                    np.reshape(
-                        y, newshape=sz * np.ones(dnew, dtype=int), order=self.order
-                    ),
+                    np.reshape(y, sz * np.ones(dnew, dtype=int), order=self.order),
                     copy=False,
                 )
 
@@ -3410,6 +3402,7 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
     # mypy issue: 1484
     def unit_uniform(pass_through_shape: tuple[int, ...]) -> np.ndarray:
         data = np.random.uniform(low=0, high=1, size=np.prod(pass_through_shape))
+        data = data.reshape(pass_through_shape, order=order)
         return data
 
     return tensor.from_function(unit_uniform, shape)
