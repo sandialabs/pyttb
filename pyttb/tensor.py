@@ -1941,9 +1941,7 @@ class tensor:  # noqa: PLW1641
                 return np.reshape(y, [sz, sz], order=self.order)
             if dnew > 2:
                 return ttb.tensor(
-                    np.reshape(
-                        y, sz * np.ones(dnew, dtype=int), order=self.order
-                    ),
+                    np.reshape(y, sz * np.ones(dnew, dtype=int), order=self.order),
                     copy=False,
                 )
 

@@ -112,7 +112,6 @@ combine-as-imports = true
 
 [tool.mypy]
 warn_unused_configs = true
-plugins = "numpy.typing.mypy_plugin"
 
 [[tool.mypy.overrides]]
 module = [
