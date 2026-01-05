@@ -170,13 +170,13 @@ def estimate_helper(
     # After this pass, Zexp[k] = Hadarmard product of Uexp[0] through
     # Uexp[k-1] for k = 1,...,ndim
     Zexp = [np.empty(())] * ndim
-    Zexp[1] = Uexp[0].copy()
+    Zexp[1] = Uexp[0].copy("K")
     for k in range(2, ndim):
         Zexp[k] = Zexp[k - 1] * Uexp[k - 1]
 
     # After this pass, Zexp[k] = Hadarmard product of Uexcp[0] through
     # Uexp[d], except Uexp[k] for k = 0, ..., ndim
-    Zexp[0] = Uexp[ndim - 1].copy()
+    Zexp[0] = Uexp[ndim - 1].copy("K")
     for k in range(ndim - 2, 0, -1):
         Zexp[k] *= Zexp[0]
         Zexp[0] *= Uexp[k]

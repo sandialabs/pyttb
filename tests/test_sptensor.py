@@ -80,7 +80,7 @@ def test_sptensor_initialization_from_data(sample_sptensor):
 
 def test_sptensor_initialization_from_function():
     # Random Tensor Success
-    def function_handle(*args):
+    def function_handle(*args):  # noqa: ARG001
         return np.array([[0.5], [1.5], [2.5], [3.5], [4.5], [5.5]])
 
     np.random.seed(123)
@@ -117,7 +117,7 @@ def test_sptensor_initialization_from_function():
     )
 
 
-def test_sptensor_initialization_from_aggregator(sample_sptensor):
+def test_sptensor_initialization_from_aggregator():
     subs = np.array([[1, 1, 1], [1, 1, 3], [2, 2, 2], [3, 3, 3], [1, 1, 1], [1, 1, 1]])
     vals = np.array([[0.5], [1.5], [2.5], [3.5], [4.5], [5.5]])
     shape = (4, 4, 4)
@@ -148,7 +148,7 @@ def test_sptensor_initialization_from_aggregator(sample_sptensor):
         )
     assert "More subscripts than specified by shape" in str(excinfo)
 
-    badSubs = subs.copy()
+    badSubs = subs.copy("K")
     badSubs[0, 0] = 11
     with pytest.raises(AssertionError) as excinfo:
         ttb.sptensor.from_aggregator(badSubs, vals, shape)
@@ -668,9 +668,9 @@ def test_sptensor_norm(sample_sptensor):
 def test_sptensor_allsubs(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
-    for i in range(0, data["shape"][0]):
-        for j in range(0, data["shape"][1]):
-            for k in range(0, data["shape"][2]):
+    for i in range(data["shape"][0]):
+        for j in range(data["shape"][1]):
+            for k in range(data["shape"][2]):
                 result.append([i, j, k])
     assert np.array_equal(sptensorInstance.allsubs(), np.array(result))
 
@@ -682,9 +682,9 @@ def test_sptensor_logical_not(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
     result = []
     data_subs = data["subs"].tolist()
-    for i in range(0, data["shape"][0]):
-        for j in range(0, data["shape"][1]):
-            for k in range(0, data["shape"][2]):
+    for i in range(data["shape"][0]):
+        for j in range(data["shape"][1]):
+            for k in range(data["shape"][2]):
                 if [i, j, k] not in data_subs:
                     result.append([i, j, k])
     notSptensorInstance = sptensorInstance.logical_not()
@@ -910,6 +910,14 @@ def test_sptensor__add__(sample_sptensor):
     assert np.array_equal(subSptensor.data, sptensorInstance.to_tensor().data)
 
 
+def test_sptensor__radd__(sample_sptensor):
+    (data, sptensorInstance) = sample_sptensor
+
+    # scalar + Sptensor
+    subSptensor = 0 + sptensorInstance
+    assert np.array_equal(subSptensor.data, sptensorInstance.to_tensor().data)
+
+
 def test_sptensor_isequal(sample_sptensor):
     (data, sptensorInstance) = sample_sptensor
 
@@ -1037,7 +1045,7 @@ def test_sptensor_double(sample_sptensor):
         double_array[0] = 1
 
 
-def test_sptensor_compare(sample_sptensor):
+def test_sptensor_compare():
     # This is kind of a test just for coverage sake
     # mostly make clear that the operator check was intentional
     empty_sptensor = ttb.sptensor()

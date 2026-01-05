@@ -72,7 +72,7 @@ napoleon_use_rtype = False
 
 intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
-    "python": ("http://docs.python.org/3.9/", None),
+    "python": ("http://docs.python.org/3.10/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 

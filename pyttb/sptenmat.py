@@ -112,9 +112,9 @@ class sptenmat:
         rdims, cdims = gather_wrap_dims(n, rdims, cdims)
         # if rdims or cdims is empty, hstack will output an array of float not int
         if rdims.size == 0:
-            dims = cdims.copy()
+            dims = cdims.copy("K")
         elif cdims.size == 0:
-            dims = rdims.copy()
+            dims = rdims.copy("K")
         else:
             dims = np.hstack([rdims, cdims], dtype=int)
         assert len(dims) == n and (alldims == np.sort(dims)).all(), (
@@ -154,8 +154,8 @@ class sptenmat:
                 newvals = newvals[:, None]
 
             self.tshape = tshape
-            self.rdims = rdims.copy().astype(int)
-            self.cdims = cdims.copy().astype(int)
+            self.rdims = rdims.copy("K").astype(int)
+            self.cdims = cdims.copy("K").astype(int)
             self.subs = newsubs
             self.vals = newvals
         else:
@@ -328,7 +328,7 @@ class sptenmat:
             n = np.prod(np.array(self.tshape)[self.cdims])
             return int(m), int(n)
 
-    def double(self, immutable: bool = False) -> sparse.coo_matrix:
+    def double(self, immutable: bool = False) -> sparse.coo_matrix:  # noqa: ARG002
         """
         Convert a :class:`pyttb.sptenmat` to a COO :class:`scipy.sparse.coo_matrix`.
 
@@ -621,7 +621,7 @@ class sptenmat:
 
         # An empty ndarray with minimum dimensions still has a shape
         if self.subs.size > 0:
-            for i in range(0, self.subs.shape[0]):
+            for i in range(self.subs.shape[0]):
                 s += "\t"
                 s += "["
                 idx = self.subs[i, :]

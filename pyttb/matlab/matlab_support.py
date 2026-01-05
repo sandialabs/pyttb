@@ -5,15 +5,13 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
-from typing import Union
-
 import numpy as np
 
 from pyttb.tensor import tensor
 
 from .matlab_utilities import _matlab_array_str
 
-PRINT_CLASSES = Union[tensor, np.ndarray]
+PRINT_CLASSES = tensor | np.ndarray
 
 
 def matlab_print(

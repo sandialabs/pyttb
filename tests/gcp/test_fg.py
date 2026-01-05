@@ -20,7 +20,7 @@ def test_evaluate():
         data = ttb.tensor()
         evaluate(model, data)
 
-    def no_op(data, model):
+    def no_op(data, model):  # noqa: ARG001
         """Function handle that does nothing"""
         return data
 
