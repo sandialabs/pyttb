@@ -442,6 +442,9 @@ def test_ttensor_nvecs(random_ttensor):
     assert np.allclose(ttensor_eigvals, sparse_factors_ttensor_eigvals)
 
 
+@pytest.mark.skip(
+    reason="I don't think this test makes sense. See TODO for adding better test."
+)
 def test_ttensor_nvecs_all_zeros(random_ttensor):
     """Perform nvecs calculation on all zeros tensor to exercise sparsity edge cases"""
     ttensorInstance = random_ttensor

@@ -8,12 +8,11 @@ from __future__ import annotations
 
 import logging
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from math import prod
 from operator import ge, gt, le, lt
 from typing import (
     Any,
-    Callable,
     Literal,
     cast,
     overload,
@@ -428,11 +427,11 @@ class sptensor:  # noqa: PLW1641
 
         # Generate appropriately sized ones vectors
         o = []
-        for n in range(0, self.ndims):
+        for n in range(self.ndims):
             o.append(np.ones((self.shape[n], 1)))
 
         # Generate each column of the subscripts in turn
-        for n in range(0, self.ndims):
+        for n in range(self.ndims):
             i: list[np.ndarray] = o.copy()
             i[n] = np.expand_dims(np.arange(0, self.shape[n]), axis=1)
             s[:, n] = np.squeeze(ttb.khatrirao(*i))
@@ -1889,7 +1888,7 @@ class sptensor:  # noqa: PLW1641
 
         loc = np.arange(0, len(self.subs))
 
-        for i in range(0, self.ndims):
+        for i in range(self.ndims):
             # TODO: Consider cleaner typing coercion
             # Find subscripts that match in dimension i
             if isinstance(region[i], (int, np.generic)):
@@ -1897,7 +1896,7 @@ class sptensor:  # noqa: PLW1641
             elif isinstance(region[i], (np.ndarray, list)):
                 tf = np.isin(self.subs[loc, i], cast("np.ndarray", region[i]))
             elif isinstance(region[i], slice):
-                sliceRegion = range(0, self.shape[i])[region[i]]
+                sliceRegion = range(self.shape[i])[region[i]]
                 tf = np.isin(self.subs[loc, i], sliceRegion)
             else:
                 raise ValueError(
@@ -2407,7 +2406,7 @@ class sptensor:  # noqa: PLW1641
         # Process Group B: Removing Values
         if np.sum(idxb) > 0:
             removesubs = loc[idxb]
-            keepsubs = np.setdiff1d(range(0, self.nnz), removesubs)
+            keepsubs = np.setdiff1d(range(self.nnz), removesubs)
             self.subs = self.subs[keepsubs, :]
             self.vals = self.vals[keepsubs]
         # Process Group C: Adding new, nonzero values
@@ -2474,7 +2473,7 @@ class sptensor:  # noqa: PLW1641
                 )
             # Delete what currently occupies the specified range
             rmloc = self.subdims(key)
-            kploc = np.setdiff1d(range(0, self.nnz), rmloc)
+            kploc = np.setdiff1d(range(self.nnz), rmloc)
             # TODO: evaluate solution for assigning value to empty sptensor
             if len(self.subs.shape) > 1:
                 newsubs = self.subs[kploc.astype(int), :]
@@ -2502,7 +2501,7 @@ class sptensor:  # noqa: PLW1641
 
         # First, resize the tensor, determine new size of existing modes
         newsz = []
-        for n in range(0, self.ndims):
+        for n in range(self.ndims):
             if isinstance(key[n], slice):
                 if key[n].stop is None:
                     newsz.append(self.shape[n])
@@ -2544,7 +2543,7 @@ class sptensor:  # noqa: PLW1641
         if isinstance(value, (int, float)) and value == 0:
             # Delete what currently occupies the specified range
             rmloc = self.subdims(key)
-            kploc = np.setdiff1d(range(0, self.nnz), rmloc).astype(int)
+            kploc = np.setdiff1d(range(self.nnz), rmloc).astype(int)
             self.subs = self.subs[kploc, :]
             self.vals = self.vals[kploc]
             return
@@ -2556,7 +2555,7 @@ class sptensor:  # noqa: PLW1641
             keyCopy = [None] * N
             # Figure out how many indices are in each dimension
             nssubs = np.zeros((N, 1))
-            for n in range(0, N):
+            for n in range(N):
                 if isinstance(key[n], slice):
                     # Generate slice explicitly to determine its length
                     keyCopy[n] = np.arange(0, self.shape[n])[key[n]]
@@ -2900,6 +2899,29 @@ class sptensor:  # noqa: PLW1641
             return other.__add__(self)
         # Otherwise return negated sub
         return self.__sub__(-other)
+
+    def __radd__(self, other):
+        """
+        Right binary addition operator (+).
+
+        Parameters
+        ----------
+        other:
+            Object to add to the sparse tensor.
+
+        Examples
+        --------
+        Add a scalar value, returning a dense tensor:
+
+        >>> S = ttb.sptensor(shape=(2, 2))
+        >>> S[1, 1] = 1.0
+        >>> 1 + S
+        tensor of shape (2, 2) with order F
+        data[:, :] =
+        [[1. 1.]
+         [1. 2.]]
+        """
+        return self.__add__(other)
 
     def __pos__(self):
         """
@@ -3446,7 +3468,7 @@ class sptensor:  # noqa: PLW1641
             r = input("Are you sure you want to print all nonzeros? (Y/N)")
             if r.upper() != "Y":
                 return s
-        for i in range(0, self.subs.shape[0]):
+        for i in range(self.subs.shape[0]):
             s += "["
             idx = self.subs[i, :]
             s += str(idx.tolist())[1:]

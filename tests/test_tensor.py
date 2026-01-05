@@ -94,7 +94,8 @@ def test_tensor_initialization_from_data(sample_tensor_2way):
 def test_tensor_initialization_from_function(memory_layout):
     order = memory_layout["order"]
 
-    def function_handle(x):
+    # Dummy function handle
+    def function_handle(x):  # noqa: ARG001
         return np.array([[1, 2, 3], [4, 5, 6]], order=order)
 
     shape = (2, 3)
@@ -1090,7 +1091,7 @@ def test_tensor__repr__(sample_tensor_2way):
     str(ttb.tensor())
 
 
-def test_tensor_exp(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+def test_tensor_exp(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
     exp_tensor = tensorInstance.exp()
     assert np.array_equal(tensorInstance.exp().data, np.exp(params["data"]))
@@ -1259,7 +1260,7 @@ def test_tensor_ttm(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
     assert "dims must contain values in [0,self.dims)" in str(excinfo)
 
 
-def test_tensor_ttt(sample_tensor_2way, sample_tensor_3way, sample_tensor_4way):
+def test_tensor_ttt():
     M31 = ttb.tensor(np.reshape(np.arange(1, 2 * 3 * 4 + 1), [4, 3, 2], order="F"))
     M32 = ttb.tensor(np.reshape(np.arange(1, 2 * 3 * 4 + 1), [3, 4, 2], order="F"))
 
@@ -1559,7 +1560,7 @@ def test_tensor_symmetrize(sample_tensor_2way):
     assert "Dimension mismatch for symmetrization" in str(excinfo)
 
 
-def test_tensor__str__(sample_tensor_2way):
+def test_tensor__str__():
     # Test 1D
     data = np.random.normal(size=(4,))
     tensorInstance = ttb.tensor(data)

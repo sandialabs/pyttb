@@ -269,7 +269,7 @@ class ttensor:
         return self.core.isequal(other.core) and all(
             np.array_equal(this_factor, other_factor)
             for this_factor, other_factor in zip(
-                self.factor_matrices, other.factor_matrices
+                self.factor_matrices, other.factor_matrices, strict=False
             )
         )
 
@@ -318,7 +318,7 @@ class ttensor:
                 return other.innerprod(self)
             W = []
             for this_factor, other_factor in zip(
-                self.factor_matrices, other.factor_matrices
+                self.factor_matrices, other.factor_matrices, strict=False
             ):
                 W.append(this_factor.transpose().dot(other_factor))
             J = other.core.ttm(W)
@@ -450,7 +450,7 @@ class ttensor:
         W = [np.empty((), order=self.order)] * self.ndims
         if isinstance(U, ttb.ktensor):
             U = U.factor_matrices
-        for i in range(0, self.ndims):
+        for i in range(self.ndims):
             if i == n:
                 continue
             W[i] = self.factor_matrices[i].transpose().dot(U[i])
@@ -605,7 +605,7 @@ class ttensor:
             )
 
         full_samples = [np.array([], order=self.order)] * self.ndims
-        for sample, mode in zip(samples, modes):
+        for sample, mode in zip(samples, modes, strict=False):
             if np.isscalar(sample):
                 full_samples[mode] = np.array([sample], order=self.order)
             else:
