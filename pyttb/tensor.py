@@ -2172,6 +2172,8 @@ class tensor:  # noqa: PLW1641
             idx = np.array(range(prod(self.shape))[key])
         idx = tt_ind2sub(self.shape, idx)
         if idx.shape[0] == 1:
+            if isinstance(value, np.ndarray) and value.size == 1:
+                value = value.item()
             self.data[tuple(idx[0, :])] = value
         else:
             actualIdx = tuple(idx.transpose())

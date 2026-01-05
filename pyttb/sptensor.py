@@ -2030,7 +2030,9 @@ class sptensor:  # noqa: PLW1641
             )
             if np.count_nonzero(c) <= 0.5 * newsiz:
                 return ttb.sptensor.from_aggregator(
-                    np.arange(0, newsiz)[:, None], c.reshape((len(c), 1)), tuple(newsiz)
+                    np.arange(0, newsiz.item())[:, None],
+                    c.reshape((len(c), 1)),
+                    tuple(newsiz),
                 )
             return ttb.tensor(c, tuple(newsiz), copy=False)
 
@@ -2574,7 +2576,10 @@ class sptensor:  # noqa: PLW1641
             # Generate appropriately sized ones vectors
             o = []
             for n in range(N):
-                o.append(np.ones((int(nssubs[n]), 1)))
+                try:
+                    o.append(np.ones((int(nssubs[n].item()), 1)))
+                except Exception as e:
+                    raise TypeError(f"{nssubs[n]}") from e
 
             # Generate each column of the subscripts in turn
             for n in range(N):
