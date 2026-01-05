@@ -407,7 +407,7 @@ class ktensor:
 
         # extract weights from input vector if present
         if contains_weights:
-            weights = data[0:num_components].copy()
+            weights = data[0:num_components].copy("K")
             shift = num_components
         else:
             weights = np.ones(num_components)
@@ -420,7 +420,7 @@ class ktensor:
             mend = num_components * sum(shape[0 : n + 1]) + shift
             # the following will match MATLAB output
             factor_matrix = np.reshape(
-                data[mstart:mend].copy(), (shape_n, num_components), order="F"
+                data[mstart:mend].copy("K"), (shape_n, num_components), order="F"
             )
             factor_matrices.append(factor_matrix)
 
@@ -859,7 +859,7 @@ class ktensor:
 
             # Sort the sign scores.
             sort_idx = np.argsort(sgn_score)
-            sort_sgn_score = sgn_score.copy()[sort_idx]
+            sort_sgn_score = sgn_score.copy("K")[sort_idx]
 
             # Determine the number of scores that should be flipped.
             breakpt = np.nonzero(sort_sgn_score < 0)[-1]
@@ -1831,7 +1831,7 @@ class ktensor:
                     weights[j] = -weights[j]
                     V[:, [j]] = -V[:, [j]]
 
-        return ttb.ktensor([V.copy() for i in range(K.ndims)], weights)
+        return ttb.ktensor([V.copy("K") for i in range(K.ndims)], weights)
 
     def tolist(self, mode: int | None = None) -> list[np.ndarray]:
         """Convert :class:`pyttb.ktensor` to a list of factor matrices.
@@ -2108,7 +2108,7 @@ class ktensor:
         remdims = np.setdiff1d(range(self.ndims), dims)
 
         # Collapse dimensions that are being multiplied out
-        new_weights = self.weights.copy()
+        new_weights = self.weights.copy("K")
         for i, dim in enumerate(dims):
             new_weights = new_weights * (
                 self.factor_matrices[dim].T @ vector[vidx[i]].squeeze()
@@ -2234,7 +2234,7 @@ class ktensor:
                 endloc = loc + self.ncomponents
                 if len(data) < endloc:
                     assert False, "Data is too short"
-                self.weights = data[loc:endloc].copy()
+                self.weights = data[loc:endloc].copy("K")
                 loc = endloc
             elif k < self.ndims:
                 # update factor matrix
@@ -2242,7 +2242,7 @@ class ktensor:
                 if len(data) < endloc:
                     assert False, "Data is too short"
                 self.factor_matrices[k] = np.reshape(
-                    data[loc:endloc].copy(),
+                    data[loc:endloc].copy("K"),
                     (self.shape[k], self.ncomponents),
                     order=self.order,
                 )
@@ -2384,7 +2384,7 @@ class ktensor:
             self.normalize(normtype=norm, sort=True)
 
         # compute factor weights (and optionally normalize)
-        weights = self.weights.copy()
+        weights = self.weights.copy("K")
         weight_labels = [format(w, ".2e") for w in weights]
         if rel_weights:
             weights /= np.max(weights)

@@ -112,9 +112,9 @@ class sptenmat:
         rdims, cdims = gather_wrap_dims(n, rdims, cdims)
         # if rdims or cdims is empty, hstack will output an array of float not int
         if rdims.size == 0:
-            dims = cdims.copy()
+            dims = cdims.copy("K")
         elif cdims.size == 0:
-            dims = rdims.copy()
+            dims = rdims.copy("K")
         else:
             dims = np.hstack([rdims, cdims], dtype=int)
         assert len(dims) == n and (alldims == np.sort(dims)).all(), (
@@ -154,8 +154,8 @@ class sptenmat:
                 newvals = newvals[:, None]
 
             self.tshape = tshape
-            self.rdims = rdims.copy().astype(int)
-            self.cdims = cdims.copy().astype(int)
+            self.rdims = rdims.copy("K").astype(int)
+            self.cdims = cdims.copy("K").astype(int)
             self.subs = newsubs
             self.vals = newvals
         else:
