@@ -1197,22 +1197,22 @@ class sptensor:  # noqa: PLW1641
 
         Create mask :class:`pyttb.sptensor` and extract nonzero values from `S`::
 
-        >>> W = ttb.sptensor()
-        >>> W[0, 0, 0] = 1
-        >>> W[1, 1, 1] = 1
-        >>> S.mask(W)
-        array([[1.],
-               [2.]])
+            >>> W = ttb.sptensor()
+            >>> W[0, 0, 0] = 1
+            >>> W[1, 1, 1] = 1
+            >>> S.mask(W)
+            array([[1.],
+                  [2.]])
 
         Create mask :class:`pyttb.sptensor` and extract some nonzero values and some
-        zero values:
+        zero values::
 
-        >>> W = ttb.sptensor()
-        >>> W[0, 0, 0] = 1
-        >>> W[1, 0, 0] = 1
-        >>> S.mask(W)
-        array([[1.],
-               [0.]])
+            >>> W = ttb.sptensor()
+            >>> W[0, 0, 0] = 1
+            >>> W[1, 0, 0] = 1
+            >>> S.mask(W)
+            array([[1.],
+                   [0.]])
         """
         # Error check
         if len(W.shape) != len(self.shape) or np.any(
