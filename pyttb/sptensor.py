@@ -113,8 +113,8 @@ class sptensor:  # noqa: PLW1641
 
     **Tutorial**
 
-    See the :doc:`/tutorial/class_sptensor` tutorial for getting started with
-    the sptensor class.
+    See the :doc:`/tutorial/class_sptensor` tutorial for getting started with the
+    sptensor class.
 
     -----
 
@@ -209,10 +209,10 @@ class sptensor:  # noqa: PLW1641
 
         Examples
         --------
-        Create a :class:`pyttb.sptensor` from a :class:`pyttb.tensor` containing a 10x10
-        diagonal identity matrix and return the number of nonzeros::
+        Create a :class:`pyttb.sptensor` from a 10-way diagonal :class:`pyttb.tensor`
+        and return the number of nonzeros::
 
-            >>> S = ttb.tensor(np.eye(10)).to_sptensor()
+            >>> S = ttb.tendiag(np.ones(10)).to_sptensor()
             >>> S.nnz
             10
         """
