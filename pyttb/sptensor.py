@@ -1367,7 +1367,7 @@ class sptensor:  # noqa: PLW1641
             >>> S = ttb.sptensor(subs, vals, shape)
 
         Compute two mode-0 leading eigenvectors of `S`, making sign of largest element
-        of each eigenvector positive (i.e., `flipsign`=True)::
+        of each eigenvector positive (i.e., `flipsign` =True)::
 
             >>> S.nvecs(0, 2, flipsign=True)  # doctest: +ELLIPSIS
             array([[-0.4718...,  0.8816...],
