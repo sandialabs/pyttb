@@ -209,12 +209,12 @@ class sptensor:  # noqa: PLW1641
 
         Examples
         --------
-        Create a :class:`pyttb.sptensor` from a 10-way diagonal :class:`pyttb.tensor`
+        Create a :class:`pyttb.sptensor` from a 3-way diagonal :class:`pyttb.tensor`
         and return the number of nonzeros::
 
-            >>> S = ttb.tendiag(np.ones(10)).to_sptensor()
+            >>> S = ttb.tendiag(np.ones(3)).to_sptensor()
             >>> S.nnz
-            10
+            3
         """
         if self.subs.size == 0:
             return 0
@@ -258,23 +258,23 @@ class sptensor:  # noqa: PLW1641
         Create a :class:`pyttb.sptensor` with some duplicate subscripts and use an
         aggregator function to sum the values across those duplicate subscripts::
 
-            >>> subs = np.array([[1, 2], [1, 3], [1, 3]])
+            >>> subs = np.array([[1, 2, 3], [1, 3, 4], [1, 3, 4]])
             >>> vals = np.array([[6], [7], [8]])
             >>> shape = (4, 4)
             >>> S = ttb.sptensor.from_aggregator(subs, vals)
             >>> print(S)
-            sparse tensor of shape (2, 4) with 2 nonzeros and order F
-            [1, 2] = 6
-            [1, 3] = 15
+            sparse tensor of shape (2, 4, 5) with 2 nonzeros and order F
+            [1, 2, 3] = 6
+            [1, 3, 4] = 15
 
         Create another :class:`pyttb.sptensor` but specify the shape explicitly::
 
-            >>> shape = (4, 5)
+            >>> shape = (4, 5, 6)
             >>> S = ttb.sptensor.from_aggregator(subs, vals, shape)
             >>> print(S)
-            sparse tensor of shape (4, 5) with 2 nonzeros and order F
-            [1, 2] = 6
-            [1, 3] = 15
+            sparse tensor of shape (4, 5, 6) with 2 nonzeros and order F
+            [1, 2, 3] = 6
+            [1, 3, 4] = 15
 
         Create another :class:`pyttb.sptensor` but aggregate using the mean of values
         corresponding to duplicate subscripts::
@@ -283,9 +283,9 @@ class sptensor:  # noqa: PLW1641
             ...     subs, vals, shape, function_handle=np.mean
             ... )
             >>> print(S3)
-            sparse tensor of shape (4, 5) with 2 nonzeros and order F
-            [1, 2] = 6.0
-            [1, 3] = 7.5
+            sparse tensor of shape (4, 5, 6) with 2 nonzeros and order F
+            [1, 2, 3] = 6.0
+            [1, 3, 4] = 7.5
         """
         tt_subscheck(subs, False)
         tt_valscheck(vals, False)
@@ -427,12 +427,16 @@ class sptensor:  # noqa: PLW1641
         --------
         Create an empty :class:`pyttb.sptensor` and generate all subscripts::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
             >>> S.allsubs()
-            array([[0, 0],
-                   [0, 1],
-                   [1, 0],
-                   [1, 1]])
+            array([[0, 0, 0],
+                   [0, 0, 1],
+                   [0, 1, 0],
+                   [0, 1, 1],
+                   [1, 0, 0],
+                   [1, 0, 1],
+                   [1, 1, 0],
+                   [1, 1, 1]])
         """
         # Preallocate (discover any memory issues here!)
         if len(self.shape) == 0:
@@ -632,16 +636,16 @@ class sptensor:  # noqa: PLW1641
         Create a :class:`pyttb.sptensor`, make a deep copy, and verify the deep copy is
         not just a reference to the original::
 
-            >>> S1 = ttb.sptensor(shape=(2, 2))
-            >>> S1[0, 0] = 1
+            >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+            >>> S1[0, 0, 0] = 1
             >>> # create reference to S1
             >>> S2 = S1
             >>> # create copy of S1
             >>> S3 = S1.copy()
-            >>> S1[0, 0] = 3
-            >>> S1[0, 0] == S2[0, 0]
+            >>> S1[0, 0, 0] = 3
+            >>> S1[0, 0, 0] == S2[0, 0, 0]
             True
-            >>> S1[0, 0] == S3[0, 0]
+            >>> S1[0, 0, 0] == S3[0, 0, 0]
             False
         """
         return ttb.sptensor(self.subs, self.vals, self.shape, copy=True)
@@ -666,12 +670,13 @@ class sptensor:  # noqa: PLW1641
         :class:`numpy.ndarray`::
 
             >>> S = ttb.sptensor()
-            >>> S[0, 1] = 1.5
+            >>> S[0, 1, 2] = 1.5
             >>> S
-            sparse tensor of shape (1, 2) with 1 nonzeros and order F
-            [0, 1] = 1.5
+            sparse tensor of shape (1, 2, 3) with 1 nonzeros and order F
+            [0, 1, 2] = 1.5
             >>> S.double()
-            array([[0. , 1.5]])
+            array([[[0. , 0. , 0. ],
+                    [0. , 0. , 1.5]]])
         """
         a = np.zeros(self.shape, order=self.order)
         if self.nnz > 0:
@@ -823,12 +828,12 @@ class sptensor:  # noqa: PLW1641
         Create a :class:`pyttb.sptensor`::
 
             >>> S = ttb.sptensor()
-            >>> S[0, 0] = 1
-            >>> S[1, 1] = 2
+            >>> S[0, 0, 0] = 1
+            >>> S[1, 1, 1] = 2
             >>> S
-            sparse tensor of shape (2, 2) with 2 nonzeros and order F
-            [0, 0] = 1.0
-            [1, 1] = 2.0
+            sparse tensor of shape (2, 2, 2) with 2 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [1, 1, 1] = 2.0
 
         Compute inner product with :class:`pyttb.tensor` of all ones that is the same
         shape as `S`::
@@ -891,12 +896,12 @@ class sptensor:  # noqa: PLW1641
         Create a :class:`pyttb.sptensor`::
 
             >>> S = ttb.sptensor()
-            >>> S[0, 0] = 1
-            >>> S[1, 1] = 2
+            >>> S[0, 0, 0] = 1
+            >>> S[1, 1, 1] = 2
             >>> S
-            sparse tensor of shape (2, 2) with 2 nonzeros and order F
-            [0, 0] = 1.0
-            [1, 1] = 2.0
+            sparse tensor of shape (2, 2, 2) with 2 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [1, 1, 1] = 2.0
 
         Compare with a tensor that should be equal::
 
@@ -906,7 +911,7 @@ class sptensor:  # noqa: PLW1641
 
         Compare with a tensor that should not be equal::
 
-            >>> T[0, 0] = T[0, 0] + 1
+            >>> T[0, 0, 0] = T[0, 0, 0] + 1
             >>> S.isequal(T)
             False
         """
@@ -1317,17 +1322,17 @@ class sptensor:  # noqa: PLW1641
 
         Examples
         --------
-        Create a :class:`pyttb.sptensor` from a diagonal matrix and compute its norm:
+        Create a :class:`pyttb.sptensor` from a diagonal tensor and compute its norm:
 
-            >>> S = ttb.tensor(np.diag([1.0, 2.0, 3.0, 4.0])).to_sptensor()
+            >>> S = ttb.tendiag(np.array([1.0, 2.0, 3.0, 4.0])).to_sptensor()
             >>> S
-            sparse tensor of shape (4, 4) with 4 nonzeros and order F
-            [0, 0] = 1.0
-            [1, 1] = 2.0
-            [2, 2] = 3.0
-            [3, 3] = 4.0
+            sparse tensor of shape (4, 4, 4, 4) with 4 nonzeros and order F
+            [0, 0, 0, 0] = 1.0
+            [1, 1, 1, 1] = 2.0
+            [2, 2, 2, 2] = 3.0
+            [3, 3, 3, 3] = 4.0
             >>> S.norm()  # doctest: +ELLIPSIS
-            5.47722557...
+            5.4772...
         """
         return np.linalg.norm(self.vals).item()
 
@@ -1356,9 +1361,9 @@ class sptensor:  # noqa: PLW1641
         --------
         Create a :class:`pyttb.sptensor`::
 
-            >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+            >>> subs = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 0]])
             >>> vals = np.array([[1.0], [2.0], [3.0]])
-            >>> shape = (2, 2)
+            >>> shape = (2, 2, 2)
             >>> S = ttb.sptensor(subs, vals, shape)
 
         Compute two mode-0 leading eigenvectors of `S`, making sign of largest element
@@ -1412,23 +1417,23 @@ class sptensor:  # noqa: PLW1641
         --------
         Create a :class:`pyttb.sptensor`::
 
-            >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+            >>> subs = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 0]])
             >>> vals = np.array([[1.0], [2.0], [3.0]])
-            >>> shape = (2, 2)
+            >>> shape = (2, 2, 2)
             >>> S = ttb.sptensor(subs, vals, shape)
             >>> S
-            sparse tensor of shape (2, 2) with 3 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 2.0
-            [1, 0] = 3.0
+            sparse tensor of shape (2, 2, 2) with 3 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 1, 1] = 2.0
+            [1, 0, 0] = 3.0
 
         Replace the nonzero values of `S` with the value 1::
 
             >>> S.ones()
-            sparse tensor of shape (2, 2) with 3 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 1.0
-            [1, 0] = 1.0
+            sparse tensor of shape (2, 2, 2) with 3 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 1, 1] = 1.0
+            [1, 0, 0] = 1.0
         """
         oneVals = self.vals.copy("K")
         oneVals.fill(1)
@@ -1450,24 +1455,24 @@ class sptensor:  # noqa: PLW1641
         --------
         Create a :class:`pyttb.sptensor`::
 
-            >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
+            >>> subs = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 0]])
             >>> vals = np.array([[1.0], [2.0], [3.0]])
-            >>> shape = (2, 2)
+            >>> shape = (2, 2, 2)
             >>> S = ttb.sptensor(subs, vals, shape)
             >>> S
-            sparse tensor of shape (2, 2) with 3 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 2.0
-            [1, 0] = 3.0
+            sparse tensor of shape (2, 2, 2) with 3 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 1, 1] = 2.0
+            [1, 0, 0] = 3.0
 
         Permute the order of the dimensions by reversing them::
 
-            >>> S1 = S.permute(np.array((1, 0)))
+            >>> S1 = S.permute(np.array((1, 0, 2)))
             >>> S1
-            sparse tensor of shape (2, 2) with 3 nonzeros and order F
-            [0, 0] = 1.0
-            [1, 0] = 2.0
-            [0, 1] = 3.0
+            sparse tensor of shape (2, 2, 2) with 3 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [1, 0, 1] = 2.0
+            [0, 1, 0] = 3.0
         """
         order = parse_one_d(order)
         # Error check
@@ -2150,25 +2155,27 @@ class sptensor:  # noqa: PLW1641
         --------
         Create a 2-way :class:`pyttb.sptensor` that is relatively dense::
 
-            >>> subs = np.array([[0, 0], [0, 1], [1, 0]])
-            >>> vals = np.array([[1.0], [2.0], [3.0]])
-            >>> shape = (2, 2)
+            >>> subs = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 0], [1, 1, 0]])
+            >>> vals = np.array([[1.0], [2.0], [3.0], [4.0]])
+            >>> shape = (2, 2, 2)
             >>> S = ttb.sptensor(subs, vals, shape)
             >>> S
-            sparse tensor of shape (2, 2) with 3 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 2.0
-            [1, 0] = 3.0
+            sparse tensor of shape (2, 2, 2) with 4 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 1, 1] = 2.0
+            [1, 0, 0] = 3.0
+            [1, 1, 0] = 4.0
 
         Compute the product of `S` with a vector of ones across mode 0. The result is a
         :class:`pyttb.tensor`::
 
             >>> S.ttv(np.ones(2), 0)
-            tensor of shape (2,) with order F
-            data[:] =
-            [4. 2.]
+            tensor of shape (2, 2) with order F
+            data[:, :] =
+            [[4. 0.]
+             [4. 2.]]
 
-        Create a 3-way :class:`pyttb.sptensor` that is much more sparse::
+        Create a 3-way :class:`pyttb.sptensor` that is more sparse::
 
             >>> subs = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 1]])
             >>> vals = np.array([[1.0], [2.0], [3.0]])
@@ -2264,17 +2271,20 @@ class sptensor:  # noqa: PLW1641
         --------
         Add a :class:`pyttb.sptensor` to itself, returning a sparse tensor::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S + S
-            sparse tensor of shape (2, 2) with 1 nonzeros and order F
-            [1, 1] = 2.0
+            sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
+            [1, 1, 1] = 2.0
 
         Add a scalar value, returning a dense tensor::
 
             >>> S + 1
-            tensor of shape (2, 2) with order F
-            data[:, :] =
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[1. 1.]
+             [1. 1.]]
+            data[:, :, 1] =
             [[1. 1.]
              [1. 2.]]
         """
@@ -2301,20 +2311,25 @@ class sptensor:  # noqa: PLW1641
         --------
         Compare the :class:`pyttb.sptensor` to itself, returning all `True` values::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
+            >>> S[0, 0, 1] = 2.0
             >>> S == S
-            sparse tensor of shape (2, 2) with 4 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 1.0
-            [1, 0] = 1.0
-            [1, 1] = 1.0
+            sparse tensor of shape (2, 2, 2) with 8 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 1, 0] = 1.0
+            [0, 1, 1] = 1.0
+            [1, 0, 0] = 1.0
+            [1, 0, 1] = 1.0
+            [1, 1, 0] = 1.0
+            [1, 1, 1] = 1.0
+            [0, 0, 1] = 1.0
 
         Compare with a scalar value, returning only a single `True` value::
 
             >>> S == 1
-            sparse tensor of shape (2, 2) with 1 nonzeros and order F
-            [1, 1] = 1.0
+            sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
+            [1, 1, 1] = 1.0
         """
         # Case 1: other is a scalar
         if isinstance(other, (float, int)):
@@ -2402,20 +2417,24 @@ class sptensor:  # noqa: PLW1641
         --------
         Compare a :class:`pyttb.sptensor` with itself::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S >= S
-            sparse tensor of shape (2, 2) with 4 nonzeros and order F
-            [1, 1] = 1.0
-            [0, 0] = 1.0
-            [0, 1] = 1.0
-            [1, 0] = 1.0
+            sparse tensor of shape (2, 2, 2) with 8 nonzeros and order F
+            [1, 1, 1] = 1.0
+            [0, 0, 0] = 1.0
+            [0, 0, 1] = 1.0
+            [0, 1, 0] = 1.0
+            [0, 1, 1] = 1.0
+            [1, 0, 0] = 1.0
+            [1, 0, 1] = 1.0
+            [1, 1, 0] = 1.0
 
         Compare with a scalar::
 
             >>> S >= 1
-            sparse tensor of shape (2, 2) with 1 nonzeros and order F
-            [1, 1] = 1.0
+            sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
+            [1, 1, 1] = 1.0
         """
         return self._compare(other, ge, le, True)
 
@@ -2594,16 +2613,16 @@ class sptensor:  # noqa: PLW1641
         --------
         Compare a :class:`pyttb.sptensor` with itself::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S > S
-            empty sparse tensor of shape (2, 2) with order F
+            empty sparse tensor of shape (2, 2, 2) with order F
 
         Compare with a scalar::
 
             >>> S > 0
-            sparse tensor of shape (2, 2) with 1 nonzeros and order F
-            [1, 1] = 1.0
+            sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
+            [1, 1, 1] = 1.0
         """
         return self._compare(other, gt, lt)
 
@@ -2620,19 +2639,23 @@ class sptensor:  # noqa: PLW1641
         --------
         Compare a :class:`pyttb.sptensor` with itself::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S <= S
-            sparse tensor of shape (2, 2) with 4 nonzeros and order F
-            [1, 1] = 1.0
-            [0, 0] = 1.0
-            [0, 1] = 1.0
-            [1, 0] = 1.0
+            sparse tensor of shape (2, 2, 2) with 8 nonzeros and order F
+            [1, 1, 1] = 1.0
+            [0, 0, 0] = 1.0
+            [0, 0, 1] = 1.0
+            [0, 1, 0] = 1.0
+            [0, 1, 1] = 1.0
+            [1, 0, 0] = 1.0
+            [1, 0, 1] = 1.0
+            [1, 1, 0] = 1.0
 
         Compare with a scalar::
 
             >>> S <= -1
-            empty sparse tensor of shape (2, 2) with order F
+            empty sparse tensor of shape (2, 2, 2) with order F
         """
         return self._compare(other, le, ge, True)
 
@@ -2649,18 +2672,22 @@ class sptensor:  # noqa: PLW1641
         --------
         Compare a :class:`pyttb.sptensor` with itself::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S < S
-            empty sparse tensor of shape (2, 2) with order F
+            empty sparse tensor of shape (2, 2, 2) with order F
 
         Compare with a scalar::
 
             >>> S < 1
-            sparse tensor of shape (2, 2) with 3 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 1.0
-            [1, 0] = 1.0
+            sparse tensor of shape (2, 2, 2) with 7 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 0, 1] = 1.0
+            [0, 1, 0] = 1.0
+            [0, 1, 1] = 1.0
+            [1, 0, 0] = 1.0
+            [1, 0, 1] = 1.0
+            [1, 1, 0] = 1.0
         """
         return self._compare(other, lt, gt)
 
@@ -2677,19 +2704,19 @@ class sptensor:  # noqa: PLW1641
         --------
         Multiply a :class:`pyttb.sptensor` by a scalar::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S * 3
-            sparse tensor of shape (2, 2) with 1 nonzeros and order F
-            [1, 1] = 3.0
+            sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
+            [1, 1, 1] = 3.0
 
         Multiply two sparse tensors with no overlap in subscripts of nonzeros, resulting
         in an empty sparse tensor:
 
-            >>> S2 = ttb.sptensor(shape=(2, 2))
-            >>> S2[1, 0] = 1.0
+            >>> S2 = ttb.sptensor(shape=(2, 2, 2))
+            >>> S2[1, 0, 0] = 1.0
             >>> S * S2
-            empty sparse tensor of shape (2, 2) with order F
+            empty sparse tensor of shape (2, 2, 2) with order F
         """
         if isinstance(other, (float, int, np.number)):
             return ttb.sptensor(self.subs, self.vals * other, self.shape)
@@ -2741,18 +2768,22 @@ class sptensor:  # noqa: PLW1641
         --------
         Compare a :class:`pyttb.sptensor` to itself, returning no `True` values:
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S != S
-            empty sparse tensor of shape (2, 2) with order F
+            empty sparse tensor of shape (2, 2, 2) with order F
 
         Compare with a scalar value::
 
             >>> S != 1
-            sparse tensor of shape (2, 2) with 3 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 1.0
-            [1, 0] = 1.0
+            sparse tensor of shape (2, 2, 2) with 7 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 0, 1] = 1.0
+            [0, 1, 0] = 1.0
+            [0, 1, 1] = 1.0
+            [1, 0, 0] = 1.0
+            [1, 0, 1] = 1.0
+            [1, 1, 0] = 1.0
         """
         # Case 1: One argument is a scalar
         if isinstance(other, (float, int)):
@@ -2895,11 +2926,14 @@ class sptensor:  # noqa: PLW1641
         --------
         Add a scalar value, returning a dense tensor::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> 1 + S
-            tensor of shape (2, 2) with order F
-            data[:, :] =
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[1. 1.]
+             [1. 1.]]
+            data[:, :, 1] =
             [[1. 1.]
              [1. 2.]]
         """
@@ -2913,14 +2947,18 @@ class sptensor:  # noqa: PLW1641
         --------
         Create a :class:`pyttb.sptensor` and print it as a string::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[:, :] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[:, :, :] = 1.0
             >>> print(S)
-            sparse tensor of shape (2, 2) with 4 nonzeros and order F
-            [0, 0] = 1.0
-            [0, 1] = 1.0
-            [1, 0] = 1.0
-            [1, 1] = 1.0
+            sparse tensor of shape (2, 2, 2) with 8 nonzeros and order F
+            [0, 0, 0] = 1.0
+            [0, 0, 1] = 1.0
+            [0, 1, 0] = 1.0
+            [0, 1, 1] = 1.0
+            [1, 0, 0] = 1.0
+            [1, 0, 1] = 1.0
+            [1, 1, 0] = 1.0
+            [1, 1, 1] = 1.0
         """
         nz = self.nnz
         if nz == 0:
@@ -2961,11 +2999,11 @@ class sptensor:  # noqa: PLW1641
         --------
         Multiple scalar by a :class:`pyttb.sptensor`::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> 3 * S
-            sparse tensor of shape (2, 2) with 1 nonzeros and order F
-            [1, 1] = 3.0
+            sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
+            [1, 1, 1] = 3.0
         """
         if isinstance(other, (float, int, np.number)):
             return self.__mul__(other)
@@ -2984,11 +3022,14 @@ class sptensor:  # noqa: PLW1641
         --------
         Divide a scalar by a :class:`pyttb.sptensor`::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[:, :] = 2.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[:, :, :] = 2.0
             >>> 1 / S
-            tensor of shape (2, 2) with order F
-            data[:, :] =
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.5 0.5]
+             [0.5 0.5]]
+            data[:, :, 1] =
             [[0.5 0.5]
              [0.5 0.5]]
         """
@@ -3121,16 +3162,19 @@ class sptensor:  # noqa: PLW1641
         --------
         Subtract a :class:`pyttb.sptensor` from itself, returning a sparse tensor::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 1.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 1.0
             >>> S - S
-            empty sparse tensor of shape (2, 2) with order F
+            empty sparse tensor of shape (2, 2, 2) with order F
 
         Subtract a scalar value, returning a dense tensor::
 
             >>> S - 1
-            tensor of shape (2, 2) with order F
-            data[:, :] =
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[-1. -1.]
+             [-1. -1.]]
+            data[:, :, 1] =
             [[-1. -1.]
              [-1.  0.]]
         """
@@ -3173,22 +3217,26 @@ class sptensor:  # noqa: PLW1641
         --------
         Divide a :class:`pyttb.sptensor` by a :class:`pyttb.sptensor`::
 
-            >>> S = ttb.sptensor(shape=(2, 2))
-            >>> S[1, 1] = 2.0
-            >>> S2 = ttb.sptensor(shape=(2, 2))
-            >>> S2[1, 1] = 4.0
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[1, 1, 1] = 2.0
+            >>> S2 = ttb.sptensor(shape=(2, 2, 2))
+            >>> S2[1, 1, 1] = 4.0
             >>> S / S2
-            sparse tensor of shape (2, 2) with 4 nonzeros and order F
-            [1, 1] = 0.5
-            [0, 0] = nan
-            [0, 1] = nan
-            [1, 0] = nan
+            sparse tensor of shape (2, 2, 2) with 8 nonzeros and order F
+            [1, 1, 1] = 0.5
+            [0, 0, 0] = nan
+            [0, 0, 1] = nan
+            [0, 1, 0] = nan
+            [0, 1, 1] = nan
+            [1, 0, 0] = nan
+            [1, 0, 1] = nan
+            [1, 1, 0] = nan
 
         Divide by a scalar::
 
             >>> S / 3  # doctest: +ELLIPSIS
-            sparse tensor of shape (2, 2) with 1 nonzeros and order F
-            [1, 1] = 0.66666...
+            sparse tensor of shape (2, 2, 2) with 1 nonzeros and order F
+            [1, 1, 1] = 0.66666...
         """
         # Divide by a scalar -> result is sparse
         if isinstance(other, (float, int)):
@@ -3773,16 +3821,16 @@ def sptendiag(elements: OneDArray, shape: Shape | None = None) -> sptensor:
     Examples
     --------
     Create a :class:`pyttb.sptensor` by specifying the super diagonal with a 1-D array
-    that has 2 elements, which will create a 2x2 sparse tensor::
+    that has 3 elements, which will create a 3x3x3 sparse tensor::
 
-        >>> shape = (2,)
+        >>> shape = (3,)
         >>> values = np.ones(shape)
         >>> S = ttb.sptendiag(values)
 
-    Create a 2x2 :class:`pyttb.sptensor`, specifying the correct shape, and verify that
-    it is equal to `S`::
+    Create a 3x3x3 :class:`pyttb.sptensor`, specifying the correct shape, and verify
+    that it is equal to `S`::
 
-        >>> S2 = ttb.sptendiag(values, (2, 2))
+        >>> S2 = ttb.sptendiag(values, (3, 3, 3))
         >>> S.isequal(S2)
         True
     """
