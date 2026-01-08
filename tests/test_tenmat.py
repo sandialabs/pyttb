@@ -616,9 +616,9 @@ def test_tenmat__str__(
     s += "cindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.cindices]) + " ] "
     s += "(modes of tensor corresponding to columns)\n"
-    s += "data[:, :] = \n"
+    s += "data[:, :] =\n"
     s += str(tenmatInstance.data)
-    s += "\n"
+    # s += "\n"
     assert s == tenmatInstance.__str__()
 
     ## Test 2D
@@ -633,9 +633,9 @@ def test_tenmat__str__(
     s += "cindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.cindices]) + " ] "
     s += "(modes of tensor corresponding to columns)\n"
-    s += "data[:, :] = \n"
+    s += "data[:, :] =\n"
     s += str(tenmatInstance.data)
-    s += "\n"
+    # s += "\n"
     assert s == tenmatInstance.__str__()
 
     # Test 4D
@@ -651,9 +651,8 @@ def test_tenmat__str__(
     s += "cindices = "
     s += "[ " + (", ").join([str(int(d)) for d in tenmatInstance.cindices]) + " ] "
     s += "(modes of tensor corresponding to columns)\n"
-    s += "data[:, :] = \n"
+    s += "data[:, :] =\n"
     s += str(tenmatInstance.data)
-    s += "\n"
     assert s == tenmatInstance.__str__()
 
 
