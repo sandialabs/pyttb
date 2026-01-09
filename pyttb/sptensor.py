@@ -70,8 +70,8 @@ class sptensor:  # noqa: PLW1641
         of :attr:`data`. Otherwise, :attr:`data` is reshaped to the specified
         :attr:`shape`.
     copy : optional
-        Whether to deep copy (versus reference) :attr:`data`.
-        By default, :attr:`data` is deep copied.
+        Whether to deep copy (versus reference) :attr:`subs` and :attr:`vals`.
+        By default, :attr:`subs` and :attr:`vals` are deep copied.
 
 
     -----
@@ -2300,7 +2300,7 @@ class sptensor:  # noqa: PLW1641
 
     def __eq__(self, other):
         """
-        Element-wise equal operator (==).
+        Elementwise equal operator (==).
 
         Parameters
         ----------
@@ -2693,12 +2693,12 @@ class sptensor:  # noqa: PLW1641
 
     def __mul__(self, other):
         """
-        Element-wise multiplication operator (*).
+        Elementwise multiplication operator (*).
 
         Parameters
         ----------
         other:
-            Object to multiply with the sparsee tensor.
+            Object to multiply with the sparse tensor.
 
         Examples
         --------
@@ -2757,7 +2757,7 @@ class sptensor:  # noqa: PLW1641
 
     def __ne__(self, other):  # noqa: PLR0912
         """
-        Element-wise not equal operator (!=).
+        Elementwise not equal operator (!=).
 
         Parameters
         ----------
@@ -2988,7 +2988,7 @@ class sptensor:  # noqa: PLW1641
 
     def __rmul__(self, other):
         """
-        Element-wise right multiplication operator (*).
+        Elementwise right multiplication operator (*).
 
         Parameters
         ----------
@@ -3011,7 +3011,7 @@ class sptensor:  # noqa: PLW1641
 
     def __rtruediv__(self, other):
         """
-        Element-wise right division operator (/).
+        Elementwise right division operator (/).
 
         Parameters
         ----------
@@ -3149,6 +3149,8 @@ class sptensor:  # noqa: PLW1641
             return self._set_subscripts(key, value)
         raise ValueError("Unknown assignment type")  # pragma: no cover
 
+    __str__ = __repr__
+
     def __sub__(self, other):
         """
         Binary subtraction operator (-).
@@ -3200,11 +3202,9 @@ class sptensor:  # noqa: PLW1641
             self.shape,
         )
 
-    __str__ = __repr__
-
     def __truediv__(self, other):  # noqa: PLR0912, PLR0915
         """
-        Element-wise left division operator (/).
+        Elementwise left division operator (/).
 
         Comparisons with empty tensors raise an exception.
 
@@ -3746,6 +3746,47 @@ class sptensor:  # noqa: PLW1641
         assert False, "Invalid assignment value"
 
 
+def sptendiag(elements: OneDArray, shape: Shape | None = None) -> sptensor:
+    """
+    Create a :class:`pyttb.sptensor` with elements along the super diagonal.
+
+    If provided shape is too small the sparse tensor will be enlarged to accommodate.
+
+    Parameters
+    ----------
+    elements:
+        Elements to set along the diagonal.
+    shape:
+        Shape of the resulting sparse tensor.
+
+    Examples
+    --------
+    Create a :class:`pyttb.sptensor` by specifying the super diagonal with a 1-D array
+    that has 3 elements, which will create a 3x3x3 sparse tensor::
+
+        >>> shape = (3,)
+        >>> values = np.ones(shape)
+        >>> S = ttb.sptendiag(values)
+
+    Create a 3x3x3 :class:`pyttb.sptensor`, specifying the correct shape, and verify
+    that it is equal to `S`::
+
+        >>> S2 = ttb.sptendiag(values, (3, 3, 3))
+        >>> S.isequal(S2)
+        True
+    """
+    # Flatten provided elements
+    elements = parse_one_d(elements)
+    N = len(elements)
+    if shape is None:
+        constructed_shape = (N,) * N
+    else:
+        shape = parse_shape(shape)
+        constructed_shape = tuple(max(N, dim) for dim in shape)
+    subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1)).transpose()
+    return sptensor.from_aggregator(subs, elements.reshape((N, 1)), constructed_shape)
+
+
 def sptenrand(
     shape: Shape,
     density: float | None = None,
@@ -3803,47 +3844,6 @@ def sptenrand(
         return np.random.uniform(low=0, high=1, size=pass_through_shape)
 
     return ttb.sptensor.from_function(unit_uniform, shape, valid_nonzeros)
-
-
-def sptendiag(elements: OneDArray, shape: Shape | None = None) -> sptensor:
-    """
-    Create a :class:`pyttb.sptensor` with elements along the super diagonal.
-
-    If provided shape is too small the sparse tensor will be enlarged to accommodate.
-
-    Parameters
-    ----------
-    elements:
-        Elements to set along the diagonal.
-    shape:
-        Shape of the resulting sparse tensor.
-
-    Examples
-    --------
-    Create a :class:`pyttb.sptensor` by specifying the super diagonal with a 1-D array
-    that has 3 elements, which will create a 3x3x3 sparse tensor::
-
-        >>> shape = (3,)
-        >>> values = np.ones(shape)
-        >>> S = ttb.sptendiag(values)
-
-    Create a 3x3x3 :class:`pyttb.sptensor`, specifying the correct shape, and verify
-    that it is equal to `S`::
-
-        >>> S2 = ttb.sptendiag(values, (3, 3, 3))
-        >>> S.isequal(S2)
-        True
-    """
-    # Flatten provided elements
-    elements = parse_one_d(elements)
-    N = len(elements)
-    if shape is None:
-        constructed_shape = (N,) * N
-    else:
-        shape = parse_shape(shape)
-        constructed_shape = tuple(max(N, dim) for dim in shape)
-    subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1)).transpose()
-    return sptensor.from_aggregator(subs, elements.reshape((N, 1)), constructed_shape)
 
 
 if __name__ == "__main__":

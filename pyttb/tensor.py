@@ -230,14 +230,6 @@ class tensor:  # noqa: PLW1641
         """Return the data layout of the underlying storage."""
         return "F"
 
-    def _matches_order(self, array: np.ndarray) -> bool:
-        """Check if provided array matches tensor memory layout."""
-        if array.flags["C_CONTIGUOUS"] and self.order == "C":
-            return True
-        if array.flags["F_CONTIGUOUS"] and self.order == "F":
-            return True
-        return False
-
     @classmethod
     def from_function(
         cls,
@@ -2072,22 +2064,6 @@ class tensor:  # noqa: PLW1641
         Z = ttb.tensor(data, copy=False)
         return Z
 
-    def _tt_to_tensor(
-        self,
-        some_tensor: np.ndarray
-        | ttb.tensor
-        | ttb.ktensor
-        | ttb.ttensor
-        | ttb.sptensor
-        | ttb.sumtensor,
-    ) -> ttb.tensor:
-        """Convert a variety of data structures to a dense tensor."""
-        if isinstance(some_tensor, np.ndarray):
-            return ttb.tensor(some_tensor)
-        elif isinstance(some_tensor, ttb.tensor):
-            return some_tensor
-        return some_tensor.to_tensor()
-
     def to_sptensor(self) -> ttb.sptensor:
         """
         Construct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`.
@@ -2934,6 +2910,110 @@ class tensor:  # noqa: PLW1641
 
         assert False, "Invalid use of tensor setitem"
 
+    __str__ = __repr__
+
+    def __sub__(self, other):
+        """
+        Binary subtraction (-) for tensors.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.tensor`, float, int
+
+        Returns
+        -------
+        :class:`pyttb.tensor`
+
+        Examples
+        --------
+            >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
+            >>> T - T
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0 0]
+             [0 0]]
+            data[:, :, 1] =
+            [[0 0]
+             [0 0]]
+            >>> T - 1
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[-1  1]
+             [ 0  2]]
+            data[:, :, 1] =
+            [[3 5]
+             [4 6]]
+        """
+
+        def minus(x, y):
+            return x - y
+
+        return self.tenfun(minus, other)
+
+    def __truediv__(self, other):
+        """
+        Element-wise left division (/) for tensors.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.tensor`, float, int
+
+        Returns
+        -------
+        :class:`pyttb.tensor`
+
+        Examples
+        --------
+            >>> T = ttb.tensor(np.arange(8) + 1, (2, 2, 2))
+            >>> T / T
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[1. 1.]
+             [1. 1.]]
+            data[:, :, 1] =
+            [[1. 1.]
+             [1. 1.]]
+            >>> T / 2
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.5 1.5]
+             [1.  2. ]]
+            data[:, :, 1] =
+            [[2.5 3.5]
+             [3.  4. ]]
+        """
+
+        def div(x, y):
+            # We ignore the divide by zero errors because np.inf/np.nan is an
+            # appropriate representation
+            with np.errstate(divide="ignore", invalid="ignore"):
+                return x / y
+
+        return self.tenfun(div, other)
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
+
+    def _matlab_str(self, format: str | None = None, name: str | None = None) -> str:
+        """Non-standard representation to be more similar to MATLAB."""
+        header = name
+        if name is None:
+            name = "data"
+        if header is None:
+            header = "This"
+
+        matlab_str = f"{header} is a tensor of shape " + " x ".join(
+            map(str, self.shape)
+        )
+
+        array_str = _matlab_array_str(self.data, format, name)
+        return matlab_str + "\n" + textwrap.indent(array_str, "\t")
+
     def _set_linear(self, key, value):
         idx = key
         if not isinstance(idx, slice) and (idx > np.prod(self.shape)).any():
@@ -3028,101 +3108,21 @@ class tensor:  # noqa: PLW1641
         else:
             self.data[key] = value
 
-    def __sub__(self, other):
-        """
-        Binary subtraction (-) for tensors.
-
-        Parameters
-        ----------
-        other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor`
-
-        Examples
-        --------
-            >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
-            >>> T - T
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[0 0]
-             [0 0]]
-            data[:, :, 1] =
-            [[0 0]
-             [0 0]]
-            >>> T - 1
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[-1  1]
-             [ 0  2]]
-            data[:, :, 1] =
-            [[3 5]
-             [4 6]]
-        """
-
-        def minus(x, y):
-            return x - y
-
-        return self.tenfun(minus, other)
-
-    __str__ = __repr__
-
-    def __truediv__(self, other):
-        """
-        Element-wise left division (/) for tensors.
-
-        Parameters
-        ----------
-        other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor`
-
-        Examples
-        --------
-            >>> T = ttb.tensor(np.arange(8) + 1, (2, 2, 2))
-            >>> T / T
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[1. 1.]
-             [1. 1.]]
-            data[:, :, 1] =
-            [[1. 1.]
-             [1. 1.]]
-            >>> T / 2
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[0.5 1.5]
-             [1.  2. ]]
-            data[:, :, 1] =
-            [[2.5 3.5]
-             [3.  4. ]]
-        """
-
-        def div(x, y):
-            # We ignore the divide by zero errors because np.inf/np.nan is an
-            # appropriate representation
-            with np.errstate(divide="ignore", invalid="ignore"):
-                return x / y
-
-        return self.tenfun(div, other)
-
-    def _matlab_str(self, format: str | None = None, name: str | None = None) -> str:
-        """Non-standard representation to be more similar to MATLAB."""
-        header = name
-        if name is None:
-            name = "data"
-        if header is None:
-            header = "This"
-
-        matlab_str = f"{header} is a tensor of shape " + " x ".join(
-            map(str, self.shape)
-        )
-
-        array_str = _matlab_array_str(self.data, format, name)
-        return matlab_str + "\n" + textwrap.indent(array_str, "\t")
+    def _tt_to_tensor(
+        self,
+        some_tensor: np.ndarray
+        | ttb.tensor
+        | ttb.ktensor
+        | ttb.ttensor
+        | ttb.sptensor
+        | ttb.sumtensor,
+    ) -> ttb.tensor:
+        """Convert a variety of data structures to a dense tensor."""
+        if isinstance(some_tensor, np.ndarray):
+            return ttb.tensor(some_tensor)
+        elif isinstance(some_tensor, ttb.tensor):
+            return some_tensor
+        return some_tensor.to_tensor()
 
 
 def tendiag(
