@@ -1,8 +1,9 @@
-Tucker Higher-Order SVD (:obj:`hosvd`)
-======================================
-.. note::
-    
-     The ``hosvd`` function defined in ``hosvd.py`` has been promoted to the ``pyttb`` namespace.
+Tucker Higher-Order SVD (:obj:`pyttb.hosvd`)
+============================================
 
+For *all* examples in this document, the following module imports are assumed::
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
 
 .. autofunction:: pyttb.hosvd

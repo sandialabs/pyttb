@@ -803,9 +803,8 @@ class tenmat:
         if self.data.size == 0:
             s += "data = []\n"
         else:
-            s += "data[:, :] = \n"
+            s += "data[:, :] =\n"
             s += str(self.data)
-            s += "\n"
 
         return s
 

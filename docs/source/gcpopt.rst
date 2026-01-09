@@ -1,8 +1,10 @@
 Generalized CP Optimization (:obj:`pyttb.gcp_opt`)
 ==================================================
-.. note::
-    
-     The ``gcp_opt`` function defined in ``gcp_opt.py`` has been promoted to the ``pyttb`` namespace.
+
+For *all* examples in this document, the following module imports are assumed::
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
 
 .. autofunction:: pyttb.gcp_opt
     

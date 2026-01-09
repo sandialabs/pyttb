@@ -1,11 +1,13 @@
-Tensor as Matrix (:class:`tenmat`)
-----------------------------------
-.. note::
-    
-     The ``tenmat`` class defined in ``tenmat.py`` has been promoted to the ``pyttb`` namespace.
+Tensor as Matrix (:class:`pyttb.tenmat`)
+========================================
+
+For *all* examples in this document, the following module imports are assumed::
+
+    >>> import pyttb as ttb
+    >>> import numpy as np
 
 .. autoclass:: pyttb.tenmat
     :members:
     :special-members:
-    :exclude-members: __dict__, __weakref__, __slots__
+    :exclude-members: __init__, __dict__, __weakref__, __deepcopy__
     :show-inheritance:

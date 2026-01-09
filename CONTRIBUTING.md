@@ -76,7 +76,7 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
    ```
       1. For the CI version which is more strict
       ```commandline
-      sphinx-build ./docs/source ./docs/build -W -n --keep-going
+      sphinx-build ./docs/source ./docs/build -E -W --keep-going
       ```
       2. If not on Windows optionally add `-j auto` for parallelization
    2. Clear notebook outputs if run locally see `nbstripout` in our [pre-commit configuration](.pre-commit-config.yaml)
@@ -120,6 +120,14 @@ If you want to propose a change to Python Tensor Toolbox, follow these steps:
 1. **Update the Code**
     - Make the necessary updates in your local environment.
     - After making your changes, stage and commit them with an informative message.
+    - Make sure that the order of methods in classes is consistent with other code in the repository. Specifically, the order should be the following (with methods in each section sorted alphabetically):
+        1. `__slots__`
+        1. `__init__`
+        1. Property methods
+        1. classmethods (prefixed with `@classmethod`)
+        1. Public methods
+        1. Dunder methods (prefixed and suffixed with double underscores `__`)
+        1. Private methods (prefixed with an underscore `_`)
 
 1. **Push your Changes and Create a Pull Request**
     - Push your changes to the new branch in your fork of the repository.
