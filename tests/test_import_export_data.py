@@ -153,16 +153,29 @@ def test_import_invalid():
     assert "Imported dimensions are not of expected size" in str(excinfo)
 
 
-def test_export_data_tensor(sample_tensor):
+@pytest.mark.parametrize(
+    ["save_method", "import_method"],
+    [
+        (ttb.export_data, ttb.import_data),
+        (ttb.export_data_bin, ttb.import_data_bin),
+        (ttb.export_data_mat, ttb.import_data_mat),
+    ],
+)
+def test_export_data_tensor(sample_tensor, save_method, import_method):
     # truth data
     T = sample_tensor
 
     data_filename = os.path.join(os.path.dirname(__file__), "data", "tensor.out")
-    ttb.export_data(T, data_filename)
+    save_method(T, data_filename)
 
-    X = ttb.import_data(data_filename)
+    X = import_method(data_filename)
     assert T.isequal(X)
     os.unlink(data_filename)
+
+
+def test_export_data_tensor_format(sample_tensor):
+    # truth data
+    T = sample_tensor
 
     # index_base unspecified
     data_filename = os.path.join(os.path.dirname(__file__), "data", "tensor_int.out")
@@ -193,63 +206,93 @@ def test_export_data_tensor(sample_tensor):
     os.unlink(data_filename)
 
 
-def test_export_data_sptensor(sample_sptensor):
+@pytest.mark.parametrize(
+    ["save_method", "import_method"],
+    [
+        (ttb.export_data, ttb.import_data),
+        (ttb.export_data_bin, ttb.import_data_bin),
+        (ttb.export_data_mat, ttb.import_data_mat),
+    ],
+)
+def test_export_data_sptensor(sample_sptensor, save_method, import_method):
     # truth data
     S = sample_sptensor
 
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__), "data", "sptensor.out")
-    ttb.export_data(S, data_filename)
+    save_method(S, data_filename)
 
-    X = ttb.import_data(data_filename)
+    X = import_method(data_filename)
     assert S.isequal(X)
     os.unlink(data_filename)
 
+
+def test_export_data_sptensor_fmt(sample_sptensor):
     data_filename = os.path.join(os.path.dirname(__file__), "data", "sptensor_int.out")
-    ttb.export_data(S, data_filename, fmt_data="%d")
+    ttb.export_data(sample_sptensor, data_filename, fmt_data="%d")
 
     X = ttb.import_data(data_filename)
-    assert S.isequal(X)
+    assert sample_sptensor.isequal(X)
     os.unlink(data_filename)
 
 
-def test_export_data_ktensor(sample_ktensor):
+@pytest.mark.parametrize(
+    ["save_method", "import_method"],
+    [
+        (ttb.export_data, ttb.import_data),
+        (ttb.export_data_bin, ttb.import_data_bin),
+        (ttb.export_data_mat, ttb.import_data_mat),
+    ],
+)
+def test_export_data_ktensor(sample_ktensor, save_method, import_method):
     # truth data
     K = sample_ktensor
 
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__), "data", "ktensor.out")
-    ttb.export_data(K, data_filename)
+    save_method(K, data_filename)
 
-    X = ttb.import_data(data_filename)
+    X = import_method(data_filename)
     assert K.isequal(X)
     os.unlink(data_filename)
 
+
+def test_export_data_ktensor_format(sample_ktensor):
     data_filename = os.path.join(os.path.dirname(__file__), "data", "ktensor_int.out")
-    ttb.export_data(K, data_filename, fmt_data="%d", fmt_weights="%d")
+    ttb.export_data(sample_ktensor, data_filename, fmt_data="%d", fmt_weights="%d")
 
     X = ttb.import_data(data_filename)
-    assert K.isequal(X)
+    assert sample_ktensor.isequal(X)
     os.unlink(data_filename)
 
 
-def test_export_data_array(sample_array):
+@pytest.mark.parametrize(
+    ["save_method", "import_method"],
+    [
+        (ttb.export_data, ttb.import_data),
+        (ttb.export_data_bin, ttb.import_data_bin),
+        (ttb.export_data_mat, ttb.import_data_mat),
+    ],
+)
+def test_export_data_array(sample_array, save_method, import_method):
     # truth data
     M = sample_array
 
     # imported data
     data_filename = os.path.join(os.path.dirname(__file__), "data", "matrix.out")
-    ttb.export_data(M, data_filename)
+    save_method(M, data_filename)
 
-    X = ttb.import_data(data_filename)
+    X = import_method(data_filename)
     assert np.array_equal(M, X)
     os.unlink(data_filename)
 
+
+def test_export_data_array_format(sample_array):
     data_filename = os.path.join(os.path.dirname(__file__), "data", "matrix_int.out")
-    ttb.export_data(M, data_filename, fmt_data="%d")
+    ttb.export_data(sample_array, data_filename, fmt_data="%d")
 
     X = ttb.import_data(data_filename)
-    assert np.array_equal(M, X)
+    assert np.array_equal(sample_array, X)
     os.unlink(data_filename)
 
 

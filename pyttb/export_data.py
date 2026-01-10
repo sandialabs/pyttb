@@ -6,12 +6,21 @@
 
 from __future__ import annotations
 
-from typing import TextIO
+from enum import Enum
+from typing import Any, TextIO
 
 import numpy as np
+from scipy.io import savemat
 
 import pyttb as ttb
 from pyttb.pyttb_utils import Shape, parse_shape
+
+
+class ExportFormat(Enum):
+    """Export format enumeration."""
+
+    NUMPY = "numpy"
+    MATLAB = "matlab"
 
 
 def export_data(
@@ -54,6 +63,107 @@ def export_data(
             print("matrix", file=fp)
             export_size(fp, data.shape)
             export_array(fp, data, fmt_data)
+
+
+def export_data_bin(
+    data: ttb.tensor | ttb.ktensor | ttb.sptensor | np.ndarray,
+    filename: str,
+    index_base: int = 1,
+):
+    """Export tensor-related data to a binary file."""
+    _export_data_binary(data, filename, ExportFormat.NUMPY, index_base)
+
+
+def export_data_mat(
+    data: ttb.tensor | ttb.ktensor | ttb.sptensor | np.ndarray,
+    filename: str,
+    index_base: int = 1,
+):
+    """Export tensor-related data to a matlab compatible binary file."""
+    _export_data_binary(data, filename, ExportFormat.MATLAB, index_base)
+
+
+def _export_data_binary(
+    data: ttb.tensor | ttb.ktensor | ttb.sptensor | np.ndarray,
+    filename: str,
+    export_format: ExportFormat,
+    index_base: int = 1,
+):
+    """Export tensor-related data to a binary file using specified format."""
+    if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
+        raise NotImplementedError(f"Invalid data type for export: {type(data)}")
+
+    # Prepare data for export based on type
+    if isinstance(data, ttb.tensor):
+        export_data_dict = _prepare_tensor_data(data)
+    elif isinstance(data, ttb.sptensor):
+        export_data_dict = _prepare_sptensor_data(data, index_base)
+    elif isinstance(data, ttb.ktensor):
+        export_data_dict = _prepare_ktensor_data(data)
+    elif isinstance(data, np.ndarray):
+        export_data_dict = _prepare_matrix_data(data)
+    else:
+        raise NotImplementedError(f"Unsupported data type: {type(data)}")
+
+    # Save using appropriate format
+    if export_format == ExportFormat.NUMPY:
+        with open(filename, "wb") as fp:
+            np.savez(fp, allow_pickle=False, **export_data_dict)
+    elif export_format == ExportFormat.MATLAB:
+        savemat(filename, export_data_dict)
+    else:
+        raise ValueError(f"Unsupported export format: {export_format}")
+
+
+def _create_header(data_type: str) -> np.ndarray:
+    """Create consistent header for tensor data."""
+    # TODO encode version information
+    return np.array([data_type, "F"])
+
+
+def _prepare_sptensor_data(data: ttb.sptensor, index_base: int = 1) -> dict[str, Any]:
+    """Prepare sparse tensor data for export."""
+    return {
+        "header": _create_header("sptensor"),
+        "shape": np.array(data.shape),
+        "nnz": np.array([data.nnz]),
+        "subs": data.subs + index_base,
+        "vals": data.vals,
+    }
+
+
+def _prepare_tensor_data(data: ttb.tensor) -> dict[str, Any]:
+    """Prepare dense tensor data for export."""
+    return {
+        "header": _create_header("tensor"),
+        "data": data.data,
+    }
+
+
+def _prepare_matrix_data(data: np.ndarray) -> dict[str, Any]:
+    """Prepare matrix data for export."""
+    return {
+        "header": _create_header("matrix"),
+        "data": data,
+    }
+
+
+def _prepare_ktensor_data(data: ttb.ktensor) -> dict[str, Any]:
+    """Prepare ktensor data for export."""
+    factor_matrices = data.factor_matrices
+    num_factor_matrices = len(factor_matrices)
+
+    export_dict = {
+        "header": _create_header("ktensor"),
+        "weights": data.weights,
+        "num_factor_matrices": num_factor_matrices,
+    }
+
+    # Add individual factor matrices for NumPy compatibility
+    for i in range(num_factor_matrices):
+        export_dict[f"factor_matrix_{i}"] = factor_matrices[i]
+
+    return export_dict
 
 
 def export_size(fp: TextIO, shape: Shape):
