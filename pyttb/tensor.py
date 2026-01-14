@@ -250,10 +250,6 @@ class tensor:  # noqa: PLW1641
         shape:
             Shape of the resulting tensor.
 
-        Returns
-        -------
-        Constructed tensor.
-
         Examples
         --------
         Create a :class:`pyttb.tensor` with entries drawn from a normal distribution
@@ -327,16 +323,14 @@ class tensor:  # noqa: PLW1641
         """
         Collapse tensor along specified dimensions using a function.
 
+        Returns scalar (if all dimensions collapsed) or tensor.
+
         Parameters
         ----------
         dims: optional
             Dimensions to collapse (default: all).
         fun: optional
             Function used to collapse dimensions (default: :func:`numpy.sum`).
-
-        Returns
-        -------
-        Scalar (if all dimensions collapsed) or tensor.
 
         Examples
         --------
@@ -429,8 +423,8 @@ class tensor:  # noqa: PLW1641
         """
         Contract tensor along two dimensions (array trace).
 
-        Note that the dimensions used in the contraction must have the same
-        size.
+        Returns contracted tensor. Note that the dimensions used in the contraction must
+        have the same sizes.
 
         Parameters
         ----------
@@ -438,10 +432,6 @@ class tensor:  # noqa: PLW1641
             First dimension.
         i2:
             Second dimension.
-
-        Returns
-        -------
-        Contracted tensor.
 
         Examples
         --------
@@ -518,9 +508,7 @@ class tensor:  # noqa: PLW1641
         """
         Make a deep copy of a :class:`pyttb.tensor`.
 
-        Returns
-        -------
-        Deep copy of original tensor.
+        Returns deep copy of original tensor.
 
         Examples
         --------
@@ -553,10 +541,6 @@ class tensor:  # noqa: PLW1641
             Whether or not the returned data can be mutated. May enable additional
             optimizations.
 
-        Returns
-        -------
-        Array of tensor data.
-
         Examples
         --------
             >>> T = ttb.tensor(np.ones(8), (2, 2, 2))  # All-ones 2 x 2 x 2 tensor
@@ -576,9 +560,8 @@ class tensor:  # noqa: PLW1641
         """
         Exponential of the elements of tensor.
 
-        Returns
-        -------
-        Copy of tensor data with the exponential function applied to data element-wise.
+        Returns copy of tensor data with the exponential function applied to data
+        element-wise.
 
         Examples
         --------
@@ -2802,7 +2785,7 @@ class tensor:  # noqa: PLW1641
 
     def __rmul__(self, other):
         """
-        Elementwise right multiplication (*) for tensors.
+        Element-wise right multiplication (*) for tensors.
 
         Parameters
         ----------

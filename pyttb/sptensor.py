@@ -2298,7 +2298,7 @@ class sptensor:  # noqa: PLW1641
 
     def __eq__(self, other):
         """
-        Elementwise equal operator (==).
+        Element-wise equal operator (==).
 
         Parameters
         ----------
@@ -2691,7 +2691,7 @@ class sptensor:  # noqa: PLW1641
 
     def __mul__(self, other):
         """
-        Elementwise multiplication operator (*).
+        Element-wise multiplication operator (*).
 
         Parameters
         ----------
@@ -2755,7 +2755,7 @@ class sptensor:  # noqa: PLW1641
 
     def __ne__(self, other):  # noqa: PLR0912
         """
-        Elementwise not equal operator (!=).
+        Element-wise not equal operator (!=).
 
         Parameters
         ----------
@@ -2986,7 +2986,7 @@ class sptensor:  # noqa: PLW1641
 
     def __rmul__(self, other):
         """
-        Elementwise right multiplication operator (*).
+        Element-wise right multiplication operator (*).
 
         Parameters
         ----------
@@ -3009,7 +3009,7 @@ class sptensor:  # noqa: PLW1641
 
     def __rtruediv__(self, other):
         """
-        Elementwise right division operator (/).
+        Element-wise right division operator (/).
 
         Parameters
         ----------
@@ -3202,7 +3202,7 @@ class sptensor:  # noqa: PLW1641
 
     def __truediv__(self, other):  # noqa: PLR0912, PLR0915
         """
-        Elementwise left division operator (/).
+        Element-wise left division operator (/).
 
         Comparisons with empty tensors raise an exception.
 

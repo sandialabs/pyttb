@@ -2570,7 +2570,7 @@ class ktensor:
 
     def __mul__(self, other):
         """
-        Elementwise (including scalar) multiplication for :class:`pyttb.ktensor`.
+        Element-wise (including scalar) multiplication for :class:`pyttb.ktensor`.
 
         When multiplying with a scalar, the weights of the :class:`pyttb.ktensor` are
         multiplied by that scalar. When multiplying with a :class:`pyttb.tensor` or
@@ -2756,7 +2756,7 @@ class ktensor:
 
     def __rmul__(self, other):
         """
-        Elementwise reverse multiplication for :class:`pyttb.ktensor`.
+        Element-wise reverse multiplication for :class:`pyttb.ktensor`.
 
         Parameters
         ----------
