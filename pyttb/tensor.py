@@ -527,10 +527,6 @@ class tensor:  # noqa: PLW1641
         """
         return ttb.tensor(self.data, self.shape, copy=True)
 
-    def __deepcopy__(self, memo):
-        """Return deep copy of this tensor."""
-        return self.copy()
-
     def double(self, immutable: bool = False) -> np.ndarray:
         """
         Convert :class:`pyttb.tensor` to a :class:`numpy.ndarray` of doubles.
@@ -2192,6 +2188,10 @@ class tensor:  # noqa: PLW1641
 
         return self.tenfun(tensor_add, other)
 
+    def __deepcopy__(self, memo):
+        """Return deep copy of this tensor."""
+        return self.copy()
+
     def __eq__(self, other):
         """
         Equal for tensors (element-wise).
@@ -3010,7 +3010,6 @@ class tensor:  # noqa: PLW1641
             return some_tensor
         return some_tensor.to_tensor()
 
-
 def tendiag(
     elements: OneDArray,
     shape: Shape | None = None,
@@ -3065,7 +3064,6 @@ def tendiag(
     subs = np.tile(np.arange(0, N)[:, None], (len(constructed_shape),))
     X[subs] = elements
     return X
-
 
 def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
     """
@@ -3122,7 +3120,6 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
         A[tuple(zip(*p, strict=False))] = v / factorial(ndims)
     return A
 
-
 def tenones(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """
     Create a tensor of all ones.
@@ -3154,7 +3151,6 @@ def tenones(shape: Shape, order: MemoryLayout = "F") -> tensor:
         return np.ones(shape, order=order)
 
     return tensor.from_function(ones, shape)
-
 
 def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """
@@ -3190,7 +3186,6 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
 
     return tensor.from_function(unit_uniform, shape)
 
-
 def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """
     Create a tensor of all zeros.
@@ -3219,60 +3214,6 @@ def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
         return np.zeros(shape, order=order)
 
     return tensor.from_function(zeros, shape)
-
-
-def _mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
-    """
-    Contract leading mode in partial MTTKRP W_in using factor matrix U1.
-
-    The leading mode is the mode for which consecutive increases in index address
-    elements at consecutive increases in the memory offset.
-
-    Returns matrix with shape (m2 x ... x mN, C).
-
-    Parameters
-    ----------
-    W_in:
-        Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
-        the component mode corresponding to the columns in factor matrices.
-    U1:
-        Factor matrix with modes (m1, C).
-    """
-    r = U1.shape[1]
-    W_in = np.reshape(W_in, (U1.shape[0], -1, r), order="F")
-    W_out = np.zeros_like(W_in, shape=(W_in.shape[1], r))
-    # TODO this can be replaced with tensordot and slice,
-    #  even better if we can skip slice
-    #  W_out = np.dot(W_in.transpose(), U1)[range(r), :, range(r)].transpose()
-    for j in range(r):
-        W_out[:, j] = W_in[:, :, j].transpose().dot(U1[:, j])
-    return W_out
-
-
-def _mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
-    """
-    Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
-
-    Returns matrix with shape (m1, C).
-
-    Parameters
-    ----------
-    W_in:
-        Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
-        the component mode corresponding to the columns in factor matrices.
-    U_mid:
-        Factor matrices with modes (m2, C), (m3, C), ..., (mN, C).
-    """
-    if len(U_mid) == 0:
-        return W_in
-    K = ttb.khatrirao(*U_mid, reverse=True)
-    r = K.shape[1]
-    W_in = np.reshape(W_in, (-1, K.shape[0], r), order="F")
-    V = np.zeros_like(W_in, shape=(W_in.shape[0], r))
-    for j in range(r):
-        V[:, j] = W_in[:, :, j].dot(K[:, j])
-    return V
-
 
 def _min_split(shape: Shape) -> int:
     """
@@ -3306,6 +3247,56 @@ def _min_split(shape: Shape) -> int:
             break
     return idx_min
 
+def _mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
+    """
+    Contract leading mode in partial MTTKRP W_in using factor matrix U1.
+
+    The leading mode is the mode for which consecutive increases in index address
+    elements at consecutive increases in the memory offset.
+
+    Returns matrix with shape (m2 x ... x mN, C).
+
+    Parameters
+    ----------
+    W_in:
+        Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
+        the component mode corresponding to the columns in factor matrices.
+    U1:
+        Factor matrix with modes (m1, C).
+    """
+    r = U1.shape[1]
+    W_in = np.reshape(W_in, (U1.shape[0], -1, r), order="F")
+    W_out = np.zeros_like(W_in, shape=(W_in.shape[1], r))
+    # TODO this can be replaced with tensordot and slice,
+    #  even better if we can skip slice
+    #  W_out = np.dot(W_in.transpose(), U1)[range(r), :, range(r)].transpose()
+    for j in range(r):
+        W_out[:, j] = W_in[:, :, j].transpose().dot(U1[:, j])
+    return W_out
+
+def _mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
+    """
+    Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
+
+    Returns matrix with shape (m1, C).
+
+    Parameters
+    ----------
+    W_in:
+        Has modes in descending order: (m1 x m2 x ... x mN, C). The final mode C is
+        the component mode corresponding to the columns in factor matrices.
+    U_mid:
+        Factor matrices with modes (m2, C), (m3, C), ..., (mN, C).
+    """
+    if len(U_mid) == 0:
+        return W_in
+    K = ttb.khatrirao(*U_mid, reverse=True)
+    r = K.shape[1]
+    W_in = np.reshape(W_in, (-1, K.shape[0], r), order="F")
+    V = np.zeros_like(W_in, shape=(W_in.shape[0], r))
+    for j in range(r):
+        V[:, j] = W_in[:, :, j].dot(K[:, j])
+    return V
 
 if __name__ == "__main__":
     import doctest  # pragma: no cover
