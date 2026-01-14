@@ -261,7 +261,6 @@ class ktensor:
 
         Returns a tuple containing the lengths of all dimensions of the
         :class:`pyttb.ktensor`.
-
         """
         return tuple(f.shape[0] for f in self.factor_matrices)
 
@@ -1979,19 +1978,15 @@ class ktensor:
         """
         Convert :class:`pyttb.ktensor` to column vector.
 
-        Optionally include or exclude the weights. The output of this method can be
-        consumed by :meth:`from_vector`.
+        Returns a column vector with length (sum(self.shape)+1)*self.ncomponents. The
+        vector contains the weights (if requested) stacked on top of each of the
+        columns of the factor_matrices in order. Optionally include or exclude the
+        weights. The output of this method can be consumed by :meth:`from_vector`.
 
         Parameters
         ----------
         include_weights:
             Flag to specify whether or not to include weights in output.
-
-        Returns
-        -------
-        The length of the column vector is (sum(self.shape)+1)*self.ncomponents. The
-            vector contains the weights (if requested) stacked on top of each of the
-            columns of the factor_matrices in order.
 
         Examples
         --------
@@ -2341,6 +2336,9 @@ class ktensor:
         """
         Visualize factors for :class:`pyttb.ktensor`.
 
+        Returns a :class:`matplotlib.figure.Figure` handle for the generated figure and
+        :class:`matplotlib.axes.Axes` for the generated figure.
+
         Parameters
         ----------
         plots:
@@ -2373,13 +2371,6 @@ class ktensor:
             List of strings used as titles for each column (mode).
         title:
             String containing overall figure title.
-
-        Returns
-        -------
-        fig:
-            :class:`matplotlib.figure.Figure` handle for the generated figure
-        axs:
-            :class:`matplotlib.axes.Axes` for the generated figure
 
         Examples
         --------

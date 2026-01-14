@@ -477,17 +477,15 @@ class sptensor:  # noqa: PLW1641
         """
         Collapse the :class:`pyttb.sptensor` along specified dimensions.
 
+        Returns scalar (if all dimensions collapsed), :class:`numpy.ndarray` (if all but
+        one dimension collapsed), or :class:`pyttb.sptensor`.
+
         Parameters
         ----------
         dims: optional
             Dimensions to collapse (default: all).
         function_handle: optional
             Function used to collapse dimensions (default: :func:`numpy.sum`).
-
-        Returns
-        -------
-        Scalar (if all dimensions collapsed), :class:`numpy.ndarray` (if all but one
-        dimension collapsed), or :class:`pyttb.sptensor`.
 
         Examples
         --------
@@ -558,10 +556,6 @@ class sptensor:  # noqa: PLW1641
             First dimension.
         i_1:
             Second dimension.
-
-        Returns
-        -------
-        Contracted sptensor.
 
         Examples
         --------
@@ -657,10 +651,6 @@ class sptensor:  # noqa: PLW1641
         immutable:
             Whether or not the returned data can be mutated. May enable additional
             optimizations.
-
-        Returns
-        -------
-        Array of tensor data.
 
         Examples
         --------

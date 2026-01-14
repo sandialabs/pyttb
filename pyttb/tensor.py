@@ -635,9 +635,7 @@ class tensor:  # noqa: PLW1641
 
         Convenience method to maintain common interface with other tensor types.
 
-        Returns
-        -------
-        Shallow copy of original tensor.
+        Returns shallow copy of original tensor.
         """
         return self
 
@@ -725,6 +723,9 @@ class tensor:  # noqa: PLW1641
         """
         Determine if a dense tensor is symmetric in specified modes.
 
+        Returns flag denoting if symmetric in specified modes; optionally returns all
+        differences and permutations if requested.
+
         Parameters
         ----------
         grps:
@@ -733,10 +734,6 @@ class tensor:  # noqa: PLW1641
             Any non-None value will call the non-default old version.
         return_details:
             Flag to return symmetry details in addition to bool.
-
-        Returns
-        -------
-        If symmetric in modes; optionally all differences and permutations.
 
         Examples
         --------
@@ -911,14 +908,12 @@ class tensor:  # noqa: PLW1641
         """
         Extract non-zero values at locations specified by mask tensor `W`.
 
+        Returns array of extracted values.
+
         Parameters
         ----------
         W:
             Mask tensor.
-
-        Returns
-        -------
-        Array of extracted values.
 
         Examples
         --------
@@ -954,9 +949,9 @@ class tensor:  # noqa: PLW1641
         """
         Matricized tensor times Khatri-Rao product using :class:`pyttb.tensor`.
 
-        The matrices used in the Khatri-Rao product are passed as a
-        :class:`pyttb.ktensor` (where the factor matrices are used) or as a list of
-        :class:`numpy.ndarray` objects.
+        Returns array containing Khatri-Rao matrix product. The matrices used in the
+        Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the factor
+        matrices are used) or as a list of :class:`numpy.ndarray` objects.
 
         Parameters
         ----------
@@ -964,10 +959,6 @@ class tensor:  # noqa: PLW1641
             Factor matrix or list of factor matrices.
         n:
             Mode used to matricize tensor.
-
-        Returns
-        -------
-        Array containing matrix product.
 
         Examples
         --------
@@ -1024,16 +1015,13 @@ class tensor:  # noqa: PLW1641
         """
         Sequence of MTTKRP calculations for a tensor.
 
-        Result is equivalent to [T.mttkrp(U, k) for k in range(T.ndims)].
+        Returns array containing Khatri-Rao matrix product. Result is equivalent to
+        [T.mttkrp(U, k) for k in range(T.ndims)].
 
         Parameters
         ----------
         U:
             Matrices to create the Khatri-Rao product.
-
-        Returns
-        -------
-        Array containing matrix product.
 
         Examples
         --------
@@ -1103,10 +1091,6 @@ class tensor:  # noqa: PLW1641
         flipsign:
             If True, make each column's largest element positive.
 
-        Returns
-        -------
-        Computed eigenvectors.
-
         Examples
         --------
             >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
@@ -1143,17 +1127,14 @@ class tensor:  # noqa: PLW1641
     def permute(self, order: OneDArray) -> tensor:
         """Permute tensor dimensions.
 
-        The result is a tensor that has the same values, but the order of the subscripts
-        needed to access any particular element are rearranged as specified by `order`.
+        Returns new tensor with permuted dimensions. The result is a tensor that has
+        the same values, but the order of the subscripts needed to access any particular
+        element are rearranged as specified by `order`.
 
         Parameters
         ----------
         order:
             New order of tensor dimensions.
-
-        Returns
-        -------
-        New tensor with permuted dimensions.
 
         Examples
         --------
@@ -1235,10 +1216,6 @@ class tensor:  # noqa: PLW1641
         dims:
             Dimensions to scale.
 
-        Returns
-        -------
-        Scaled tensor.
-
         Examples
         --------
         Create tensor of ones and scale dimension 2 using a :class:`numpy.ndarray`::
@@ -1293,9 +1270,7 @@ class tensor:  # noqa: PLW1641
         """
         Remove singleton dimensions from the tensor.
 
-        Returns
-        -------
-        Tensor or scalar if all dims squeezed.
+        Returns tensor or scalar if all dims squeezed.
 
         Examples
         --------
@@ -1341,10 +1316,6 @@ class tensor:  # noqa: PLW1641
             Modes to check for symmetry.
         version:
             Any non-None value will call the non-default old version.
-
-        Returns
-        -------
-        Symmetrized tensor.
 
         Examples
         --------
@@ -1520,10 +1491,6 @@ class tensor:  # noqa: PLW1641
         transpose:
             Transpose matrices during multiplication.
 
-        Returns
-        -------
-        Tensor product.
-
         Examples
         --------
         Create 4-way tensor of ones and multiply by matrix specified by list of
@@ -1695,10 +1662,6 @@ class tensor:  # noqa: PLW1641
         otherdims:
             Dimensions to contract other tensor by for multiplication.
 
-        Returns
-        -------
-        Tensor product.
-
         Examples
         --------
         Create 4-way tensor with values 0-15 and 2-way tensor of ones::
@@ -1792,10 +1755,6 @@ class tensor:  # noqa: PLW1641
             Dimensions to multiply against.
         exclude_dims:
             Multiply using all dimensions but these.
-
-        Returns
-        -------
-        Tensor product.
 
         Examples
         --------
@@ -2204,10 +2163,6 @@ class tensor:  # noqa: PLW1641
         ----------
         other: :class:`pyttb.tensor`, float, int
 
-        Returns
-        -------
-        :class:`pyttb.tensor`
-
         Examples
         --------
             >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
@@ -2241,13 +2196,11 @@ class tensor:  # noqa: PLW1641
         """
         Equal for tensors (element-wise).
 
+        Returns tensor of `bool` values.
+
         Parameters
         ----------
         other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor` of `bool`.
 
         Examples
         --------
@@ -2279,13 +2232,11 @@ class tensor:  # noqa: PLW1641
         """
         Greater than or equal (>=) for tensors (element-wise).
 
+        Returns tensor of `bool` values.
+
         Parameters
         ----------
         other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor` of `bool`.
 
         Examples
         --------
@@ -2435,13 +2386,11 @@ class tensor:  # noqa: PLW1641
         """
         Greater than (>) for tensors (element-wise).
 
+        Returns tensor of `bool` values.
+
         Parameters
         ----------
         other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor` of `bool`.
 
         Examples
         --------
@@ -2473,13 +2422,11 @@ class tensor:  # noqa: PLW1641
         """
         Less than or equal (<=) for tensors (element-wise).
 
+        Returns tensor of `bool` values.
+
         Parameters
         ----------
         other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor` of `bool`.
 
         Examples
         --------
@@ -2511,13 +2458,11 @@ class tensor:  # noqa: PLW1641
         """
         Less than (<) for tensors (element-wise).
 
+        Returns tensor of `bool` values.
+
         Parameters
         ----------
         other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor` of `bool`.
 
         Examples
         --------
@@ -2553,10 +2498,6 @@ class tensor:  # noqa: PLW1641
         ----------
         other: :class:`pyttb.tensor`, float, int
 
-        Returns
-        -------
-        :class:`pyttb.tensor`
-
         Examples
         --------
             >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
@@ -2590,13 +2531,11 @@ class tensor:  # noqa: PLW1641
         """
         Not equal (!=) for tensors (element-wise).
 
+        Returns tensor of `bool` values.
+
         Parameters
         ----------
         other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor` of `bool`.
 
         Examples
         --------
@@ -2628,9 +2567,7 @@ class tensor:  # noqa: PLW1641
         """
         Unary minus (-) for tensors.
 
-        Returns
-        -------
-        Copy of negated tensor.
+        Returns copy of negated tensor.
 
         Examples
         --------
@@ -2650,9 +2587,7 @@ class tensor:  # noqa: PLW1641
         """
         Unary plus (+) for tensors.
 
-        Returns
-        -------
-        Copy of tensor.
+        Returns copy of tensor.
 
         Examples
         --------
@@ -2675,10 +2610,6 @@ class tensor:  # noqa: PLW1641
         Parameters
         ----------
         other::class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor`
 
         Examples
         --------
@@ -2706,10 +2637,6 @@ class tensor:  # noqa: PLW1641
         ----------
         other: :class:`pyttb.tensor`, float, int
 
-        Returns
-        -------
-        :class:`pyttb.tensor`
-
         Examples
         --------
             >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
@@ -2727,10 +2654,6 @@ class tensor:  # noqa: PLW1641
     def __repr__(self):
         """
         Return string representation of the tensor.
-
-        Returns
-        -------
-        String displaying shape and data as strings on different lines.
 
         Examples
         --------
@@ -2791,10 +2714,6 @@ class tensor:  # noqa: PLW1641
         ----------
         other: :class:`pyttb.tensor`, float, int
 
-        Returns
-        -------
-        :class:`pyttb.tensor`
-
         Examples
         --------
             >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
@@ -2816,10 +2735,6 @@ class tensor:  # noqa: PLW1641
         Parameters
         ----------
         other::class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor`
 
         Examples
         --------
@@ -2899,10 +2814,6 @@ class tensor:  # noqa: PLW1641
         ----------
         other: :class:`pyttb.tensor`, float, int
 
-        Returns
-        -------
-        :class:`pyttb.tensor`
-
         Examples
         --------
             >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
@@ -2936,10 +2847,6 @@ class tensor:  # noqa: PLW1641
         Parameters
         ----------
         other: :class:`pyttb.tensor`, float, int
-
-        Returns
-        -------
-        :class:`pyttb.tensor`
 
         Examples
         --------
@@ -3123,10 +3030,6 @@ def tendiag(
     order:
         Memory layout for resulting tensor.
 
-    Returns
-    -------
-    Constructed tensor.
-
     Examples
     --------
         >>> diagonal_values = np.ones(3)
@@ -3183,10 +3086,6 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
     order:
         Memory layout for resulting tensor.
 
-    Returns
-    -------
-    Identity tensor.
-
     Examples
     --------
         >>> T = ttb.teneye(ndims=4, size=2)
@@ -3235,10 +3134,6 @@ def tenones(shape: Shape, order: MemoryLayout = "F") -> tensor:
     order:
         Memory layout for resulting tensor.
 
-    Returns
-    -------
-    Constructed tensor.
-
     Examples
     --------
     >>> T = ttb.tenones((3,))
@@ -3271,10 +3166,6 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
         Shape of resulting tensor.
     order:
         Memory layout for resulting tensor.
-
-    Returns
-    -------
-    Constructed tensor.
 
     Examples
     --------
@@ -3311,10 +3202,6 @@ def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
     order:
         Memory layout for resulting tensor.
 
-    Returns
-    -------
-    Constructed tensor.
-
     Examples
     --------
         >>> T = ttb.tenzeros((2, 2, 2))
@@ -3341,6 +3228,8 @@ def _mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
     The leading mode is the mode for which consecutive increases in index address
     elements at consecutive increases in the memory offset.
 
+    Returns matrix with shape (m2 x ... x mN, C).
+
     Parameters
     ----------
     W_in:
@@ -3348,10 +3237,6 @@ def _mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
         the component mode corresponding to the columns in factor matrices.
     U1:
         Factor matrix with modes (m1, C).
-
-    Returns
-    -------
-    Matrix with modes (m2 x ... x mN, C).
     """
     r = U1.shape[1]
     W_in = np.reshape(W_in, (U1.shape[0], -1, r), order="F")
@@ -3368,6 +3253,8 @@ def _mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
     """
     Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
 
+    Returns matrix with shape (m1, C).
+
     Parameters
     ----------
     W_in:
@@ -3375,10 +3262,6 @@ def _mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
         the component mode corresponding to the columns in factor matrices.
     U_mid:
         Factor matrices with modes (m2, C), (m3, C), ..., (mN, C).
-
-    Returns
-    -------
-    Matrix with modes (m1, C).
     """
     if len(U_mid) == 0:
         return W_in
@@ -3395,16 +3278,14 @@ def _min_split(shape: Shape) -> int:
     """
     Scan for optimal splitting with minimal memory footprint.
 
+    Returns optimal splitting to minimize partial MTTKRP memory footprint. Modes 0:split
+    will contract in left-partial computation and the rest will contract in
+    right-partial.
+
     Parameters
     ----------
     shape:
         Shape of original tensor in natural descending order.
-
-    Returns
-    -------
-    Optimal splitting to minimize partial MTTKRP memory footprint. Modes 0:split
-    will contract in left-partial computation and the rest will contract in
-    right-partial.
     """
     shape = parse_shape(shape)
     m_left = shape[0]
