@@ -64,11 +64,9 @@ class sptensor:  # noqa: PLW1641
     vals: optional
         Data elements of the sparse tensor.
     shape : optional
-        Shape of the tensor as a :class:`tuple` or any iterable array of integers.
-        A single integer means that the tensor should be a 1D array.
-        If :attr:`shape` is not given, defaults to :attr:`numpy.ndarray.shape`
-        of :attr:`data`. Otherwise, :attr:`data` is reshaped to the specified
-        :attr:`shape`.
+        Shape of the sparse tensor as a :class:`tuple` or any iterable array of 
+        integers. If :attr:`shape` is not given, defaults to the minimal shape that
+        accommodates the maximum indices provided across each dimension in :attr:`subs`.
     copy : optional
         Whether to deep copy (versus reference) :attr:`subs` and :attr:`vals`.
         By default, :attr:`subs` and :attr:`vals` are deep copied.
@@ -251,7 +249,7 @@ class sptensor:  # noqa: PLW1641
             Shape of sparse tensor.
         function_handle:
             Aggregation function, or name of supported aggregation function from
-            :py:mod:`numpy_groupies`.
+            `numpy_groupies <https://pypi.org/project/numpy-groupies/>`_.
 
         Examples
         --------
@@ -816,7 +814,7 @@ class sptensor:  # noqa: PLW1641
         self, other: sptensor | ttb.tensor | ttb.ktensor | ttb.ttensor
     ) -> float:
         """
-        Efficient inner product between a tensor and other :py:mod:`pyttb` tensors.
+        Efficient inner product between a sparse tensor and other tensor.
 
         Parameters
         ----------
@@ -1829,7 +1827,7 @@ class sptensor:  # noqa: PLW1641
             array([[1, 1, 1],
                    [1, 1, 3]])
 
-        Use :meth:`slice` to define part of the region. In this case, allow any
+        Use :func:`slice` to define part of the region. In this case, allow any
         subscript in mode 1:
 
             >>> region = (2, slice(None, None, None), 2)
@@ -1896,8 +1894,8 @@ class sptensor:  # noqa: PLW1641
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and the
-            remaining dimensions span the columns. _fc_ (forward cyclic) in the order
-            range(rdims,self.ndims()) followed by range(0, rdims). _bc_ (backward
+            remaining dimensions span the columns. `fc` (forward cyclic) in the order
+            range(rdims,self.ndims()) followed by range(0, rdims). `bc` (backward
             cyclic) range(rdims-1, -1, -1) then range(self.ndims(), rdims, -1).
 
         Notes
@@ -1930,7 +1928,7 @@ class sptensor:  # noqa: PLW1641
             >>> ST1.isequal(ST2)
             True
 
-        Convert using cyclic column ordering, where for the three mode case _fc_ is the
+        Convert using cyclic column ordering, where for the three mode case `fc` is the
         same result::
 
             >>> ST3 = S.to_sptenmat(rdims=np.array([0]), cdims_cyclic="fc")
@@ -1989,7 +1987,7 @@ class sptensor:  # noqa: PLW1641
 
         return ttb.sptenmat(
             np.hstack([ridx, cidx], dtype=int),
-            self.vals.copy(),
+            self.vals.copy("K"),
             rdims.astype(int),
             cdims.astype(int),
             self.shape,
@@ -3797,7 +3795,7 @@ def sptenrand(
 
     Entries drawn from a uniform distribution on the unit interval and indices selected
     using a uniform distribution. You can specify the density or number of nonzeros in
-    theresulting sparse tensor but not both.
+    the resulting sparse tensor but not both.
 
     Parameters
     ----------

@@ -6,7 +6,7 @@ Tensor Types
 
     Dense Tensors (tensor)<tutorial/class_tensor.ipynb>
     Sparse Tensors (sptensor)<tutorial/class_sptensor.ipynb>
-    Tucker Tensors (sptensor)<tutorial/class_ttensor.ipynb>
+    Tucker Tensors (ttensor)<tutorial/class_ttensor.ipynb>
     Kruskal Tensors (ktensor)<tutorial/class_ktensor.ipynb>
     Sum of Structured Tensors (sumtensor)<tutorial/class_sumtensor.ipynb>
 

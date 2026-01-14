@@ -1197,8 +1197,8 @@ class ktensor:
         --------
         Create a :class:`pyttb.ktensor` and list of factor matrices, then compute the
         product of the matricization of :class:`pyttb.ktensor` along mode 0 with the
-        Khatri-Rao produc of all the factor matrices except the first one (corresponding
-        to dimension 0)::
+        Khatri-Rao product of all the factor matrices except the first one
+        (corresponding to dimension 0)::
 
             >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
             >>> U = [1*np.ones((2, 2)), 2*np.ones((3, 2)), 3*np.ones(((4, 2)))]
@@ -1272,7 +1272,7 @@ class ktensor:
 
         Examples
         --------
-        Create a ranke-2 4x4x4 :class:`pytbb.ktensor` with factor matrices of ones (1)
+        Create a rank-2 4x4x4 :class:`pyttb.ktensor` with factor matrices of ones (1)
         and then normalize the factor matrices::
 
             >>> K = ttb.ktensor.from_function(np.ones, (4, 4, 4), 2)
@@ -1295,7 +1295,7 @@ class ktensor:
              [0.5 0.5]
              [0.5 0.5]]
 
-        Normalize the :class:`pytbb.ktensor` again, absorbing the weights of the factor
+        Normalize the :class:`pyttb.ktensor` again, absorbing the weights of the factor
         matrices into the factor matrix associated with dimension 0::
 
             >>> K.normalize(weight_factor=0)
@@ -1393,7 +1393,7 @@ class ktensor:
 
         Examples
         --------
-        Create a :class:`pytbb.ktensor` and compute a single eigenvector for dimension
+        Create a :class:`pyttb.ktensor` and compute a single eigenvector for dimension
         0::
 
             >>> K = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
@@ -1585,6 +1585,10 @@ class ktensor:
         `self` can have more components than `other`; any extra components are ignored
         in terms of the matching score.
 
+        Returns the `score`, normalized :class:`pyttb.ktensor`, a Boolean flag
+        indicating whether a match was found, and a permutation array specifying the
+        dimensions of `self` that were used to best match `other`.
+
         Parameters
         ----------
         other:
@@ -1598,10 +1602,6 @@ class ktensor:
         greedy:
             Flag indicating whether or not to consider all possible matchings
             (exponentially expensive) or just do a greedy matching.
-
-        Returns the `score`, normalized :class:`pyttb.ktensor`, a Boolean flag
-        indicating whether a match was found, and a permutation array specifying the
-        dimensions of `self` that were used to best match `other`.
 
         Examples
         --------
@@ -1816,8 +1816,8 @@ class ktensor:
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and the
-            remaining dimensions span the columns. _fc_ (forward cyclic) in the order
-            range(rdims,self.ndims()) followed by range(0, rdims). _bc_ (backward
+            remaining dimensions span the columns. `fc` (forward cyclic) in the order
+            range(rdims,self.ndims()) followed by range(0, rdims). `bc` (backward
             cyclic) range(rdims-1, -1, -1) then range(self.ndims(), rdims, -1).
         copy:
             Whether to make a copy of provided data or just reference it.
@@ -2064,7 +2064,7 @@ class ktensor:
         Tensor times vector for a :class:`pyttb.ktensor`.
 
         Computes the product of a :class:`pyttb.ktensor` with a vector (i.e.,
-        :class:`numpyp.ndarray`). If `dims` is an integer, it specifies the dimension in
+        :class:`numpy.ndarray`). If `dims` is an integer, it specifies the dimension in
         the :class:`pyttb.ktensor` along which the vector is multiplied. If the shape of
         the vector is = (I,), then the length of dimension `dims` of the
         :class:`pyttb.ktensor` must be  I.  Note that the number of dimensions of the
@@ -2507,14 +2507,14 @@ class ktensor:
         """
         Binary addition for :class:`pyttb.ktensor`.
 
+        When adding two :class:`pyttb.ktensor` objects, the `weights` vectors and
+        columns of the `factor_matrices` of the second :class:`pyttb.ktensor` are
+        concatenated to those of the first :class:`pyttb.ktensor`.
+
         Parameters
         ----------
         other: :class:`pyttb.ktensor`
             :class:`pyttb.ktensor` to add to `self`.
-
-        When adding two :class:`pyttb.ktensor` objects, the `weights` vectors and
-        columns of the `factor_matrices` of the second :class:`pyttb.ktensor` are
-        concatenated to those of the first :class:`pyttb.ktensor`.
 
         Examples
         --------
@@ -2601,6 +2601,7 @@ class ktensor:
              [1. 1.]]
 
         Multiply the :class:`pyttb.ktensor` by a scalar::
+
             >>> print(K * 3)
             ktensor of shape (2, 2, 2) with order F
             weights=[3. 3.]
@@ -2649,7 +2650,7 @@ class ktensor:
         Unary minus (negative) for :class:`pyttb.ktensor` instances.
 
         When negating a :class:`pyttb.ktensor` object, the elements of the `weights`
-        vectors are negated::
+        vectors are negated.
 
         Examples
         --------
@@ -2781,15 +2782,15 @@ class ktensor:
         """
         Binary subtraction for :class:`pyttb.ktensor`.
 
-        Parameters
-        ----------
-        other: :class:`pyttb.ktensor`
-            :class:`pyttb.ktensor` to subtract from `self`.
-
         When subtracting two :class:`pyttb.ktensor` objects, the `weights` vectors and
         columns of the `factor_matrices` of the second :class:`pyttb.ktensor` are
         concatenated to those of the first :class:`pyttb.ktensor`, and the weights of
         the second :class:`pyttb.ktensor` are negated.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.ktensor`
+            :class:`pyttb.ktensor` to subtract from `self`.
 
         Examples
         --------

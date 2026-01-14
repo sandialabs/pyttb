@@ -50,6 +50,7 @@ release = ""
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx_toolbox.more_autodoc.overloads",
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
@@ -72,6 +73,7 @@ napoleon_use_rtype = False
 
 intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "python": ("http://docs.python.org/3.10/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
 }
@@ -202,4 +204,4 @@ texinfo_documents = [
 # Autodoc settings
 autoclass_content = "class"
 autodoc_member_order = "bysource"
-autodoc_class_signature = "separated"
+autodoc_class_signature = "mixed"

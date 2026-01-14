@@ -545,7 +545,7 @@ class tensor:  # noqa: PLW1641
 
     def double(self, immutable: bool = False) -> np.ndarray:
         """
-        Convert `:class:pyttb.tensor` to a `:class:numpy.ndarray` of doubles.
+        Convert :class:`pyttb.tensor` to a :class:`numpy.ndarray` of doubles.
 
         Parameters
         ----------
@@ -606,10 +606,8 @@ class tensor:  # noqa: PLW1641
         """
         Find subscripts of nonzero elements in a tensor.
 
-        Returns
-        -------
-        Array of subscripts of the nonzero values in the tensor and a column vector of
-        the corresponding values.
+        Returns an array of subscripts of the nonzero values in the tensor and a column
+        vector of the corresponding values.
 
         Examples
         --------
@@ -1758,7 +1756,7 @@ class tensor:  # noqa: PLW1641
         selfshape = tuple(np.array(self.shape)[selfdims])
 
         if otherdims is None:
-            otherdims = selfdims.copy()
+            otherdims = selfdims.copy("K")
         elif isinstance(otherdims, int):
             otherdims = np.array([otherdims])
         othershape = tuple(np.array(other.shape)[otherdims])
@@ -1857,7 +1855,7 @@ class tensor:  # noqa: PLW1641
                 assert False, "Multiplicand is wrong size"
 
         # Extract the data
-        c = self.data.copy()
+        c = self.data.copy("K")
 
         # Permute it so that the dimensions we're working with come last
         remdims = np.setdiff1d(np.arange(0, self.ndims), dims)
@@ -1896,8 +1894,7 @@ class tensor:  # noqa: PLW1641
         """
         Apply a function to each element in a tensor or tensors.
 
-        See :meth:`pyttb.tensor.tensor.tenfun_binary` and
-        :meth:`pyttb.tensor.tensor.tenfun_unary` for supported options.
+        See :meth:`tenfun_binary` and :meth:`tenfun_unary` for supported options.
         """
         assert callable(function_handle), "function_handle must be callable"
 
@@ -2066,7 +2063,7 @@ class tensor:  # noqa: PLW1641
 
     def to_sptensor(self) -> ttb.sptensor:
         """
-        Construct a :class:`pyttb.sptensor` from `:class:pyttb.tensor`.
+        Construct a :class:`pyttb.sptensor` from :class:`pyttb.tensor`.
 
         Examples
         --------
@@ -2115,8 +2112,8 @@ class tensor:  # noqa: PLW1641
             Mapping of column indices.
         cdims_cyclic:
             When only rdims is specified maps a single rdim to the rows and the
-            remaining dimensions span the columns. _fc_ (forward cyclic) in the order
-            range(rdims,self.ndims()) followed by range(0, rdims). _bc_ (backward
+            remaining dimensions span the columns. `fc` (forward cyclic) in the order
+            range(rdims,self.ndims()) followed by range(0, rdims). `bc` (backward
             cyclic) range(rdims-1, -1, -1) then range(self.ndims(), rdims, -1).
         copy:
             Whether to make a copy of provided data or just reference it.
@@ -2158,7 +2155,7 @@ class tensor:  # noqa: PLW1641
             >>> TM1.isequal(TM2)
             True
 
-        Convert using cyclic column ordering. For the three mode case _fc_ is the same
+        Convert using cyclic column ordering. For the three mode case `fc` is the same
         result::
 
             >>> TM3 = T.to_tenmat(rdims=np.array([0]), cdims_cyclic="fc")
@@ -2196,9 +2193,9 @@ class tensor:  # noqa: PLW1641
         rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
         # if rdims or cdims is empty, hstack will output an array of float not int
         if rdims.size == 0:
-            dims = cdims.copy()
+            dims = cdims.copy("K")
         elif cdims.size == 0:
-            dims = rdims.copy()
+            dims = rdims.copy("K")
         else:
             dims = np.hstack([rdims, cdims])
         if not len(dims) == n or not (alldims == np.sort(dims)).all():
@@ -2801,7 +2798,6 @@ class tensor:  # noqa: PLW1641
                         )
                     ]
                 )
-        # s += '\n'
         return s
 
     def __rmul__(self, other):
@@ -3192,7 +3188,7 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
     T is an identity tensor if T.ttsv(x, skip_dim=0) = x for all x such that
     norm(x) == 1.
 
-    An identity tensor only exists if :attr:`ndims` is even. This method is resource
+    An identity tensor only exists if `ndims` is even. This method is resource
     intensive for even moderate orders or sizes (>=6).
 
     Parameters

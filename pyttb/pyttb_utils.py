@@ -830,9 +830,9 @@ def gather_wrap_dims(
         Mapping of column indices.
     cdims_cyclic:
         When only rdims is specified maps a single rdim to the rows and
-            the remaining dimensions span the columns. _fc_ (forward cyclic[1]_)
+            the remaining dimensions span the columns. `fc` (forward cyclic[1]_)
             in the order range(rdims,self.ndims()) followed by range(0, rdims).
-            _bc_ (backward cyclic[2]_) range(rdims-1, -1, -1) then
+            `bc` (backward cyclic[2]_) range(rdims-1, -1, -1) then
             range(self.ndims(), rdims, -1).
 
     Notes
