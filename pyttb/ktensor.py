@@ -2845,6 +2845,7 @@ class ktensor:
             return True
         return False
 
+
 if __name__ == "__main__":
     import doctest  # pragma: no cover
 

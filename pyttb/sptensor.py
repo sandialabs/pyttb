@@ -3733,6 +3733,7 @@ class sptensor:  # noqa: PLW1641
 
         assert False, "Invalid assignment value"
 
+
 def sptendiag(elements: OneDArray, shape: Shape | None = None) -> sptensor:
     """
     Create a :class:`pyttb.sptensor` with elements along the super diagonal.
@@ -3772,6 +3773,7 @@ def sptendiag(elements: OneDArray, shape: Shape | None = None) -> sptensor:
         constructed_shape = tuple(max(N, dim) for dim in shape)
     subs = np.tile(np.arange(0, N).transpose(), (len(constructed_shape), 1)).transpose()
     return sptensor.from_aggregator(subs, elements.reshape((N, 1)), constructed_shape)
+
 
 def sptenrand(
     shape: Shape,
@@ -3830,6 +3832,7 @@ def sptenrand(
         return np.random.uniform(low=0, high=1, size=pass_through_shape)
 
     return ttb.sptensor.from_function(unit_uniform, shape, valid_nonzeros)
+
 
 if __name__ == "__main__":
     import doctest  # pragma: no cover

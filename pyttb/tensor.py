@@ -3010,6 +3010,7 @@ class tensor:  # noqa: PLW1641
             return some_tensor
         return some_tensor.to_tensor()
 
+
 def tendiag(
     elements: OneDArray,
     shape: Shape | None = None,
@@ -3064,6 +3065,7 @@ def tendiag(
     subs = np.tile(np.arange(0, N)[:, None], (len(constructed_shape),))
     X[subs] = elements
     return X
+
 
 def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
     """
@@ -3120,6 +3122,7 @@ def teneye(ndims: int, size: int, order: MemoryLayout = "F") -> tensor:
         A[tuple(zip(*p, strict=False))] = v / factorial(ndims)
     return A
 
+
 def tenones(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """
     Create a tensor of all ones.
@@ -3151,6 +3154,7 @@ def tenones(shape: Shape, order: MemoryLayout = "F") -> tensor:
         return np.ones(shape, order=order)
 
     return tensor.from_function(ones, shape)
+
 
 def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """
@@ -3186,6 +3190,7 @@ def tenrand(shape: Shape, order: MemoryLayout = "F") -> tensor:
 
     return tensor.from_function(unit_uniform, shape)
 
+
 def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
     """
     Create a tensor of all zeros.
@@ -3214,6 +3219,7 @@ def tenzeros(shape: Shape, order: MemoryLayout = "F") -> tensor:
         return np.zeros(shape, order=order)
 
     return tensor.from_function(zeros, shape)
+
 
 def _min_split(shape: Shape) -> int:
     """
@@ -3247,6 +3253,7 @@ def _min_split(shape: Shape) -> int:
             break
     return idx_min
 
+
 def _mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
     """
     Contract leading mode in partial MTTKRP W_in using factor matrix U1.
@@ -3274,6 +3281,7 @@ def _mttv_left(W_in: np.ndarray, U1: np.ndarray) -> np.ndarray:
         W_out[:, j] = W_in[:, :, j].transpose().dot(U1[:, j])
     return W_out
 
+
 def _mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
     """
     Contract intermediate modes in partial MTTKRP W_in using factor matrices U_mid.
@@ -3297,6 +3305,7 @@ def _mttv_mid(W_in: np.ndarray, U_mid: Sequence[np.ndarray]) -> np.ndarray:
     for j in range(r):
         V[:, j] = W_in[:, :, j].dot(K[:, j])
     return V
+
 
 if __name__ == "__main__":
     import doctest  # pragma: no cover
