@@ -46,6 +46,7 @@ dev = [
 doc = [
     "sphinx >= 4.0",
     "sphinx_rtd_theme>2.0",
+    "sphinx-toolbox >= 3.9"
     "myst-nb>1.0",
 ]
 profiling = [
