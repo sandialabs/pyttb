@@ -64,7 +64,7 @@ class sptensor:  # noqa: PLW1641
     vals: optional
         Data elements of the sparse tensor.
     shape : optional
-        Shape of the sparse tensor as a :class:`tuple` or any iterable array of 
+        Shape of the sparse tensor as a :class:`tuple` or any iterable array of
         integers. If :attr:`shape` is not given, defaults to the minimal shape that
         accommodates the maximum indices provided across each dimension in :attr:`subs`.
     copy : optional
