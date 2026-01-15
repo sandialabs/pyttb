@@ -639,7 +639,7 @@ class tensor:  # noqa: PLW1641
         self, other: tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor
     ) -> float:
         """
-        Efficient inner product between a tensor and other :py:mod:`pyttb` tensors.
+        Efficient inner product between a tensor and and other tensor.
 
         Parameters
         ----------
@@ -1011,13 +1011,13 @@ class tensor:  # noqa: PLW1641
         """
         Sequence of MTTKRP calculations for a tensor.
 
-        Returns array containing Khatri-Rao matrix product. Result is equivalent to
-        [T.mttkrp(U, k) for k in range(T.ndims)].
+        Returns list of arrays containing multiple Khatri-Rao matrix products. Result is
+        equivalent to [T.mttkrp(U, k) for k in range(T.ndims)].
 
         Parameters
         ----------
         U:
-            Matrices to create the Khatri-Rao product.
+            Matrices to create the Khatri-Rao products.
 
         Examples
         --------

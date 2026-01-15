@@ -973,7 +973,7 @@ class ktensor:
         self, other: ttb.tensor | ttb.sptensor | ktensor | ttb.ttensor
     ) -> float:
         """
-        Efficient inner product with a :class:`pyttb.ktensor`.
+        Efficient inner product with a :class:`pyttb.ktensor` and other tensor.
 
         Efficiently computes the inner product between two tensors, `self` and `other`.
         If other is a :class:`pyttb.ktensor`, the inner product is computed using inner
@@ -2384,7 +2384,7 @@ class ktensor:
             >>> fig, axs = K.viz(show_figure=False)  # doctest: +ELLIPSIS
             >>> plt.close(fig)
 
-        Define a more realistic plot functions with x labels, control relative widths of
+        Define a more realistic plot function with x labels, control relative widths of
         each plot, and set mode titles.
 
             >>> def mode_1_plot(v, ax):
