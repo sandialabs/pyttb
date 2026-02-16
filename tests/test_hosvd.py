@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+import scipy.linalg as la
 
 import pyttb as ttb
 
@@ -120,3 +121,17 @@ def test_hosvd_3way(capsys, sample_tensor_3way):
     assert np.allclose(np.abs(M.factor_matrices[0]), np.abs(fm0))
     assert np.allclose(np.abs(M.factor_matrices[1]), np.abs(fm1))
     assert np.allclose(np.abs(M.factor_matrices[2]), np.abs(fm2))
+
+
+def test_hosvd_rank1():
+    """Ensure #484 remains resolved"""
+    rng = np.random.default_rng(0)
+    U = rng.standard_normal((3, 2))
+    V = rng.standard_normal((10, 2))
+    U = la.qr(U, mode="economic")[0]
+    V = la.qr(V, mode="economic")[0]
+    X = ttb.tensor(U @ V.T)
+    result = ttb.hosvd(X, tol=np.inf, ranks=(1, 1), sequential=False)
+    assert result.core.shape == (1, 1), (
+        "Core shape should be (1, 1) for rank-1 decomposition"
+    )
