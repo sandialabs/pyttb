@@ -471,12 +471,12 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
     isSparse = isinstance(input_tensor, ttb.sptensor)
 
     # Initialize output arrays
-    fnEvals = np.zeros((maxiters, 1))
-    fnVals = np.zeros((maxiters, 1))
-    kktViolations = -np.ones((maxiters, 1))
-    nInnerIters = np.zeros((maxiters, 1))
-    nzeros = np.zeros((maxiters, 1))
-    times = np.zeros((maxiters, 1))
+    fnEvals = np.zeros((maxiters,))
+    fnVals = np.zeros((maxiters,))
+    kktViolations = -np.ones((maxiters,))
+    nInnerIters = np.zeros((maxiters,))
+    nzeros = np.zeros((maxiters,))
+    times = np.zeros((maxiters,))
 
     if printitn > 0:
         print("CP_PDNR (alternating Poisson regression using damped Newton)")
@@ -490,7 +490,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
         # Precompute sparse index sets for all the row subproblems.
         # Takes more memory but can cut execution time significantly in some cases.
         if printitn > 0:
-            print("\tPrecomuting sparse index sets...")
+            print("\tPrecomuting sparse index sets...", end="")
         sparseIx = []
         for n in range(N):
             num_rows = M.factor_matrices[n].shape[0]
@@ -560,7 +560,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
                 m_row = M.factor_matrices[n][jj, :]
 
                 # Iteratively solve the row subproblem with projected Newton steps.
-                if inexact and iteration == 1:
+                if inexact and iteration == 0:
                     innerIterMaximum = 2
                 else:
                     innerIterMaximum = maxinneriters
@@ -600,7 +600,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
                             print(f", RowKKT = {kkt_violation}, RowObj = {-f_new}")
 
                     # Check for row subproblem convergence.
-                    if kkt_violation < stoptol:
+                    if kkt_violation < rowsubprobStopTol:
                         break
                     # Not converged, so m_row will be modified.
                     isRowNOTconverged[jj] = 1
@@ -649,7 +649,7 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
                         mu *= 2 / 7
 
                 M.factor_matrices[n][jj, :] = m_row
-                countInnerIters[n] += i
+                countInnerIters[n] += i + 1
 
             # Test if all row subproblems have converged, which means that no variables
             # in this row were changed.
@@ -672,15 +672,16 @@ def tt_cp_apr_pdnr(  # noqa: PLR0912,PLR0913,PLR0915
         kktViolations[iteration] = np.max(kktModeViolations)
 
         if inexact:
-            rowsubprobStopTol = np.maximum(stoptol, kktViolations[iteration]) / 100.0
+            rowsubprobStopTol = np.maximum(stoptol, kktViolations[iteration] / 100.0)
 
             # Print outer iteration status.
             if (printitn > 0) and (divmod(iteration, printitn)[1] == 0):
                 fnVals[iteration] = -tt_loglikelihood(input_tensor, M)
                 print(
                     f"{iteration}. Ttl Inner Its: {nInnerIters[iteration]}, "
-                    f"KKT viol = {kktViolations[iteration]}, obj = {fnVals[iteration]}"
-                    f", nz: {num_zero}"
+                    f"KKT viol = {kktViolations[iteration]:.2e}, "
+                    f"obj = {fnVals[iteration]:.8e}, "
+                    f"nz: {num_zero}"
                 )
 
         times[iteration] = time.time() - start
@@ -851,7 +852,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
         # Precompute sparse index sets for all the row subproblems.
         # Takes more memory but can cut execution time significantly in some cases.
         if printitn > 0:
-            print("\tPrecomuting sparse index sets...")
+            print("\tPrecomuting sparse index sets...", end="")
         sparseIx = []
         for n in range(N):
             num_rows = M.factor_matrices[n].shape[0]
