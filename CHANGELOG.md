@@ -1,3 +1,12 @@
+# v1.8.5 (2026-03-17)
+- Version Support:
+  - Fixed support for numpy 2.4 (https://github.com/sandialabs/pyttb/pull/472)
+- Fixed:
+  - Fixed `hosvd` with user-defined ranks (https://github.com/sandialabs/pyttb/pull/485)
+  - Fixed `cp_apr` convergence issues (https://github.com/sandialabs/pyttb/pull/487)
+- Improved:
+  - Documentation moving towards consistent state (https://github.com/sandialabs/pyttb/pull/444)
+
 # v1.8.4 (2026-01-05)
 - Version Support:
   - Added support for Python 3.14; dropped support for Python 3.9 (https://github.com/sandialabs/pyttb/pull/459)
