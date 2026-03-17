@@ -5,6 +5,9 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
+import os
+import tempfile
+
 import numpy
 import numpy as np
 
@@ -19,6 +22,22 @@ import pyttb as ttb
 def add_packages(doctest_namespace):  # noqa: D103
     doctest_namespace["np"] = numpy
     doctest_namespace["ttb"] = pyttb
+
+
+@pytest.fixture()
+def test_temp_file():
+    """Create a temporary file that persists on test failure for debugging."""
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        temp_path = tmp.name
+
+    try:
+        yield temp_path
+        print(f"Temp file for inspection: {temp_path}")
+    finally:
+        try:
+            os.unlink(temp_path)
+        except FileNotFoundError:
+            pass
 
 
 @pytest.fixture(params=[{"order": "F"}, {"order": "C"}])
