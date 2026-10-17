@@ -10,9 +10,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 
 dependencies = [
-    "numpy<2.5,>=1.24",
+    "numpy<2.6,>=1.24",
     "numpy_groupies>0.11",
-    "scipy<1.17,>1.9",
+    "scipy<1.19,>1.9",
     "matplotlib>3.7",
 ]
 
@@ -33,15 +33,15 @@ documentation = "https://pyttb.readthedocs.io"
 
 [project.optional-dependencies]
 dev = [
-    "mypy>=1.15,<1.16.0",
+    "mypy>=1.15,<2.5",
     # Also in pre-commit
-    "nbstripout>=0.8,<0.9",
+    "nbstripout>=0.8,<0.10",
     "pytest>8.0",
     "pytest-cov>5.0",
     # Also in pre-commit
-    "ruff>=0.12,<0.13",
+    "ruff>=0.12,<0.18",
     "pre-commit>=4.0,<5.0",
-    "codespell>=2.3.0,<2.4.0"
+    "codespell>=2.3.0,<2.5.0"
 ]
 doc = [
     "sphinx >= 4.0",
@@ -88,9 +88,8 @@ ignore = [
     "B028",
     # Personal preference on magic method
     "D105",
-    # Rule removed in newer version of ruff
-    "UP038",
 ]
+
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
@@ -123,6 +122,9 @@ module = [
     "numpy_groupies"
 ]
 ignore_missing_imports = true
+
+[tool.ruff.lint.pylint]
+max-positional-args = 20
 
 [tool.pytest.ini_options]
 minversion = "6.0"
