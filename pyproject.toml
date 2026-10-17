@@ -7,7 +7,7 @@ authors = [
 ]
 license = { text="BSD 2-Clause License" }
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dependencies = [
     "numpy<2.6,>=1.24",
@@ -19,7 +19,6 @@ dependencies = [
 classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
