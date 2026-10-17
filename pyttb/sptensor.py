@@ -20,7 +20,6 @@ from typing import (
 
 import numpy as np
 import scipy.sparse.linalg
-from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
@@ -28,6 +27,7 @@ from pyttb.pyttb_utils import (
     IndexVariant,
     OneDArray,
     Shape,
+    accumarray,
     gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
@@ -601,16 +601,16 @@ class sptensor:  # noqa: PLW1641
         newsize = tuple(np.array(self.shape)[remdims])
 
         # Find index of values on diagonal
-        indx = np.where(self.subs[:, i_0] == self.subs[:, i_1])[0]
+        idx = np.where(self.subs[:, i_0] == self.subs[:, i_1])[0]
 
         # Let constructor sum entries
         if remdims.size == 1:
             y = ttb.sptensor.from_aggregator(
-                self.subs[indx, remdims][:, None], self.vals[indx], newsize
+                self.subs[idx, remdims][:, None], self.vals[idx], newsize
             )
         else:
             y = ttb.sptensor.from_aggregator(
-                self.subs[indx, :][:, remdims], self.vals[indx], newsize
+                self.subs[idx, :][:, remdims], self.vals[idx], newsize
             )
 
         # Check if result should be dense
@@ -1563,8 +1563,9 @@ class sptensor:  # noqa: PLW1641
                 copy=False,
             )
         if np.isscalar(old_shape):
-            old_shape = (old_shape,)
-            inds = tt_sub2ind(old_shape, self.subs[:, old_modes][:, None])
+            inds = tt_sub2ind(
+                (int(cast("int", old_shape)),), self.subs[:, old_modes][:, None]
+            )
         else:
             inds = tt_sub2ind(old_shape, self.subs[:, old_modes])
         new_subs = tt_ind2sub(new_shape, inds)
@@ -2226,25 +2227,26 @@ class sptensor:  # noqa: PLW1641
         if remdims.size == 1:
             if newvals.size == 0:
                 return ttb.sptensor(shape=tuple(newsiz))
-            c = accumarray(
+            cvec = accumarray(
                 newsubs.transpose()[0], newvals.transpose()[0], size=newsiz[0]
             )
-            if np.count_nonzero(c) <= 0.5 * newsiz:
+            if np.count_nonzero(cvec) <= 0.5 * newsiz:
                 return ttb.sptensor.from_aggregator(
                     np.arange(0, newsiz.item())[:, None],
-                    c.reshape((len(c), 1)),
+                    cvec.reshape((len(cvec), 1)),
                     tuple(newsiz),
                 )
-            return ttb.tensor(c, tuple(newsiz), copy=False)
+            return ttb.tensor(cvec, tuple(newsiz), copy=False)
 
         # Case 2: Result is a multiway array
         c = ttb.sptensor.from_aggregator(newsubs, newvals, tuple(newsiz))
 
         # Convert to a dense tensor if more than 50% of the result is nonzero.
+        result: ttb.sptensor | ttb.tensor = c
         if c.nnz > 0.5 * prod(newsiz):
-            c = c.to_tensor()
+            result = c.to_tensor()
 
-        return c
+        return result
 
     def __add__(self, other):
         """

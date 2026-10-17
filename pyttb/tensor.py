@@ -21,7 +21,6 @@ from typing import (
 
 import numpy as np
 import scipy.sparse.linalg
-from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
@@ -31,6 +30,7 @@ from pyttb.pyttb_utils import (
     MemoryLayout,
     OneDArray,
     Shape,
+    accumarray,
     gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
@@ -969,6 +969,7 @@ class tensor:  # noqa: PLW1641
             assert False, "MTTKRP is invalid for tensors with fewer than 2 dimensions"
 
         U = get_mttkrp_factors(U, n, self.ndims)
+        n = int(n)
 
         if n == 0:
             R = U[1].shape[1]

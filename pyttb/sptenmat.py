@@ -9,11 +9,11 @@ from __future__ import annotations
 from typing import Literal
 
 import numpy as np
-from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
 from pyttb.pyttb_utils import (
+    accumarray,
     gather_wrap_dims,
     np_to_python,
     tt_ind2sub,
@@ -549,15 +549,15 @@ class sptenmat:
                 indxr = np.array([], dtype=int)
                 if self.subs.size > 0:
                     indxr = np.where(self.subs[indxc, 0] == rsubs[i])[0]
-                indx = indxc[indxr]
+                idx = indxc[indxr]
 
                 k += 1
 
-                if indx.size == 0:
+                if idx.size == 0:
                     newsubs.append(np.hstack([rsubs[i], csubs[j]]))
                     newvals.append(value[k])
                 else:
-                    self.vals[indx] = value[k]
+                    self.vals[idx] = value[k]
 
         # If there are new values to append, then add them on and sort
         if len(newvals) != 0:
