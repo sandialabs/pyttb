@@ -23,9 +23,83 @@ ALT_CORE_ERROR = "TTensor doesn't support non-tensor cores yet. Only tensor/spte
 
 
 class ttensor:
-    """Class for Tucker tensors (decomposed)."""
+    """
+    Class for Tucker tensors (decomposed).
 
-    __slots__ = ("core", "factor_matrices")
+    Parameters
+    ----------
+    core: optional
+        Core of the Tucker tensor, either a :class:`pyttb.tensor` or a
+        :class:`pyttb.sptensor`. The shape of the core is (r_0, ..., r_{d-1}), where d
+        is the number of dimensions of the tensor.
+    factors: optional
+        Sequence of :class:`numpy.ndarray` factor matrices. The length of the sequence
+        must equal the number of dimensions of the core. The shape of the ith factor
+        matrix is (n_i, r_i), where n_i is the length of dimension i of the tensor and
+        r_i is the size of dimension i of the core.
+    copy: optional
+        Whether to deep copy (versus reference) :attr:`core` and
+        :attr:`factor_matrices`. By default, they are deep copied.
+
+    Examples
+    --------
+    Create a :class:`pyttb.ttensor` from a core tensor and a list of factor matrices:
+
+        >>> core = ttb.tenones((2, 2, 2))
+        >>> factors = [
+        ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+        ...     np.eye(2),
+        ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+        ... ]
+        >>> T = ttb.ttensor(core, factors)
+        >>> print(T)  # doctest: +NORMALIZE_WHITESPACE
+        TTensor of shape: (3, 2, 2)
+            Core is a
+                tensor of shape (2, 2, 2) with order F
+                data[:, :, 0] =
+                [[1. 1.]
+                 [1. 1.]]
+                data[:, :, 1] =
+                [[1. 1.]
+                 [1. 1.]]
+            U[0] =
+                [[1. 2.]
+                 [3. 4.]
+                 [5. 6.]]
+            U[1] =
+                [[1. 0.]
+                 [0. 1.]]
+            U[2] =
+                [[ 1.  1.]
+                 [ 1. -1.]]
+
+    Create an empty :class:`pyttb.ttensor`::
+
+        >>> T = ttb.ttensor()
+        >>> print(T.shape)
+        ()
+
+    Notes
+    -----
+    Instances of :class:`pyttb.ttensor` can also be created using the following:
+
+        * :meth:`copy` - Make a deep copy of a ttensor
+
+    Instances of :class:`pyttb.ttensor` are also returned by decomposition
+    algorithms such as :func:`pyttb.tucker_als` and :func:`pyttb.hosvd`.
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/class_ttensor` tutorial for getting started with the
+    ttensor class.
+
+    **Attributes and Methods**
+    """
+
+    __slots__ = {
+        "core": "Core tensor of the ttensor.",
+        "factor_matrices": "Factor matrices of the ttensor.",
+    }
 
     def __init__(
         self,
@@ -33,37 +107,6 @@ class ttensor:
         factors: Sequence[np.ndarray] | None = None,
         copy: bool = True,
     ) -> None:
-        """
-        Construct an ttensor from fully defined core tensor and factor matrices.
-
-        Parameters
-        ----------
-        core:
-            Core of tucker tensor.
-        factors:
-            Factor matrices.
-        copy:
-            Whether to make a copy of provided data or just reference it.
-
-        Returns
-        -------
-        Constructed tucker tensor.
-
-        Examples
-        --------
-        Import required modules:
-
-        >>> import pyttb as ttb
-        >>> import numpy as np
-
-        Set up input data
-        # Create ttensor with explicit data description
-
-        >>> core_values = np.ones((2, 2, 2))
-        >>> core = ttb.tensor(core_values)
-        >>> factors = [np.ones((1, 2))] * len(core_values.shape)
-        >>> K0 = ttb.ttensor(core, factors)
-        """
         if core is None and factors is None:
             # Empty constructor
             # TODO explore replacing with typing protocol
@@ -119,11 +162,21 @@ class ttensor:
     @property
     def ndims(self) -> int:
         """
-        Number of dimensions of a ttensor.
+        Number of dimensions of the :class:`pyttb.ttensor`.
 
-        Returns
-        -------
-        Number of dimensions of ttensor
+        Examples
+        --------
+        Create a :class:`pyttb.ttensor` and display the number of dimensions::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.ndims)
+            3
         """
         return len(self.factor_matrices)
 
@@ -134,11 +187,30 @@ class ttensor:
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """Shape of the tensor this deconstruction represents."""
+        """
+        Shape of the tensor this :class:`pyttb.ttensor` represents.
+
+        Returns a tuple containing the lengths of all dimensions of the full tensor.
+
+        Examples
+        --------
+        Create a :class:`pyttb.ttensor` and display its shape::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.shape)
+            (3, 2, 2)
+        """
         return tuple(factor.shape[0] for factor in self.factor_matrices)
 
     def copy(self) -> ttensor:
-        """Make a deep copy of a :class:`pyttb.ttensor`.
+        """
+        Make a deep copy of a :class:`pyttb.ttensor`.
 
         Returns
         -------
@@ -146,35 +218,93 @@ class ttensor:
 
         Examples
         --------
-        >>> core_values = np.ones((2, 2, 2))
-        >>> core = ttb.tensor(core_values)
-        >>> factors = [np.ones((1, 2))] * len(core_values.shape)
-        >>> first = ttb.ttensor(core, factors)
-        >>> second = first
-        >>> third = second.copy()
-        >>> first.factor_matrices[0][0, 0] = 2
+        Create a :class:`pyttb.ttensor` and make a reference and a deep copy of it::
 
-        # Item to convert numpy boolean to python boolena for nicer printing
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> second = T
+            >>> third = T.copy()
 
-        >>> (first.factor_matrices[0][0, 0] == second.factor_matrices[0][0, 0]).item()
-        True
-        >>> (first.factor_matrices[0][0, 0] == third.factor_matrices[0][0, 0]).item()
-        False
+        Changing the original also changes the reference, but not the deep copy::
+
+            >>> T.factor_matrices[0][0, 0] = 2.0
+            >>> print(second.factor_matrices[0][0, 0])
+            2.0
+            >>> print(third.factor_matrices[0][0, 0])
+            1.0
         """
         return ttb.ttensor(self.core, self.factor_matrices, copy=True)
 
     def double(self, immutable: bool = False) -> np.ndarray:
-        """Convert ttensor to an array of doubles.
+        """
+        Convert :class:`pyttb.ttensor` to :class:`numpy.ndarray`.
 
         Parameters
         ----------
-        immutable: Whether or not the returned data cam be mutated. May enable
-            additional optimizations.
+        immutable:
+            Whether or not the returned data can be mutated. May enable additional
+            optimizations.
+
+        Returns
+        -------
+        Full tensor represented by the ttensor, as a multidimensional array.
+
+        Examples
+        --------
+        Create a :class:`pyttb.ttensor` and convert it to a :class:`numpy.ndarray`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> D = T.double()
+            >>> print(D.shape)
+            (3, 2, 2)
+            >>> print(D[:, :, 0])
+            [[ 6.  6.]
+             [14. 14.]
+             [22. 22.]]
         """
         return self.full().double(immutable)
 
     def full(self) -> ttb.tensor:
-        """Convert a ttensor to a (dense) tensor."""
+        """
+        Convert a :class:`pyttb.ttensor` to a (dense) :class:`pyttb.tensor`.
+
+        Returns
+        -------
+        Full tensor represented by the ttensor.
+
+        Examples
+        --------
+        Create a :class:`pyttb.ttensor` and convert it to a :class:`pyttb.tensor`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.full())
+            tensor of shape (3, 2, 2) with order F
+            data[:, :, 0] =
+            [[ 6.  6.]
+             [14. 14.]
+             [22. 22.]]
+            data[:, :, 1] =
+            [[0. 0.]
+             [0. 0.]
+             [0. 0.]]
+        """
         recomposed_tensor = self.core.ttm(self.factor_matrices)
 
         # There is a small chance tensor could be sparse so cast that to dense.
@@ -185,16 +315,34 @@ class ttensor:
     def innerprod(
         self, other: ttb.tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor
     ) -> float:
-        """Efficient inner product with a ttensor.
+        """
+        Efficient inner product with a :class:`pyttb.ttensor`.
 
         Parameters
         ----------
         other:
-            Tensor to take an innerproduct with.
+            Tensor to take an inner product with.
 
         Returns
         -------
-        Result of the innerproduct.
+        Result of the inner product.
+
+        Examples
+        --------
+        Compute the inner product of a :class:`pyttb.ttensor` with itself and with
+        the equivalent :class:`pyttb.tensor`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.innerprod(T))
+            1432.0
+            >>> print(T.innerprod(T.full()))
+            1432.0
         """
         if isinstance(other, ttensor):
             if self.shape != other.shape:
@@ -233,16 +381,33 @@ class ttensor:
         )
 
     def isequal(self, other: ttensor) -> bool:
-        """Component equality for ttensors.
+        """
+        Component equality for :class:`pyttb.ttensor` instances.
 
         Parameters
         ----------
         other:
-            TTensor to compare against.
+            ttensor to compare against.
 
         Returns
         -------
-        True if ttensors decompositions are identical, false otherwise
+        True if the ttensor decompositions are identical, false otherwise.
+
+        Examples
+        --------
+        Compare a :class:`pyttb.ttensor` with a copy and with a scaled version::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.isequal(T.copy()))
+            True
+            >>> print(T.isequal(ttb.ttensor(core * 2, factors)))
+            False
         """
         if not isinstance(other, ttensor):
             return False
@@ -264,13 +429,31 @@ class ttensor:
         Parameters
         ----------
         U:
-            Array of matrices or ktensor
+            Sequence of matrices or a :class:`pyttb.ktensor`.
         n:
-            Multiplies by all modes except n
+            Multiplies by all modes except n.
 
         Returns
         -------
-        :class:`numpy.ndarray`
+        :class:`numpy.ndarray` with shape (shape[n], r), where r is the number of
+        columns of the matrices in `U`.
+
+        Examples
+        --------
+        Compute the MTTKRP of a :class:`pyttb.ttensor` in mode 0::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> U = [np.ones((3, 2)), np.ones((2, 2)), np.ones((2, 2))]
+            >>> print(T.mttkrp(U, 0))
+            [[12. 12.]
+             [28. 28.]
+             [44. 44.]]
         """
         # NOTE: MATLAB version calculates an unused R here
 
@@ -289,11 +472,25 @@ class ttensor:
 
     def norm(self) -> float:
         """
-        Compute the norm of a ttensor.
+        Compute the norm of a :class:`pyttb.ttensor`.
 
         Returns
         -------
-        Frobenius norm of Tensor.
+        Frobenius norm of the tensor.
+
+        Examples
+        --------
+        Compute the Frobenius norm of a :class:`pyttb.ttensor`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(round(T.norm(), 4))
+            37.8418
         """
         if np.prod(self.shape) > np.prod(self.core.shape):
             V = []
@@ -308,20 +505,34 @@ class ttensor:
         self, n: int, r: int, flipsign: bool = True
     ) -> np.ndarray:
         """
-        Compute the leading mode-n vectors for a ttensor.
+        Compute the leading mode-n vectors for a :class:`pyttb.ttensor`.
 
         Parameters
         ----------
         n:
-            Mode for tensor matricization
+            Mode for tensor matricization.
         r:
-            Number of eigenvalues
+            Number of eigenvalues.
         flipsign:
-            Make each column's largest element positive if true
+            Make each column's largest element positive if true.
 
         Returns
         -------
-        Computed eigenvectors.
+        Computed eigenvectors as a :class:`numpy.ndarray` with shape (shape[n], r).
+
+        Examples
+        --------
+        Compute the leading mode-0 eigenvector of a :class:`pyttb.ttensor`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.nvecs(0, 1).shape)
+            (3, 1)
         """
         # Compute inner product of all n-1 factors
         V = []
@@ -399,6 +610,21 @@ class ttensor:
         Returns
         -------
         Permuted :class:`pyttb.ttensor`.
+
+        Examples
+        --------
+        Permute the dimensions of a :class:`pyttb.ttensor`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> P = T.permute(np.array([2, 0, 1]))
+            >>> print(P.shape)
+            (2, 3, 2)
         """
         order = parse_one_d(order)
         if not np.array_equal(np.arange(0, self.ndims), np.sort(order)):
@@ -418,11 +644,35 @@ class ttensor:
         Parameters
         ----------
         samples:
+            Rows of the factor matrices to keep (or sampling matrices) for each mode in
+            `modes`. If both `samples` and `modes` are None, the full tensor is
+            reconstructed.
         modes:
+            Modes that `samples` apply to. Defaults to all modes.
 
         Returns
         -------
-        :class:`pyttb.ttensor`
+        :class:`pyttb.tensor`, the (partially) reconstructed tensor.
+
+        Examples
+        --------
+        Reconstruct only the first two entries of mode 0::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.reconstruct(np.array([0, 1]), np.array([0])))
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[ 6.  6.]
+             [14. 14.]]
+            data[:, :, 1] =
+            [[0. 0.]
+             [0. 0.]]
         """
         # Default to sampling full tensor
         full_tensor_sampling = samples is None and modes is None
@@ -480,9 +730,24 @@ class ttensor:
         return ttensor(self.core, new_u).full()
 
     def to_tensor(self) -> ttb.tensor:
-        """Convert to tensor.
+        """
+        Convert to tensor.
 
-        Same as :meth:`pyttb.ttensor.full`
+        Same as :meth:`pyttb.ttensor.full`.
+
+        Examples
+        --------
+        Create a :class:`pyttb.ttensor` and convert it to a :class:`pyttb.tensor`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T.to_tensor().isequal(T.full()))
+            True
         """
         return self.full()
 
@@ -493,18 +758,38 @@ class ttensor:
         exclude_dims: int | np.ndarray | None = None,
         transpose: bool = False,
     ) -> ttensor:
-        """Tensor times matrix for ttensor.
+        """
+        Tensor times matrix for :class:`pyttb.ttensor`.
 
         Parameters
         ----------
         matrix:
-            Matrix or matrices to multiple by
+            Matrix or matrices to multiply by.
         dims:
-            Dimensions to multiply against
+            Dimensions to multiply against.
         exclude_dims:
-            Use all dimensions but these
+            Use all dimensions but these.
         transpose:
-            Transpose matrices during multiplication
+            Transpose matrices during multiplication.
+
+        Returns
+        -------
+        :class:`pyttb.ttensor` with the factor matrices updated by the product.
+
+        Examples
+        --------
+        Multiply mode 0 of a :class:`pyttb.ttensor` by a matrix::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> R = T.ttm(np.ones((4, 3)), dims=0)
+            >>> print(R.shape)
+            (4, 2, 2)
         """
         if dims is None and exclude_dims is None:
             dims = np.arange(self.ndims)
@@ -546,16 +831,43 @@ class ttensor:
         dims: OneDArray | None = None,
         exclude_dims: OneDArray | None = None,
     ) -> float | ttensor:
-        """TTensor times vector.
+        """
+        Tensor times vector for :class:`pyttb.ttensor`.
 
         Parameters
         ----------
         vector:
-            Vector to multiply by.
+            Vector or sequence of vectors to multiply by.
         dims:
             Dimensions to multiply in.
         exclude_dims:
             Alternative multiply by all dimensions but these.
+
+        Returns
+        -------
+        :class:`pyttb.ttensor` over the remaining dimensions, or a scalar if all
+        dimensions are multiplied.
+
+        Examples
+        --------
+        Multiply a :class:`pyttb.ttensor` by a vector in mode 0::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> R = T.ttv(np.ones(3), dims=0)
+            >>> print(R.shape)
+            (2, 2)
+
+        Multiply by a vector in every mode to get a scalar::
+
+            >>> vectors = [np.ones(3), np.ones(2), np.ones(2)]
+            >>> print(T.ttv(vectors))
+            84.0
         """
         # Check that vector is a list of vectors,
         # if not place single vector as element in list
@@ -598,7 +910,8 @@ class ttensor:
         return self.copy()
 
     def __mul__(self, other):
-        """Element wise multiplication (*) for ttensors (only scalars supported).
+        """
+        Element wise multiplication (*) for ttensors (only scalars supported).
 
         Parameters
         ----------
@@ -607,6 +920,26 @@ class ttensor:
         Returns
         -------
         :class:`pyttb.ttensor`
+
+        Examples
+        --------
+        Multiply a :class:`pyttb.ttensor` by a scalar, which scales the core::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print((T * 2).core)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[2. 2.]
+             [2. 2.]]
+            data[:, :, 1] =
+            [[2. 2.]
+             [2. 2.]]
         """
         if isinstance(other, (float, int, np.number)):
             return ttensor(self.core * other, self.factor_matrices)
@@ -616,11 +949,32 @@ class ttensor:
         )
 
     def __neg__(self):
-        """Unary minus (-) for ttensors.
+        """
+        Unary minus (-) for ttensors.
 
         Returns
         -------
-        :class:`pyttb.ttensor`, copy of tensor
+        :class:`pyttb.ttensor` with a negated core.
+
+        Examples
+        --------
+        Negate a :class:`pyttb.ttensor`, which negates the core::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print((-T).core)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[-1. -1.]
+             [-1. -1.]]
+            data[:, :, 1] =
+            [[-1. -1.]
+             [-1. -1.]]
         """
         return ttensor(-self.core, self.factor_matrices)
 
@@ -631,16 +985,63 @@ class ttensor:
         Returns
         -------
         :class:`pyttb.ttensor`, copy of tensor
+
+        Examples
+        --------
+        Apply unary plus to a :class:`pyttb.ttensor`, which returns a copy::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print((+T).isequal(T))
+            True
         """
         return self.copy()
 
     def __repr__(self):  # pragma: no cover
-        """Return string representation of a tucker tensor.
+        """
+        Return string representation of a tucker tensor.
 
         Returns
         -------
         str
             Contains the core, and factor matrices as strings on different lines.
+
+        Examples
+        --------
+        Print a :class:`pyttb.ttensor`::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print(T)  # doctest: +NORMALIZE_WHITESPACE
+            TTensor of shape: (3, 2, 2)
+                Core is a
+                    tensor of shape (2, 2, 2) with order F
+                    data[:, :, 0] =
+                    [[1. 1.]
+                     [1. 1.]]
+                    data[:, :, 1] =
+                    [[1. 1.]
+                     [1. 1.]]
+                U[0] =
+                    [[1. 2.]
+                     [3. 4.]
+                     [5. 6.]]
+                U[1] =
+                    [[1. 0.]
+                     [0. 1.]]
+                U[2] =
+                    [[ 1.  1.]
+                     [ 1. -1.]]
         """
         display_string = f"TTensor of shape: {self.shape}\n\tCore is a\n"
         display_string += textwrap.indent(str(self.core), "\t\t")
@@ -655,7 +1056,8 @@ class ttensor:
     __str__ = __repr__
 
     def __rmul__(self, other):
-        """Element wise right multiplication (*) for ttensors (only scalars supported).
+        """
+        Element wise right multiplication (*) for ttensors (only scalars supported).
 
         Parameters
         ----------
@@ -664,6 +1066,20 @@ class ttensor:
         Returns
         -------
         :class:`pyttb.ttensor`
+
+        Examples
+        --------
+        Multiply a scalar by a :class:`pyttb.ttensor`, which scales the core::
+
+            >>> core = ttb.tenones((2, 2, 2))
+            >>> factors = [
+            ...     np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            ...     np.eye(2),
+            ...     np.array([[1.0, 1.0], [1.0, -1.0]]),
+            ... ]
+            >>> T = ttb.ttensor(core, factors)
+            >>> print((2 * T).isequal(T * 2))
+            True
         """
         if isinstance(other, (float, int, np.number)):
             return self.__mul__(other)
