@@ -76,57 +76,45 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
 
     Examples
     --------
-    Random initialization causes slight perturbation in intermediate results.
-    `...` is our place holder for these numeric values.
-    Example using default values ("random" initialization):
+    CP-ALS assumes that each entry of the data tensor is a draw from a normal
+    distribution (with a fixed standard deviation) whose mean is given by the
+    corresponding entry of a low-rank model. Create a rank-2
+    :class:`pyttb.ktensor` and sample a dense tensor from it::
 
-    >>> weights = np.array([1., 2.])
-    >>> fm0 = np.array([[1., 2.], [3., 4.]])
-    >>> fm1 = np.array([[5., 6.], [7., 8.]])
-    >>> K = ttb.ktensor([fm0, fm1], weights)
-    >>> np.random.seed(1)
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2) # doctest: +ELLIPSIS
-    CP_ALS:
-     Iter 0: f = ... f-delta = ...
-     Iter 1: f = ... f-delta = ...
-     Final f = ...
-    >>> print(M) # doctest: +ELLIPSIS
-    ktensor of shape (2, 2) with order F
-    weights=[108.4715... 8.6114...]
-    factor_matrices[0] =
-    [[0.4187... 0.3989...]
-     [0.9080... 0.9169...]]
-    factor_matrices[1] =
-    [[0.6188... 0.2581...]
-     [0.7854... 0.9661...]]
-    >>> print(Minit) # doctest: +ELLIPSIS
-    ktensor of shape (2, 2) with order F
-    weights=[1. 1.]
-    factor_matrices[0] =
-    [[4.1702...e-01 7.2032...e-01]
-     [1.1437...e-04 3.0233...e-01]]
-    factor_matrices[1] =
-    [[0.1467... 0.0923...]
-     [0.1862... 0.3455...]]
-    >>> print(output["params"]) # doctest: +NORMALIZE_WHITESPACE
-    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': array([0, 1]),\
-     'optdims': array([0, 1]), 'printitn': 1, 'fixsigns': True}
+        >>> np.random.seed(1)
+        >>> factors = [np.random.rand(n, 2) for n in (5, 4, 3)]
+        >>> factors = [A / A.sum(axis=0) for A in factors]  # columns sum to one
+        >>> K = ttb.ktensor(factors, weights=np.array([25.0, 15.0]))
+        >>> X = ttb.tensor(np.random.normal(loc=K.full().data, scale=1.0))
+        >>> X.shape
+        (5, 4, 3)
 
-    Example using "nvecs" initialization:
+    Compute a rank-2 decomposition using the default values (``"random"``
+    initialization). Random initialization causes slight perturbation in the
+    intermediate results, so the printed iteration status is not shown here::
 
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init="nvecs") # doctest: +ELLIPSIS
-    CP_ALS:
-     Iter 0: f = ... f-delta = ...
-     Iter 1: f = ... f-delta = ...
-     Final f = ...
+        >>> M, Minit, output = ttb.cp_als(X, 2, printitn=0)
+        >>> M.shape
+        (5, 4, 3)
+        >>> M.ncomponents
+        2
+        >>> round(float(output["normresidual"]), 1)  # norm of the residual
+        5.3
+        >>> round(float(output["fit"]), 2)  # fraction of the data explained
+        0.48
 
-    Example using :class:`pyttb.ktensor` initialization:
+    Use the ``"nvecs"`` initialization::
 
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init=K) # doctest: +ELLIPSIS
-    CP_ALS:
-     Iter 0: f = ... f-delta = ...
-     Iter 1: f = ... f-delta = ...
-     Final f = ...
+        >>> M_nvecs, _, output = ttb.cp_als(X, 2, init="nvecs", printitn=0)
+        >>> round(float(output["fit"]), 2)
+        0.48
+
+    Use a specific :class:`pyttb.ktensor` as the initial guess, here the initial
+    guess used by the first call::
+
+        >>> M_rerun, _, output = ttb.cp_als(X, 2, init=Minit, printitn=0)
+        >>> round(float(output["fit"]), 2)
+        0.48
     """
     # Extract number of dimensions and norm of tensor
     N = input_tensor.ndims

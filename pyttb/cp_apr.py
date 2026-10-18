@@ -133,6 +133,10 @@ def cp_apr(  # noqa: PLR0913
         2
         >>> output["algorithm"]
         'mu'
+        >>> print(f"{output['kktViolations'][-1]:.0e}")  # final KKT violation
+        8e-05
+        >>> round(float(output["obj"]), 1)  # final value of the objective
+        -27.4
 
     Use the projected damped Newton (``"pdnr"``) algorithm on the same data::
 
@@ -141,6 +145,10 @@ def cp_apr(  # noqa: PLR0913
         ... )
         >>> output["algorithm"]
         'pdnr'
+        >>> print(f"{output['kktViolations'][-1]:.0e}")
+        7e-05
+        >>> round(float(output["obj"]), 1)
+        -29.1
     """
     # Extract the number of modes in tensor X
     N = input_tensor.ndims
