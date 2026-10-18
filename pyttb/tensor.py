@@ -63,8 +63,6 @@ class tensor:  # noqa: PLW1641
         By default, :attr:`data` is deep copied.
 
 
-    -----
-
     Examples
     --------
     Create a :class:`pyttb.tensor` from a three-way :class:`numpy.ndarray`::
@@ -114,8 +112,6 @@ class tensor:  # noqa: PLW1641
         empty tensor of shape ()
         data = []
 
-    -----
-
     Notes
     -----
     Instances of :class:`pyttb.tensor` can also be created using the following methods:
@@ -132,14 +128,10 @@ class tensor:  # noqa: PLW1641
         * :meth:`pyttb.ttensor.to_tensor` - Convert a Tucker tensor to a dense tensor
         * :meth:`pyttb.tenmat.to_tensor` - Convert a tenmat to a dense tensor
 
-    -----
-
     **Tutorial**
 
     See the :doc:`/tutorial/class_tensor` tutorial for getting started with
     the tensor class.
-
-    -----
 
     **Attributes and Methods**
     """

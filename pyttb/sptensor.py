@@ -72,8 +72,6 @@ class sptensor:  # noqa: PLW1641
         By default, :attr:`subs` and :attr:`vals` are deep copied.
 
 
-    -----
-
     Examples
     --------
     Create a :class:`pyttb.sptensor` from subscripts and values::
@@ -94,8 +92,6 @@ class sptensor:  # noqa: PLW1641
         >>> S
         empty sparse tensor of shape (2, 3, 4) with order F
 
-    -----
-
     Notes
     -----
     Instances of :class:`pyttb.sptensor` can also be created using the following:
@@ -107,14 +103,10 @@ class sptensor:  # noqa: PLW1641
         * :func:`sptenrand` - Create a random sptensor of a specified size
         * :meth:`pyttb.tensor.to_sptensor` - Convert a dense tensor to a sparse tensor
 
-    -----
-
     **Tutorial**
 
     See the :doc:`/tutorial/class_sptensor` tutorial for getting started with the
     sptensor class.
-
-    -----
 
     **Attributes and Methods**
     """

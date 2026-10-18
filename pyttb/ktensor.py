@@ -62,8 +62,6 @@ class ktensor:
         deep copied.
 
 
-    -----
-
     Examples
     --------
     Create a :class:`pyttb.ktensor` from a list of factor matrices and weights:
@@ -115,8 +113,6 @@ class ktensor:
         weights=[]
         factor_matrices=[]
 
-    -----
-
     Notes
     -----
     Instances of :class:`pyttb.ktensor` can also be created using the following:
@@ -125,14 +121,10 @@ class ktensor:
         * :meth:`from_vector` - Create a ktensor from a vector of data and a shape
         * :meth:`copy` - Make a deep copy of a ktensor
 
-    -----
-
     **Tutorial**
 
     See the :doc:`/tutorial/class_ktensor` tutorial for getting started with the
     ktensor class.
-
-    -----
 
     **Attributes and Methods**
     """
