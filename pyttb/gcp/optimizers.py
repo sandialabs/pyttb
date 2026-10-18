@@ -6,8 +6,10 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
 import time
+import warnings
 from abc import ABC, abstractmethod
 from math import inf
 from typing import TYPE_CHECKING, TypedDict
@@ -435,6 +437,36 @@ class LBFGSB:
 
         See scipy for details and standard defaults.
         A variety of defaults are set specifically for gcp opt.
+
+        Parameters
+        ----------
+        m:
+            Maximum number of variable metric corrections used to define the
+            limited memory matrix. SciPy default: 10.
+        factr:
+            Stop when ``(f^k - f^{k+1}) / max(|f^k|, |f^{k+1}|, 1) <= factr * eps``,
+            where ``eps`` is machine precision. SciPy default: 1e7.
+        pgtol:
+            Stop when the largest projected gradient component is at most this
+            value. SciPy default: 1e-5.
+        epsilon:
+            Step size used when the gradient is approximated numerically. SciPy
+            default: 1e-8.
+        iprint:
+            Frequency of output. Ignored, with a warning, by SciPy versions whose
+            ``fmin_l_bfgs_b`` no longer accepts it.
+        disp:
+            Whether to print convergence messages. Ignored, with a warning, by SciPy
+            versions whose ``fmin_l_bfgs_b`` no longer accepts it.
+        maxfun:
+            Maximum number of function evaluations. SciPy default: 15000.
+        maxiter:
+            Maximum number of iterations (default: 1000, differing from SciPy's
+            15000).
+        callback:
+            Function called after each iteration with the current parameter vector.
+        maxls:
+            Maximum number of line search steps per iteration. SciPy default: 20.
         """
 
         class ArgType(TypedDict):
@@ -464,11 +496,23 @@ class LBFGSB:
 
     def _non_empty_kwargs(self):
         # Prune None values so we don't have to maintain compatibility with scipy
-        return {
+        kwargs = {
             key: value
             for key, value in self._solver_kwargs.items()
             if value is not None
         }
+        # Newer SciPy versions removed some of the legacy printing arguments
+        supported = inspect.signature(fmin_l_bfgs_b).parameters
+        for key in ("iprint", "disp"):
+            if key in kwargs and key not in supported:
+                warnings.warn(
+                    f"The installed SciPy's fmin_l_bfgs_b does not support "
+                    f"'{key}'; ignoring it.",
+                    UserWarning,
+                    stacklevel=3,
+                )
+                del kwargs[key]
+        return kwargs
 
     def solve(  # noqa: PLR0913
         self,
