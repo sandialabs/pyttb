@@ -185,10 +185,6 @@ class sptenmat:
         """
         Number of nonzero values in the :class:`pyttb.sptenmat`.
 
-        Returns
-        -------
-        Number of nonzero entries in the matrix.
-
         Examples
         --------
         >>> S1 = ttb.sptensor(shape=(2, 2, 2))
@@ -209,9 +205,7 @@ class sptenmat:
         """
         Return the shape of a :class:`pyttb.sptenmat`.
 
-        Returns
-        -------
-        Shape of the matrix (not of the original tensor).
+        This is the shape of the matrix, not of the original tensor.
 
         Examples
         --------
@@ -498,8 +492,7 @@ class sptenmat:
 
         Returns
         -------
-        :class:`pyttb.sptenmat`
-            Copy of original sptenmat with negated values.
+        Copy of the sptenmat with negated values.
 
         Examples
         --------
@@ -523,8 +516,7 @@ class sptenmat:
 
         Returns
         -------
-        :class:`pyttb.sptenmat`
-            Copy of the original sptenmat.
+        Copy of the sptenmat.
 
         Examples
         --------
@@ -546,9 +538,8 @@ class sptenmat:
 
         Returns
         -------
-        str
-            Contains the shape, row dimensions (rdims), column dimensions (cdims) and
-            nonzero entries as strings on different lines.
+        String with the shape, row dimensions (rdims), column dimensions (cdims)
+        and nonzero entries on different lines.
 
         Examples
         --------
