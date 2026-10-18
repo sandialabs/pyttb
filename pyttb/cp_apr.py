@@ -108,25 +108,36 @@ def cp_apr(  # noqa: PLR0913
 
     Examples
     --------
-    Compute a rank-2 decomposition of count data using the default multiplicative
-    update (``"mu"``) algorithm::
+    CP-APR assumes that each entry of the data tensor is an independent draw from a
+    Poisson distribution whose mean is given by the corresponding entry of a
+    low-rank model. Create a rank-2 :class:`pyttb.ktensor` with small entries and
+    sample a sparse count tensor from it::
 
-        >>> np.random.seed(0)
-        >>> X = ttb.tensor(np.floor(5 * np.random.rand(4, 3, 2)))
-        >>> M, Minit, output = ttb.cp_apr(X, 2, maxiters=10, printitn=0)
+        >>> np.random.seed(1)
+        >>> factors = [np.random.rand(n, 2) for n in (5, 4, 3)]
+        >>> factors = [A / A.sum(axis=0) for A in factors]  # columns sum to one
+        >>> K = ttb.ktensor(factors, weights=np.array([25.0, 15.0]))
+        >>> X = ttb.tensor(np.random.poisson(K.full().data)).to_sptensor()
+        >>> X.shape
+        (5, 4, 3)
+        >>> float(X.nnz / np.prod(X.shape))  # density of the sampled counts
+        0.35
+
+    Compute a rank-2 decomposition using the default multiplicative update
+    (``"mu"``) algorithm::
+
+        >>> M, Minit, output = ttb.cp_apr(X, 2, maxiters=100, printitn=0)
         >>> M.shape
-        (4, 3, 2)
+        (5, 4, 3)
         >>> M.ncomponents
         2
         >>> output["algorithm"]
         'mu'
 
-    Use the projected damped Newton (``"pdnr"``) algorithm on a
-    :class:`pyttb.sptensor`::
+    Use the projected damped Newton (``"pdnr"``) algorithm on the same data::
 
-        >>> S = X.to_sptensor()
         >>> M, Minit, output = ttb.cp_apr(
-        ...     S, 2, algorithm="pdnr", maxiters=10, printitn=0
+        ...     X, 2, algorithm="pdnr", maxiters=100, printitn=0
         ... )
         >>> output["algorithm"]
         'pdnr'
