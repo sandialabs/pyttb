@@ -624,6 +624,18 @@ class tensor:  # noqa: PLW1641
         Convenience method to maintain common interface with other tensor types.
 
         Returns shallow copy of original tensor.
+
+        Returns
+        -------
+        The original tensor.
+
+        Examples
+        --------
+        Call :meth:`full` on a :class:`pyttb.tensor`::
+
+            >>> T = ttb.tenones((2, 2, 2))
+            >>> T.full() is T
+            True
         """
         return self
 
@@ -640,12 +652,12 @@ class tensor:  # noqa: PLW1641
 
         Examples
         --------
-            >>> T = ttb.tensor(np.array([[1.0, 0.0], [0.0, 4.0]]))
+            >>> T = ttb.tensor(np.arange(8, dtype=float), shape=(2, 2, 2))
             >>> T.innerprod(T)
-            17.0
+            140.0
             >>> S = T.to_sptensor()
             >>> T.innerprod(S)
-            17.0
+            140.0
         """
         if isinstance(other, ttb.tensor):
             if self.shape != other.shape:
@@ -1462,6 +1474,48 @@ class tensor:  # noqa: PLW1641
         Apply a function to each element in a tensor or tensors.
 
         See :meth:`tenfun_binary` and :meth:`tenfun_unary` for supported options.
+
+        Parameters
+        ----------
+        function_handle:
+            Function to apply. A function of two arguments is applied elementwise to
+            this tensor and the single input. A function of one argument is applied
+            columnwise to this tensor and all of the inputs.
+        *inputs:
+            Scalars or tensors (with the same shape as this tensor) to apply the
+            function to along with this tensor.
+
+        Returns
+        -------
+        Tensor with the result of applying the function.
+
+        Examples
+        --------
+        Apply a binary function elementwise to two tensors::
+
+            >>> T1 = ttb.tensor(np.arange(8, dtype=float), shape=(2, 2, 2))
+            >>> T2 = ttb.tensor(np.arange(7, -1, -1, dtype=float), shape=(2, 2, 2))
+            >>> T1.tenfun(lambda a, b: a - b, T2)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[-7. -3.]
+             [-5. -1.]]
+            data[:, :, 1] =
+            [[1. 5.]
+             [3. 7.]]
+
+        Apply a unary function columnwise across several tensors::
+
+            >>> T1 = ttb.tensor(np.arange(8, dtype=float), shape=(2, 2, 2))
+            >>> T2 = ttb.tensor(np.arange(7, -1, -1, dtype=float), shape=(2, 2, 2))
+            >>> T1.tenfun(lambda x: np.max(x, axis=0), T2)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[7. 5.]
+             [6. 4.]]
+            data[:, :, 1] =
+            [[4. 6.]
+             [5. 7.]]
         """
         assert callable(function_handle), "function_handle must be callable"
 
@@ -1905,14 +1959,22 @@ class tensor:  # noqa: PLW1641
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> T = ttb.tensor(np.arange(1, 9, dtype=float), shape=(2, 2, 2))
         >>> T.ttsv(np.ones(2))
-        10.0
+        36.0
         >>> T.ttsv(np.ones(2), 0)
-        array([3., 7.])
+        array([16., 20.])
         >>> T.ttsv(np.ones(2), 1)
-        array([[1, 2],
-               [3, 4]])
+        array([[ 6., 10.],
+               [ 8., 12.]])
+        >>> T.ttsv(np.ones(2), 2)
+        tensor of shape (2, 2, 2) with order F
+        data[:, :, 0] =
+        [[1. 3.]
+         [2. 4.]]
+        data[:, :, 1] =
+        [[5. 7.]
+         [6. 8.]]
         """
         vector = parse_one_d(vector)
         # Only two simple cases are supported

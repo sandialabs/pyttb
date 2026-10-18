@@ -308,8 +308,8 @@ class sptenmat:
         Create a :class:`pyttb.sptenmat` (ST1) and make a deep copy. Verify
         the deep copy (ST3) is not just a reference (like ST2) to the original.
 
-        >>> S1 = ttb.sptensor(shape=(2, 2))
-        >>> S1[0, 0] = 1
+        >>> S1 = ttb.sptensor(shape=(2, 2, 2))
+        >>> S1[0, 0, 0] = 1
         >>> ST1 = S1.to_sptenmat(np.array([0]))
         >>> ST2 = ST1
         >>> ST3 = ST1.copy()

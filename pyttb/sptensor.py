@@ -702,6 +702,21 @@ class sptensor:  # noqa: PLW1641
         searchsubs:
             subscripts to find.
 
+        Returns
+        -------
+        Values at the requested subscripts (zero for subscripts that are not stored).
+
+        Examples
+        --------
+        Extract values from a :class:`pyttb.sptensor`::
+
+            >>> subs = np.array([[0, 0, 0], [1, 2, 3], [1, 1, 1]])
+            >>> vals = np.array([[1.0], [2.0], [3.0]])
+            >>> S = ttb.sptensor(subs, vals, shape=(2, 3, 4))
+            >>> S.extract(np.array([[1, 2, 3], [0, 0, 1]]))
+            array([[2.],
+                   [0.]])
+
         See Also
         --------
         :meth:`__getitem__`
@@ -1981,6 +1996,19 @@ class sptensor:  # noqa: PLW1641
         Convert to :class:`pyttb.tensor`.
 
         Same as :meth:`pyttb.sptensor.full`.
+
+        Returns
+        -------
+        Dense tensor with the same entries.
+
+        Examples
+        --------
+        Convert a :class:`pyttb.sptensor` to a :class:`pyttb.tensor`::
+
+            >>> S = ttb.sptensor(shape=(2, 2, 2))
+            >>> S[0, 1, 1] = 3.0
+            >>> S.to_tensor().isequal(S.full())
+            True
         """
         return self.full()
 

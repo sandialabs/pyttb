@@ -253,6 +253,14 @@ class ktensor:
 
         Returns a tuple containing the lengths of all dimensions of the
         :class:`pyttb.ktensor`.
+
+        Examples
+        --------
+        Create a :class:`pyttb.ktensor` and display its shape::
+
+            >>> K = ttb.ktensor([np.ones((2, 2)), np.ones((3, 2)), np.ones((4, 2))])
+            >>> K.shape
+            (2, 3, 4)
         """
         return tuple(f.shape[0] for f in self.factor_matrices)
 
@@ -1865,6 +1873,14 @@ class ktensor:
         Convert to tensor.
 
         Same as :meth:`pyttb.ktensor.full`.
+
+        Examples
+        --------
+        Convert a :class:`pyttb.ktensor` to a :class:`pyttb.tensor`::
+
+            >>> K = ttb.ktensor([np.ones((2, 2)), np.ones((3, 2)), np.ones((4, 2))])
+            >>> K.to_tensor().isequal(K.full())
+            True
         """
         return self.full()
 
