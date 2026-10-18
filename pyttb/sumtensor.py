@@ -19,7 +19,58 @@ if TYPE_CHECKING:
 
 
 class sumtensor:
-    """Class for implicit sum of other tensors."""
+    """
+    Class for implicit sum of other tensors.
+
+    Each provided tensor is explicitly retained. All provided tensors must have the
+    same shape but can be combinations of types.
+
+    Parameters
+    ----------
+    tensors: optional
+        :class:`list` of :class:`pyttb.tensor`, :class:`pyttb.sptensor`,
+        :class:`pyttb.ktensor` and/or :class:`pyttb.ttensor` instances, all with the
+        same shape.
+    copy: optional
+        Whether to deep copy (versus reference) :attr:`parts`. By default, :attr:`parts`
+        is deep copied.
+
+    Examples
+    --------
+    Create a :class:`pyttb.sumtensor` from a list of tensors of different types::
+
+        >>> T1 = ttb.tenones((3, 4, 5))
+        >>> T2 = ttb.sptensor(shape=(3, 4, 5))
+        >>> S = ttb.sumtensor([T1, T2])
+        >>> print(S.shape)
+        (3, 4, 5)
+        >>> print(len(S.parts))
+        2
+
+    Create an empty :class:`pyttb.sumtensor`::
+
+        >>> S = ttb.sumtensor()
+        >>> print(S)
+        Empty sumtensor
+
+    Notes
+    -----
+    Instances of :class:`pyttb.sumtensor` can also be created using the following:
+
+        * :meth:`copy` - Make a deep copy of a sumtensor
+        * Adding (``+``) tensors to an existing sumtensor, see :meth:`__add__`
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/class_sumtensor` tutorial for getting started with the
+    sumtensor class.
+
+    **Attributes and Methods**
+    """
+
+    __slots__ = {
+        "parts": "List of the tensors that are implicitly summed.",
+    }
 
     def __init__(
         self,
@@ -27,26 +78,6 @@ class sumtensor:
         | None = None,
         copy: bool = True,
     ):
-        """Create a :class:`pyttb.sumtensor` from a collection of tensors.
-
-        Each provided tensor is explicitly retained. All provided tensors
-        must have the same shape but can be combinations of types.
-
-        Parameters
-        ----------
-        tensors:
-            Tensor source data.
-        copy:
-            Whether to make a copy of provided data or just reference it.
-
-        Examples
-        --------
-        Create an empty :class:`pyttb.tensor`:
-
-        >>> T1 = ttb.tenones((3, 4, 5))
-        >>> T2 = ttb.sptensor(shape=(3, 4, 5))
-        >>> S = ttb.sumtensor([T1, T2])
-        """
         if tensors is None:
             tensors = []
         assert isinstance(tensors, list), (
@@ -67,10 +98,12 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T1, T1])
-        >>> S.ndims
-        2
+        Create a :class:`pyttb.sumtensor` and display the number of dimensions::
+
+            >>> T1 = ttb.tenones((2, 2))
+            >>> S = ttb.sumtensor([T1, T1])
+            >>> S.ndims
+            2
         """
         return self.parts[0].ndims
 
@@ -81,13 +114,28 @@ class sumtensor:
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """Shape of a :class:`pyttb.sumtensor`."""
+        """
+        Shape of a :class:`pyttb.sumtensor`.
+
+        Returns a tuple containing the lengths of all dimensions of the
+        :class:`pyttb.sumtensor`. The shape of an empty sumtensor is ``()``.
+
+        Examples
+        --------
+        Create a :class:`pyttb.sumtensor` and display its shape::
+
+            >>> T1 = ttb.tenones((2, 3))
+            >>> S = ttb.sumtensor([T1, T1])
+            >>> S.shape
+            (2, 3)
+        """
         if len(self.parts) == 0:
             return ()
         return self.parts[0].shape
 
     def copy(self) -> sumtensor:
-        """Make a deep copy of a :class:`pyttb.sumtensor`.
+        """
+        Make a deep copy of a :class:`pyttb.sumtensor`.
 
         Returns
         -------
@@ -95,15 +143,18 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.ones((3, 2)))
-        >>> S1 = ttb.sumtensor([T1, T1])
-        >>> S2 = S1
-        >>> S3 = S2.copy()
-        >>> S1.parts[0][0, 0] = 3
-        >>> S1.parts[0][0, 0] == S2.parts[0][0, 0]
-        True
-        >>> S1.parts[0][0, 0] == S3.parts[0][0, 0]
-        False
+        Create a :class:`pyttb.sumtensor` (S1) and make a deep copy. Verify the deep
+        copy (S3) is not just a reference (like S2) to the original::
+
+            >>> T1 = ttb.tensor(np.ones((3, 2)))
+            >>> S1 = ttb.sumtensor([T1, T1])
+            >>> S2 = S1
+            >>> S3 = S2.copy()
+            >>> S1.parts[0][0, 0] = 3
+            >>> S1.parts[0][0, 0] == S2.parts[0][0, 0]
+            True
+            >>> S1.parts[0][0, 0] == S3.parts[0][0, 0]
+            False
         """
         return ttb.sumtensor(self.parts, copy=True)
 
@@ -113,16 +164,23 @@ class sumtensor:
 
         Parameters
         ----------
-        immutable: Whether or not the returned data cam be mutated. May enable
-            additional optimizations.
+        immutable:
+            Whether or not the returned data can be mutated. May enable additional
+            optimizations.
+
+        Returns
+        -------
+        :class:`numpy.ndarray` of the summed tensors.
 
         Examples
         --------
-        >>> T = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T, T])
-        >>> S.double()
-        array([[2., 2.],
-               [2., 2.]])
+        Convert a :class:`pyttb.sumtensor` to a :class:`numpy.ndarray`::
+
+            >>> T = ttb.tenones((2, 2))
+            >>> S = ttb.sumtensor([T, T])
+            >>> S.double()
+            array([[2., 2.],
+                   [2., 2.]])
         """
         return self.full().double(immutable)
 
@@ -136,14 +194,16 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T, T])
-        >>> print(S.full())  # doctest: +NORMALIZE_WHITESPACE
-        tensor of shape (2, 2) with order F
-        data[:, :] =
-        [[2. 2.]
-         [2. 2.]]
-        <BLANKLINE>
+        Convert a :class:`pyttb.sumtensor` to a :class:`pyttb.tensor`::
+
+            >>> T = ttb.tenones((2, 2))
+            >>> S = ttb.sumtensor([T, T])
+            >>> print(S.full())  # doctest: +NORMALIZE_WHITESPACE
+            tensor of shape (2, 2) with order F
+            data[:, :] =
+            [[2. 2.]
+             [2. 2.]]
+            <BLANKLINE>
         """
         result = self.parts[0].full()
         for part in self.parts[1:]:
@@ -153,24 +213,32 @@ class sumtensor:
     def innerprod(
         self, other: ttb.tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor
     ) -> float:
-        """Efficient inner product between a sumtensor and other `pyttb` tensors.
+        """
+        Efficient inner product between a sumtensor and other `pyttb` tensors.
 
         Parameters
         ----------
         other:
-            Tensor to take an innerproduct with.
+            Tensor to take an inner product with.
+
+        Returns
+        -------
+        Result of the inner product, i.e., the sum of the inner products of each part
+        with `other`.
 
         Examples
         --------
-        >>> T1 = ttb.tensor(np.array([[1.0, 0.0], [0.0, 4.0]]))
-        >>> T2 = T1.to_sptensor()
-        >>> S = ttb.sumtensor([T1, T2])
-        >>> T1.innerprod(T1)
-        17.0
-        >>> T1.innerprod(T2)
-        17.0
-        >>> S.innerprod(T1)
-        34.0
+        Compute inner products with a :class:`pyttb.sumtensor`::
+
+            >>> T1 = ttb.tensor(np.array([[1.0, 0.0], [0.0, 4.0]]))
+            >>> T2 = T1.to_sptensor()
+            >>> S = ttb.sumtensor([T1, T2])
+            >>> T1.innerprod(T1)
+            17.0
+            >>> T1.innerprod(T2)
+            17.0
+            >>> S.innerprod(T1)
+            34.0
         """
         result = self.parts[0].innerprod(other)
         for part in self.parts[1:]:
@@ -180,7 +248,8 @@ class sumtensor:
     def mttkrp(
         self, U: ttb.ktensor | list[np.ndarray], n: int | np.integer
     ) -> np.ndarray:
-        """Matricized tensor times Khatri-Rao product.
+        """
+        Matricized tensor times Khatri-Rao product.
 
         The matrices used in the
         Khatri-Rao product are passed as a :class:`pyttb.ktensor` (where the
@@ -199,16 +268,18 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tenones((2, 2, 2))
-        >>> T2 = T1.to_sptensor()
-        >>> S = ttb.sumtensor([T1, T2])
-        >>> U = [np.ones((2, 2))] * 3
-        >>> T1.mttkrp(U, 2)
-        array([[4., 4.],
-               [4., 4.]])
-        >>> S.mttkrp(U, 2)
-        array([[8., 8.],
-               [8., 8.]])
+        Compute the MTTKRP of a :class:`pyttb.sumtensor` in mode 2::
+
+            >>> T1 = ttb.tenones((2, 2, 2))
+            >>> T2 = T1.to_sptensor()
+            >>> S = ttb.sumtensor([T1, T2])
+            >>> U = [np.ones((2, 2))] * 3
+            >>> T1.mttkrp(U, 2)
+            array([[4., 4.],
+                   [4., 4.]])
+            >>> S.mttkrp(U, 2)
+            array([[8., 8.],
+                   [8., 8.]])
         """
         result = self.parts[0].mttkrp(U, n)
         for part in self.parts[1:]:
@@ -216,16 +287,47 @@ class sumtensor:
         return result
 
     def norm(self) -> float:
-        """Compatibility Interface. Just returns 0."""
+        """
+        Compatibility Interface. Just returns 0.
+
+        A norm of a sum of tensors can't be computed without forming the sum, so a
+        warning is issued and 0 is returned.
+
+        Returns
+        -------
+        Always 0.0.
+
+        Examples
+        --------
+        The norm of a :class:`pyttb.sumtensor` is not supported::
+
+            >>> T = ttb.tenones((2, 2))
+            >>> S = ttb.sumtensor([T, T])
+            >>> import warnings
+            >>> with warnings.catch_warnings():
+            ...     warnings.simplefilter("ignore")
+            ...     print(S.norm())
+            0.0
+        """
         warnings.warn(
             "Sumtensor doesn't actually support norm. Returning 0 for compatibility."
         )
         return 0.0
 
     def to_tensor(self) -> ttb.tensor:
-        """Return sumtensor converted to dense tensor.
+        """
+        Return sumtensor converted to dense tensor.
 
         Same as :meth:`pyttb.sumtensor.full`.
+
+        Examples
+        --------
+        Convert a :class:`pyttb.sumtensor` to a :class:`pyttb.tensor`::
+
+            >>> T = ttb.tenones((2, 2))
+            >>> S = ttb.sumtensor([T, T])
+            >>> S.to_tensor().isequal(S.full())
+            True
         """
         return self.full()
 
@@ -269,26 +371,28 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> S = ttb.sumtensor([T, T])
-        >>> T.ttv(np.ones(2), 0)
-        tensor of shape (2,) with order F
-        data[:] =
-        [4. 6.]
-        >>> S.ttv(np.ones(2), 0)  # doctest: +NORMALIZE_WHITESPACE
-        sumtensor of shape (2,) with 2 parts:
-        Part 0:
-             tensor of shape (2,) with order F
-             data[:] =
-             [4. 6.]
-        Part 1:
-             tensor of shape (2,) with order F
-             data[:] =
-             [4. 6.]
-        >>> T.ttv([np.ones(2), np.ones(2)])
-        10.0
-        >>> S.ttv([np.ones(2), np.ones(2)])
-        20.0
+        Multiply a :class:`pyttb.sumtensor` by vectors::
+
+            >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+            >>> S = ttb.sumtensor([T, T])
+            >>> T.ttv(np.ones(2), 0)
+            tensor of shape (2,) with order F
+            data[:] =
+            [4. 6.]
+            >>> S.ttv(np.ones(2), 0)  # doctest: +NORMALIZE_WHITESPACE
+            sumtensor of shape (2,) with 2 parts:
+            Part 0:
+                 tensor of shape (2,) with order F
+                 data[:] =
+                 [4. 6.]
+            Part 1:
+                 tensor of shape (2,) with order F
+                 data[:] =
+                 [4. 6.]
+            >>> T.ttv([np.ones(2), np.ones(2)])
+            10.0
+            >>> S.ttv([np.ones(2), np.ones(2)])
+            20.0
         """
         new_parts = []
         scalar_sum = 0.0
@@ -319,16 +423,18 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T])
-        >>> len(S.parts)
-        1
-        >>> S2 = S + T
-        >>> len(S2.parts)
-        2
-        >>> S3 = S2 + [T, T]
-        >>> len(S3.parts)
-        4
+        Add a tensor and a list of tensors to a :class:`pyttb.sumtensor`::
+
+            >>> T = ttb.tenones((2, 2))
+            >>> S = ttb.sumtensor([T])
+            >>> len(S.parts)
+            1
+            >>> S2 = S + T
+            >>> len(S2.parts)
+            2
+            >>> S3 = S2 + [T, T]
+            >>> len(S3.parts)
+            4
         """
         updated_parts = self.parts.copy()
         if isinstance(other, (ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor)):
@@ -359,11 +465,13 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> S = ttb.sumtensor([T, T])
-        >>> S2 = -S
-        >>> S2.parts[0].isequal(-1 * S.parts[0])
-        True
+        Negate a :class:`pyttb.sumtensor`::
+
+            >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+            >>> S = ttb.sumtensor([T, T])
+            >>> S2 = -S
+            >>> S2.parts[0].isequal(-1 * S.parts[0])
+            True
         """
         return ttb.sumtensor([-part for part in self.parts], copy=False)
 
@@ -377,9 +485,13 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> S = ttb.sumtensor([T, T])
-        >>> S2 = +S
+        Apply unary plus to a :class:`pyttb.sumtensor`, which returns a copy::
+
+            >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+            >>> S = ttb.sumtensor([T, T])
+            >>> S2 = +S
+            >>> len(S2.parts)
+            2
         """
         return self.copy()
 
@@ -399,21 +511,24 @@ class sumtensor:
 
         Examples
         --------
-        >>> T = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T])
-        >>> len(S.parts)
-        1
-        >>> S2 = T + S
-        >>> len(S2.parts)
-        2
-        >>> S3 = [T, T] + S2
-        >>> len(S3.parts)
-        4
+        Add a :class:`pyttb.sumtensor` to a tensor and to a list of tensors::
+
+            >>> T = ttb.tenones((2, 2))
+            >>> S = ttb.sumtensor([T])
+            >>> len(S.parts)
+            1
+            >>> S2 = T + S
+            >>> len(S2.parts)
+            2
+            >>> S3 = [T, T] + S2
+            >>> len(S3.parts)
+            4
         """
         return self.__add__(other)
 
     def __repr__(self):
-        """Return string representation of the sumtensor.
+        """
+        Return string representation of the sumtensor.
 
         Returns
         -------
@@ -421,17 +536,19 @@ class sumtensor:
 
         Examples
         --------
-        >>> T1 = ttb.tenones((2, 2))
-        >>> T2 = ttb.sptensor(shape=(2, 2))
-        >>> ttb.sumtensor([T1, T2])  # doctest: +NORMALIZE_WHITESPACE
-        sumtensor of shape (2, 2) with 2 parts:
-        Part 0:
-            tensor of shape (2, 2) with order F
-            data[:, :] =
-            [[1. 1.]
-             [1. 1.]]
-        Part 1:
-            empty sparse tensor of shape (2, 2) with order F
+        Print a :class:`pyttb.sumtensor`::
+
+            >>> T1 = ttb.tenones((2, 2))
+            >>> T2 = ttb.sptensor(shape=(2, 2))
+            >>> ttb.sumtensor([T1, T2])  # doctest: +NORMALIZE_WHITESPACE
+            sumtensor of shape (2, 2) with 2 parts:
+            Part 0:
+                tensor of shape (2, 2) with order F
+                data[:, :] =
+                [[1. 1.]
+                 [1. 1.]]
+            Part 1:
+                empty sparse tensor of shape (2, 2) with order F
         """
         if len(self.parts) == 0:
             return "Empty sumtensor"
