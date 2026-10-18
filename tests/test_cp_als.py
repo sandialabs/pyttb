@@ -79,7 +79,7 @@ def test_cp_als_incorrect_init(sample_tensor):
     (data, T) = sample_tensor
 
     # unsupported init type
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         (M, Minit, output) = ttb.cp_als(T, 2, init="init")
     assert "The selected initialization method is not supported" in str(excinfo)
 
@@ -88,7 +88,7 @@ def test_cp_als_incorrect_init(sample_tensor):
     Tshape_incorrect[0] = Tshape_incorrect[0] + 1
     Tshape_incorrect = tuple(Tshape_incorrect)
     KInit = ttb.ktensor.from_function(np.random.random_sample, Tshape_incorrect, 2)
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         (M, Minit, output) = ttb.cp_als(T, 2, init=KInit)
     assert "Mode 0 of the initial guess is the wrong size" in str(excinfo)
 
@@ -148,14 +148,14 @@ def test_cp_als_tensor_dimorder(capsys, sample_tensor):
     assert pytest.approx(output["fit"]) == 1
 
     # dimorder not a list
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         (M, Minit, output) = ttb.cp_als(T, 2, dimorder=2)
     assert "Dimorder must be a list" in str(excinfo)
 
     # dimorder not a permutation of [range(tensor.ndims)]
     dimorder = [i for i in range(T.ndims)]
     dimorder[-1] = dimorder[-1] + 1
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         (M, Minit, output) = ttb.cp_als(T, 2, dimorder=dimorder)
     assert "Dimorder must be a list or permutation of range(tensor.ndims)" in str(
         excinfo
