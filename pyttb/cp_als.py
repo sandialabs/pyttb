@@ -76,10 +76,10 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
 
     Examples
     --------
-    CP-ALS assumes that each entry of the data tensor is a draw from a normal
-    distribution (with a fixed standard deviation) whose mean is given by the
-    corresponding entry of a low-rank model. Create a rank-2
-    :class:`pyttb.ktensor` and sample a dense tensor from it::
+    Create a rank-2 :class:`pyttb.ktensor` and generate a noisy dense data tensor
+    from it by sampling each entry from a normal distribution with standard
+    deviation one and mean equal to the corresponding entry of the
+    :class:`pyttb.ktensor`::
 
         >>> np.random.seed(1)
         >>> factors = [np.random.rand(n, 2) for n in (5, 4, 3)]

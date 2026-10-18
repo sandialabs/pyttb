@@ -81,11 +81,10 @@ def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
 
     Examples
     --------
-    A low multilinear rank model assumes that each entry of the data tensor is a
-    draw from a normal distribution (with a fixed standard deviation) whose mean is
-    given by the corresponding entry of a low multilinear rank
-    :class:`pyttb.ttensor`. Create a :class:`pyttb.ttensor` with a ``2 x 2 x 2``
-    core and orthonormal factor matrices, and sample a dense tensor from it::
+    Create a :class:`pyttb.ttensor` with a ``2 x 2 x 2`` core and orthonormal factor
+    matrices, and generate a noisy dense data tensor from it by sampling each entry
+    from a normal distribution with standard deviation one and mean equal to the
+    corresponding entry of the :class:`pyttb.ttensor`::
 
         >>> np.random.seed(1)
         >>> factors = [np.linalg.qr(np.random.rand(n, 2))[0] for n in (5, 4, 3)]
