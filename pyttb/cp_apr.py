@@ -91,12 +91,14 @@ def cp_apr(  # noqa: PLR0913
         * `algorithm`: the algorithm used
         * `kktViolations`: KKT violation after each outer iteration
         * `nInnerIters`: number of inner iterations for each outer iteration
-        * `nViolations`: number of subproblems with a KKT violation for each outer
-          iteration
-        * `nTotalIters`: total number of inner iterations
         * `times`: elapsed time after each outer iteration
         * `totalTime`: total execution time
         * `obj`: final value of the objective function
+
+        Some keys are specific to the algorithm. The ``"mu"`` algorithm also
+        returns `nViolations` (number of subproblems with a KKT violation for each
+        outer iteration) and `nTotalIters` (total number of inner iterations).
+        The ``"pdnr"`` algorithm also returns `fnEvals`, `fnVals`, and `nZeros`.
 
     Raises
     ------
