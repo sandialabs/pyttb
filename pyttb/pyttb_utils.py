@@ -57,8 +57,7 @@ def accumarray(*args: Any, **kwargs: Any) -> np.ndarray:
 
     Returns
     -------
-    :
-        Aggregated values, one entry per group.
+    Aggregated values, one entry per group.
 
     Examples
     --------
@@ -89,8 +88,7 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    union:
-        Rows in either matrix, without duplicates.
+    Rows in either matrix, without duplicates.
 
     Examples
     --------
@@ -296,8 +294,7 @@ def tt_intersect_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    location:
-        List of intersection indices.
+    Indices of the rows of ``MatrixA`` that are also in ``MatrixB``.
 
     Examples
     --------
@@ -545,15 +542,19 @@ def tt_ind2sub(
 
     Parameters
     ----------
-    shape: Shape of tensor indexing into.
-    idx: Array of linear indices into the tensor.
+    shape:
+        Shape of tensor indexing into.
+    idx:
+        Array of linear indices into the tensor.
+    order:
+        Memory layout used to interpret the linear indices.
 
     Returns
     -------
     Multi-dimensional indices for the tensor.
 
-    Example
-    -------
+    Examples
+    --------
     >>> shape = (2, 2, 2)
     >>> linear_indices = np.array([0, 1])
     >>> tt_ind2sub(shape, linear_indices)
@@ -643,11 +644,10 @@ def tt_sub2ind(
 
 def tt_sizecheck(shape: tuple[int, ...], nargout: bool = True) -> bool:
     """
-    TT_SIZECHECK Checks that the shape is valid.
+    Check that the shape is valid.
 
-    TT_SIZECHECK(S) throws an error if S is not a valid shape tuple,
-    which means that it is a row vector with strictly positive,
-    real-valued, finite integer values.
+    A valid shape is a row vector with strictly positive, real-valued, finite
+    integer values.
 
     Parameters
     ----------
@@ -658,7 +658,7 @@ def tt_sizecheck(shape: tuple[int, ...], nargout: bool = True) -> bool:
 
     Returns
     -------
-    bool
+    True if the shape is valid, otherwise False.
 
     Examples
     --------
@@ -691,11 +691,10 @@ def tt_sizecheck(shape: tuple[int, ...], nargout: bool = True) -> bool:
 
 def tt_subscheck(subs: np.ndarray, nargout: bool = True) -> bool:
     """
-    TT_SUBSCHECK Checks for valid subscripts.
+    Check for valid subscripts.
 
-    TT_SUBSCHECK(S) throws an error if S is not a valid subscript
-    array, which means that S is a matrix of real-valued, finite,
-    positive, integer subscripts.
+    A valid subscript array is a matrix of real-valued, finite, positive, integer
+    subscripts.
 
     Parameters
     ----------
@@ -706,7 +705,7 @@ def tt_subscheck(subs: np.ndarray, nargout: bool = True) -> bool:
 
     Returns
     -------
-    bool
+    True if the subscripts are valid, otherwise False.
 
     Examples
     --------
@@ -739,10 +738,9 @@ def tt_subscheck(subs: np.ndarray, nargout: bool = True) -> bool:
 
 def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
     """
-    TT_VALSCHECK Checks for valid values.
+    Check for valid values.
 
-    TT_VALSCHECK(S) throws an error if S is not a valid values
-    array, which means that S is a column array.
+    A valid values array is a column array.
 
     Parameters
     ----------
@@ -753,7 +751,7 @@ def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
 
     Returns
     -------
-    bool
+    True if the values are valid, otherwise False.
 
     Examples
     --------
@@ -780,9 +778,7 @@ def tt_valscheck(vals: np.ndarray, nargout: bool = True) -> bool:
 
 def isrow(v: np.ndarray) -> bool:
     """
-    ISROW Checks if vector is a row vector.
-
-    ISROW(V) returns True if V is a row vector; otherwise returns False.
+    Check if a vector is a row vector.
 
     Parameters
     ----------
@@ -791,7 +787,7 @@ def isrow(v: np.ndarray) -> bool:
 
     Returns
     -------
-    bool
+    True if the input is a row vector, otherwise False.
 
     Examples
     --------
@@ -805,9 +801,7 @@ def isrow(v: np.ndarray) -> bool:
 
 def isvector(a: np.ndarray) -> bool:
     """
-    ISVECTOR Checks if vector is a row vector.
-
-    ISVECTOR(A) returns True if A is a vector; otherwise returns False.
+    Check if an array is a vector.
 
     Parameters
     ----------
@@ -816,7 +810,7 @@ def isvector(a: np.ndarray) -> bool:
 
     Returns
     -------
-    bool
+    True if the input is a vector, otherwise False.
 
     Examples
     --------
@@ -832,9 +826,7 @@ def isvector(a: np.ndarray) -> bool:
 #  or numpy types
 def islogical(a: np.ndarray) -> bool:
     """
-    ISLOGICAL Checks if vector is a logical vector.
-
-    ISLOGICAL(A) returns True if A is a logical array; otherwise returns False.
+    Check if a value is logical (boolean).
 
     Parameters
     ----------
@@ -843,7 +835,7 @@ def islogical(a: np.ndarray) -> bool:
 
     Returns
     -------
-    bool
+    True if the input is a boolean, otherwise False.
 
     Examples
     --------
@@ -886,8 +878,7 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 
     Returns
     -------
-    :
-        The inferred :class:`IndexVariant`.
+    The inferred :class:`IndexVariant`.
 
     Examples
     --------
@@ -934,8 +925,7 @@ def get_mttkrp_factors(
 
     Returns
     -------
-    :
-        The factor matrices, with any weights absorbed into one of them.
+    The factor matrices, with any weights absorbed into one of them.
 
     Examples
     --------
@@ -1072,8 +1062,7 @@ def np_to_python(
 
     Returns
     -------
-    :
-        Structure of the same type with numpy scalars replaced by python scalars.
+    Structure of the same type with numpy scalars replaced by python scalars.
 
     Examples
     --------
@@ -1100,8 +1089,7 @@ def parse_shape(shape: Shape) -> tuple[int, ...]:
 
     Returns
     -------
-    :
-        Shape as a tuple of integers.
+    Shape as a tuple of integers.
 
     Examples
     --------
@@ -1150,8 +1138,7 @@ def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
 
     Returns
     -------
-    :
-        One-dimensional array.
+    One-dimensional array.
 
     Examples
     --------
@@ -1218,8 +1205,7 @@ def to_memory_order(
 
     Returns
     -------
-    :
-        Data in the requested memory order.
+    Data in the requested memory order.
 
     Examples
     --------

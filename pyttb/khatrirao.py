@@ -10,29 +10,49 @@ import numpy as np
 
 def khatrirao(*matrices: np.ndarray, reverse: bool = False) -> np.ndarray:
     """
-    KHATRIRAO Khatri-Rao product of matrices.
+    Khatri-Rao product of matrices.
 
-    KHATRIRAO(A,B) computes the Khatri-Rao product of matrices A and
-    B that have the same number of columns.  The result is the
-    column-wise Kronecker product
-    [KRON(A(:,1),B(:,1)) ... KRON(A(:,n),B(:,n))]
+    Computes the Khatri-Rao product of matrices that have the same number of
+    columns. For two matrices ``A`` and ``B`` the result is the column-wise Kronecker
+    product ``[kron(A[:, 0], B[:, 0]), ..., kron(A[:, n], B[:, n])]``.
 
     Parameters
     ----------
-    matrices:
-        Collection of matrices to take the product of
+    *matrices:
+        Matrices to take the product of.
     reverse:
-        Set to true to calculate product in reverse
+        Set to true to calculate product in reverse.
+
+    Returns
+    -------
+    Matrix with the same number of columns as the inputs and as many rows as the
+    product of the numbers of rows of the inputs.
+
+    Raises
+    ------
+    ValueError
+        If a single list is passed instead of separate matrices, or if ``reverse``
+        is not a bool.
 
     Examples
     --------
-    >>> A = np.random.normal(size=(5, 2))
-    >>> B = np.random.normal(size=(5, 2))
-    >>> _ = khatrirao(A, B)  # <-- Khatri-Rao of A and B
-    >>> _ = khatrirao(B, A, reverse=True)  # <-- same thing as above
-    >>> _ = khatrirao(A, A, B)  # <-- passing multiple items
-    >>> _ = khatrirao(B, A, A, reverse=True)  # <-- same as above
-    >>> _ = khatrirao(*[A, A, B])  # <-- passing a list via unpacking items
+    Compute the Khatri-Rao product of two matrices with two columns each::
+
+        >>> np.random.seed(1)
+        >>> A = np.random.normal(size=(5, 2))
+        >>> B = np.random.normal(size=(4, 2))
+        >>> khatrirao(A, B).shape
+        (20, 2)
+        >>> np.allclose(khatrirao(B, A, reverse=True), khatrirao(A, B))
+        True
+
+    Pass multiple matrices, or a list via argument unpacking::
+
+        >>> C = np.random.normal(size=(3, 2))
+        >>> khatrirao(A, B, C).shape
+        (60, 2)
+        >>> np.allclose(khatrirao(*[A, B, C]), khatrirao(A, B, C))
+        True
     """
     # Determine if list of matrices of multiple matrix arguments
     if len(matrices) == 1 and isinstance(matrices[0], list):
