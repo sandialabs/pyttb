@@ -83,6 +83,14 @@ Python API
 
    reference.rst
 
+Developer Guide
+===============
+
+.. toctree::
+   :maxdepth: 1
+
+   developer_guide.rst
+
 How to Cite
 ==============
 Please see `references`_ for how to cite a variety of algorithms implemented in this project.

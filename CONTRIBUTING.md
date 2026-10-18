@@ -69,39 +69,9 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
         pytest tests --cov=pyttb --cov-report=term-missing
         ```
 
-1. (Optionally) Building documentation and tutorials
-   1. From project root
-   ```commandline
-   sphinx-build ./docs/source ./docs/build
-   ```
-      1. For the CI version which is more strict
-      ```commandline
-      sphinx-build ./docs/source ./docs/build -E -W --keep-going
-      ```
-      2. If not on Windows optionally add `-j auto` for parallelization
-   2. Clear notebook outputs if run locally see `nbstripout` in our [pre-commit configuration](.pre-commit-config.yaml)
-
-### Adding tutorials
-
-1. Follow general setup from above
-   1. Checkout a branch to make your changes
-   1. Install from source with dev and doc dependencies
-   1. Verify you can build the existing docs with sphinx
-
-1. Create a new Jupyter notebook in [./docs/source/tutorial](./docs/source/tutorial)
-   1. Our current convention is to prefix the filename with the type of tutorial and all lower case
-
-1. Add a reference to your notebook in [./docs/source/tutorials.rst](./docs/source/tutorials.rst)
-
-1. Rebuild the docs, review locally, and iterate on changes until ready for review
-
-#### Tutorial References
-Generally, inspecting existing documentation or tutorials should provide a reasonable starting point for capabilities,
-but the following links may be useful if that's not sufficient.
-
-1. We use [sphinx](https://www.sphinx-doc.org/) to automatically build our docs and may be useful for `.rst` issues
-
-1. We use [myst-nb](https://myst-nb.readthedocs.io/) to render our notebooks to documentation
+1. (Optionally) Build the documentation and tutorials; see the
+   [developer guide](https://pyttb.readthedocs.io/en/latest/developer_guide.html)
+   for building docs, tutorial conventions, and docstring standards.
 
 ## GitHub Workflow
 
