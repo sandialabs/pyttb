@@ -61,17 +61,30 @@ class sumtensor:
         self.parts = tensors
 
     @property
+    def ndims(self) -> int:
+        """
+        Number of dimensions of the sumtensor.
+
+        Examples
+        --------
+        >>> T1 = ttb.tenones((2, 2))
+        >>> S = ttb.sumtensor([T1, T1])
+        >>> S.ndims
+        2
+        """
+        return self.parts[0].ndims
+
+    @property
     def order(self) -> Literal["F"]:
         """Return the data layout of the underlying storage."""
         return "F"
 
-    def _matches_order(self, array: np.ndarray) -> bool:
-        """Check if provided array matches tensor memory layout."""
-        if array.flags["C_CONTIGUOUS"] and self.order == "C":
-            return True
-        if array.flags["F_CONTIGUOUS"] and self.order == "F":
-            return True
-        return False
+    @property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of a :class:`pyttb.sumtensor`."""
+        if len(self.parts) == 0:
+            return ()
+        return self.parts[0].shape
 
     def copy(self) -> sumtensor:
         """Make a deep copy of a :class:`pyttb.sumtensor`.
@@ -94,176 +107,24 @@ class sumtensor:
         """
         return ttb.sumtensor(self.parts, copy=True)
 
-    def __deepcopy__(self, memo):
-        """Return deepcopy of this sumtensor."""
-        return self.copy()
-
-    @property
-    def shape(self) -> tuple[int, ...]:
-        """Shape of a :class:`pyttb.sumtensor`."""
-        if len(self.parts) == 0:
-            return ()
-        return self.parts[0].shape
-
-    def __repr__(self):
-        """Return string representation of the sumtensor.
-
-        Returns
-        -------
-        String displaying shape and constituent parts.
-
-        Examples
-        --------
-        >>> T1 = ttb.tenones((2, 2))
-        >>> T2 = ttb.sptensor(shape=(2, 2))
-        >>> ttb.sumtensor([T1, T2])  # doctest: +NORMALIZE_WHITESPACE
-        sumtensor of shape (2, 2) with 2 parts:
-        Part 0:
-            tensor of shape (2, 2) with order F
-            data[:, :] =
-            [[1. 1.]
-             [1. 1.]]
-        Part 1:
-            empty sparse tensor of shape (2, 2) with order F
+    def double(self, immutable: bool = False) -> np.ndarray:
         """
-        if len(self.parts) == 0:
-            return "Empty sumtensor"
-        s = (
-            f"sumtensor of shape {np_to_python(self.shape)} "
-            f"with {len(self.parts)} parts:"
-        )
-        for i, part in enumerate(self.parts):
-            s += f"\nPart {i}: \n"
-            s += indent(str(part), prefix="\t")
-        return s
-
-    __str__ = __repr__
-
-    @property
-    def ndims(self) -> int:
-        """
-        Number of dimensions of the sumtensor.
-
-        Examples
-        --------
-        >>> T1 = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T1, T1])
-        >>> S.ndims
-        2
-        """
-        return self.parts[0].ndims
-
-    def __pos__(self):
-        """
-        Unary plus (+) for tensors.
-
-        Returns
-        -------
-        Copy of sumtensor.
-
-        Examples
-        --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> S = ttb.sumtensor([T, T])
-        >>> S2 = +S
-        """
-        return self.copy()
-
-    def __neg__(self):
-        """
-        Unary minus (-) for tensors.
-
-        Returns
-        -------
-        Copy of negated sumtensor.
-
-        Examples
-        --------
-        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
-        >>> S = ttb.sumtensor([T, T])
-        >>> S2 = -S
-        >>> S2.parts[0].isequal(-1 * S.parts[0])
-        True
-        """
-        return ttb.sumtensor([-part for part in self.parts], copy=False)
-
-    def __add__(self, other):
-        """
-        Binary addition (+) for sumtensors.
+        Convert :class:`pyttb.tensor` to an :class:`numpy.ndarray` of doubles.
 
         Parameters
         ----------
-        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
-            :class:`pyttb.ktensor`, :class:`pyttb.ttensor`, or list
-            containing those classes
-
-        Returns
-        -------
-        :class:`pyttb.sumtensor`
+        immutable: Whether or not the returned data cam be mutated. May enable
+            additional optimizations.
 
         Examples
         --------
         >>> T = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T])
-        >>> len(S.parts)
-        1
-        >>> S2 = S + T
-        >>> len(S2.parts)
-        2
-        >>> S3 = S2 + [T, T]
-        >>> len(S3.parts)
-        4
+        >>> S = ttb.sumtensor([T, T])
+        >>> S.double()
+        array([[2., 2.],
+               [2., 2.]])
         """
-        updated_parts = self.parts.copy()
-        if isinstance(other, (ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor)):
-            updated_parts.append(other)
-        elif isinstance(other, list) and all(
-            isinstance(part, (ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor))
-            for part in other
-        ):
-            updated_parts.extend(other)
-        else:
-            raise TypeError(
-                "Sumtensor only supports collections of tensor, sptensor, ktensor, "
-                f"and ttensor but received: {type(other)}"
-            )
-        return ttb.sumtensor(updated_parts, copy=False)
-
-    def __radd__(self, other):
-        """
-        Right Binary addition (+) for sumtensors.
-
-        Parameters
-        ----------
-        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
-            :class:`pyttb.ktensor`, :class:`pyttb.ttensor`, or list
-            containing those classes
-
-        Returns
-        -------
-        :class:`pyttb.sumtensor`
-
-        Examples
-        --------
-        >>> T = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T])
-        >>> len(S.parts)
-        1
-        >>> S2 = T + S
-        >>> len(S2.parts)
-        2
-        >>> S3 = [T, T] + S2
-        >>> len(S3.parts)
-        4
-        """
-        return self.__add__(other)
-
-    def to_tensor(self) -> ttb.tensor:
-        """Return sumtensor converted to dense tensor.
-
-        Same as :meth:`pyttb.sumtensor.full`.
-        """
-        return self.full()
+        return self.full().double(immutable)
 
     def full(self) -> ttb.tensor:
         """
@@ -288,25 +149,6 @@ class sumtensor:
         for part in self.parts[1:]:
             result += part
         return result
-
-    def double(self, immutable: bool = False) -> np.ndarray:
-        """
-        Convert :class:`pyttb.tensor` to an :class:`numpy.ndarray` of doubles.
-
-        Parameters
-        ----------
-        immutable: Whether or not the returned data cam be mutated. May enable
-            additional optimizations.
-
-        Examples
-        --------
-        >>> T = ttb.tenones((2, 2))
-        >>> S = ttb.sumtensor([T, T])
-        >>> S.double()
-        array([[2., 2.],
-               [2., 2.]])
-        """
-        return self.full().double(immutable)
 
     def innerprod(
         self, other: ttb.tensor | ttb.sptensor | ttb.ktensor | ttb.ttensor
@@ -372,6 +214,20 @@ class sumtensor:
         for part in self.parts[1:]:
             result += part.mttkrp(U, n)
         return result
+
+    def norm(self) -> float:
+        """Compatibility Interface. Just returns 0."""
+        warnings.warn(
+            "Sumtensor doesn't actually support norm. Returning 0 for compatibility."
+        )
+        return 0.0
+
+    def to_tensor(self) -> ttb.tensor:
+        """Return sumtensor converted to dense tensor.
+
+        Same as :meth:`pyttb.sumtensor.full`.
+        """
+        return self.full()
 
     def ttv(
         self,
@@ -447,12 +303,156 @@ class sumtensor:
         assert scalar_sum == 0.0
         return ttb.sumtensor(new_parts, copy=False)
 
-    def norm(self) -> float:
-        """Compatibility Interface. Just returns 0."""
-        warnings.warn(
-            "Sumtensor doesn't actually support norm. Returning 0 for compatibility."
+    def __add__(self, other):
+        """
+        Binary addition (+) for sumtensors.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
+            :class:`pyttb.ktensor`, :class:`pyttb.ttensor`, or list
+            containing those classes
+
+        Returns
+        -------
+        :class:`pyttb.sumtensor`
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2, 2))
+        >>> S = ttb.sumtensor([T])
+        >>> len(S.parts)
+        1
+        >>> S2 = S + T
+        >>> len(S2.parts)
+        2
+        >>> S3 = S2 + [T, T]
+        >>> len(S3.parts)
+        4
+        """
+        updated_parts = self.parts.copy()
+        if isinstance(other, (ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor)):
+            updated_parts.append(other)
+        elif isinstance(other, list) and all(
+            isinstance(part, (ttb.tensor, ttb.sptensor, ttb.ktensor, ttb.ttensor))
+            for part in other
+        ):
+            updated_parts.extend(other)
+        else:
+            raise TypeError(
+                "Sumtensor only supports collections of tensor, sptensor, ktensor, "
+                f"and ttensor but received: {type(other)}"
+            )
+        return ttb.sumtensor(updated_parts, copy=False)
+
+    def __deepcopy__(self, memo):
+        """Return deepcopy of this sumtensor."""
+        return self.copy()
+
+    def __neg__(self):
+        """
+        Unary minus (-) for tensors.
+
+        Returns
+        -------
+        Copy of negated sumtensor.
+
+        Examples
+        --------
+        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> S = ttb.sumtensor([T, T])
+        >>> S2 = -S
+        >>> S2.parts[0].isequal(-1 * S.parts[0])
+        True
+        """
+        return ttb.sumtensor([-part for part in self.parts], copy=False)
+
+    def __pos__(self):
+        """
+        Unary plus (+) for tensors.
+
+        Returns
+        -------
+        Copy of sumtensor.
+
+        Examples
+        --------
+        >>> T = ttb.tensor(np.array([[1, 2], [3, 4]]))
+        >>> S = ttb.sumtensor([T, T])
+        >>> S2 = +S
+        """
+        return self.copy()
+
+    def __radd__(self, other):
+        """
+        Right Binary addition (+) for sumtensors.
+
+        Parameters
+        ----------
+        other: :class:`pyttb.tensor`, :class:`pyttb.sptensor`
+            :class:`pyttb.ktensor`, :class:`pyttb.ttensor`, or list
+            containing those classes
+
+        Returns
+        -------
+        :class:`pyttb.sumtensor`
+
+        Examples
+        --------
+        >>> T = ttb.tenones((2, 2))
+        >>> S = ttb.sumtensor([T])
+        >>> len(S.parts)
+        1
+        >>> S2 = T + S
+        >>> len(S2.parts)
+        2
+        >>> S3 = [T, T] + S2
+        >>> len(S3.parts)
+        4
+        """
+        return self.__add__(other)
+
+    def __repr__(self):
+        """Return string representation of the sumtensor.
+
+        Returns
+        -------
+        String displaying shape and constituent parts.
+
+        Examples
+        --------
+        >>> T1 = ttb.tenones((2, 2))
+        >>> T2 = ttb.sptensor(shape=(2, 2))
+        >>> ttb.sumtensor([T1, T2])  # doctest: +NORMALIZE_WHITESPACE
+        sumtensor of shape (2, 2) with 2 parts:
+        Part 0:
+            tensor of shape (2, 2) with order F
+            data[:, :] =
+            [[1. 1.]
+             [1. 1.]]
+        Part 1:
+            empty sparse tensor of shape (2, 2) with order F
+        """
+        if len(self.parts) == 0:
+            return "Empty sumtensor"
+        s = (
+            f"sumtensor of shape {np_to_python(self.shape)} "
+            f"with {len(self.parts)} parts:"
         )
-        return 0.0
+        for i, part in enumerate(self.parts):
+            s += f"\nPart {i}: \n"
+            s += indent(str(part), prefix="\t")
+        return s
+
+    __str__ = __repr__
+
+    def _matches_order(self, array: np.ndarray) -> bool:
+        """Check if provided array matches tensor memory layout."""
+        if array.flags["C_CONTIGUOUS"] and self.order == "C":
+            return True
+        if array.flags["F_CONTIGUOUS"] and self.order == "F":
+            return True
+        return False
 
 
 if __name__ == "__main__":

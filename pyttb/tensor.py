@@ -1445,6 +1445,341 @@ class tensor:  # noqa: PLW1641
 
             return Y
 
+    def tenfun(
+        self,
+        function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray]
+        | Callable[[np.ndarray], np.ndarray],
+        *inputs: float
+        | int
+        | np.ndarray
+        | ttb.tensor
+        | ttb.ktensor
+        | ttb.ttensor
+        | ttb.sptensor
+        | ttb.sumtensor,
+    ) -> ttb.tensor:
+        """
+        Apply a function to each element in a tensor or tensors.
+
+        See :meth:`tenfun_binary` and :meth:`tenfun_unary` for supported options.
+        """
+        assert callable(function_handle), "function_handle must be callable"
+
+        # Number of inputs for function handle
+        nfunin = len(signature(function_handle).parameters)
+
+        # Case I: Binary function
+        if len(inputs) == 1 and nfunin == 2:
+            # We manually inspected the function handle for the parameters
+            # maybe there is a more clever way to convince mypy
+            binary_function_handle = cast(
+                "Callable[[np.ndarray, np.ndarray], np.ndarray]", function_handle
+            )
+            Y = inputs[0]
+            if not isinstance(Y, (int, float)):
+                Y = self._tt_to_tensor(Y)
+            return self.tenfun_binary(binary_function_handle, Y)
+
+        # Convert inputs to tensors if they aren't already
+        # Allow inputs to be mutable in case of type conversion
+        input_tensors: list[ttb.tensor] = []
+        for an_input in inputs:
+            if not isinstance(
+                an_input,
+                (
+                    np.ndarray,
+                    ttb.tensor,
+                    ttb.ktensor,
+                    ttb.ttensor,
+                    ttb.sptensor,
+                    ttb.sumtensor,
+                ),
+            ):
+                assert False, (
+                    f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
+                )
+            input_tensors.append(self._tt_to_tensor(an_input))
+
+        # Case II: Expects input to be matrix and applies operation on each columns
+        if nfunin != 1:
+            raise ValueError(
+                "Tenfun only supports binary and unary function handles but provided "
+                "function handle takes {nfunin} arguments."
+            )
+        unary_function_handle = cast(
+            "Callable[[np.ndarray], np.ndarray]", function_handle
+        )
+        return self.tenfun_unary(unary_function_handle, *input_tensors)
+
+    def tenfun_binary(
+        self,
+        function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray],
+        other: ttb.tensor | int | float,
+        first: bool = True,
+    ) -> ttb.tensor:
+        """
+        Apply a binary operation to two tensors or a tensor and a scalar.
+
+        Parameters
+        ----------
+        function_handle:
+            Function to apply.
+        other:
+            Other input to the binary function.
+        first:
+            Whether the tensor comes first in the method call (if ordering matters).
+
+        Examples
+        --------
+        Create a tensor of ones and add it to itself using an `add` function::
+
+            >>> add = lambda x, y: x + y
+            >>> T0 = ttb.tenones((2, 2, 2))
+            >>> T1 = T0.tenfun_binary(add, T0)
+            >>> T1.isequal(T0 * 2)
+            True
+
+        Use the same add function to add a scalar to the original tensor::
+
+            >>> T2 = T0.tenfun_binary(add, 1)
+            >>> T2.isequal(T1)
+            True
+        """
+        X = self.data
+        if not isinstance(other, (float, int)):
+            Y = other.data
+        else:
+            Y = np.array(other, order=self.order)
+
+        if not first:
+            Y, X = X, Y
+        data = function_handle(X, Y)
+        copy = False
+        if not self._matches_order(data):
+            copy = True
+            logging.warning(
+                f"Tenfun function expects data of order {self.order}."
+                f" Update function to return data or the order to avoid "
+                "extra data copy."
+            )
+        Z = ttb.tensor(data, copy=copy)
+        return Z
+
+    def tenfun_unary(
+        self, function_handle: Callable[[np.ndarray], np.ndarray], *inputs: ttb.tensor
+    ) -> ttb.tensor:
+        """
+        Apply a unary operation to multiple tensors columnwise.
+
+        Examples
+        --------
+        Create two tensors with values 0-7 and 7-0 (reversed)::
+
+            >>> T1 = ttb.tensor(np.arange(8), (2, 2, 2))
+            >>> print(T1)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0 2]
+             [1 3]]
+            data[:, :, 1] =
+            [[4 6]
+             [5 7]]
+            >>> T2 = ttb.tensor(np.arange(8)[::-1], (2, 2, 2))
+            >>> print(T2)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[7 5]
+             [6 4]]
+            data[:, :, 1] =
+            [[3 1]
+             [2 0]]
+
+        Apply an operation columnwise across the tensors::
+
+            >>> tensor_max = lambda x: np.max(x, axis=0)
+            >>> T3 = T1.tenfun_unary(tensor_max, T2)
+            >>> print(T3)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[7. 5.]
+             [6. 4.]]
+            data[:, :, 1] =
+            [[4. 6.]
+             [5. 7.]]
+        """
+        sz = self.shape
+        for i, an_input in enumerate(inputs):
+            if isinstance(an_input, (float, int)):
+                assert False, f"Argument {i} is a scalar but expected a tensor"
+            elif sz != an_input.shape:
+                assert False, (
+                    f"Tensor {i} is not the same size as the first tensor input"
+                )
+        if len(inputs) == 0:
+            X = self.data
+            X = np.reshape(X, (1, -1), order=self.order)
+        else:
+            X = np.zeros((len(inputs) + 1, np.prod(sz)), order=self.order)
+            X[0, :] = np.reshape(self.data, (np.prod(sz)), order=self.order)
+            for i, an_input in enumerate(inputs):
+                X[i + 1, :] = np.reshape(an_input.data, (np.prod(sz)), order=self.order)
+        data = function_handle(X)
+        data = np.reshape(data, sz, order=self.order)
+        Z = ttb.tensor(data, copy=False)
+        return Z
+
+    def to_sptensor(self) -> ttb.sptensor:
+        """
+        Construct a :class:`pyttb.sptensor` from :class:`pyttb.tensor`.
+
+        Examples
+        --------
+        Construct a 2x2x2 tensor with some nonzero entries::
+
+            >>> np.random.seed(3) # reproducibility
+            >>> sprandint = lambda s: np.random.randint(0, 4, size=np.prod(s)) / 4;
+            >>> T = ttb.tensor.from_function(sprandint, (2, 2, 2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0.5  0.25]
+             [0.   0.75]]
+            data[:, :, 1] =
+            [[0.   0.  ]
+             [0.   0.25]]
+
+        Convert to a sparse tensor::
+
+            >>> S = T.to_sptensor()
+            >>> print(S)
+            sparse tensor of shape (2, 2, 2) with 4 nonzeros and order F
+            [0, 0, 0] = 0.5
+            [0, 1, 0] = 0.25
+            [1, 1, 0] = 0.75
+            [1, 1, 1] = 0.25
+        """
+        subs, vals = self.find()
+        return ttb.sptensor(subs, vals, self.shape, copy=False)
+
+    def to_tenmat(
+        self,
+        rdims: np.ndarray | None = None,
+        cdims: np.ndarray | None = None,
+        cdims_cyclic: Literal["fc"] | Literal["bc"] | Literal["t"] | None = None,
+        copy: bool = True,
+    ) -> ttb.tenmat:
+        """
+        Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor`.
+
+        Parameters
+        ----------
+        rdims:
+            Mapping of row indices.
+        cdims:
+            Mapping of column indices.
+        cdims_cyclic:
+            When only rdims is specified maps a single rdim to the rows and the
+            remaining dimensions span the columns. `fc` (forward cyclic) in the order
+            range(rdims,self.ndims()) followed by range(0, rdims). `bc` (backward
+            cyclic) range(rdims-1, -1, -1) then range(self.ndims(), rdims, -1).
+        copy:
+            Whether to make a copy of provided data or just reference it.
+
+        Notes
+        -----
+        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
+        De Lathauwer, De Moor, and Vandewalle [2]_.
+
+        References
+        ----------
+        .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology in
+            multiway analysis. J. Chemometrics 14, 105-122.
+        .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
+            rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order tensors.
+            SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+
+        Examples
+        --------
+        Create a :class:`pyttb.tensor`::
+
+            >>> tshape = (2, 2, 2)
+            >>> data = np.reshape(np.arange(prod(tshape)), tshape)
+            >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
+            >>> print(T)
+            tensor of shape (2, 2, 2) with order F
+            data[:, :, 0] =
+            [[0 2]
+             [1 3]]
+            data[:, :, 1] =
+            [[4 6]
+             [5 7]]
+
+        Convert to a :class:`pyttb.tenmat` unwrapping around the first dimension. Either
+        allow for implicit column or explicit column dimension specification::
+
+            >>> TM1 = T.to_tenmat(rdims=np.array([0]))
+            >>> TM2 = T.to_tenmat(rdims=np.array([0]), cdims=np.array([1, 2]))
+            >>> TM1.isequal(TM2)
+            True
+
+        Convert using cyclic column ordering. For the three mode case `fc` is the same
+        result::
+
+            >>> TM3 = T.to_tenmat(rdims=np.array([0]), cdims_cyclic="fc")
+            >>> TM3  # doctest: +NORMALIZE_WHITESPACE
+            matrix corresponding to a tensor of shape (2, 2, 2) with order F
+            rindices = [ 0 ] (modes of tensor corresponding to rows)
+            cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
+            data[:, :] =
+            [[0 2 4 6]
+             [1 3 5 7]]
+
+        Backwards cyclic reverses the order::
+
+            >>> TM4 = T.to_tenmat(rdims=np.array([0]), cdims_cyclic="bc")
+            >>> TM4  # doctest: +NORMALIZE_WHITESPACE
+            matrix corresponding to a tensor of shape (2, 2, 2) with order F
+            rindices = [ 0 ] (modes of tensor corresponding to rows)
+            cindices = [ 2, 1 ] (modes of tensor corresponding to columns)
+            data[:, :] =
+            [[0 4 2 6]
+             [1 5 3 7]]
+        """
+        n = self.ndims
+        alldims = np.array([range(n)])
+        tshape = self.shape
+
+        # Verify inputs
+        if rdims is None and cdims is None:
+            assert False, "Either rdims or cdims or both must be specified."
+        if rdims is not None and not sum(np.isin(rdims, alldims)) == len(rdims):
+            assert False, "Values in rdims must be in [0, source.ndims]."
+        if cdims is not None and not sum(np.isin(cdims, alldims)) == len(cdims):
+            assert False, "Values in cdims must be in [0, source.ndims]."
+
+        rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
+        # if rdims or cdims is empty, hstack will output an array of float not int
+        if rdims.size == 0:
+            dims = cdims.copy("K")
+        elif cdims.size == 0:
+            dims = rdims.copy("K")
+        else:
+            dims = np.hstack([rdims, cdims])
+        if not len(dims) == n or not (alldims == np.sort(dims)).all():
+            assert False, (
+                "Incorrect specification of dimensions, the sorted concatenation "
+                "of rdims and cdims must be range(source.ndims)."
+            )
+        rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
+        cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
+        data = np.reshape(
+            self.permute(dims).data,
+            (rprod, cprod),
+            order=self.order,
+        )
+        assert data.flags["F_CONTIGUOUS"]
+        return ttb.tenmat(data, rdims, cdims, tshape=tshape, copy=copy)
+
     def ttm(
         self,
         matrix: np.ndarray | Sequence[np.ndarray],
@@ -1808,341 +2143,6 @@ class tensor:  # noqa: PLW1641
         if n > 0:
             return ttb.tensor(c, tuple(sz[0:n]), copy=False)
         return c[0].item()
-
-    def tenfun(
-        self,
-        function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray]
-        | Callable[[np.ndarray], np.ndarray],
-        *inputs: float
-        | int
-        | np.ndarray
-        | ttb.tensor
-        | ttb.ktensor
-        | ttb.ttensor
-        | ttb.sptensor
-        | ttb.sumtensor,
-    ) -> ttb.tensor:
-        """
-        Apply a function to each element in a tensor or tensors.
-
-        See :meth:`tenfun_binary` and :meth:`tenfun_unary` for supported options.
-        """
-        assert callable(function_handle), "function_handle must be callable"
-
-        # Number of inputs for function handle
-        nfunin = len(signature(function_handle).parameters)
-
-        # Case I: Binary function
-        if len(inputs) == 1 and nfunin == 2:
-            # We manually inspected the function handle for the parameters
-            # maybe there is a more clever way to convince mypy
-            binary_function_handle = cast(
-                "Callable[[np.ndarray, np.ndarray], np.ndarray]", function_handle
-            )
-            Y = inputs[0]
-            if not isinstance(Y, (int, float)):
-                Y = self._tt_to_tensor(Y)
-            return self.tenfun_binary(binary_function_handle, Y)
-
-        # Convert inputs to tensors if they aren't already
-        # Allow inputs to be mutable in case of type conversion
-        input_tensors: list[ttb.tensor] = []
-        for an_input in inputs:
-            if not isinstance(
-                an_input,
-                (
-                    np.ndarray,
-                    ttb.tensor,
-                    ttb.ktensor,
-                    ttb.ttensor,
-                    ttb.sptensor,
-                    ttb.sumtensor,
-                ),
-            ):
-                assert False, (
-                    f"Invalid input to ten fun: {an_input} of type {type(an_input)}"
-                )
-            input_tensors.append(self._tt_to_tensor(an_input))
-
-        # Case II: Expects input to be matrix and applies operation on each columns
-        if nfunin != 1:
-            raise ValueError(
-                "Tenfun only supports binary and unary function handles but provided "
-                "function handle takes {nfunin} arguments."
-            )
-        unary_function_handle = cast(
-            "Callable[[np.ndarray], np.ndarray]", function_handle
-        )
-        return self.tenfun_unary(unary_function_handle, *input_tensors)
-
-    def tenfun_binary(
-        self,
-        function_handle: Callable[[np.ndarray, np.ndarray], np.ndarray],
-        other: ttb.tensor | int | float,
-        first: bool = True,
-    ) -> ttb.tensor:
-        """
-        Apply a binary operation to two tensors or a tensor and a scalar.
-
-        Parameters
-        ----------
-        function_handle:
-            Function to apply.
-        other:
-            Other input to the binary function.
-        first:
-            Whether the tensor comes first in the method call (if ordering matters).
-
-        Examples
-        --------
-        Create a tensor of ones and add it to itself using an `add` function::
-
-            >>> add = lambda x, y: x + y
-            >>> T0 = ttb.tenones((2, 2, 2))
-            >>> T1 = T0.tenfun_binary(add, T0)
-            >>> T1.isequal(T0 * 2)
-            True
-
-        Use the same add function to add a scalar to the original tensor::
-
-            >>> T2 = T0.tenfun_binary(add, 1)
-            >>> T2.isequal(T1)
-            True
-        """
-        X = self.data
-        if not isinstance(other, (float, int)):
-            Y = other.data
-        else:
-            Y = np.array(other, order=self.order)
-
-        if not first:
-            Y, X = X, Y
-        data = function_handle(X, Y)
-        copy = False
-        if not self._matches_order(data):
-            copy = True
-            logging.warning(
-                f"Tenfun function expects data of order {self.order}."
-                f" Update function to return data or the order to avoid "
-                "extra data copy."
-            )
-        Z = ttb.tensor(data, copy=copy)
-        return Z
-
-    def tenfun_unary(
-        self, function_handle: Callable[[np.ndarray], np.ndarray], *inputs: ttb.tensor
-    ) -> ttb.tensor:
-        """
-        Apply a unary operation to multiple tensors columnwise.
-
-        Examples
-        --------
-        Create two tensors with values 0-7 and 7-0 (reversed)::
-
-            >>> T1 = ttb.tensor(np.arange(8), (2, 2, 2))
-            >>> print(T1)
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[0 2]
-             [1 3]]
-            data[:, :, 1] =
-            [[4 6]
-             [5 7]]
-            >>> T2 = ttb.tensor(np.arange(8)[::-1], (2, 2, 2))
-            >>> print(T2)
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[7 5]
-             [6 4]]
-            data[:, :, 1] =
-            [[3 1]
-             [2 0]]
-
-        Apply an operation columnwise across the tensors::
-
-            >>> tensor_max = lambda x: np.max(x, axis=0)
-            >>> T3 = T1.tenfun_unary(tensor_max, T2)
-            >>> print(T3)
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[7. 5.]
-             [6. 4.]]
-            data[:, :, 1] =
-            [[4. 6.]
-             [5. 7.]]
-        """
-        sz = self.shape
-        for i, an_input in enumerate(inputs):
-            if isinstance(an_input, (float, int)):
-                assert False, f"Argument {i} is a scalar but expected a tensor"
-            elif sz != an_input.shape:
-                assert False, (
-                    f"Tensor {i} is not the same size as the first tensor input"
-                )
-        if len(inputs) == 0:
-            X = self.data
-            X = np.reshape(X, (1, -1), order=self.order)
-        else:
-            X = np.zeros((len(inputs) + 1, np.prod(sz)), order=self.order)
-            X[0, :] = np.reshape(self.data, (np.prod(sz)), order=self.order)
-            for i, an_input in enumerate(inputs):
-                X[i + 1, :] = np.reshape(an_input.data, (np.prod(sz)), order=self.order)
-        data = function_handle(X)
-        data = np.reshape(data, sz, order=self.order)
-        Z = ttb.tensor(data, copy=False)
-        return Z
-
-    def to_sptensor(self) -> ttb.sptensor:
-        """
-        Construct a :class:`pyttb.sptensor` from :class:`pyttb.tensor`.
-
-        Examples
-        --------
-        Construct a 2x2x2 tensor with some nonzero entries::
-
-            >>> np.random.seed(3) # reproducibility
-            >>> sprandint = lambda s: np.random.randint(0, 4, size=np.prod(s)) / 4;
-            >>> T = ttb.tensor.from_function(sprandint, (2, 2, 2))
-            >>> print(T)
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[0.5  0.25]
-             [0.   0.75]]
-            data[:, :, 1] =
-            [[0.   0.  ]
-             [0.   0.25]]
-
-        Convert to a sparse tensor::
-
-            >>> S = T.to_sptensor()
-            >>> print(S)
-            sparse tensor of shape (2, 2, 2) with 4 nonzeros and order F
-            [0, 0, 0] = 0.5
-            [0, 1, 0] = 0.25
-            [1, 1, 0] = 0.75
-            [1, 1, 1] = 0.25
-        """
-        subs, vals = self.find()
-        return ttb.sptensor(subs, vals, self.shape, copy=False)
-
-    def to_tenmat(
-        self,
-        rdims: np.ndarray | None = None,
-        cdims: np.ndarray | None = None,
-        cdims_cyclic: Literal["fc"] | Literal["bc"] | Literal["t"] | None = None,
-        copy: bool = True,
-    ) -> ttb.tenmat:
-        """
-        Construct a :class:`pyttb.tenmat` from a :class:`pyttb.tensor`.
-
-        Parameters
-        ----------
-        rdims:
-            Mapping of row indices.
-        cdims:
-            Mapping of column indices.
-        cdims_cyclic:
-            When only rdims is specified maps a single rdim to the rows and the
-            remaining dimensions span the columns. `fc` (forward cyclic) in the order
-            range(rdims,self.ndims()) followed by range(0, rdims). `bc` (backward
-            cyclic) range(rdims-1, -1, -1) then range(self.ndims(), rdims, -1).
-        copy:
-            Whether to make a copy of provided data or just reference it.
-
-        Notes
-        -----
-        Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
-        De Lathauwer, De Moor, and Vandewalle [2]_.
-
-        References
-        ----------
-        .. [1] KIERS, H. A. L. 2000. Towards a standardized notation and terminology in
-            multiway analysis. J. Chemometrics 14, 105-122.
-        .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
-            rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order tensors.
-            SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
-
-        Examples
-        --------
-        Create a :class:`pyttb.tensor`::
-
-            >>> tshape = (2, 2, 2)
-            >>> data = np.reshape(np.arange(prod(tshape)), tshape)
-            >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
-            >>> print(T)
-            tensor of shape (2, 2, 2) with order F
-            data[:, :, 0] =
-            [[0 2]
-             [1 3]]
-            data[:, :, 1] =
-            [[4 6]
-             [5 7]]
-
-        Convert to a :class:`pyttb.tenmat` unwrapping around the first dimension. Either
-        allow for implicit column or explicit column dimension specification::
-
-            >>> TM1 = T.to_tenmat(rdims=np.array([0]))
-            >>> TM2 = T.to_tenmat(rdims=np.array([0]), cdims=np.array([1, 2]))
-            >>> TM1.isequal(TM2)
-            True
-
-        Convert using cyclic column ordering. For the three mode case `fc` is the same
-        result::
-
-            >>> TM3 = T.to_tenmat(rdims=np.array([0]), cdims_cyclic="fc")
-            >>> TM3  # doctest: +NORMALIZE_WHITESPACE
-            matrix corresponding to a tensor of shape (2, 2, 2) with order F
-            rindices = [ 0 ] (modes of tensor corresponding to rows)
-            cindices = [ 1, 2 ] (modes of tensor corresponding to columns)
-            data[:, :] =
-            [[0 2 4 6]
-             [1 3 5 7]]
-
-        Backwards cyclic reverses the order::
-
-            >>> TM4 = T.to_tenmat(rdims=np.array([0]), cdims_cyclic="bc")
-            >>> TM4  # doctest: +NORMALIZE_WHITESPACE
-            matrix corresponding to a tensor of shape (2, 2, 2) with order F
-            rindices = [ 0 ] (modes of tensor corresponding to rows)
-            cindices = [ 2, 1 ] (modes of tensor corresponding to columns)
-            data[:, :] =
-            [[0 4 2 6]
-             [1 5 3 7]]
-        """
-        n = self.ndims
-        alldims = np.array([range(n)])
-        tshape = self.shape
-
-        # Verify inputs
-        if rdims is None and cdims is None:
-            assert False, "Either rdims or cdims or both must be specified."
-        if rdims is not None and not sum(np.isin(rdims, alldims)) == len(rdims):
-            assert False, "Values in rdims must be in [0, source.ndims]."
-        if cdims is not None and not sum(np.isin(cdims, alldims)) == len(cdims):
-            assert False, "Values in cdims must be in [0, source.ndims]."
-
-        rdims, cdims = gather_wrap_dims(n, rdims, cdims, cdims_cyclic)
-        # if rdims or cdims is empty, hstack will output an array of float not int
-        if rdims.size == 0:
-            dims = cdims.copy("K")
-        elif cdims.size == 0:
-            dims = rdims.copy("K")
-        else:
-            dims = np.hstack([rdims, cdims])
-        if not len(dims) == n or not (alldims == np.sort(dims)).all():
-            assert False, (
-                "Incorrect specification of dimensions, the sorted concatenation "
-                "of rdims and cdims must be range(source.ndims)."
-            )
-        rprod = 1 if rdims.size == 0 else np.prod(np.array(tshape)[rdims])
-        cprod = 1 if cdims.size == 0 else np.prod(np.array(tshape)[cdims])
-        data = np.reshape(
-            self.permute(dims).data,
-            (rprod, cprod),
-            order=self.order,
-        )
-        assert data.flags["F_CONTIGUOUS"]
-        return ttb.tenmat(data, rdims, cdims, tshape=tshape, copy=copy)
 
     def __add__(self, other):
         """
