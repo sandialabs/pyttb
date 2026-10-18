@@ -1,5 +1,59 @@
-BibTex Entries: Tensor Toolbox for Python
-*****************************************
+Citing pyttb and Related Work
+*****************************
+
+Citing pyttb
+============
+
+If you use pyttb in your work, please cite it using the following entry (also
+available in `CITATION.bib <https://github.com/sandialabs/pyttb/blob/main/CITATION.bib>`_):
+
+.. code:: bibtex
+
+    @misc{pyttb,
+      author = {Dunlavy, Daniel M. and Johnson, Nicholas T. and others},
+      month = mar,
+      title = {{pyttb: Python Tensor Toolbox, v1.8.6}},
+      url = {https://github.com/sandialabs/pyttb},
+      year = {2026}
+    }
+
+Algorithm references
+====================
+
+* ``cp_als``, the tensor classes, and the Tucker methods (``hosvd``, ``tucker_als``) follow the
+  Tensor Toolbox for MATLAB: ``TTB_Software``, ``TTB_Dense``, ``TTB_Sparse``.
+* ``cp_apr`` is described in ``TTB_CPAPR`` (multiplicative updates) and ``TTB_CPAPRB``
+  (Newton-based methods).
+* ``gcp_opt`` is described in ``GCP_Hong2020`` and ``GCP_KoldaHong2020``.
+
+Generalized CP references
+=========================
+
+.. code:: bibtex
+
+    @article{GCP_Hong2020,
+      author = {David Hong and Tamara G. Kolda and Jed A. Duersch},
+      title = {Generalized Canonical Polyadic Tensor Decomposition},
+      journal = {SIAM Review},
+      volume = {62},
+      number = {1},
+      pages = {133-163},
+      year = {2020},
+      doi = {10.1137/18M1203626}
+    }
+    @article{GCP_KoldaHong2020,
+      author = {Tamara G. Kolda and David Hong},
+      title = {Stochastic Gradients for Large-Scale Tensor Decomposition},
+      journal = {SIAM Journal on Mathematics of Data Science},
+      volume = {2},
+      number = {4},
+      pages = {1066-1095},
+      year = {2020},
+      doi = {10.1137/19m1266265}
+    }
+
+Tensor Toolbox for MATLAB references
+====================================
 
 .. code:: bibtex
 
