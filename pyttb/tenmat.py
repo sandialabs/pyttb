@@ -203,10 +203,7 @@ class tenmat:
         """
         Return the number of dimensions of a :class:`pyttb.tenmat`.
 
-        Returns
-        -------
-        Number of dimensions of the matrix, i.e., 2 for a non-empty tenmat and 0 for
-        an empty one.
+        This is 2 for a non-empty tenmat and 0 for an empty one.
 
         Examples
         --------
@@ -232,9 +229,7 @@ class tenmat:
         """
         Return the shape of a :class:`pyttb.tenmat`.
 
-        Returns
-        -------
-        Shape of the matrix (not of the original tensor).
+        This is the shape of the matrix, not of the original tensor.
 
         Examples
         --------
@@ -499,7 +494,8 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
+        Sum of the two tenmats (or of the tenmat and the scalar), as a
+        :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -569,7 +565,8 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
+        Product of the two tenmats (or of the tenmat and the scalar), as a
+        :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -625,8 +622,7 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
-            Copy of original tenmat with negated data.
+        Copy of the tenmat with negated data.
 
         Examples
         --------
@@ -650,8 +646,7 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
-            copy of tenmat
+        Copy of the tenmat.
 
         Examples
         --------
@@ -678,7 +673,7 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
+        Sum of the scalar and the tenmat, as a :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -698,9 +693,8 @@ class tenmat:
 
         Returns
         -------
-        str
-            Contains the shape, row indices (rindices), column indices (cindices) and
-            data as strings on different lines.
+        String with the shape, row indices (rindices), column indices (cindices)
+        and data on different lines.
 
         Examples
         --------
@@ -757,7 +751,7 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
+        Product of the scalar and the tenmat, as a :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -782,7 +776,7 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
+        Difference of the scalar and the tenmat, as a :class:`pyttb.tenmat`.
 
         Examples
         --------
@@ -852,7 +846,8 @@ class tenmat:
 
         Returns
         -------
-        :class:`pyttb.tenmat`
+        Difference of the two tenmats (or of the tenmat and the scalar), as a
+        :class:`pyttb.tenmat`.
 
         Examples
         --------
