@@ -81,15 +81,27 @@ def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
 
     Examples
     --------
+    A low multilinear rank model assumes that each entry of the data tensor is a
+    draw from a normal distribution (with a fixed standard deviation) whose mean is
+    given by the corresponding entry of a low multilinear rank
+    :class:`pyttb.ttensor`. Create a :class:`pyttb.ttensor` with a ``2 x 2 x 2``
+    core and orthonormal factor matrices, and sample a dense tensor from it::
+
+        >>> np.random.seed(1)
+        >>> factors = [np.linalg.qr(np.random.rand(n, 2))[0] for n in (5, 4, 3)]
+        >>> core = ttb.tensor(30 * np.random.rand(2, 2, 2))
+        >>> T = ttb.ttensor(core, factors)
+        >>> X = ttb.tensor(np.random.normal(loc=T.full().data, scale=1.0))
+        >>> X.shape
+        (5, 4, 3)
+
     Compute a Tucker decomposition with a ``2 x 2 x 1`` core::
 
-        >>> np.random.seed(0)
-        >>> X = ttb.tensor(np.random.rand(3, 4, 2))
         >>> M, Minit, output = ttb.tucker_als(X, [2, 2, 1], printitn=0)
         >>> M.core.shape
         (2, 2, 1)
         >>> [factor.shape for factor in M.factor_matrices]
-        [(3, 2), (4, 2), (2, 1)]
+        [(5, 2), (4, 2), (3, 1)]
         >>> sorted(output.keys())
         ['fit', 'iters', 'normresidual', 'params']
 

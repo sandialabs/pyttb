@@ -57,18 +57,34 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
     Examples
     --------
-    >>> data = np.array([[29, 39.0], [63.0, 85.0]])
-    >>> tol = 1e-4
-    >>> disable_printing = -1
-    >>> tensorInstance = ttb.tensor(data)
-    >>> result = hosvd(tensorInstance, tol, verbosity=disable_printing)
-    >>> ((result.full() - tensorInstance).norm() / tensorInstance.norm()) < tol
-    True
+    A low multilinear rank model assumes that each entry of the data tensor is a
+    draw from a normal distribution (with a fixed standard deviation) whose mean is
+    given by the corresponding entry of a low multilinear rank
+    :class:`pyttb.ttensor`. Create a :class:`pyttb.ttensor` with a ``2 x 2 x 2``
+    core and orthonormal factor matrices, and sample a dense tensor from it::
+
+        >>> np.random.seed(1)
+        >>> factors = [np.linalg.qr(np.random.rand(n, 2))[0] for n in (5, 4, 3)]
+        >>> core = ttb.tensor(30 * np.random.rand(2, 2, 2))
+        >>> T = ttb.ttensor(core, factors)
+        >>> X = ttb.tensor(np.random.normal(loc=T.full().data, scale=1.0))
+        >>> X.shape
+        (5, 4, 3)
+
+    Compute a Tucker decomposition with a relative error of at most ``tol``. The
+    ranks are chosen automatically and match the multilinear rank of the model::
+
+        >>> tol = 0.25
+        >>> disable_printing = -1
+        >>> result = hosvd(X, tol, verbosity=disable_printing)
+        >>> result.core.shape
+        (2, 2, 2)
+        >>> ((result.full() - X).norm() / X.norm()) < tol
+        True
 
     Specify the ranks of the decomposition rather than a tolerance::
 
-        >>> X = ttb.tensor(np.arange(24, dtype=float), shape=(3, 4, 2))
-        >>> result = hosvd(X, 0.5, verbosity=disable_printing, ranks=[2, 2, 1])
+        >>> result = hosvd(X, tol, verbosity=disable_printing, ranks=[2, 2, 1])
         >>> result.core.shape
         (2, 2, 1)
     """
