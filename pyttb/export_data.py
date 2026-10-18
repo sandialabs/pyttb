@@ -21,7 +21,60 @@ def export_data(
     fmt_weights: str | None = None,
     index_base: int = 1,
 ):
-    """Export tensor-related data to a file."""
+    """Export tensor-related data to a file.
+
+    Parameters
+    ----------
+    data:
+        Data to export.
+    filename:
+        File to write. An existing file is overwritten.
+    fmt_data:
+        Format string for the data values (e.g., ``"%.4f"``). Defaults to
+        ``"%.16e"``.
+    fmt_weights:
+        Format string for the weights of a :class:`pyttb.ktensor`. Defaults to
+        ``fmt_data``.
+    index_base:
+        Index basing allows interoperability (Primarily between python and MATLAB).
+        Only used for :class:`pyttb.sptensor`.
+
+    Raises
+    ------
+    AssertionError
+        If ``data`` is not a supported type.
+
+    Examples
+    --------
+    Export a :class:`pyttb.ktensor` to a temporary file and import it again::
+
+        >>> import os, tempfile
+        >>> K = ttb.ktensor(
+        ...     [np.ones((2, 2)), np.ones((3, 2))], weights=np.array([1.0, 2.0])
+        ... )
+        >>> with tempfile.TemporaryDirectory() as tmpdir:
+        ...     path = os.path.join(tmpdir, "ktensor.tns")
+        ...     ttb.export_data(K, path)
+        ...     S = ttb.import_data(path)
+        >>> S.isequal(K)
+        True
+
+    Export a matrix with a custom format and view the file contents::
+
+        >>> A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        >>> with tempfile.TemporaryDirectory() as tmpdir:
+        ...     path = os.path.join(tmpdir, "matrix.tns")
+        ...     ttb.export_data(A, path, fmt_data="%.1f")
+        ...     print(open(path).read())
+        matrix
+        2
+        2 2
+        1.0
+        2.0
+        3.0
+        4.0
+        <BLANKLINE>
+    """
     if not isinstance(data, (ttb.tensor, ttb.sptensor, ttb.ktensor, np.ndarray)):
         assert False, f"Invalid data type for export: {type(data)}"
 

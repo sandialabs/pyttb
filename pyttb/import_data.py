@@ -26,6 +26,43 @@ def import_data(
         File to import.
     index_base:
         Index basing allows interoperability (Primarily between python and MATLAB).
+
+    Returns
+    -------
+    :
+        The imported data. The type depends on the data type recorded in the file:
+        :class:`pyttb.tensor`, :class:`pyttb.sptensor`, :class:`pyttb.ktensor`,
+        or :class:`numpy.ndarray` (for a matrix).
+
+    Raises
+    ------
+    AssertionError
+        If the file does not exist or has an invalid data type.
+
+    Examples
+    --------
+    Export a :class:`pyttb.tensor` to a temporary file and import it again::
+
+        >>> import os, tempfile
+        >>> T = ttb.tensor(np.arange(8, dtype=float), shape=(2, 2, 2))
+        >>> with tempfile.TemporaryDirectory() as tmpdir:
+        ...     path = os.path.join(tmpdir, "tensor.tns")
+        ...     ttb.export_data(T, path)
+        ...     S = ttb.import_data(path)
+        >>> S.isequal(T)
+        True
+
+    Round-trip a :class:`pyttb.sptensor` using zero-based indices::
+
+        >>> subs = np.array([[0, 0], [1, 2]])
+        >>> vals = np.array([[1.0], [2.0]])
+        >>> T = ttb.sptensor(subs, vals, shape=(2, 3))
+        >>> with tempfile.TemporaryDirectory() as tmpdir:
+        ...     path = os.path.join(tmpdir, "sptensor.tns")
+        ...     ttb.export_data(T, path, index_base=0)
+        ...     S = ttb.import_data(path, index_base=0)
+        >>> S.isequal(T)
+        True
     """
     # Check if file exists
     if not os.path.isfile(filename):

@@ -81,6 +81,20 @@ class CPProblem(BaseProblem):
         If data is sparse noise is only added to nonzero entries.
     weight_generator:
         Method to generate weights for ktensor solution.
+    sparse_generation:
+        Generate a sparse tensor that can be scaled so that the
+        column factors and weights are stochastic. Provide a number
+        of nonzeros to be inserted. A value in range [0,1) will be
+        interpreted as a ratio.
+
+    Examples
+    --------
+    Create parameters for a CP problem with three factors::
+
+        >>> params = CPProblem(shape=(5, 4, 3), num_factors=3, noise=0.1)
+        >>> solution, data = create_problem(params)
+        >>> solution.shape
+        (5, 4, 3)
     """
 
     # NOTE inherited attributes are manually copy pasted, keep aligned between problems
@@ -114,6 +128,15 @@ class TuckerProblem(BaseProblem):
         If data is sparse noise is only added to nonzero entries.
     core_generator:
         Method to generate weights for ttensor solution.
+
+    Examples
+    --------
+    Create parameters for a Tucker problem with a ``3 x 3 x 2`` core::
+
+        >>> params = TuckerProblem((5, 4, 3), num_factors=[3, 3, 2], noise=0.1)
+        >>> solution, data = create_problem(params)
+        >>> solution.core.shape
+        (3, 3, 2)
     """
 
     # TODO post_init set to [2, 2, 2]
@@ -184,6 +207,16 @@ class ExistingCPSolution(ExistingSolution):
         column factors and weights are stochastic. Provide a number
         of nonzeros to be inserted. A value in range [0,1) will be
         interpreted as a ratio.
+
+    Examples
+    --------
+    Use an existing :class:`pyttb.ktensor` as the solution::
+
+        >>> K = ttb.ktensor([np.random.random((4, 2)), np.random.random((3, 2))])
+        >>> params = ExistingCPSolution(K, noise=0.0)
+        >>> solution, data = create_problem(params)
+        >>> solution is K
+        True
     """
 
     solution: ttb.ktensor
@@ -204,6 +237,18 @@ class MissingData:
         Whether to generate sparse rather than dense missing data pattern.
         Only useful for large tensors that don't easily fit in memory and
         when missing ratio > 0.8.
+
+    Examples
+    --------
+    Remove a fraction of the entries from the generated data::
+
+        >>> missing = MissingData(missing_ratio=0.5)
+        >>> missing.has_missing()
+        True
+        >>> params = CPProblem(shape=(5, 4, 3), num_factors=2)
+        >>> solution, data = create_problem(params, missing)
+        >>> data.shape
+        (5, 4, 3)
     """
 
     missing_ratio: float = 0.0
@@ -222,18 +267,47 @@ class MissingData:
             )
 
     def has_missing(self) -> bool:
-        """Check if any form of missing data is requested."""
+        """Check if any form of missing data is requested.
+
+        Returns
+        -------
+        :
+            True if a missing ratio or an explicit pattern was given.
+        """
         return self.missing_ratio > 0.0 or self.missing_pattern is not None
 
     def raise_symmetric(self):
-        """Raise for unsupported symmetry request."""
+        """Raise for unsupported symmetry request.
+
+        Raises
+        ------
+        ValueError
+            If missing data or a sparse model was requested.
+        """
         if self.missing_ratio:
             raise ValueError("Can't generate a symmetric problem with missing data.")
         if self.sparse_model:
             raise ValueError("Can't generate sparse symmetric problem.")
 
     def get_pattern(self, shape: Shape) -> ttb.tensor | ttb.sptensor | None:
-        """Generate a tensor pattern of missing data."""
+        """Generate a tensor pattern of missing data.
+
+        Parameters
+        ----------
+        shape:
+            Shape of the problem the pattern is for.
+
+        Returns
+        -------
+        :
+            Indicator tensor of the entries that are present, or None if no
+            missing data was requested.
+
+        Raises
+        ------
+        ValueError
+            If an explicit pattern does not match ``shape``.
+        """
         if self.missing_pattern is not None:
             if self.missing_pattern.shape != shape:
                 raise ValueError(
@@ -364,12 +438,26 @@ def create_problem(
 ) -> tuple[ttb.ktensor | ttb.ttensor, ttb.tensor | ttb.sptensor]:
     """Generate a problem and solution.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     problem_params:
         Parameters related to the problem to generate, or an existing solution.
     missing_params:
         Parameters to control missing data in the generated data/solution.
+
+    Returns
+    -------
+    solution:
+        The solution, a :class:`pyttb.ktensor` or :class:`pyttb.ttensor`.
+    data:
+        The data generated from the solution, a :class:`pyttb.tensor` or
+        :class:`pyttb.sptensor`.
+
+    Raises
+    ------
+    ValueError
+        If symmetry is requested together with missing data, or if sparse
+        generation is combined with missing data.
 
     Examples
     --------

@@ -45,12 +45,40 @@ def accumarray(*args: Any, **kwargs: Any) -> np.ndarray:
 
     numpy_groupies annotates its return type as ``list``, but it returns an
     :class:`numpy.ndarray`.
+
+    Parameters
+    ----------
+    *args:
+        Positional arguments passed to :func:`numpy_groupies.aggregate`, typically
+        the group indices followed by the values to aggregate.
+    **kwargs:
+        Keyword arguments passed to :func:`numpy_groupies.aggregate`
+        (e.g., ``size`` and ``func``).
+
+    Returns
+    -------
+    :
+        Aggregated values, one entry per group.
+
+    Examples
+    --------
+    Sum the values that share a group index::
+
+        >>> group_idx = np.array([0, 1, 0, 2])
+        >>> vals = np.array([1.0, 2.0, 3.0, 4.0])
+        >>> accumarray(group_idx, vals)
+        array([4., 2., 4.])
+
+    Take the maximum of each group and pad the result to a fixed size::
+
+        >>> accumarray(group_idx, vals, size=4, func="max", fill_value=0.0)
+        array([3., 2., 4., 0.])
     """
     return cast("np.ndarray", _aggregate(*args, **kwargs))
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
-    """Reproduce functionality of MATLABS intersect(a,b,'rows').
+    """Reproduce functionality of MATLABS union(a,b,'rows').
 
     Parameters
     ----------
@@ -61,8 +89,8 @@ def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    location:
-        List of intersection indices
+    union:
+        Rows in either matrix, without duplicates.
 
     Examples
     --------
@@ -233,6 +261,13 @@ def tt_setdiff_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:
     Returns
     -------
     List of set difference indices.
+
+    Examples
+    --------
+    >>> a = np.array([[1, 2], [3, 4], [5, 6]])
+    >>> b = np.array([[3, 4], [7, 8]])
+    >>> tt_setdiff_rows(a, b)
+    array([0, 2])
     """
     # TODO intersect and setdiff are very similar in function
     if MatrixA.size > 0:
@@ -305,6 +340,13 @@ def tt_irenumber(
     Returns
     -------
     Subscripts for sptensor assignment
+
+    Examples
+    --------
+    >>> t = ttb.sptensor(np.array([[0, 0], [1, 1]]), np.array([[1.0], [2.0]]), (2, 2))
+    >>> tt_irenumber(t, (4, 4), [slice(1, 3), np.array([0, 3])])
+    array([[1, 0],
+           [2, 3]])
     """
     nz = t.nnz
     if nz == 0:
@@ -353,6 +395,16 @@ def tt_renumber(
         Updated subscripts.
     newshape:
         Resulting shape.
+
+    Examples
+    --------
+    >>> subs = np.array([[1, 0], [3, 2]])
+    >>> newsubs, newshape = tt_renumber(subs, (4, 3), [[1, 3], slice(None)])
+    >>> newsubs
+    array([[0, 0],
+           [1, 2]])
+    >>> [int(n) for n in newshape]
+    [2, 3]
     """
     newshape = np.array(shape)
     newsubs = subs
@@ -393,13 +445,26 @@ def tt_renumberdim(
     Parameters
     ----------
     idx:
+        Indices in the original dimension.
     shape:
+        Length of the original dimension.
     number_range:
+        Range of the original dimension to keep.
 
     Returns
     -------
     newidx:
+        Indices renumbered to the new range.
     newshape:
+        Length of the new range.
+
+    Examples
+    --------
+    >>> newidx, newshape = tt_renumberdim(np.array([1, 3]), 4, [1, 3])
+    >>> newidx
+    array([0., 1.])
+    >>> newshape
+    2
     """
     # Determine the size of the new range
     if isinstance(number_range, (int, np.integer)):
@@ -514,6 +579,18 @@ def tt_subsubsref(obj: np.ndarray, s: Any) -> float | np.ndarray:  # noqa: ARG00
     Returns
     -------
     Still uncertain to this functionality
+
+    Examples
+    --------
+    A single-element array is returned as a scalar::
+
+        >>> tt_subsubsref(np.array([5.0]), None)
+        5.0
+
+    Any other array is returned unchanged::
+
+        >>> tt_subsubsref(np.array([1, 2]), None)
+        array([1, 2])
     """  # noqa: D401
     # TODO figure out when subsref yields key of length>1 for now ignore this logic and
     #  just return
@@ -542,6 +619,10 @@ def tt_sub2ind(
         Subscripts for tensor
     order:
         Memory layout
+
+    Returns
+    -------
+    Linear indices for the subscripts.
 
     Examples
     --------
@@ -708,6 +789,10 @@ def isrow(v: np.ndarray) -> bool:
     v:
         Vector input
 
+    Returns
+    -------
+    bool
+
     Examples
     --------
     >>> isrow(np.array([[1, 2]]))
@@ -727,10 +812,18 @@ def isvector(a: np.ndarray) -> bool:
     Parameters
     ----------
     a:
+        Array to check.
 
     Returns
     -------
     bool
+
+    Examples
+    --------
+    >>> isvector(np.array([1, 2, 3]))
+    True
+    >>> isvector(np.ones((2, 2)))
+    False
     """
     return a.ndim == 1 or (a.ndim == 2 and (a.shape[0] == 1 or a.shape[1] == 1))
 
@@ -746,10 +839,18 @@ def islogical(a: np.ndarray) -> bool:
     Parameters
     ----------
     a:
+        Value to check.
 
     Returns
     -------
     bool
+
+    Examples
+    --------
+    >>> islogical(True)
+    True
+    >>> islogical(1)
+    False
     """
     return isinstance(a, bool)
 
@@ -777,6 +878,25 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 
     See getitem or setitem in :class:`pyttb.tensor` for elaboration of the
     various indexing options.
+
+    Parameters
+    ----------
+    indices:
+        Indices as passed to getitem or setitem.
+
+    Returns
+    -------
+    :
+        The inferred :class:`IndexVariant`.
+
+    Examples
+    --------
+    >>> get_index_variant(3)
+    <IndexVariant.LINEAR: 1>
+    >>> get_index_variant(np.array([[0, 1]]))
+    <IndexVariant.SUBSCRIPTS: 3>
+    >>> get_index_variant((1, slice(None)))
+    <IndexVariant.SUBTENSOR: 2>
     """
     variant = IndexVariant.UNKNOWN
     if isinstance(indices, get_args(LinearIndexType)):
@@ -801,7 +921,28 @@ def get_index_variant(indices: IndexType) -> IndexVariant:
 def get_mttkrp_factors(
     U: ttb.ktensor | Sequence[np.ndarray], n: int | np.integer, ndims: int
 ) -> Sequence[np.ndarray]:
-    """Apply standard checks and type conversions for mttkrp factors."""
+    """Apply standard checks and type conversions for mttkrp factors.
+
+    Parameters
+    ----------
+    U:
+        Factor matrices, or a :class:`pyttb.ktensor` whose factors are used.
+    n:
+        Mode that is skipped in the mttkrp.
+    ndims:
+        Expected number of factor matrices.
+
+    Returns
+    -------
+    :
+        The factor matrices, with any weights absorbed into one of them.
+
+    Examples
+    --------
+    >>> K = ttb.ktensor([np.ones((2, 2)), np.ones((3, 2))])
+    >>> [factor.shape for factor in get_mttkrp_factors(K, 0, 2)]
+    [(2, 2), (3, 2)]
+    """
     if isinstance(U, ttb.ktensor):
         U = U.copy()
         # Absorb lambda into one of the factors but not the one that is skipped
@@ -845,6 +986,13 @@ def gather_wrap_dims(
             `bc` (backward cyclic[2]_) range(rdims-1, -1, -1) then
             range(self.ndims(), rdims, -1).
 
+    Returns
+    -------
+    rdims:
+        Modes mapped to the rows.
+    cdims:
+        Modes mapped to the columns.
+
     Notes
     -----
     Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
@@ -857,6 +1005,23 @@ def gather_wrap_dims(
     .. [2] DE LATHAUWER, L., DE MOOR, B., AND VANDEWALLE, J. 2000b. On the best
            rank-1 and rank-(R1, R2, ... , RN ) approximation of higher-order
            tensors. SIAM J. Matrix Anal. Appl. 21, 4, 1324-1342.
+
+    Examples
+    --------
+    Map mode 1 to the rows and the remaining modes to the columns::
+
+        >>> gather_wrap_dims(4, rdims=np.array([1]))
+        (array([1]), array([0, 2, 3]))
+
+    Use the forward cyclic ordering of the column modes::
+
+        >>> gather_wrap_dims(4, rdims=np.array([1]), cdims_cyclic="fc")
+        (array([1]), array([2, 3, 0]))
+
+    Specify only the column modes::
+
+        >>> gather_wrap_dims(4, cdims=np.array([0, 2]))
+        (array([1, 3]), array([0, 2]))
     """
     alldims = np.array([range(ndims)])
 
@@ -904,6 +1069,18 @@ def np_to_python(
     ----------
     iterable:
         Structure potentially containing numpy scalars.
+
+    Returns
+    -------
+    :
+        Structure of the same type with numpy scalars replaced by python scalars.
+
+    Examples
+    --------
+    >>> np_to_python((np.int64(1), np.float64(2.5)))
+    (1, 2.5)
+    >>> np_to_python([np.int64(1)])
+    [1]
     """
     output_type = type(iterable)
     return output_type(  # type: ignore [call-arg]
@@ -914,6 +1091,17 @@ def np_to_python(
 
 def parse_shape(shape: Shape) -> tuple[int, ...]:
     """Parse flexible type into shape tuple.
+
+    Parameters
+    ----------
+    shape:
+        Shape as an integer, a sequence of integers, or a one-dimensional
+        integer array.
+
+    Returns
+    -------
+    :
+        Shape as a tuple of integers.
 
     Examples
     --------
@@ -954,6 +1142,16 @@ def parse_shape(shape: Shape) -> tuple[int, ...]:
 
 def parse_one_d(maybe_vector: OneDArray) -> np.ndarray:
     """Parse flexible type into numpy array.
+
+    Parameters
+    ----------
+    maybe_vector:
+        Scalar, sequence, or array with at most one non-trivial dimension.
+
+    Returns
+    -------
+    :
+        One-dimensional array.
 
     Examples
     --------
@@ -1017,6 +1215,11 @@ def to_memory_order(
     array: Data to ensure matches memory order.
     order: Desired memory order.
     copy: Whether to force a copy even if data already in supported memory order.
+
+    Returns
+    -------
+    :
+        Data in the requested memory order.
 
     Examples
     --------
