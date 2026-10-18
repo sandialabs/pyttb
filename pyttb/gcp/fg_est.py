@@ -76,6 +76,8 @@ def estimate(  # noqa: PLR0913
         Subscripts of data sample.
     data_vals:
         Values of data sample.
+    weights:
+        Weights of the samples.
     function_handle:
         Handle to evaluate objective function.
     gradient_handle:
@@ -88,8 +90,25 @@ def estimate(  # noqa: PLR0913
 
     Returns
     -------
-        Estimated objective function value and/or estimated gradient value with
-        respect to the model.
+    Estimated objective function value if only ``function_handle`` is given,
+    estimated gradient (a list with one array per factor matrix) if only
+    ``gradient_handle`` is given, or a tuple of both if both are given.
+
+    Examples
+    --------
+    Estimate the Gaussian objective from two samples of a rank-1 model::
+
+        >>> from pyttb.gcp.fg_setup import Objectives, setup
+        >>> function_handle, gradient_handle, _ = setup(Objectives.GAUSSIAN)
+        >>> M = ttb.ktensor([np.full((2, 1), 2.0)] * 3)
+        >>> subs = np.array([[0, 0, 0], [1, 1, 1]])
+        >>> vals = np.array([1.0, 1.0])
+        >>> weights = np.ones(2)
+        >>> float(estimate(M, subs, vals, weights, function_handle))
+        98.0
+        >>> G = estimate(M, subs, vals, weights, None, gradient_handle)
+        >>> [g.shape for g in G]
+        [(2, 1), (2, 1), (2, 1)]
     """
     if function_handle is None and gradient_handle is None:
         raise ValueError(
@@ -154,7 +173,22 @@ def estimate_helper(
 
     Returns
     -------
-        Model values at subs and exploded Zk's
+    model_vals:
+        Model values at ``subs``.
+    Zexp:
+        Exploded Zk's, one array per mode.
+
+    Examples
+    --------
+    Extract the values of a rank-1 model at two locations::
+
+        >>> factors = [np.full((2, 1), 2.0)] * 3
+        >>> subs = np.array([[0, 0, 0], [1, 1, 1]])
+        >>> model_vals, Zexp = estimate_helper(factors, subs)
+        >>> model_vals
+        array([8., 8.])
+        >>> len(Zexp)
+        3
     """
     Zexp: list[np.ndarray] = []
     if subs.size == 0:

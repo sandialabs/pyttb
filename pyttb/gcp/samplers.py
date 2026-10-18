@@ -42,7 +42,26 @@ class Samplers(Enum):
 
 
 class GCPSampler:
-    """Contains Gradient and Function Sampling Details."""
+    """Contains Gradient and Function Sampling Details.
+
+    Parameters
+    ----------
+    data:
+        Tensor we will be sampling. Allows for automated decisions and sanity
+        checks.
+    function_sampler:
+        Type of sampling used for evaluating function estimates.
+    function_samples:
+        How many samples to take of the function every iteration.
+    gradient_sampler:
+        Type of sampling used for evaluating gradient estimates.
+    gradient_samples:
+        How many samples to take of the gradient every iteration.
+    max_iters:
+        Maximum number of iterations to normalize number of samples.
+    over_sample_rate:
+        Ratio of extra samples to take to account for bad draws.
+    """
 
     def __init__(  # noqa: PLR0913
         self,
@@ -54,26 +73,6 @@ class GCPSampler:
         max_iters: int = 1000,
         over_sample_rate: float = 1.1,
     ):
-        """Create sampler.
-
-        Parameters
-        ----------
-        data:
-            Tensor we will be sampling. Allows for automated decisions and sanity
-            checks.
-        function_sampler:
-            Type of sampling used for evaluating function estimates.
-        function_samples:
-            How many samples to take of the function every iteration.
-        gradient_sampler:
-            Type of sampling used for evaluating gradient estimates.
-        gradient_samples:
-            How many samples to take of the gradient every iteration.
-        max_iters:
-            Maximum number of iterations to normalize number of samples.
-        over_sample_rate:
-            Ratio of extra samples to take to account for bad draws.
-        """
         self._crng = np.array([], dtype=int)
         # TODO add interface for arbitrary callable with no args that returns ndarray
         if function_sampler is None:
@@ -238,16 +237,77 @@ class GCPSampler:
             raise ValueError("Invalid choice for function_sampler")
 
     def function_sample(self, data: ttb.tensor | ttb.sptensor) -> sample_type:
-        """Draw a sample from the objective function."""
+        """Draw a sample from the objective function.
+
+        Parameters
+        ----------
+        data:
+            Tensor to sample.
+
+        Returns
+        -------
+        subs:
+            Subscripts of the samples.
+        vals:
+            Values of the data at the sampled subscripts.
+        wgts:
+            Weights of the samples.
+
+        Examples
+        --------
+        Draw 4 function samples from a dense tensor::
+
+            >>> np.random.seed(0)
+            >>> X = ttb.tenones((2, 2, 2))
+            >>> sampler = GCPSampler(X, function_samples=4, gradient_samples=2)
+            >>> subs, vals, wgts = sampler.function_sample(X)
+            >>> subs.shape, vals.shape, wgts.shape
+            ((4, 3), (4,), (4,))
+        """
         return self._fsampler(data)
 
     def gradient_sample(self, data: ttb.tensor | ttb.sptensor) -> sample_type:
-        """Draw a sample from the gradient function."""
+        """Draw a sample from the gradient function.
+
+        Parameters
+        ----------
+        data:
+            Tensor to sample.
+
+        Returns
+        -------
+        subs:
+            Subscripts of the samples.
+        vals:
+            Values of the data at the sampled subscripts.
+        wgts:
+            Weights of the samples.
+
+        Examples
+        --------
+        Draw 2 gradient samples from a dense tensor::
+
+            >>> np.random.seed(0)
+            >>> X = ttb.tenones((2, 2, 2))
+            >>> sampler = GCPSampler(X, function_samples=4, gradient_samples=2)
+            >>> subs, vals, wgts = sampler.gradient_sample(X)
+            >>> subs.shape, vals.shape, wgts.shape
+            ((2, 3), (2,), (2,))
+        """
         return self._gsampler(data)
 
     @property
     def crng(self) -> np.ndarray:
-        """Correction Range for possibly miss-sampled zeros."""
+        """Correction Range for possibly miss-sampled zeros.
+
+        Examples
+        --------
+        The range is empty unless stratified sampling accidentally samples nonzeros::
+
+            >>> sampler = GCPSampler(ttb.tenones((2, 2, 2)))
+            >>> sampler.crng
+            array([], dtype=int64)
+        """
         return self._crng
 
 
@@ -267,7 +327,20 @@ def nonzeros(
 
     Returns
     -------
-        Subscripts and values for samples.
+    subs:
+        Subscripts of the sampled nonzeros.
+    vals:
+        Values of the sampled nonzeros.
+
+    Examples
+    --------
+    Sample 3 of the nonzeros of a sparse tensor::
+
+        >>> np.random.seed(0)
+        >>> S = ttb.sptenrand((4, 3, 3), nonzeros=5)
+        >>> subs, vals = nonzeros(S, 3)
+        >>> subs.shape, vals.shape
+        ((3, 3), (3,))
     """
     nnz = data.nnz
 
@@ -304,6 +377,20 @@ def zeros(
         Oversampling rate to allow success if a samples is large relative to data.nnz
     with_replacement:
         Whether or not to sample with replacement.
+
+    Returns
+    -------
+    Subscripts of the sampled zeros, one row per sample.
+
+    Examples
+    --------
+    Sample 3 zeros of a sparse tensor::
+
+        >>> np.random.seed(0)
+        >>> S = ttb.sptenrand((4, 3, 3), nonzeros=5)
+        >>> nz_idx = np.sort(tt_sub2ind(S.shape, S.subs))
+        >>> zeros(S, nz_idx, 3).shape
+        (3, 3)
     """
     data_size = np.prod(data.shape)
     nnz = len(nz_idx)
@@ -384,7 +471,23 @@ def uniform(data: ttb.tensor, samples: int) -> sample_type:
 
     Returns
     -------
-        Subscripts of samples, values at those subscripts, and weight of samples.
+    subs:
+        Subscripts of the samples.
+    vals:
+        Values at those subscripts.
+    wgts:
+        Weights of the samples.
+
+    Examples
+    --------
+    Sample 4 entries of a dense tensor::
+
+        >>> np.random.seed(0)
+        >>> subs, vals, wgts = uniform(ttb.tenones((2, 2, 2)), 4)
+        >>> subs.shape, vals.shape, wgts.shape
+        ((4, 3), (4,), (4,))
+        >>> wgts
+        array([2., 2., 2., 2.])
     """
     subs = (
         np.ceil(
@@ -411,7 +514,22 @@ def semistrat(data: ttb.sptensor, num_nonzeros: int, num_zeros: int) -> sample_t
 
     Returns
     -------
-    Subscripts, values, and weights of samples (Nonzeros then zeros).
+    subs:
+        Subscripts of the samples (nonzeros then zeros).
+    vals:
+        Values at those subscripts.
+    wgts:
+        Weights of the samples.
+
+    Examples
+    --------
+    Sample 3 nonzeros and 2 zeros of a sparse tensor::
+
+        >>> np.random.seed(0)
+        >>> S = ttb.sptenrand((4, 3, 3), nonzeros=5)
+        >>> subs, vals, wgts = semistrat(S, 3, 2)
+        >>> subs.shape, vals.shape, wgts.shape
+        ((5, 3), (5,), (5,))
     """
     [nonzero_subs, nonzero_vals] = nonzeros(data, num_nonzeros, with_replacement=True)
     nonzero_weights = (data.nnz / num_nonzeros) * np.ones((num_nonzeros,))
@@ -453,7 +571,23 @@ def stratified(
 
     Returns
     -------
-    Subscripts, values, and weights of samples (Nonzeros then zeros).
+    subs:
+        Subscripts of the samples (nonzeros then zeros).
+    vals:
+        Values at those subscripts.
+    wgts:
+        Weights of the samples.
+
+    Examples
+    --------
+    Sample 3 nonzeros and 2 zeros of a sparse tensor::
+
+        >>> np.random.seed(0)
+        >>> S = ttb.sptenrand((4, 3, 3), nonzeros=5)
+        >>> nz_idx = np.sort(tt_sub2ind(S.shape, S.subs))
+        >>> subs, vals, wgts = stratified(S, nz_idx, 3, 2)
+        >>> subs.shape, vals.shape, wgts.shape
+        ((5, 3), (5,), (5,))
     """
     assert isinstance(data, ttb.sptensor), (
         "For stratified sampling Sparse Tensor must be provided"

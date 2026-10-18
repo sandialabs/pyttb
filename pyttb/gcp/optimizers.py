@@ -29,7 +29,25 @@ if TYPE_CHECKING:
 
 
 class StochasticSolver(ABC):
-    """Interface for Stochastic GCP Solvers."""
+    """Interface for Stochastic GCP Solvers.
+
+    Parameters
+    ----------
+    rate:
+        Rate of descent, proportional to step size.
+    decay:
+        How much to decrease step size on failed epochs.
+    max_fails:
+        How many failed epochs before terminating the solve.
+    epoch_iters:
+        Number of steps to take per epoch.
+    f_est_tol:
+        Tolerance for function estimate changes to terminate solve.
+    max_iters:
+        Maximum number of epochs.
+    printitn:
+        Controls verbosity of information during solve.
+    """
 
     def __init__(  # noqa: PLR0913
         self,
@@ -41,25 +59,6 @@ class StochasticSolver(ABC):
         max_iters: int = 1000,
         printitn: int = 1,
     ):
-        """General Setup for Stochastic Solvers.
-
-        Parameters
-        ----------
-        rate:
-            Rate of descent, proportional to step size.
-        decay:
-            How much to decrease step size on failed epochs.
-        max_fails:
-            How many failed epochs before terminating the solve.
-        epoch_iters:
-            Number of steps to take per epoch.
-        f_est_tol:
-            Tolerance for function estimate changes to terminate solve.
-        max_iters:
-            Maximum number of epochs.
-        printitn:
-            Controls verbosity of information during solve.
-        """
         self._rate = rate
         self._decay = decay
         self._max_fails = max_fails
@@ -89,7 +88,9 @@ class StochasticSolver(ABC):
 
         Returns
         -------
+        update:
             Update to be applied to decomposition (to be applied by caller).
+        step_size:
             Step size used.
         """
 
@@ -125,7 +126,10 @@ class StochasticSolver(ABC):
 
         Returns
         -------
-            Final answer and dictionary of details.
+        model:
+            Final answer.
+        info:
+            Dictionary of details about the solve.
         """
         if sampler is None:
             sampler = GCPSampler(data)
@@ -248,7 +252,25 @@ class StochasticSolver(ABC):
 
 
 class SGD(StochasticSolver):
-    """General Stochastic Gradient Descent."""
+    """General Stochastic Gradient Descent.
+
+    Parameters
+    ----------
+    rate:
+        Rate of descent, proportional to step size.
+    decay:
+        How much to decrease step size on failed epochs.
+    max_fails:
+        How many failed epochs before terminating the solve.
+    epoch_iters:
+        Number of steps to take per epoch.
+    f_est_tol:
+        Tolerance for function estimate changes to terminate solve.
+    max_iters:
+        Maximum number of epochs.
+    printitn:
+        Controls verbosity of information during solve.
+    """
 
     def update_step(  # noqa: D102
         self, model: ttb.ktensor, gradient: list[np.ndarray], lower_bound: float
@@ -266,7 +288,31 @@ class SGD(StochasticSolver):
 
 
 class Adam(StochasticSolver):
-    """Adam Optimizer."""
+    """Adam Optimizer.
+
+    Parameters
+    ----------
+    rate:
+        Rate of descent, proportional to step size.
+    decay:
+        How much to decrease step size on failed epochs.
+    max_fails:
+        How many failed epochs before terminating the solve.
+    epoch_iters:
+        Number of steps to take per epoch.
+    f_est_tol:
+        Tolerance for function estimate changes to terminate solve.
+    max_iters:
+        Maximum number of epochs.
+    printitn:
+        Controls verbosity of information during solve.
+    beta_1:
+        Adam specific momentum parameter beta_1.
+    beta_2:
+        Adam specific momentum parameter beta_2.
+    epsilon:
+        Adam specific momentum parameter to avoid division by zero.
+    """
 
     def __init__(  # noqa: PLR0913
         self,
@@ -281,31 +327,6 @@ class Adam(StochasticSolver):
         beta_2: float = 0.999,
         epsilon: float = 1e-8,
     ):
-        """General Setup for Adam Solver.
-
-        Parameters
-        ----------
-        rate:
-            Rate of descent, proportional to step size.
-        decay:
-            How much to decrease step size on failed epochs.
-        max_fails:
-            How many failed epochs before terminating the solve.
-        epoch_iters:
-            Number of steps to take per epoch.
-        f_est_tol:
-            Tolerance for function estimate changes to terminate solve.
-        max_iters:
-            Maximum number of epochs.
-        printitn:
-            Controls verbosity of information during solve.
-        beta_1:
-            Adam specific momentum parameter beta_1.
-        beta_2:
-            Adam specific momentum parameter beta_2.
-        epsilon:
-            Adam specific momentum parameter to avoid division by zero.
-        """
         super().__init__(
             rate,
             decay,
@@ -372,7 +393,25 @@ class Adam(StochasticSolver):
 
 
 class Adagrad(StochasticSolver):
-    """Adagrad Optimizer."""
+    """Adagrad Optimizer.
+
+    Parameters
+    ----------
+    rate:
+        Rate of descent, proportional to step size.
+    decay:
+        How much to decrease step size on failed epochs.
+    max_fails:
+        How many failed epochs before terminating the solve.
+    epoch_iters:
+        Number of steps to take per epoch.
+    f_est_tol:
+        Tolerance for function estimate changes to terminate solve.
+    max_iters:
+        Maximum number of epochs.
+    printitn:
+        Controls verbosity of information during solve.
+    """
 
     def __init__(  # noqa: PLR0913
         self,
@@ -418,6 +457,37 @@ class LBFGSB:
 
     NOTE: If used for publications please see scipy documentation for adding citation
     for the implementation.
+
+
+    Parameters
+    ----------
+    m:
+        Maximum number of variable metric corrections used to define the
+        limited memory matrix. SciPy default: 10.
+    factr:
+        Stop when ``(f^k - f^{k+1}) / max(|f^k|, |f^{k+1}|, 1) <= factr * eps``,
+        where ``eps`` is machine precision. SciPy default: 1e7.
+    pgtol:
+        Stop when the largest projected gradient component is at most this
+        value. SciPy default: 1e-5.
+    epsilon:
+        Step size used when the gradient is approximated numerically. SciPy
+        default: 1e-8.
+    iprint:
+        Frequency of output. Ignored, with a warning, by SciPy versions whose
+        ``fmin_l_bfgs_b`` no longer accepts it.
+    disp:
+        Whether to print convergence messages. Ignored, with a warning, by SciPy
+        versions whose ``fmin_l_bfgs_b`` no longer accepts it.
+    maxfun:
+        Maximum number of function evaluations. SciPy default: 15000.
+    maxiter:
+        Maximum number of iterations (default: 1000, differing from SciPy's
+        15000).
+    callback:
+        Function called after each iteration with the current parameter vector.
+    maxls:
+        Maximum number of line search steps per iteration. SciPy default: 20.
     """
 
     def __init__(  # noqa: PLR0913
@@ -433,41 +503,6 @@ class LBFGSB:
         callback: Callable[[np.ndarray], None] | None = None,
         maxls: int | None = None,
     ):
-        """Prepare all hyper-parameters for solver.
-
-        See scipy for details and standard defaults.
-        A variety of defaults are set specifically for gcp opt.
-
-        Parameters
-        ----------
-        m:
-            Maximum number of variable metric corrections used to define the
-            limited memory matrix. SciPy default: 10.
-        factr:
-            Stop when ``(f^k - f^{k+1}) / max(|f^k|, |f^{k+1}|, 1) <= factr * eps``,
-            where ``eps`` is machine precision. SciPy default: 1e7.
-        pgtol:
-            Stop when the largest projected gradient component is at most this
-            value. SciPy default: 1e-5.
-        epsilon:
-            Step size used when the gradient is approximated numerically. SciPy
-            default: 1e-8.
-        iprint:
-            Frequency of output. Ignored, with a warning, by SciPy versions whose
-            ``fmin_l_bfgs_b`` no longer accepts it.
-        disp:
-            Whether to print convergence messages. Ignored, with a warning, by SciPy
-            versions whose ``fmin_l_bfgs_b`` no longer accepts it.
-        maxfun:
-            Maximum number of function evaluations. SciPy default: 15000.
-        maxiter:
-            Maximum number of iterations (default: 1000, differing from SciPy's
-            15000).
-        callback:
-            Function called after each iteration with the current parameter vector.
-        maxls:
-            Maximum number of line search steps per iteration. SciPy default: 20.
-        """
 
         class ArgType(TypedDict):
             m: int | None
@@ -523,7 +558,31 @@ class LBFGSB:
         lower_bound: float = -np.inf,
         mask: np.ndarray | None = None,
     ) -> tuple[ttb.ktensor, dict]:
-        """Solves the defined optimization problem."""
+        """Solve the defined optimization problem.
+
+        Parameters
+        ----------
+        initial_model:
+            Beginning solution.
+        data:
+            Tensor to solve for.
+        function_handle:
+            Callable to evaluate objective values.
+        gradient_handle:
+            Callable to evaluate gradient values.
+        lower_bound:
+            Lower bound on model values.
+        mask:
+            Weights for the entries of the data tensor; can be used as a mask.
+
+        Returns
+        -------
+        model:
+            Final answer.
+        info:
+            Dictionary of details from SciPy, plus ``final_f`` (final objective value)
+            and ``callback`` (the monitor with the time trace of each iteration).
+        """
         model = initial_model.copy()
 
         def lbfgsb_func_grad(vector: np.ndarray):
