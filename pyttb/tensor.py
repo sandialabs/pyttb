@@ -21,7 +21,6 @@ from typing import (
 
 import numpy as np
 import scipy.sparse.linalg
-from numpy_groupies import aggregate as accumarray
 from scipy import sparse
 
 import pyttb as ttb
@@ -31,6 +30,7 @@ from pyttb.pyttb_utils import (
     MemoryLayout,
     OneDArray,
     Shape,
+    accumarray,
     gather_wrap_dims,
     get_index_variant,
     get_mttkrp_factors,
@@ -62,8 +62,6 @@ class tensor:  # noqa: PLW1641
         Whether to deep copy (versus reference) :attr:`data`.
         By default, :attr:`data` is deep copied.
 
-
-    -----
 
     Examples
     --------
@@ -114,8 +112,6 @@ class tensor:  # noqa: PLW1641
         empty tensor of shape ()
         data = []
 
-    -----
-
     Notes
     -----
     Instances of :class:`pyttb.tensor` can also be created using the following methods:
@@ -132,14 +128,10 @@ class tensor:  # noqa: PLW1641
         * :meth:`pyttb.ttensor.to_tensor` - Convert a Tucker tensor to a dense tensor
         * :meth:`pyttb.tenmat.to_tensor` - Convert a tenmat to a dense tensor
 
-    -----
-
     **Tutorial**
 
     See the :doc:`/tutorial/class_tensor` tutorial for getting started with
     the tensor class.
-
-    -----
 
     **Attributes and Methods**
     """
@@ -969,6 +961,7 @@ class tensor:  # noqa: PLW1641
             assert False, "MTTKRP is invalid for tensors with fewer than 2 dimensions"
 
         U = get_mttkrp_factors(U, n, self.ndims)
+        n = int(n)
 
         if n == 0:
             R = U[1].shape[1]

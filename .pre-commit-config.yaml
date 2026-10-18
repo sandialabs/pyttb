@@ -4,13 +4,13 @@
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.11
+    rev: v0.17.1
     hooks:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
       - id: ruff-format
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.8.0
+    rev: 0.9.1
     hooks:
       - id: nbstripout
         args: [
@@ -18,7 +18,7 @@ repos:
             --drop-empty-cells
         ]
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.3
     hooks:
       - id: codespell
         args: [ --toml, "pyproject.toml"]

@@ -11,9 +11,9 @@ import warnings
 from typing import Literal, overload
 
 import numpy as np
-from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
+from pyttb.pyttb_utils import accumarray
 
 
 def cp_apr(  # noqa: PLR0913

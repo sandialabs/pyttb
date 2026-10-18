@@ -179,7 +179,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
 
     # Set up for iterates and fit
     U = init.copy().factor_matrices
-    fit = 0
+    fit: float | np.ndarray = 0.0
+    normresidual: float | np.ndarray
 
     # Reduce dimorder to only those modes we will optimize
     dimorder_in = dimorder  # save for output

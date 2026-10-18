@@ -18,6 +18,7 @@ from typing import (
 )
 
 import numpy as np
+from numpy_groupies import aggregate as _aggregate
 from scipy import sparse
 
 import pyttb as ttb
@@ -37,6 +38,15 @@ It can be "F", meaning Fortran ordered and analogous to column-major for matrice
 or "C", meaning C ordered and analogous to row-major for matrices.
 Order "F" is how tensors are stored in MATLAB, and order "C" is the default
 for NumPy arrays."""
+
+
+def accumarray(*args: Any, **kwargs: Any) -> np.ndarray:
+    """Typed wrapper around :func:`numpy_groupies.aggregate`.
+
+    numpy_groupies annotates its return type as ``list``, but it returns an
+    :class:`numpy.ndarray`.
+    """
+    return cast("np.ndarray", _aggregate(*args, **kwargs))
 
 
 def tt_union_rows(MatrixA: np.ndarray, MatrixB: np.ndarray) -> np.ndarray:

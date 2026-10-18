@@ -9,10 +9,9 @@ from dataclasses import dataclass, field
 from typing import cast, overload
 
 import numpy as np
-from numpy_groupies import aggregate as accumarray
 
 import pyttb as ttb
-from pyttb.pyttb_utils import Shape, parse_shape
+from pyttb.pyttb_utils import Shape, accumarray, parse_shape
 
 solution_generator = Callable[[tuple[int, ...]], np.ndarray]
 core_generator_t = Callable[[tuple[int, ...]], ttb.tensor | ttb.sptensor | np.ndarray]
@@ -233,7 +232,7 @@ class MissingData:
         if self.sparse_model:
             raise ValueError("Can't generate sparse symmetric problem.")
 
-    def get_pattern(self, shape: Shape) -> None | ttb.tensor | ttb.sptensor:
+    def get_pattern(self, shape: Shape) -> ttb.tensor | ttb.sptensor | None:
         """Generate a tensor pattern of missing data."""
         if self.missing_pattern is not None:
             if self.missing_pattern.shape != shape:
