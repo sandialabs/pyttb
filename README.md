@@ -8,7 +8,6 @@ U.S. Government retains certain rights in this software.
 [![pypi package](https://img.shields.io/pypi/v/pyttb?label=pypi%20package)](https://pypi.org/project/pyttb/)
 [![image](https://img.shields.io/pypi/pyversions/pyttb.svg)](https://pypi.python.org/pypi/pyttb)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # pyttb: Python Tensor Toolbox
 
@@ -47,7 +46,7 @@ python3 -m pip install pyttb
 >>> X = ttb.tenrand((2,2,2))
 >>> type(X)
 <class 'pyttb.tensor.tensor'>
->>> M = ttb.cp_als(X, rank=1)
+>>> M, M_init, M_info = ttb.cp_als(X, 1)
 CP_ALS:
  Iter 0: f = 7.367245e-01 f-delta = 7.4e-01
  Iter 1: f = 7.503069e-01 f-delta = 1.4e-02
@@ -76,7 +75,7 @@ This is relevant for indexing. In the future we hope to extend support for both.
 - [Info for users coming from MATLAB](https://pyttb.readthedocs.io/en/stable/for_matlab_users.html)
 - Learn about tensor decompositions: 
 [tensor paper](https://doi.org/10.1137/07070111X "Tensor Decompositions and Applications by Tamara G. Kolda, Brett W. Bader"), 
-[tensor book](https://www.mathsci.ai/post/tensor-textbook/ "Tensor Decompositions for Data Science by Grey Balard and Tamara G. Kolda") 
+[tensor book](https://www.mathsci.ai/post/tensor-textbook/ "Tensor Decompositions for Data Science by Grey Ballard and Tamara G. Kolda") 
 <!-- markdown-link-check-enable -->
 
 ### Contributing
