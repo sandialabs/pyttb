@@ -1,5 +1,8 @@
-Helper Functions (:mod:`pyttb.pyttb_utils`, :mod:`pyttb.khatrirao`)
-===================================================================
+Internal Helpers (:mod:`pyttb.pyttb_utils`)
+===========================================
+
+These helpers support the implementation of the tensor classes and are not stable
+public API; they may change without notice.
 
 For *all* examples in this document, the following module imports are assumed::
 
@@ -11,5 +14,3 @@ For *all* examples in this document, the following module imports are assumed::
     :special-members:
     :exclude-members: __dict__, __weakref__, __slots__
     :show-inheritance:
-
-.. autofunction:: pyttb.khatrirao.khatrirao
