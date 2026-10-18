@@ -609,7 +609,7 @@ class ttensor:
 
         Returns
         -------
-        Permuted :class:`pyttb.ttensor`.
+        ttensor with the dimensions reordered, as a :class:`pyttb.ttensor`.
 
         Examples
         --------
@@ -734,6 +734,10 @@ class ttensor:
         Convert to tensor.
 
         Same as :meth:`pyttb.ttensor.full`.
+
+        Returns
+        -------
+        Dense tensor with the same entries, as a :class:`pyttb.tensor`.
 
         Examples
         --------
@@ -915,11 +919,12 @@ class ttensor:
 
         Parameters
         ----------
-        other: float, int
+        other:
+            Scalar (float or int) to multiply by.
 
         Returns
         -------
-        :class:`pyttb.ttensor`
+        ttensor with the core scaled by the scalar.
 
         Examples
         --------
@@ -1008,8 +1013,7 @@ class ttensor:
 
         Returns
         -------
-        str
-            Contains the core, and factor matrices as strings on different lines.
+        String with the core and factor matrices on different lines.
 
         Examples
         --------
@@ -1061,11 +1065,12 @@ class ttensor:
 
         Parameters
         ----------
-        other: float, int
+        other:
+            Scalar (float or int) to multiply by.
 
         Returns
         -------
-        :class:`pyttb.ttensor`
+        ttensor with the core scaled by the scalar.
 
         Examples
         --------
