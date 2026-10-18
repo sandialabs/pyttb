@@ -612,6 +612,10 @@ class ktensor:
         """
         Make a deep copy of a :class:`pyttb.ktensor`.
 
+        Returns
+        -------
+        Deep copy of the :class:`pyttb.ktensor`.
+
         Examples
         --------
         Create a random :class:`pyttb.ktensor` with weights of 1::
@@ -683,6 +687,10 @@ class ktensor:
         immutable: Whether or not the returned data cam be mutated. May enable
             additional optimizations.
 
+        Returns
+        -------
+        Array of doubles with the same entries and shape as the ktensor.
+
         Examples
         --------
         Create the initial :class:`pyttb.ktensor`::
@@ -715,6 +723,10 @@ class ktensor:
             Index set of components to extract. It should be the case that `idx` is a
             subset of [0,...,`self.ncomponents`]. If this parameter is None or is empty,
             a copy of the :class:`pyttb.ktensor` is returned.
+
+        Returns
+        -------
+        :class:`pyttb.ktensor` with only the selected components.
 
         Examples
         --------
@@ -791,6 +803,11 @@ class ktensor:
             the signs of the columns of the factor matrices have been flipped to better
             align with `other`. In not None, both :class:`pyttb.ktensor` objects are
             first normalized (using :func:`~pyttb.ktensor.normalize`).
+
+        Returns
+        -------
+        This ktensor with the signs of its factor matrix columns fixed (modified
+        in place).
 
         Examples
         --------
@@ -931,6 +948,10 @@ class ktensor:
         """
         Convert a :class:`pyttb.ktensor` to a :class:`pyttb.tensor`.
 
+        Returns
+        -------
+        Dense tensor with the same entries, as a :class:`pyttb.tensor`.
+
         Examples
         --------
         Create the initial :class:`pyttb.ktensor`::
@@ -986,6 +1007,10 @@ class ktensor:
         other:
             Tensor with which to compute the inner product.
 
+        Returns
+        -------
+        Inner product of the ktensor and the other tensor.
+
         Examples
         --------
         Create a :class:`pyttb.ktensor` of all ones and compute the inner product with
@@ -1027,6 +1052,11 @@ class ktensor:
         ----------
         other:
             :class:`pyttb.ktensor` with which to compare.
+
+        Returns
+        -------
+        True if the ktensors have the same weights and factor matrices,
+        otherwise False.
 
         Examples
         --------
@@ -1070,6 +1100,12 @@ class ktensor:
         return_diffs:
             If True, returns the matrix of the norm of the differences between the
             factor matrices.
+
+        Returns
+        -------
+        True if the ktensor is symmetric, otherwise False. If ``return_diffs``
+        is True, a tuple of that flag and the matrix of norms of the differences
+        between the factor matrices.
 
         Examples
         --------
@@ -1123,6 +1159,10 @@ class ktensor:
         ----------
         W:
             Mask tensor to apply to ktensor.
+
+        Returns
+        -------
+        Column vector of the ktensor values at the nonzero locations of ``W``.
 
         Examples
         --------
@@ -1192,6 +1232,11 @@ class ktensor:
         n:
             Multiply by all modes except n.
 
+        Returns
+        -------
+        Matrix product of the matricized ktensor and the Khatri-Rao product of
+        the factor matrices.
+
         Examples
         --------
         Create a :class:`pyttb.ktensor` and list of factor matrices, then compute the
@@ -1227,6 +1272,10 @@ class ktensor:
         Compute the norm of a :class:`pyttb.ktensor`.
 
         Copmutes the Frobenius norm, or square root of the sum of squares of entries.
+
+        Returns
+        -------
+        Frobenius norm of the ktensor.
 
         Examples
         --------
@@ -1268,6 +1317,10 @@ class ktensor:
         mode:
             Index of factor matrix to normalize. A value of `None` means normalize all
             factor matrices.
+
+        Returns
+        -------
+        This ktensor, normalized in place.
 
         Examples
         --------
@@ -1390,6 +1443,10 @@ class ktensor:
         flipsign:
             If True, make each column's largest element positive.
 
+        Returns
+        -------
+        Matrix whose columns are the leading ``r`` mode-``n`` vectors.
+
         Examples
         --------
         Create a :class:`pyttb.ktensor` and compute a single eigenvector for dimension
@@ -1448,6 +1505,10 @@ class ktensor:
         ----------
         order:
             Permutation of [0,...,self.ndims-1].
+
+        Returns
+        -------
+        :class:`pyttb.ktensor` with the dimensions reordered.
 
         Examples
         --------
@@ -1511,8 +1572,8 @@ class ktensor:
         mode:
             Must be value in [0,...self.ndims-1].
 
-        Example
-        -------
+        Examples
+        --------
         Create a :class:`pyttb.ktensor`::
 
             >>> weights = np.array([2.0, 3.0])
@@ -1547,6 +1608,11 @@ class ktensor:
             factor_matrices[2] =
             [[ 9. 10.]
              [11. 12.]]
+
+        Returns
+        -------
+        This ktensor with the weights moved to the specified mode (modified in
+        place).
         """
         for r in range(self.ncomponents):
             self.factor_matrices[mode][:, [r]] = (
@@ -1601,6 +1667,17 @@ class ktensor:
         greedy:
             Flag indicating whether or not to consider all possible matchings
             (exponentially expensive) or just do a greedy matching.
+
+        Returns
+        -------
+        best_score:
+            Score between the two ktensors (1 is a perfect match).
+        A:
+            Normalized and permuted version of ``self`` that best matches ``other``.
+        flag:
+            True if a match was found, otherwise False.
+        best_perm:
+            Permutation of the components of ``self`` that best matches ``other``.
 
         Examples
         --------
@@ -1723,6 +1800,10 @@ class ktensor:
         resulting :class:`pyttb.ktensor` is symmetric with respect to any permutation of
         indices.
 
+        Returns
+        -------
+        Symmetrized version of the ktensor, as a :class:`pyttb.ktensor`.
+
         Examples
         --------
         Create a :class:`pyttb.ktensor` and verify that it is not symmetric::
@@ -1821,6 +1902,10 @@ class ktensor:
         copy:
             Whether to make a copy of provided data or just reference it.
 
+        Returns
+        -------
+        :class:`pyttb.tenmat` with the requested row and column dimensions.
+
         Notes
         -----
         Forward cyclic is defined by Kiers [1]_ and backward cyclic is defined by
@@ -1874,6 +1959,10 @@ class ktensor:
 
         Same as :meth:`pyttb.ktensor.full`.
 
+        Returns
+        -------
+        Dense tensor with the same entries, as a :class:`pyttb.tensor`.
+
         Examples
         --------
         Convert a :class:`pyttb.ktensor` to a :class:`pyttb.tensor`::
@@ -1895,6 +1984,10 @@ class ktensor:
         ----------
         mode:
             Index of factor matrix to absorb all of the weights.
+
+        Returns
+        -------
+        List of the factor matrices, scaled by the weights if requested.
 
         Examples
         --------
@@ -1995,6 +2088,11 @@ class ktensor:
         ----------
         include_weights:
             Flag to specify whether or not to include weights in output.
+
+        Returns
+        -------
+        Column vector of the (optional) weights followed by the columns of the
+        factor matrices.
 
         Examples
         --------
@@ -2101,6 +2199,11 @@ class ktensor:
         exclude_dims:
             Multiply by all but excluded dimension(s). Exclusively provide dims or
             exclude_dims.
+
+        Returns
+        -------
+        Scalar if all dimensions are multiplied, otherwise a
+        :class:`pyttb.ktensor` with the multiplied dimensions removed.
 
         Examples
         --------
@@ -2213,6 +2316,11 @@ class ktensor:
             values values must be sorted and in [0,...,self.ndims-1].
         data:
             Data values to use in the update.
+
+        Returns
+        -------
+        This ktensor with the specified factor matrices updated (modified in
+        place).
 
         Examples
         --------
@@ -2364,21 +2472,37 @@ class ktensor:
         rel_weights:
             Boolean determining whether weights should be made relative by dividing by
             the largest weight.
-        rel_widths:
-            List of numbers (one per mode) specifying relative widths of each plot
-            column.
         rel_heights:
             List of numbers (one per component) specifying relative height of each plot
             row.
-        horz/vert_space:
-            Number determining amount of space between subplots
-            (horizontally/vertically) as a fraction of the average axis width/height.
-        left/right/top/bot_space:
-            Extent of subplots as fraction of figure width or height.
+        rel_widths:
+            List of numbers (one per mode) specifying relative widths of each plot
+            column.
+        horz_space:
+            Amount of space between subplots horizontally, as a fraction of the
+            average axis width.
+        vert_space:
+            Amount of space between subplots vertically, as a fraction of the average
+            axis height.
+        left_space:
+            Left extent of the subplots as a fraction of the figure width.
+        right_space:
+            Right extent of the subplots as a fraction of the figure width.
+        top_space:
+            Top extent of the subplots as a fraction of the figure height.
+        bot_space:
+            Bottom extent of the subplots as a fraction of the figure height.
         mode_titles:
             List of strings used as titles for each column (mode).
         title:
             String containing overall figure title.
+
+        Returns
+        -------
+        fig:
+            Figure containing the plots.
+        axs:
+            Axes of the plots.
 
         Examples
         --------
