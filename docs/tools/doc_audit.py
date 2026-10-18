@@ -11,6 +11,7 @@ import importlib
 import inspect
 import re
 import sys
+import typing
 
 WHOLE_MODULES = [
     "pyttb.pyttb_utils",
@@ -141,7 +142,11 @@ def audit():
             findings.append(("missing-returns", where))
         if is_prop and has_section(doc, "Returns"):
             findings.append(("property-has-returns", where))
-        if bad_returns(doc, annotation):
+        try:  # resolve string annotations and aliases such as sample_type
+            resolved = typing.get_type_hints(func).get("return", annotation)
+        except Exception:  # noqa: BLE001
+            resolved = annotation
+        if bad_returns(doc, resolved):
             findings.append(("returns-style", where))
         if ">>>" not in doc and not EXAMPLES_EXEMPT.match(where):
             findings.append(("missing-examples", where))
