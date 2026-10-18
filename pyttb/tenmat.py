@@ -23,9 +23,87 @@ from pyttb.pyttb_utils import (
 
 
 class tenmat:
-    """Store tensor as a matrix."""
+    """
+    Store tensor as a matrix.
 
-    __slots__ = ("cindices", "data", "rindices", "tshape")
+    Parameters
+    ----------
+    data: optional
+        :class:`numpy.ndarray` containing the flattened tensor data, i.e., the matrix.
+        A 1-D array is stored as a row vector (in which case `tshape` is required).
+    rdims: optional
+        :class:`numpy.ndarray` of the dimensions of the original tensor that map to
+        the rows of the matrix.
+    cdims: optional
+        :class:`numpy.ndarray` of the dimensions of the original tensor that map to
+        the columns of the matrix.
+    tshape: optional
+        Shape of the original tensor.
+    copy: optional
+        Whether to deep copy (versus reference) :attr:`data`. By default, :attr:`data`
+        is deep copied.
+
+    Examples
+    --------
+    Create an empty :class:`pyttb.tenmat`::
+
+        >>> ttb.tenmat()  # doctest: +NORMALIZE_WHITESPACE
+        matrix corresponding to a tensor of shape () with order F
+        rindices = [  ] (modes of tensor corresponding to rows)
+        cindices = [  ] (modes of tensor corresponding to columns)
+        data = []
+
+    Create a :class:`pyttb.tenmat` from tensor-shaped data. Start with the data::
+
+        >>> tshape = (2, 2, 2)
+        >>> data = np.reshape(np.arange(np.prod(tshape), dtype=np.double), tshape)
+        >>> data  # doctest: +NORMALIZE_WHITESPACE
+        array([[[0., 1.],
+                [2., 3.]],
+               [[4., 5.],
+                [6., 7.]]])
+
+    Manually matricize the tensor::
+
+        >>> flat_data = np.reshape(data, (2, 4), order="F")
+        >>> flat_data  # doctest: +NORMALIZE_WHITESPACE
+        array([[0., 2., 1., 3.],
+               [4., 6., 5., 7.]])
+
+    Encode the matricization into a :class:`pyttb.tenmat`::
+
+        >>> tm = ttb.tenmat(flat_data, rdims=np.array([0]), tshape=tshape)
+
+    Extract the original tensor-shaped data::
+
+        >>> tm.to_tensor().double()  # doctest: +NORMALIZE_WHITESPACE
+        array([[[0., 1.],
+                [2., 3.]],
+               [[4., 5.],
+                [6., 7.]]])
+
+    Notes
+    -----
+    Instances of :class:`pyttb.tenmat` can also be created using the following:
+
+        * :meth:`pyttb.tensor.to_tenmat` - Create a tenmat from a tensor
+        * :meth:`pyttb.ktensor.to_tenmat` - Create a tenmat from a ktensor
+        * :meth:`copy` - Make a deep copy of a tenmat
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/class_tenmat` tutorial for getting started with the
+    tenmat class.
+
+    **Attributes and Methods**
+    """
+
+    __slots__ = {
+        "cindices": "Modes of the original tensor that map to the columns.",
+        "data": "Matrix of data (the matricized tensor).",
+        "rindices": "Modes of the original tensor that map to the rows.",
+        "tshape": "Shape of the original tensor.",
+    }
 
     def __init__(  # noqa: PLR0912
         self,
@@ -35,62 +113,6 @@ class tenmat:
         tshape: Shape | None = None,
         copy: bool = True,
     ):
-        """Construct a :class:`pyttb.tenmat` from explicit components.
-
-        If you already have a tensor see :meth:`pyttb.tensor.to_tenmat`.
-
-        Parameters
-        ----------
-        data:
-            Flattened tensor data.
-        rdims:
-            Which dimensions of original tensor map to rows.
-        cdims:
-            Which dimensions of original tensor map to columns.
-        tshape:
-            Original tensor shape.
-        copy:
-            Whether to make a copy of provided data or just reference it.
-
-        Examples
-        --------
-        Create an empty :class:`pyttb.tenmat`.
-
-        >>> ttb.tenmat()  # doctest: +NORMALIZE_WHITESPACE
-        matrix corresponding to a tensor of shape () with order F
-        rindices = [  ] (modes of tensor corresponding to rows)
-        cindices = [  ] (modes of tensor corresponding to columns)
-        data = []
-
-        Create tensor shaped data.
-
-        >>> tshape = (2, 2, 2)
-        >>> data = np.reshape(np.arange(prod(tshape), dtype=np.double), tshape)
-        >>> data  # doctest: +NORMALIZE_WHITESPACE
-        array([[[0., 1.],
-                [2., 3.]],
-               [[4., 5.],
-                [6., 7.]]])
-
-        Manually matrize the tensor.
-
-        >>> flat_data = np.reshape(data, (2, 4), order="F")
-        >>> flat_data  # doctest: +NORMALIZE_WHITESPACE
-        array([[0., 2., 1., 3.],
-               [4., 6., 5., 7.]])
-
-        Encode matrication into :class:`pyttb.tenmat`.
-
-        >>> tm = ttb.tenmat(flat_data, rdims=np.array([0]), tshape=tshape)
-
-        Extract original tensor shaped data.
-
-        >>> tm.to_tensor().double()  # doctest: +NORMALIZE_WHITESPACE
-        array([[[0., 1.],
-                [2., 3.]],
-               [[4., 5.],
-                [6., 7.]]])
-        """
         # Case 0a: Empty Constructor
         # data is empty, return empty tenmat unless rdims, cdims, or tshape are
         # not empty
@@ -178,17 +200,25 @@ class tenmat:
 
     @property
     def ndims(self) -> int:
-        """Return the number of dimensions of a :class:`pyttb.tenmat`.
+        """
+        Return the number of dimensions of a :class:`pyttb.tenmat`.
+
+        Returns
+        -------
+        Number of dimensions of the matrix, i.e., 2 for a non-empty tenmat and 0 for
+        an empty one.
 
         Examples
         --------
-        >>> TM = ttb.tenmat()  # empty tenmat
-        >>> TM.ndims
-        0
+        Get the number of dimensions of an empty and a non-empty tenmat::
 
-        >>> TM = ttb.tenones((2, 2, 2)).to_tenmat(np.array([0]))
-        >>> TM.ndims
-        2
+            >>> TM = ttb.tenmat()  # empty tenmat
+            >>> TM.ndims
+            0
+
+            >>> TM = ttb.tenones((2, 2, 2)).to_tenmat(np.array([0]))
+            >>> TM.ndims
+            2
         """
         return len(self.shape)
 
@@ -199,17 +229,24 @@ class tenmat:
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """Return the shape of a :class:`pyttb.tenmat`.
+        """
+        Return the shape of a :class:`pyttb.tenmat`.
+
+        Returns
+        -------
+        Shape of the matrix (not of the original tensor).
 
         Examples
         --------
-        >>> TM = ttb.tenmat()  # empty tenmat
-        >>> TM.shape
-        ()
+        Get the shape of an empty and a non-empty tenmat::
 
-        >>> TM = ttb.tenones((2, 2, 2)).to_tenmat(np.array([0]))
-        >>> TM.shape
-        (2, 4)
+            >>> TM = ttb.tenmat()  # empty tenmat
+            >>> TM.shape
+            ()
+
+            >>> TM = ttb.tenones((2, 2, 2)).to_tenmat(np.array([0]))
+            >>> TM.shape
+            (2, 4)
         """
         if self.data.size == 0:
             return ()
@@ -219,23 +256,27 @@ class tenmat:
         """
         Return a deep copy of the :class:`pyttb.tenmat`.
 
+        Returns
+        -------
+        Copy of the original tenmat.
+
         Examples
         --------
         Create a :class:`pyttb.tenmat` (TM1) and make a deep copy. Verify
-        the deep copy (TM3) is not just a reference (like TM2) to the original.
+        the deep copy (TM3) is not just a reference (like TM2) to the original::
 
-        >>> T1 = ttb.tensor(np.ones((3, 2)))
-        >>> TM1 = T1.to_tenmat(np.array([0]))
-        >>> TM2 = TM1
-        >>> TM3 = TM1.copy()
-        >>> TM1[0, 0] = 3
+            >>> T1 = ttb.tensor(np.ones((3, 2)))
+            >>> TM1 = T1.to_tenmat(np.array([0]))
+            >>> TM2 = TM1
+            >>> TM3 = TM1.copy()
+            >>> TM1[0, 0] = 3
 
-        # Item to convert numpy boolean to python boolena for nicer printing
+        Item to convert numpy boolean to python boolean for nicer printing::
 
-        >>> (TM1[0, 0] == TM2[0, 0]).item()
-        True
-        >>> (TM1[0, 0] == TM3[0, 0]).item()
-        False
+            >>> (TM1[0, 0] == TM2[0, 0]).item()
+            True
+            >>> (TM1[0, 0] == TM3[0, 0]).item()
+            False
         """
         # Create tenmat
         return ttb.tenmat(
@@ -245,6 +286,11 @@ class tenmat:
     def ctranspose(self) -> tenmat:
         """
         Complex conjugate transpose for :class:`pyttb.tenmat`.
+
+        Returns
+        -------
+        :class:`pyttb.tenmat` with the row and column modes swapped and the data
+        conjugate transposed.
 
         Examples
         --------
@@ -283,8 +329,13 @@ class tenmat:
 
         Parameters
         ----------
-        immutable: Whether or not the returned data cam be mutated. May enable
-            additional optimizations.
+        immutable:
+            Whether or not the returned data can be mutated. May enable additional
+            optimizations.
+
+        Returns
+        -------
+        :class:`numpy.ndarray` copy of the matrix data as doubles.
 
         Examples
         --------
@@ -314,6 +365,16 @@ class tenmat:
         """
         Exact equality for :class:`pyttb.tenmat`.
 
+        Parameters
+        ----------
+        other:
+            tenmat to compare against.
+
+        Returns
+        -------
+        True if the data, original shape and row and column modes are all identical,
+        false otherwise.
+
         Examples
         --------
         >>> TM1 = ttb.tenmat()  # empty tenmat
@@ -335,7 +396,12 @@ class tenmat:
         )
 
     def norm(self) -> float:
-        """Frobenius norm of a :class:`pyttb.tenmat`.
+        """
+        Frobenius norm of a :class:`pyttb.tenmat`.
+
+        Returns
+        -------
+        Frobenius norm of the matrix data.
 
         Examples
         --------
@@ -365,6 +431,10 @@ class tenmat:
         ----------
         copy:
             Whether to make a copy of provided data or just reference it.
+
+        Returns
+        -------
+        :class:`pyttb.tensor` with the original shape of the tensor.
 
         Examples
         --------
@@ -427,6 +497,10 @@ class tenmat:
         ----------
         other: :class:`pyttb.tenmat`, float, int
 
+        Returns
+        -------
+        :class:`pyttb.tenmat`
+
         Examples
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
@@ -444,10 +518,6 @@ class tenmat:
         data[:, :] =
         [[2. 2.]
          [2. 2.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
         """
         # One argument is a scalar
         if np.isscalar(other):
@@ -472,15 +542,20 @@ class tenmat:
         """
         Subscripted reference for :class:`pyttb.tenmat`.
 
+        Parameters
+        ----------
+        item:
+            Index into the matrix data, e.g., a tuple of integers or slices.
+
+        Returns
+        -------
+        :class:`numpy.ndarray`, float, int
+
         Examples
         --------
         >>> TM = ttb.tenones((2, 2, 2)).to_tenmat(np.array([0]))
         >>> print(TM[0, 0])
         1.0
-
-        Returns
-        -------
-        :class:`numpy.ndarray`, float, int
         """
         return self.data[item]
 
@@ -492,6 +567,10 @@ class tenmat:
         ----------
         other: :class:`pyttb.tenmat`
 
+        Returns
+        -------
+        :class:`pyttb.tenmat`
+
         Examples
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
@@ -502,10 +581,6 @@ class tenmat:
         data[:, :] =
         [[2. 2.]
          [2. 2.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
         """
         # One argument is a scalar
         if np.isscalar(other):
@@ -545,6 +620,11 @@ class tenmat:
         """
         Unary minus (-) for :class:`pyttb.tenmat`.
 
+        Returns
+        -------
+        :class:`pyttb.tenmat`
+            Copy of original tenmat with negated data.
+
         Examples
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
@@ -555,11 +635,6 @@ class tenmat:
         data[:, :] =
         [[-1. -1.]
          [-1. -1.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
-            Copy of original tenmat with negated data.
         """
         T = self.copy()
         T.data = -1 * T.data
@@ -569,6 +644,11 @@ class tenmat:
     def __pos__(self):
         """
         Unary plus (+) for :class:`pyttb.tenmat`.
+
+        Returns
+        -------
+        :class:`pyttb.tenmat`
+            copy of tenmat
 
         Examples
         --------
@@ -580,11 +660,6 @@ class tenmat:
         data[:, :] =
         [[1. 1.]
          [1. 1.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
-            copy of tenmat
         """
         T = self.copy()
 
@@ -598,6 +673,10 @@ class tenmat:
         ----------
         other: :class:`pyttb.tenmat`, float, int
 
+        Returns
+        -------
+        :class:`pyttb.tenmat`
+
         Examples
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
@@ -608,15 +687,17 @@ class tenmat:
         data[:, :] =
         [[2. 2.]
          [2. 2.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
         """
         return self.__add__(other)
 
     def __repr__(self):
         """Return string representation of a :class:`pyttb.tenmat`.
+
+        Returns
+        -------
+        str
+            Contains the shape, row indices (rindices), column indices (cindices) and
+            data as strings on different lines.
 
         Examples
         --------
@@ -638,12 +719,6 @@ class tenmat:
         data[:, :] =
         [[1. 1.]
          [1. 1.]]
-
-        Returns
-        -------
-        str
-            Contains the shape, row indices (rindices), column indices (cindices) and
-            data as strings on different lines.
         """
         s = ""
         s += "matrix corresponding to a tensor of shape "
@@ -671,26 +746,26 @@ class tenmat:
 
     def __rmul__(self, other):
         """
-        Multiplies two :class:`pyttb.tenmat` objects.
+        Right multiplication (*) for :class:`pyttb.tenmat`.
 
         Parameters
         ----------
-        other: :class:`pyttb.tenmat`
+        other: :class:`pyttb.tenmat`, float, int
+
+        Returns
+        -------
+        :class:`pyttb.tenmat`
 
         Examples
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
-        >>> TM * TM  # doctest: +NORMALIZE_WHITESPACE
+        >>> 2.0 * TM  # doctest: +NORMALIZE_WHITESPACE
         matrix corresponding to a tensor of shape (2, 2) with order F
         rindices = [ 0 ] (modes of tensor corresponding to rows)
         cindices = [ 1 ] (modes of tensor corresponding to columns)
         data[:, :] =
         [[2. 2.]
          [2. 2.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
         """
         return self.__mul__(other)
 
@@ -702,6 +777,10 @@ class tenmat:
         ----------
         other: :class:`pyttb.tenmat`, float, int
 
+        Returns
+        -------
+        :class:`pyttb.tenmat`
+
         Examples
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
@@ -712,10 +791,6 @@ class tenmat:
         data[:, :] =
         [[0. 0.]
          [0. 0.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
         """
         # One argument is a scalar
         if np.isscalar(other):
@@ -735,6 +810,13 @@ class tenmat:
     def __setitem__(self, key, value):
         """
         Subscripted assignment for a :class:`pyttb.tenmat`.
+
+        Parameters
+        ----------
+        key:
+            Index into the matrix data, e.g., a tuple of integers or slices.
+        value:
+            Value(s) to assign.
 
         Examples
         --------
@@ -765,6 +847,10 @@ class tenmat:
         ----------
         other: :class:`pyttb.tenmat`, float, int
 
+        Returns
+        -------
+        :class:`pyttb.tenmat`
+
         Examples
         --------
         >>> TM = ttb.tenones((2, 2)).to_tenmat(np.array([0]))
@@ -782,10 +868,6 @@ class tenmat:
         data[:, :] =
         [[0. 0.]
          [0. 0.]]
-
-        Returns
-        -------
-        :class:`pyttb.tenmat`
         """
         # One argument is a scalar
         if np.isscalar(other):
