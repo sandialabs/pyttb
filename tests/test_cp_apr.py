@@ -290,7 +290,7 @@ def test_cpapr_pqnr(
     tensorInstance, ktensorSolnInstance = sample_tensor1
     ktensorInitInstance = default_init_ktensor
 
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         M, _, _ = ttb.cp_apr(
             input_tensor=tensorInstance,
             rank=2,
@@ -639,18 +639,18 @@ def test_cp_apr_negative_tests():
     bad_weights = np.array([8.0])
     bad_factors = [np.array([[1.0]])] * 3
     bad_initial_guess_shape = ttb.ktensor(bad_factors, bad_weights)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ttb.cp_apr(dense_tensor, init=bad_initial_guess_shape, rank=1)
     good_weights = np.array([8.0] * 3)
     good_factor = np.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]])
     bad_initial_guess_factors = ttb.ktensor([-1.0 * good_factor] * 3, good_weights)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ttb.cp_apr(dense_tensor, init=bad_initial_guess_factors, rank=3)
     bad_initial_guess_weight = ttb.ktensor([good_factor] * 3, -1.0 * good_weights)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ttb.cp_apr(dense_tensor, init=bad_initial_guess_weight, rank=3)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         ttb.cp_apr(dense_tensor, rank=1, algorithm="UNSUPPORTED_ALG")
 
     with pytest.raises(ValueError):

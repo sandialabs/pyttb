@@ -47,7 +47,7 @@ __all__ = [  # noqa: PLE0604
     import_data.__name__,
     khatrirao.__name__,
     ktensor.__name__,
-    matlab_support.__name__,
+    "matlab_support",
     sptenmat.__name__,
     sptendiag.__name__,
     sptenrand.__name__,

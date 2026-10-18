@@ -82,9 +82,9 @@ def cp_apr(  # noqa: PLR0913
     -------
     M:
         Resulting :class:`pyttb.ktensor` from CP APR
-    Minit:
+    M_init:
         Initial guess
-    output:
+    M_info:
         Information about the computation. Dictionary keys:
 
         * `params`: dictionary of the parameters used
@@ -103,8 +103,13 @@ def cp_apr(  # noqa: PLR0913
     Raises
     ------
     ValueError
-        If ``algorithm`` is not supported or the input tensor contains negative
-        entries.
+        If ``algorithm`` is not supported, or if the initial guess has the wrong
+        size or negative entries.
+
+    See Also
+    --------
+    :func:`pyttb.cp_als`: CP decomposition via alternating least squares.
+    :func:`pyttb.gcp_opt`: Generalized CP decomposition with arbitrary losses.
 
     Examples
     --------
@@ -116,8 +121,8 @@ def cp_apr(  # noqa: PLR0913
         >>> np.random.seed(1)
         >>> factors = [np.random.rand(n, 2) for n in (5, 4, 3)]
         >>> factors = [A / A.sum(axis=0) for A in factors]  # columns sum to one
-        >>> K = ttb.ktensor(factors, weights=np.array([25.0, 15.0]))
-        >>> X = ttb.tensor(np.random.poisson(K.full().data)).to_sptensor()
+        >>> M_true = ttb.ktensor(factors, weights=np.array([25.0, 15.0]))
+        >>> X = ttb.tensor(np.random.poisson(M_true.full().data)).to_sptensor()
         >>> X.shape
         (5, 4, 3)
         >>> float(X.nnz / np.prod(X.shape))  # density of the sampled counts
@@ -126,29 +131,33 @@ def cp_apr(  # noqa: PLR0913
     Compute a rank-2 decomposition using the default multiplicative update
     (``"mu"``) algorithm::
 
-        >>> M, Minit, output = ttb.cp_apr(X, 2, maxiters=100, printitn=0)
+        >>> M, M_init, M_info = ttb.cp_apr(X, 2, maxiters=100, printitn=0)
         >>> M.shape
         (5, 4, 3)
         >>> M.ncomponents
         2
-        >>> output["algorithm"]
+        >>> M_info["algorithm"]
         'mu'
-        >>> print(f"{output['kktViolations'][-1]:.0e}")  # final KKT violation
+        >>> print(f"{M_info['kktViolations'][-1]:.0e}")  # final KKT violation
         8e-05
-        >>> round(float(output["obj"]), 1)  # final value of the objective
+        >>> round(float(M_info["obj"]), 1)  # final value of the objective
         -27.4
 
     Use the projected damped Newton (``"pdnr"``) algorithm on the same data::
 
-        >>> M, Minit, output = ttb.cp_apr(
+        >>> M_pdnr, M_pdnr_init, M_pdnr_info = ttb.cp_apr(
         ...     X, 2, algorithm="pdnr", maxiters=100, printitn=0
         ... )
-        >>> output["algorithm"]
+        >>> M_pdnr_info["algorithm"]
         'pdnr'
-        >>> print(f"{output['kktViolations'][-1]:.0e}")
+        >>> print(f"{M_pdnr_info['kktViolations'][-1]:.0e}")
         7e-05
-        >>> round(float(output["obj"]), 1)
+        >>> round(float(M_pdnr_info["obj"]), 1)
         -29.1
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/algorithm_cp_apr` tutorial for more examples.
     """
     # Extract the number of modes in tensor X
     N = input_tensor.ndims
@@ -170,11 +179,11 @@ def cp_apr(  # noqa: PLR0913
         )
         for n in range(N):
             if init.shape[n] != input_tensor.shape[n]:
-                assert False, f"Mode {n} of the initial guess is the wrong size"
+                raise ValueError(f"Mode {n} of the initial guess is the wrong size")
             if np.min(init.factor_matrices[n]) < 0.0:
-                assert False, f"Initial guess has negative element in mode {n}"
+                raise ValueError(f"Initial guess has negative element in mode {n}")
         if np.min(init.weights) < 0:
-            assert False, "Initial guess has a negative ktensor weight"
+            raise ValueError("Initial guess has a negative ktensor weight")
 
     elif init.lower() == "random":
         factor_matrices = []
@@ -245,7 +254,7 @@ def cp_apr(  # noqa: PLR0913
         output["algorithm"] = "pqnr"
         output["params"]["algorithm"] = "pqnr"
     else:
-        assert False, "{algorithm} is not a supported cp_als algorithm"
+        raise ValueError(f"{algorithm} is not a supported cp_apr algorithm")
 
     return M, init, output
 
@@ -1071,7 +1080,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                                 lbfgsPos = lbfgsMem - 1
                             else:
                                 # Fatal error, should not happen.
-                                assert False, "ERROR: L-BFGS first iterate is bad"
+                                raise ValueError("ERROR: L-BFGS first iterate is bad")
 
                         else:
                             lbfgsPos -= 1
@@ -1260,7 +1269,7 @@ def tt_calcpi_prowsubprob(  # noqa: PLR0913
 
     See Also
     --------
-    :class:`pyttb.calculate_pi`
+    :func:`calculate_pi`
 
     """
     # TODO: this can probably be merged with general calculate pi,
