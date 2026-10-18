@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-__version__ = "1.8.6-dev"
+__version__ = "1.8.6"
 
 
 import warnings

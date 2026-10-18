@@ -1,3 +1,7 @@
+# v1.8.6 (2026-10-17)
+- Version Support:
+  - Update dependency versions, drop Python 3.10 (https://github.com/sandialabs/pyttb/pull/489)
+
 # v1.8.5 (2026-03-17)
 - Version Support:
   - Fixed support for numpy 2.4 (https://github.com/sandialabs/pyttb/pull/472)
