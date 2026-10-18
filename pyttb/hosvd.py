@@ -26,8 +26,8 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     """Compute sequentially-truncated higher-order SVD (Tucker).
 
     Computes a Tucker decomposition with relative error
-    specified by tol, i.e., it computes a ttensor T such that
-    ||X-T||/||X|| <= tol.
+    specified by tol, i.e., it computes a ttensor M such that
+    ||X-M||/||X|| <= tol.
 
     Parameters
     ----------
@@ -36,7 +36,9 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     tol:
         Relative error to stop at
     verbosity:
-        Print level
+        Print level. Values above 0 print a summary, above 2 also print norms and
+        thresholds, and above 5 also print eigenvalue sums per mode; values of 0 or
+        less are silent.
     dimorder:
         Order to loop through dimensions
     sequential:
@@ -55,6 +57,10 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
         If ``ranks`` does not have one entry per mode, or ``dimorder`` is not a
         permutation of the modes.
 
+    See Also
+    --------
+    :func:`pyttb.tucker_als`: Tucker decomposition via alternating least squares.
+
     Examples
     --------
     Create a :class:`pyttb.ttensor` with a ``2 x 2 x 2`` core and orthonormal factor
@@ -65,8 +71,8 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
         >>> np.random.seed(1)
         >>> factors = [np.linalg.qr(np.random.rand(n, 2))[0] for n in (5, 4, 3)]
         >>> core = ttb.tensor(30 * np.random.rand(2, 2, 2))
-        >>> T = ttb.ttensor(core, factors)
-        >>> X = ttb.tensor(np.random.normal(loc=T.full().data, scale=1.0))
+        >>> M_true = ttb.ttensor(core, factors)
+        >>> X = ttb.tensor(np.random.normal(loc=M_true.full().data, scale=1.0))
         >>> X.shape
         (5, 4, 3)
 
@@ -75,17 +81,21 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
         >>> tol = 0.25
         >>> disable_printing = -1
-        >>> result = hosvd(X, tol, verbosity=disable_printing)
-        >>> result.core.shape
+        >>> M = hosvd(X, tol, verbosity=disable_printing)
+        >>> M.core.shape
         (2, 2, 2)
-        >>> ((result.full() - X).norm() / X.norm()) < tol
+        >>> ((M.full() - X).norm() / X.norm()) < tol
         True
 
     Specify the ranks of the decomposition rather than a tolerance::
 
-        >>> result = hosvd(X, tol, verbosity=disable_printing, ranks=[2, 2, 1])
-        >>> result.core.shape
+        >>> M = hosvd(X, tol, verbosity=disable_printing, ranks=[2, 2, 1])
+        >>> M.core.shape
         (2, 2, 1)
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/algorithm_hosvd` tutorial for more examples.
     """
     # In tucker als this is N
     d = input_tensor.ndims

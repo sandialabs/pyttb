@@ -45,7 +45,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
         Objective function to minimize for the CP decomposition. Either a pre-defined
         objective or a tuple of function_handle, gradient_handle, and lower_bound.
     optimizer:
-        Optimizer class for solving the decompistion problem defined.
+        Optimizer class for solving the decomposition problem defined.
     init:
         Initial solution to the problem.
     mask:
@@ -60,9 +60,9 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
     -------
     M:
         Resulting :class:`pyttb.ktensor` from the GCP decomposition
-    Minit:
+    M_init:
         Initial guess
-    output:
+    M_info:
         Dictionary of information about the computation. It contains the
         optimizer-specific results and ``main_time``, the total solve time.
 
@@ -74,6 +74,11 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
         not match the type of the data, or a mask is used with an unsupported
         data type or optimizer.
 
+    See Also
+    --------
+    :func:`pyttb.cp_als`: CP decomposition via alternating least squares.
+    :func:`pyttb.cp_apr`: CP decomposition via alternating Poisson regression.
+
     Examples
     --------
     Fit a Gaussian GCP model to a dense tensor using L-BFGS-B::
@@ -82,27 +87,31 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
         >>> from pyttb.gcp.optimizers import LBFGSB
         >>> np.random.seed(0)
         >>> X = ttb.tensor(np.random.rand(3, 4, 2))
-        >>> M, Minit, output = ttb.gcp_opt(
+        >>> M_lbfgs, M_lbfgs_init, M_lbfgs_info = ttb.gcp_opt(
         ...     X, 2, Objectives.GAUSSIAN, LBFGSB(maxiter=5), printitn=0
         ... )
-        >>> M.shape
+        >>> M_lbfgs.shape
         (3, 4, 2)
-        >>> "main_time" in output
+        >>> "main_time" in M_lbfgs_info
         True
 
     Fit a Poisson GCP model to count data using a stochastic solver::
 
         >>> from pyttb.gcp.optimizers import Adam
-        >>> counts = ttb.tensor(np.floor(5 * np.random.rand(3, 4, 2)))
-        >>> M, Minit, output = ttb.gcp_opt(
-        ...     counts,
+        >>> X_counts = ttb.tensor(np.floor(5 * np.random.rand(3, 4, 2)))
+        >>> M_adam, M_adam_init, M_adam_info = ttb.gcp_opt(
+        ...     X_counts,
         ...     2,
         ...     Objectives.POISSON,
         ...     Adam(max_iters=2, epoch_iters=2, printitn=0),
         ...     printitn=0,
         ... )
-        >>> M.shape
+        >>> M_adam.shape
         (3, 4, 2)
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/algorithm_gcp_opt` tutorial for more examples.
     """
     if not isinstance(objective, Objectives):
         # TODO probably do some runtime type validation here to make

@@ -510,6 +510,10 @@ def create_problem(
     >>> _ = S.normalize(sort=True)
     >>> existing_params = ExistingCPSolution(S, noise=0.0, sparse_generation=500)
     >>> solution, data = create_problem(existing_params)
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/utility_test_problem` tutorial for more examples.
     """
     if missing_params is None:
         missing_params = MissingData()
