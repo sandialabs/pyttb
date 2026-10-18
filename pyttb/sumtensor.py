@@ -325,6 +325,10 @@ class sumtensor:
 
         Same as :meth:`pyttb.sumtensor.full`.
 
+        Returns
+        -------
+        Dense tensor that is the sum of the parts, as a :class:`pyttb.tensor`.
+
         Examples
         --------
         Convert a :class:`pyttb.sumtensor` to a :class:`pyttb.tensor`::
@@ -427,7 +431,8 @@ class sumtensor:
 
         Returns
         -------
-        :class:`pyttb.sumtensor`
+        Sum of the sumtensor and the other tensor(s), as a
+        :class:`pyttb.sumtensor`.
 
         Examples
         --------
@@ -515,7 +520,8 @@ class sumtensor:
 
         Returns
         -------
-        :class:`pyttb.sumtensor`
+        Sum of the other tensor(s) and the sumtensor, as a
+        :class:`pyttb.sumtensor`.
 
         Examples
         --------
