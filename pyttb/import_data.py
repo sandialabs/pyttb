@@ -29,10 +29,9 @@ def import_data(
 
     Returns
     -------
-    :
-        The imported data. The type depends on the data type recorded in the file:
-        :class:`pyttb.tensor`, :class:`pyttb.sptensor`, :class:`pyttb.ktensor`,
-        or :class:`numpy.ndarray` (for a matrix).
+    The imported data. The type depends on the data type recorded in the file:
+    :class:`pyttb.tensor`, :class:`pyttb.sptensor`, :class:`pyttb.ktensor`,
+    or :class:`numpy.ndarray` (for a matrix).
 
     Raises
     ------

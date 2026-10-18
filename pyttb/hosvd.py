@@ -48,8 +48,7 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
 
     Returns
     -------
-    :
-        Resulting :class:`pyttb.ttensor` from the HOSVD factorization.
+    HOSVD factorization as a :class:`pyttb.ttensor`.
 
     Raises
     ------

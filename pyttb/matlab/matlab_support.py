@@ -21,10 +21,49 @@ def matlab_print(
 ):
     """Print data in a format more similar to MATLAB.
 
-    Arguments
-    ---------
-    data: Object to print
-    format: Numerical formatting
+    Parameters
+    ----------
+    data:
+        Object to print.
+    format:
+        Numerical formatting.
+    name:
+        Name to display for the data.
+
+    Raises
+    ------
+    ValueError
+        If ``data`` is not a :class:`pyttb.tensor` or :class:`numpy.ndarray`.
+
+    Examples
+    --------
+    Print a three-way :class:`pyttb.tensor` in MATLAB style::
+
+        >>> from pyttb.matlab.matlab_support import matlab_print
+        >>> T = ttb.tensor(np.arange(8), (2, 2, 2))
+        >>> matlab_print(T)  # doctest: +NORMALIZE_WHITESPACE
+        This is a tensor of shape 2 x 2 x 2
+            data(:,:, 0) =
+                0 2
+                1 3
+        <BLANKLINE>
+            data(:,:, 1) =
+                4 6
+                5 7
+        <BLANKLINE>
+
+    Give the tensor a name and control the numerical format::
+
+        >>> matlab_print(T, format="5.1f", name="T")  # doctest: +NORMALIZE_WHITESPACE
+        T is a tensor of shape 2 x 2 x 2
+            T(:,:, 0) =
+                  0.0   2.0
+                  1.0   3.0
+        <BLANKLINE>
+            T(:,:, 1) =
+                  4.0   6.0
+                  5.0   7.0
+        <BLANKLINE>
     """
     if not isinstance(data, (tensor, np.ndarray)):
         raise ValueError(

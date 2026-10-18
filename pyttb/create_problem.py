@@ -18,10 +18,8 @@ core_generator_t = Callable[[tuple[int, ...]], ttb.tensor | ttb.sptensor | np.nd
 
 
 def randn(shape: tuple[int, ...]) -> np.ndarray:
-    """Stub for MATLAB randn.
-
-    TODO move somewhere shareable.
-    """
+    """Stub for MATLAB randn."""
+    # TODO move somewhere shareable.
     return np.random.normal(0, 1, size=shape)
 
 
@@ -170,7 +168,17 @@ class ExistingSolution:
 
     @property
     def symmetric(self) -> None:
-        """Get the symmetric modes from the solution."""
+        """Get the symmetric modes from the solution.
+
+        Existing solutions do not support symmetry constraints, so this is always
+        None.
+
+        Examples
+        --------
+        >>> K = ttb.ktensor([np.random.random((4, 2)), np.random.random((3, 2))])
+        >>> ExistingCPSolution(K).symmetric is None
+        True
+        """
         # ExistingSolution doesn't support symmetry constraints
         return None
 
@@ -271,8 +279,14 @@ class MissingData:
 
         Returns
         -------
-        :
-            True if a missing ratio or an explicit pattern was given.
+        True if a missing ratio or an explicit pattern was given.
+
+        Examples
+        --------
+        >>> MissingData(missing_ratio=0.5).has_missing()
+        True
+        >>> MissingData().has_missing()
+        False
         """
         return self.missing_ratio > 0.0 or self.missing_pattern is not None
 
@@ -283,6 +297,19 @@ class MissingData:
         ------
         ValueError
             If missing data or a sparse model was requested.
+
+        Examples
+        --------
+        Nothing is raised when there is no missing data and the model is dense::
+
+            >>> MissingData().raise_symmetric()
+
+        Requesting missing data raises::
+
+            >>> MissingData(missing_ratio=0.5).raise_symmetric()
+            Traceback (most recent call last):
+                ...
+            ValueError: Can't generate a symmetric problem with missing data.
         """
         if self.missing_ratio:
             raise ValueError("Can't generate a symmetric problem with missing data.")
@@ -299,14 +326,27 @@ class MissingData:
 
         Returns
         -------
-        :
-            Indicator tensor of the entries that are present, or None if no
-            missing data was requested.
+        Indicator tensor of the entries that are present, or None if no
+        missing data was requested.
 
         Raises
         ------
         ValueError
             If an explicit pattern does not match ``shape``.
+
+        Examples
+        --------
+        Generate a random pattern in which about half of the entries are missing::
+
+            >>> np.random.seed(0)
+            >>> pattern = MissingData(missing_ratio=0.5).get_pattern((2, 3, 4))
+            >>> pattern.shape
+            (2, 3, 4)
+
+        No pattern is generated if no data is missing::
+
+            >>> MissingData().get_pattern((2, 3, 4)) is None
+            True
         """
         if self.missing_pattern is not None:
             if self.missing_pattern.shape != shape:
