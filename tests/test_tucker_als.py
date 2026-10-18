@@ -38,6 +38,32 @@ def test_tucker_als_tensor_default_init(capsys, sample_tensor):
     assert pytest.approx(output["fit"], 1) == 0
 
 
+def test_tucker_als_tensor_ttensor_init(capsys, sample_tensor):
+    (data, T) = sample_tensor
+    (Solution, Uinit, output) = ttb.tucker_als(T, 2, printitn=0)
+    (Solution2, _, output2) = ttb.tucker_als(T, 2, init=Solution, printitn=0)
+    capsys.readouterr()
+    assert pytest.approx(output2["fit"], 1) == 0
+    assert np.all(np.isclose(Solution2.double(), T.double()))
+
+
+def test_tucker_als_tensor_pass_params(capsys, sample_tensor):
+    (data, T) = sample_tensor
+    (_, _, output) = ttb.tucker_als(T, 2, printitn=0)
+    assert set(output["params"]) == {"stoptol", "maxiters", "printitn", "dimorder"}
+    (_, _, output2) = ttb.tucker_als(T, 2, **output["params"])
+    capsys.readouterr()
+    assert pytest.approx(output2["fit"], 1) == 0
+
+
+def test_tucker_als_nvecs_silent_when_printitn_zero(capsys, sample_tensor):
+    (data, T) = sample_tensor
+    ttb.tucker_als(T, 2, init="nvecs", printitn=0)
+    assert capsys.readouterr().out == ""
+    ttb.tucker_als(T, 2, init="nvecs", printitn=1)
+    assert "leading e-vector" in capsys.readouterr().out
+
+
 def test_tucker_als_tensor_incorrect_init(sample_tensor):
     (data, T) = sample_tensor
 
