@@ -44,8 +44,19 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     ranks:
         Specify ranks to consider rather than computing
 
-    Example
+    Returns
     -------
+    :
+        Resulting :class:`pyttb.ttensor` from the HOSVD factorization.
+
+    Raises
+    ------
+    ValueError
+        If ``ranks`` does not have one entry per mode, or ``dimorder`` is not a
+        permutation of the modes.
+
+    Examples
+    --------
     >>> data = np.array([[29, 39.0], [63.0, 85.0]])
     >>> tol = 1e-4
     >>> disable_printing = -1
@@ -53,6 +64,13 @@ def hosvd(  # noqa: PLR0912,PLR0913,PLR0915
     >>> result = hosvd(tensorInstance, tol, verbosity=disable_printing)
     >>> ((result.full() - tensorInstance).norm() / tensorInstance.norm()) < tol
     True
+
+    Specify the ranks of the decomposition rather than a tolerance::
+
+        >>> X = ttb.tensor(np.arange(24, dtype=float), shape=(3, 4, 2))
+        >>> result = hosvd(X, 0.5, verbosity=disable_printing, ranks=[2, 2, 1])
+        >>> result.core.shape
+        (2, 2, 1)
     """
     # In tucker als this is N
     d = input_tensor.ndims

@@ -36,56 +36,98 @@ def cp_apr(  # noqa: PLR0913
     inexact: bool = True,
     lbfgsMem: int = 3,
 ) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
-    """
-    Compute non-negative CP with alternating Poisson regression.
+    """Compute non-negative CP with alternating Poisson regression.
 
     Parameters
     ----------
-    input_tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
-    rank: int
+    input_tensor:
+        Tensor to decompose, a :class:`pyttb.tensor` or :class:`pyttb.sptensor`.
+    rank:
         Rank of the decomposition
-    algorithm: str
-        in {'mu', 'pdnr, 'pqnr'}
-    stoptol: float
+    algorithm:
+        One of ``"mu"``, ``"pdnr"``, or ``"pqnr"``
+    stoptol:
         Tolerance on overall KKT violation
-    stoptime: float
+    stoptime:
         Maximum number of seconds to run
-    maxiters: int
+    maxiters:
         Maximum number of iterations
-    init: str or :class:`pyttb.ktensor`
-        Initial guess
-    maxinneriters: int
+    init:
+        Initial guess, either ``"random"`` or a :class:`pyttb.ktensor`
+    maxinneriters:
         Maximum inner iterations per outer iteration
-    epsDivZero: float
+    epsDivZero:
         Safeguard against divide by zero
-    printitn: int
+    printitn:
         Print every n outer iterations, 0 for none
-    printinneritn: int
+    printinneritn:
         Print every n inner iterations
-    kappa: int
+    kappa:
         MU ALGORITHM PARAMETER: Offset to fix complementary slackness
     kappatol:
         MU ALGORITHM PARAMETER: Tolerance on complementary slackness
-    epsActive: float
+    epsActive:
         PDNR & PQNR ALGORITHM PARAMETER: Bertsekas tolerance for active set
-    mu0: float
+    mu0:
         PDNR ALGORITHM PARAMETER: Initial Damping Parameter
-    precompinds: bool
+    precompinds:
         PDNR & PQNR ALGORITHM PARAMETER: Precompute sparse tensor indices
-    inexact: bool
+    inexact:
         PDNR ALGORITHM PARAMETER: Compute inexact Newton steps
-    lbfgsMem: int
-        PQNR ALGORITHM PARAMETER: Precompute sparse tensor indices
+    lbfgsMem:
+        PQNR ALGORITHM PARAMETER: Number of vector pairs to store for the L-BFGS
+        approximation
 
     Returns
     -------
-    M: :class:`pyttb.ktensor`
-        Resulting ktensor from CP APR
-    Minit: :class:`pyttb.ktensor`
-        Initial Guess
-    output: dict
-        Additional output #TODO document this more appropriately
+    M:
+        Resulting :class:`pyttb.ktensor` from CP APR
+    Minit:
+        Initial guess
+    output:
+        Information about the computation. Dictionary keys:
 
+        * `params`: dictionary of the parameters used
+        * `algorithm`: the algorithm used
+        * `kktViolations`: KKT violation after each outer iteration
+        * `nInnerIters`: number of inner iterations for each outer iteration
+        * `nViolations`: number of subproblems with a KKT violation for each outer
+          iteration
+        * `nTotalIters`: total number of inner iterations
+        * `times`: elapsed time after each outer iteration
+        * `totalTime`: total execution time
+        * `obj`: final value of the objective function
+
+    Raises
+    ------
+    ValueError
+        If ``algorithm`` is not supported or the input tensor contains negative
+        entries.
+
+    Examples
+    --------
+    Compute a rank-2 decomposition of count data using the default multiplicative
+    update (``"mu"``) algorithm::
+
+        >>> np.random.seed(0)
+        >>> X = ttb.tensor(np.floor(5 * np.random.rand(4, 3, 2)))
+        >>> M, Minit, output = ttb.cp_apr(X, 2, maxiters=10, printitn=0)
+        >>> M.shape
+        (4, 3, 2)
+        >>> M.ncomponents
+        2
+        >>> output["algorithm"]
+        'mu'
+
+    Use the projected damped Newton (``"pdnr"``) algorithm on a
+    :class:`pyttb.sptensor`::
+
+        >>> S = X.to_sptensor()
+        >>> M, Minit, output = ttb.cp_apr(
+        ...     S, 2, algorithm="pdnr", maxiters=10, printitn=0
+        ... )
+        >>> output["algorithm"]
+        'pdnr'
     """
     # Extract the number of modes in tensor X
     N = input_tensor.ndims

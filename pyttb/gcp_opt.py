@@ -33,7 +33,7 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
     sampler: GCPSampler | None = None,
     printitn: int = 1,
 ) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
-    """Fits Generalized CP decomposition with user-specified function.
+    """Fit a Generalized CP decomposition with a user-specified function.
 
     Parameters
     ----------
@@ -58,7 +58,51 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
 
     Returns
     -------
-        Solution, Initial Guess, Dictionary of meta data
+    M:
+        Resulting :class:`pyttb.ktensor` from the GCP decomposition
+    Minit:
+        Initial guess
+    output:
+        Dictionary of information about the computation. It contains the
+        optimizer-specific results and ``main_time``, the total solve time.
+
+    Raises
+    ------
+    ValueError
+        If the objective is not an :class:`Objectives` member or a 3-tuple, the
+        data is not a tensor or sptensor, the optimizer is not supported or does
+        not match the type of the data, or a mask is used with an unsupported
+        data type or optimizer.
+
+    Examples
+    --------
+    Fit a Gaussian GCP model to a dense tensor using L-BFGS-B::
+
+        >>> from pyttb.gcp.fg_setup import Objectives
+        >>> from pyttb.gcp.optimizers import LBFGSB
+        >>> np.random.seed(0)
+        >>> X = ttb.tensor(np.random.rand(3, 4, 2))
+        >>> M, Minit, output = ttb.gcp_opt(
+        ...     X, 2, Objectives.GAUSSIAN, LBFGSB(maxiter=5), printitn=0
+        ... )
+        >>> M.shape
+        (3, 4, 2)
+        >>> "main_time" in output
+        True
+
+    Fit a Poisson GCP model to count data using a stochastic solver::
+
+        >>> from pyttb.gcp.optimizers import Adam
+        >>> counts = ttb.tensor(np.floor(5 * np.random.rand(3, 4, 2)))
+        >>> M, Minit, output = ttb.gcp_opt(
+        ...     counts,
+        ...     2,
+        ...     Objectives.POISSON,
+        ...     Adam(max_iters=2, epoch_iters=2, printitn=0),
+        ...     printitn=0,
+        ... )
+        >>> M.shape
+        (3, 4, 2)
     """
     if not isinstance(objective, Objectives):
         # TODO probably do some runtime type validation here to make

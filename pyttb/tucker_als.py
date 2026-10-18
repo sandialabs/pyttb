@@ -72,6 +72,32 @@ def tucker_als(  # noqa: PLR0912, PLR0913, PLR0915
         * `fit`: value of the fitness function (fraction of tensor data explained by
             the model)
 
+    Raises
+    ------
+    ValueError
+        If ``stoptol``, ``maxiters``, or ``printitn`` are not valid scalars, if
+        ``dimorder`` is not a permutation of the modes, or if ``init`` is not
+        supported.
+
+    Examples
+    --------
+    Compute a Tucker decomposition with a ``2 x 2 x 1`` core::
+
+        >>> np.random.seed(0)
+        >>> X = ttb.tensor(np.random.rand(3, 4, 2))
+        >>> M, Minit, output = ttb.tucker_als(X, [2, 2, 1], printitn=0)
+        >>> M.core.shape
+        (2, 2, 1)
+        >>> [factor.shape for factor in M.factor_matrices]
+        [(3, 2), (4, 2), (2, 1)]
+        >>> sorted(output.keys())
+        ['fit', 'iters', 'normresidual', 'params']
+
+    Use a single rank for every mode::
+
+        >>> M, Minit, output = ttb.tucker_als(X, 1, printitn=0)
+        >>> M.core.shape
+        (1, 1, 1)
     """
     N = input_tensor.ndims
     normX = input_tensor.norm()

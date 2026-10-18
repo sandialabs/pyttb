@@ -74,8 +74,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
          * `fit`: value of the fitness function (fraction of tensor data
             explained by the model)
 
-    Example
-    -------
+    Examples
+    --------
     Random initialization causes slight perturbation in intermediate results.
     `...` is our place holder for these numeric values.
     Example using default values ("random" initialization):
