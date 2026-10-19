@@ -503,7 +503,6 @@ class LBFGSB:
         callback: Callable[[np.ndarray], None] | None = None,
         maxls: int | None = None,
     ):
-
         class ArgType(TypedDict):
             m: int | None
             factr: float
