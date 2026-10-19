@@ -70,7 +70,7 @@ current or filing a new [issue](https://github.com/sandialabs/pyttb/issues).
         ```
 
 1. (Optionally) Build the documentation and tutorials; see the
-   [developer guide](https://pyttb.readthedocs.io/en/latest/developer_guide.html)
+   [developer guide](./docs/source/developer_guide.rst)
    for building docs, tutorial conventions, and docstring standards.
 
 ## GitHub Workflow
