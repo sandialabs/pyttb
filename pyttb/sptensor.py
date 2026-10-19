@@ -1455,15 +1455,20 @@ class sptensor:  # noqa: PLW1641
         of each eigenvector positive (i.e., `flipsign` =True)::
 
             >>> S.nvecs(0, 2, flipsign=True)  # doctest: +ELLIPSIS
-            array([[-0.4718...,  0.8816...],
-                   [ 0.8816...,  0.4718...]])
+            array([[ 0.4718...,  0.8816...],
+                   [ 0.8816..., -0.4718...]])
 
         Compute the same `nvecs` of `S`, but do not adjust the sign of the largest
         element of each eigenvector::
 
             >>> S.nvecs(0, 2, flipsign=False)  # doctest: +ELLIPSIS
             array([[ 0.4718..., -0.8816...],
-                   [-0.8816..., -0.4718...]])
+                   [ 0.8816...,  0.4718...]])
+
+        The result matches :meth:`pyttb.tensor.nvecs` on the dense tensor::
+
+            >>> np.allclose(S.nvecs(0, 2), S.full().nvecs(0, 2))
+            True
         """
         old = np.setdiff1d(np.arange(self.ndims), n).astype(int)
         # tnt calculation is a workaround for missing sptenmat
@@ -1476,15 +1481,19 @@ class sptensor:  # noqa: PLW1641
             )
         tnt = mutatable_sptensor.spmatrix().transpose()
         y = tnt.transpose().dot(tnt)
+        # y is symmetric, so use the symmetric solvers and sort the eigenvector
+        # columns by eigenvalue magnitude (the solvers do not return them in that order)
         if r < y.shape[0] - 1:
-            _, v = scipy.sparse.linalg.eigs(y, r)
+            w, v = scipy.sparse.linalg.eigsh(y, r)
+            v = v[:, (-np.abs(w)).argsort()]
+            v = v[:, :r]
         else:
             logging.debug(
                 "Greater than or equal to sptensor.shape[n] - 1 eigenvectors requires"
                 " cast to dense to solve"
             )
-            w, v = scipy.linalg.eig(y.toarray())
-            v = v[(-np.abs(w)).argsort()]
+            w, v = scipy.linalg.eigh(y.toarray())
+            v = v[:, (-np.abs(w)).argsort()]
             v = v[:, :r]
 
         if flipsign:

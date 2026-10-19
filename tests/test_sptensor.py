@@ -1811,6 +1811,23 @@ def test_sptensor_nvecs(sample_sptensor):
     assert np.allclose(nvecs_result, ans)
     assert_consistent_order(sptensorInstance, nvecs_result)
 
+    # The eigenvector columns are sorted by eigenvalue on every call, even though the
+    # sparse eigensolver uses a random starting vector
+    for _ in range(100):
+        assert np.allclose(
+            sptensorInstance.nvecs(1, 2),
+            np.array([[0, 0, 0, 1], [0, 0, 1, 0]]).transpose(),
+        )
+
+    # Matches the dense tensor for a non-diagonal problem, for both solver paths
+    np.random.seed(0)
+    S = ttb.sptenrand((6, 5, 4), nonzeros=40)
+    for n in range(S.ndims):
+        for r in range(1, S.shape[n] + 1):
+            nvecs_result = S.nvecs(n, r)
+            assert np.isrealobj(nvecs_result)
+            assert np.allclose(nvecs_result, S.full().nvecs(n, r))
+
     # Negative test, check for only singleton dims
     with pytest.raises(ValueError):
         single_val_sptensor = ttb.sptensor(
