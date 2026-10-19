@@ -15,7 +15,7 @@ from pyttb.pyttb_utils import OneDArray, parse_one_d
 
 
 def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
-    input_tensor: ttb.tensor | ttb.sptensor | ttb.ttensor | ttb.sumtensor,
+    input_tensor: ttb.tensor | ttb.sptensor | ttb.ttensor | ttb.sumtensor | ttb.ktensor,
     rank: int,
     stoptol: float = 1e-4,
     maxiters: int = 1000,
@@ -36,17 +36,17 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     stoptol:
         Tolerance used for termination - when the change in the fitness function
         in successive iterations drops below this value, the iterations terminate
+    maxiters:
+        Maximum number of iterations
     dimorder:
         Order to loop through dimensions (default: [range(tensor.ndims)])
     optdims:
         Whether factor for corresponding mode should be optimized or not.
         Defaults to optimizing all modes ([range(tensor.ndims)]).
-    maxiters:
-        Maximum number of iterations
     init:
         Initial guess (default: "random")
          * "random": initialize using a :class:`pyttb.ktensor` with values chosen
-            from a Normal distribution with mean 0 and standard deviation 1
+            from a uniform distribution on [0, 1)
          * "nvecs": initialize factor matrices of a :class:`pyttb.ktensor` using
             the eigenvectors of the outer product of the matricized input tensor
          * :class:`pyttb.ktensor`: initialize using a specific
@@ -63,70 +63,74 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     -------
     M:
         Resulting ktensor from CP-ALS factorization
-    Minit:
+    M_init:
         Initial guess
-    output:
+    M_info:
         Information about the computation. Dictionary keys:
-         * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
+         * `params` : dict of the input parameters with keys `stoptol`,
+            `maxiters`, `dimorder`, `optdims`, `printitn`, `fixsigns`
          * `iters`: number of iterations performed
          * `normresidual`: norm of the difference between the input tensor
             and ktensor factorization
          * `fit`: value of the fitness function (fraction of tensor data
             explained by the model)
 
-    Example
-    -------
-    Random initialization causes slight perturbation in intermediate results.
-    `...` is our place holder for these numeric values.
-    Example using default values ("random" initialization):
+    Raises
+    ------
+    ValueError
+        If ``dimorder`` is not a permutation of the modes, if the initial guess
+        has the wrong size for any mode, or if ``init`` is not supported.
 
-    >>> weights = np.array([1., 2.])
-    >>> fm0 = np.array([[1., 2.], [3., 4.]])
-    >>> fm1 = np.array([[5., 6.], [7., 8.]])
-    >>> K = ttb.ktensor([fm0, fm1], weights)
-    >>> np.random.seed(1)
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2) # doctest: +ELLIPSIS
-    CP_ALS:
-     Iter 0: f = ... f-delta = ...
-     Iter 1: f = ... f-delta = ...
-     Final f = ...
-    >>> print(M) # doctest: +ELLIPSIS
-    ktensor of shape (2, 2) with order F
-    weights=[108.4715... 8.6114...]
-    factor_matrices[0] =
-    [[0.4187... 0.3989...]
-     [0.9080... 0.9169...]]
-    factor_matrices[1] =
-    [[0.6188... 0.2581...]
-     [0.7854... 0.9661...]]
-    >>> print(Minit) # doctest: +ELLIPSIS
-    ktensor of shape (2, 2) with order F
-    weights=[1. 1.]
-    factor_matrices[0] =
-    [[4.1702...e-01 7.2032...e-01]
-     [1.1437...e-04 3.0233...e-01]]
-    factor_matrices[1] =
-    [[0.1467... 0.0923...]
-     [0.1862... 0.3455...]]
-    >>> print(output["params"]) # doctest: +NORMALIZE_WHITESPACE
-    {'stoptol': 0.0001, 'maxiters': 1000, 'dimorder': array([0, 1]),\
-     'optdims': array([0, 1]), 'printitn': 1, 'fixsigns': True}
+    See Also
+    --------
+    :func:`pyttb.cp_apr`: CP decomposition via alternating Poisson regression.
+    :func:`pyttb.gcp_opt`: Generalized CP decomposition with arbitrary losses.
 
-    Example using "nvecs" initialization:
+    Examples
+    --------
+    Create a rank-2 :class:`pyttb.ktensor` and generate a noisy dense data tensor
+    from it by sampling each entry from a normal distribution with standard
+    deviation one and mean equal to the corresponding entry of the
+    :class:`pyttb.ktensor`::
 
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init="nvecs") # doctest: +ELLIPSIS
-    CP_ALS:
-     Iter 0: f = ... f-delta = ...
-     Iter 1: f = ... f-delta = ...
-     Final f = ...
+        >>> np.random.seed(1)
+        >>> factors = [np.random.rand(n, 2) for n in (5, 4, 3)]
+        >>> factors = [A / A.sum(axis=0) for A in factors]  # columns sum to one
+        >>> M_true = ttb.ktensor(factors, weights=np.array([25.0, 15.0]))
+        >>> X = ttb.tensor(np.random.normal(loc=M_true.full().data, scale=1.0))
+        >>> X.shape
+        (5, 4, 3)
 
-    Example using :class:`pyttb.ktensor` initialization:
+    Compute a rank-2 decomposition using the default values (``"random"``
+    initialization). Random initialization causes slight perturbation in the
+    intermediate results, so the printed iteration status is not shown here::
 
-    >>> M, Minit, output = ttb.cp_als(K.full(), 2, init=K) # doctest: +ELLIPSIS
-    CP_ALS:
-     Iter 0: f = ... f-delta = ...
-     Iter 1: f = ... f-delta = ...
-     Final f = ...
+        >>> M, M_init, M_info = ttb.cp_als(X, 2, printitn=0)
+        >>> M.shape
+        (5, 4, 3)
+        >>> M.ncomponents
+        2
+        >>> round(float(M_info["normresidual"]), 1)  # norm of the residual
+        5.3
+        >>> round(float(M_info["fit"]), 2)  # fraction of the data explained
+        0.48
+
+    Use the ``"nvecs"`` initialization::
+
+        >>> M_nvecs, _, M_nvecs_info = ttb.cp_als(X, 2, init="nvecs", printitn=0)
+        >>> round(float(M_nvecs_info["fit"]), 2)
+        0.48
+
+    Use a specific :class:`pyttb.ktensor` as the initial guess, here the initial
+    guess used by the first call::
+
+        >>> M_rerun, _, M_rerun_info = ttb.cp_als(X, 2, init=M_init, printitn=0)
+        >>> round(float(M_rerun_info["fit"]), 2)
+        0.48
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/algorithm_cp_als` tutorial for more examples.
     """
     # Extract number of dimensions and norm of tensor
     N = input_tensor.ndims
@@ -138,7 +142,9 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     else:
         dimorder = parse_one_d(dimorder)
     if tuple(range(N)) != tuple(sorted(dimorder)):
-        assert False, "Dimorder must be a list or permutation of range(tensor.ndims)"
+        raise ValueError(
+            "Dimorder must be a list or permutation of range(tensor.ndims)"
+        )
 
     # Set up optdims if not specified
     if optdims is None:
@@ -158,7 +164,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         )
         for n in dimorder:
             if init.factor_matrices[n].shape != (input_tensor.shape[n], rank):
-                assert False, f"Mode {n} of the initial guess is the wrong size"
+                raise ValueError(f"Mode {n} of the initial guess is the wrong size")
     elif isinstance(init, str) and init.lower() == "random":
         factor_matrices = []
         for n in range(N):
@@ -175,7 +181,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
             factor_matrices.append(input_tensor.nvecs(n, rank))
         init = ttb.ktensor(factor_matrices)
     else:
-        assert False, "The selected initialization method is not supported"
+        raise ValueError("The selected initialization method is not supported")
 
     # Set up for iterates and fit
     U = init.copy().factor_matrices

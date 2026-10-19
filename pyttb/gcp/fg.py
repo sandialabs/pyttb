@@ -70,7 +70,24 @@ def evaluate(
 
     Returns
     -------
-    Objective function value and/or gradient function value with respect to model.
+    Objective function value if only ``function_handle`` is given, gradient (a list
+    with one array per factor matrix) if only ``gradient_handle`` is given, or a
+    tuple of both if both are given.
+
+    Examples
+    --------
+    Evaluate the Gaussian objective and gradient of a rank-1 model of a tensor of
+    ones::
+
+        >>> from pyttb.gcp.fg_setup import Objectives, setup
+        >>> function_handle, gradient_handle, _ = setup(Objectives.GAUSSIAN)
+        >>> X = ttb.tenones((2, 2, 2))
+        >>> M = ttb.ktensor([np.full((2, 1), 2.0)] * 3)
+        >>> F, G = evaluate(M, X, None, function_handle, gradient_handle)
+        >>> float(F)
+        392.0
+        >>> [g.shape for g in G]
+        [(2, 1), (2, 1), (2, 1)]
     """
     if function_handle is None and gradient_handle is None:
         raise ValueError(

@@ -37,7 +37,28 @@ def setup(  # noqa: PLR0912,PLR0915
 
     Returns
     -------
-    Function handle, gradient handle, and lower bound.
+    function_handle:
+        Function evaluating the objective elementwise.
+    gradient_handle:
+        Function evaluating the gradient of the objective elementwise.
+    lower_bound:
+        Lower bound on the model values.
+
+    Raises
+    ------
+    ValueError
+        If the data is not valid for the objective, a required additional parameter
+        is missing, or the objective is unknown.
+
+    Examples
+    --------
+    Collect the handles for the Poisson objective::
+
+        >>> function_handle, gradient_handle, lower_bound = setup(Objectives.POISSON)
+        >>> lower_bound
+        0.0
+        >>> function_handle.__name__, gradient_handle.__name__
+        ('poisson', 'poisson_grad')
     """
     if objective == Objectives.GAUSSIAN:
         function_handle = handles.gaussian
@@ -122,21 +143,72 @@ def setup(  # noqa: PLR0912,PLR0915
 
 
 def valid_nonneg(data: ttb.tensor | ttb.sptensor) -> bool:
-    """Check if provided data is valid non-negative tensor."""
+    """Check if provided data is valid non-negative tensor.
+
+    Parameters
+    ----------
+    data:
+        Tensor to check.
+
+    Returns
+    -------
+    True if all (stored) values are strictly positive, otherwise False.
+
+    Examples
+    --------
+    >>> valid_nonneg(ttb.tenones((2, 2, 2)))
+    True
+    >>> valid_nonneg(-ttb.tenones((2, 2, 2)))
+    False
+    """
     if isinstance(data, ttb.sptensor):
         return bool(np.all(data.vals > 0))
     return bool(np.all(data.data > 0))
 
 
 def valid_binary(data: ttb.tensor | ttb.sptensor) -> bool:
-    """Check if provided data is valid binary tensor."""
+    """Check if provided data is valid binary tensor.
+
+    Parameters
+    ----------
+    data:
+        Tensor to check.
+
+    Returns
+    -------
+    True if all (stored) values are zero or one, otherwise False.
+
+    Examples
+    --------
+    >>> valid_binary(ttb.tenones((2, 2, 2)))
+    True
+    >>> valid_binary(2 * ttb.tenones((2, 2, 2)))
+    False
+    """
     if isinstance(data, ttb.sptensor):
         return bool(np.all(data.vals == 1))
     return bool(np.all(np.isin(np.unique(data.data), [0, 1])))
 
 
 def valid_natural(data: ttb.tensor | ttb.sptensor) -> bool:
-    """Check if provided data is valid natural number tensor."""
+    """Check if provided data is valid natural number tensor.
+
+    Parameters
+    ----------
+    data:
+        Tensor to check.
+
+    Returns
+    -------
+    True if all (stored) values are whole numbers, otherwise False.
+
+    Examples
+    --------
+    >>> valid_natural(2 * ttb.tenones((2, 2, 2)))
+    True
+    >>> valid_natural(0.5 * ttb.tenones((2, 2, 2)))
+    False
+    """
     if isinstance(data, ttb.sptensor):
         vals = data.vals
     else:

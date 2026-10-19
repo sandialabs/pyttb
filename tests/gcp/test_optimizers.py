@@ -123,6 +123,21 @@ def test_lbfgsb(generate_problem):
     assert (model.full() - dense_data).norm() > (result.full() - dense_data).norm()
 
 
+def test_lbfgsb_legacy_print_args(generate_problem):
+    import inspect
+
+    from scipy.optimize import fmin_l_bfgs_b
+
+    dense_data, model, sampler = generate_problem
+    solver = LBFGSB(maxiter=2, iprint=1)
+    if "iprint" in inspect.signature(fmin_l_bfgs_b).parameters:
+        result, _ = solver.solve(model, dense_data, gaussian, gaussian_grad)
+    else:
+        with pytest.warns(UserWarning, match="iprint"):
+            result, _ = solver.solve(model, dense_data, gaussian, gaussian_grad)
+    assert not model.isequal(result)
+
+
 def test_lbfgsb_callback(generate_problem):
     dense_data, model, sampler = generate_problem
 

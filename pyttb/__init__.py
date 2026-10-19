@@ -30,7 +30,20 @@ from pyttb.tucker_als import tucker_als
 
 
 def ignore_warnings(ignore=True):
-    """Disable warnings."""
+    """Disable warnings.
+
+    Parameters
+    ----------
+    ignore:
+        If True, ignore all warnings; if False, restore the default warning filter.
+
+    Examples
+    --------
+    Ignore warnings and then restore the default behavior::
+
+        >>> ttb.ignore_warnings(True)
+        >>> ttb.ignore_warnings(False)
+    """
     if ignore:
         warnings.simplefilter("ignore")
     else:
@@ -47,7 +60,7 @@ __all__ = [  # noqa: PLE0604
     import_data.__name__,
     khatrirao.__name__,
     ktensor.__name__,
-    matlab_support.__name__,
+    "matlab_support",
     sptenmat.__name__,
     sptendiag.__name__,
     sptenrand.__name__,

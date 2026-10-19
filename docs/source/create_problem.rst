@@ -1,5 +1,5 @@
 Create Test Problems (:obj:`pyttb.create_problem`)
----------------------------------------------------
+==================================================
 
 .. autofunction:: pyttb.create_problem.create_problem
 

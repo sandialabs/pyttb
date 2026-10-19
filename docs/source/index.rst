@@ -41,10 +41,21 @@ algorithms for computing low-rank tensor models.
 
 - `Algorithms`_
 
-   CP methods such as alternating least squares, direct optimization,
-   and weighted optimization (for missing data).  Also alternative
-   decompositions such as Poisson Tensor Factorization via alternating
-   Poisson regression.
+   CP via alternating least squares (``cp_als``), alternating Poisson
+   regression for count data (``cp_apr``), and generalized CP with
+   arbitrary losses, missing data and stochastic solvers (``gcp_opt``);
+   Tucker via HOSVD (``hosvd``) and alternating least squares
+   (``tucker_als``).
+
+- `Test problems`_
+
+   Generating synthetic tensors with known solutions, optional noise and
+   missing data, for testing and benchmarking algorithms.
+
+- `Utilities`_
+
+   Helpers such as the Khatri-Rao product and functions that support users
+   coming from MATLAB.
 
 - `IO`_
 
@@ -52,6 +63,8 @@ algorithms for computing low-rank tensor models.
 
 .. _Tensor Classes: tensor_classes.html
 .. _Algorithms: algorithms.html
+.. _Test problems: create_problem.html
+.. _Utilities: utilities.html
 .. _IO: io.html
 
 
@@ -82,6 +95,14 @@ Python API
    :maxdepth: 2
 
    reference.rst
+
+Developer Guide
+===============
+
+.. toctree::
+   :maxdepth: 1
+
+   developer_guide.rst
 
 How to Cite
 ==============

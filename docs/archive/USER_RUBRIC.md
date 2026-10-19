@@ -1,3 +1,5 @@
+Archived; not maintained. May become a GitHub Discussion.
+
 # pyttb User Guide and Rubric
 
 The pyttb package is a powerful toolset for working with tensors in Python, designed to cater to a wide range of users, from beginners to advanced. This user guide and rubric will assist new users in understanding the capabilities of the pyttb package and how it can meet their specific needs.

@@ -84,16 +84,16 @@ def test_ktensor_init(sample_ktensor_2way):
     )
 
 
-def test_ktensor_from_function():
-    K0 = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
+def test_ktensor_from_function(caplog):
+    # Functions returning vectors are reshaped using Fortran ordering without warning
+    with caplog.at_level("WARNING"):
+        K0 = ttb.ktensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3, 4), 2)
+    assert "ordered" not in caplog.text
     assert np.array_equal(K0.weights, np.array([1.0, 1.0]))
     assert np.array_equal(K0.factor_matrices[0], np.ones((2, 2)))
     assert np.array_equal(K0.factor_matrices[1], np.ones((3, 2)))
     assert np.array_equal(K0.factor_matrices[2], np.ones((4, 2)))
 
-    np.random.seed(1)
-    K1 = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 4), 2)
-    assert np.array_equal(K1.weights, np.array([1.0, 1.0]))
     fm0 = np.array([[4.17022005e-01, 7.20324493e-01], [1.14374817e-04, 3.02332573e-01]])
     fm1 = np.array(
         [[0.14675589, 0.09233859], [0.18626021, 0.34556073], [0.39676747, 0.53881673]]
@@ -106,9 +106,33 @@ def test_ktensor_from_function():
             [0.4173048, 0.55868983],
         ]
     )
+
+    # Shape-sized (C-ordered) output is accepted but must be reordered, with a warning
+    np.random.seed(1)
+    caplog.clear()
+    with caplog.at_level("WARNING"):
+        K1 = ttb.ktensor.from_function(np.random.random_sample, (2, 3, 4), 2)
+    assert "ordered" in caplog.text
+    assert np.array_equal(K1.weights, np.array([1.0, 1.0]))
     assert np.linalg.norm(K1.factor_matrices[0] - fm0) < 1e-8
     assert np.linalg.norm(K1.factor_matrices[1] - fm1) < 1e-8
     assert np.linalg.norm(K1.factor_matrices[2] - fm2) < 1e-8
+
+    # The same random stream as a vector fills the factor matrices column by column
+    np.random.seed(1)
+    caplog.clear()
+    with caplog.at_level("WARNING"):
+        K2 = ttb.ktensor.from_function(
+            lambda s: np.random.random_sample(np.prod(s)), (2, 3, 4), 2
+        )
+    assert "ordered" not in caplog.text
+    np.random.seed(1)
+    stream = np.random.random_sample(2 * 2 + 3 * 2 + 4 * 2)
+    start = 0
+    for fm, n in zip(K2.factor_matrices, (2, 3, 4)):
+        assert fm.flags["F_CONTIGUOUS"]
+        assert np.array_equal(fm.ravel(order="F"), stream[start : start + 2 * n])
+        start += 2 * n
 
 
 def test_ktensor_from_vector(sample_ktensor_3way):
@@ -377,7 +401,7 @@ def test_ktensor_innerprod(sample_ktensor_2way):
     assert K.innerprod(S) == 181
 
     # Wrong shape
-    K1 = ttb.ktensor.from_function(np.ones, (2, 3), 2)
+    K1 = ttb.ktensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3), 2)
     with pytest.raises(AssertionError) as excinfo:
         K.innerprod(K1)
     assert "Innerprod can only be computed for tensors of the same size" in str(excinfo)
@@ -394,7 +418,7 @@ def test_ktensor_isequal(sample_ktensor_2way):
     K1 = K0.copy()
     assert K0.isequal(K1)
     # ncomponents don't match
-    K2 = ttb.ktensor.from_function(np.ones, (2, 2), 3)
+    K2 = ttb.ktensor.from_function(lambda s: np.ones(np.prod(s)), (2, 2), 3)
     assert ~(K0.isequal(K2))
     # weights don't match
     K3 = K0.copy()
@@ -422,7 +446,7 @@ def test_ktensor_issymetric(sample_ktensor_2way, sample_ktensor_symmetric):
     assert np.array_equal(diffs1, np.array([[0.0, 0.0], [0.0, 0]]))
 
     # Wrong shape
-    K2 = ttb.ktensor.from_function(np.ones, (2, 3), 2)
+    K2 = ttb.ktensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3), 2)
     assert ~(K2.issymmetric())
     issym2, diffs2 = K2.issymmetric(return_diffs=True)
     assert np.array_equal(diffs2, np.array([[0.0, np.inf], [0.0, 0]]))
@@ -437,13 +461,13 @@ def test_ktensor_mask(sample_ktensor_2way):
 
     # Mask too large
     with pytest.raises(AssertionError) as excinfo:
-        K.mask(ttb.tensor.from_function(np.ones, (2, 3, 4)))
+        K.mask(ttb.tensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3, 4)))
     assert "Mask cannot be bigger than the data tensor" in str(excinfo)
 
 
 def test_ktensor_mttkrp(sample_ktensor_3way):
     (data, K) = sample_ktensor_3way
-    K1 = ttb.ktensor.from_function(np.ones, (2, 3, 4), 4)
+    K1 = ttb.ktensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3, 4), 4)
     output0 = np.array(
         [[12492.0, 12492.0, 12492.0, 12492.0], [17856.0, 17856.0, 17856.0, 17856.0]]
     )
@@ -505,10 +529,10 @@ def test_ktensor_ndims(sample_ktensor_2way, sample_ktensor_3way):
 
 
 def test_ktensor_norm():
-    K0 = ttb.ktensor.from_function(np.zeros, (2, 3, 4), 2)
+    K0 = ttb.ktensor.from_function(lambda s: np.zeros(np.prod(s)), (2, 3, 4), 2)
     assert pytest.approx(K0.norm(), 1e-8) == 0
 
-    K1 = ttb.ktensor.from_function(np.ones, (2, 3, 4), 2)
+    K1 = ttb.ktensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3, 4), 2)
     assert pytest.approx(K1.norm(), 1e-8) == 9.797958971132712
 
     rank = 2

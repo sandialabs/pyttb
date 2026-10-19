@@ -4,5 +4,5 @@ pyttb.gcp.optimizers
 .. automodule:: pyttb.gcp.optimizers
     :members:
     :undoc-members:
-    :special-members: __init__
+    :exclude-members: __init__, __dict__, __weakref__
     :show-inheritance:

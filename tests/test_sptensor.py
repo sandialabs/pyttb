@@ -1457,6 +1457,19 @@ def test_sptensor_mask(sample_sptensor):
     assert np.array_equal(mask_array, np.array([[S[0, 0]], [S[1, 0]]]))
     assert_consistent_order(sptensorInstance, mask_array)
 
+    # Mask with fewer nonzeros than the data, in a different order than the data
+    S = ttb.sptensor(
+        np.array([[0, 0, 0], [1, 1, 1], [1, 2, 0]]),
+        np.array([[1.0], [2.0], [3.0]]),
+        shape=(2, 3, 2),
+    )
+    W = ttb.sptensor(
+        np.array([[1, 2, 0], [0, 1, 1], [1, 1, 1]]),
+        np.array([[1], [1], [1]]),
+        shape=(2, 3, 2),
+    )
+    assert np.array_equal(S.mask(W), np.array([[3.0], [0.0], [2.0]]))
+
     # Mask too large
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.mask(ttb.sptensor(np.array([]), np.array([]), (3, 3, 5)))
@@ -1797,6 +1810,23 @@ def test_sptensor_nvecs(sample_sptensor):
     nvecs_result = sptensorInstance.nvecs(1, 3)
     assert np.allclose(nvecs_result, ans)
     assert_consistent_order(sptensorInstance, nvecs_result)
+
+    # The eigenvector columns are sorted by eigenvalue on every call, even though the
+    # sparse eigensolver uses a random starting vector
+    for _ in range(100):
+        assert np.allclose(
+            sptensorInstance.nvecs(1, 2),
+            np.array([[0, 0, 0, 1], [0, 0, 1, 0]]).transpose(),
+        )
+
+    # Matches the dense tensor for a non-diagonal problem, for both solver paths
+    np.random.seed(0)
+    S = ttb.sptenrand((6, 5, 4), nonzeros=40)
+    for n in range(S.ndims):
+        for r in range(1, S.shape[n] + 1):
+            nvecs_result = S.nvecs(n, r)
+            assert np.isrealobj(nvecs_result)
+            assert np.allclose(nvecs_result, S.full().nvecs(n, r))
 
     # Negative test, check for only singleton dims
     with pytest.raises(ValueError):

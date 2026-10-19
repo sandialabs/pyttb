@@ -36,56 +36,128 @@ def cp_apr(  # noqa: PLR0913
     inexact: bool = True,
     lbfgsMem: int = 3,
 ) -> tuple[ttb.ktensor, ttb.ktensor, dict]:
-    """
-    Compute non-negative CP with alternating Poisson regression.
+    """Compute non-negative CP with alternating Poisson regression.
 
     Parameters
     ----------
-    input_tensor: :class:`pyttb.tensor` or :class:`pyttb.sptensor`
-    rank: int
+    input_tensor:
+        Tensor to decompose, a :class:`pyttb.tensor` or :class:`pyttb.sptensor`.
+    rank:
         Rank of the decomposition
-    algorithm: str
-        in {'mu', 'pdnr, 'pqnr'}
-    stoptol: float
+    algorithm:
+        One of ``"mu"``, ``"pdnr"``, or ``"pqnr"``
+    stoptol:
         Tolerance on overall KKT violation
-    stoptime: float
+    stoptime:
         Maximum number of seconds to run
-    maxiters: int
+    maxiters:
         Maximum number of iterations
-    init: str or :class:`pyttb.ktensor`
-        Initial guess
-    maxinneriters: int
+    init:
+        Initial guess, either ``"random"`` or a :class:`pyttb.ktensor`
+    maxinneriters:
         Maximum inner iterations per outer iteration
-    epsDivZero: float
+    epsDivZero:
         Safeguard against divide by zero
-    printitn: int
+    printitn:
         Print every n outer iterations, 0 for none
-    printinneritn: int
+    printinneritn:
         Print every n inner iterations
-    kappa: int
+    kappa:
         MU ALGORITHM PARAMETER: Offset to fix complementary slackness
     kappatol:
         MU ALGORITHM PARAMETER: Tolerance on complementary slackness
-    epsActive: float
+    epsActive:
         PDNR & PQNR ALGORITHM PARAMETER: Bertsekas tolerance for active set
-    mu0: float
+    mu0:
         PDNR ALGORITHM PARAMETER: Initial Damping Parameter
-    precompinds: bool
+    precompinds:
         PDNR & PQNR ALGORITHM PARAMETER: Precompute sparse tensor indices
-    inexact: bool
+    inexact:
         PDNR ALGORITHM PARAMETER: Compute inexact Newton steps
-    lbfgsMem: int
-        PQNR ALGORITHM PARAMETER: Precompute sparse tensor indices
+    lbfgsMem:
+        PQNR ALGORITHM PARAMETER: Number of vector pairs to store for the L-BFGS
+        approximation
 
     Returns
     -------
-    M: :class:`pyttb.ktensor`
-        Resulting ktensor from CP APR
-    Minit: :class:`pyttb.ktensor`
-        Initial Guess
-    output: dict
-        Additional output #TODO document this more appropriately
+    M:
+        Resulting :class:`pyttb.ktensor` from CP APR
+    M_init:
+        Initial guess
+    M_info:
+        Information about the computation. Dictionary keys:
 
+        * `params`: dictionary of the parameters used
+        * `algorithm`: the algorithm used
+        * `kktViolations`: KKT violation after each outer iteration
+        * `nInnerIters`: number of inner iterations for each outer iteration
+        * `times`: elapsed time after each outer iteration
+        * `totalTime`: total execution time
+        * `obj`: final value of the objective function
+
+        Some keys are specific to the algorithm. The ``"mu"`` algorithm also
+        returns `nViolations` (number of subproblems with a KKT violation for each
+        outer iteration) and `nTotalIters` (total number of inner iterations).
+        The ``"pdnr"`` algorithm also returns `fnEvals`, `fnVals`, and `nZeros`.
+
+    Raises
+    ------
+    ValueError
+        If ``algorithm`` is not supported, or if the initial guess has the wrong
+        size or negative entries.
+
+    See Also
+    --------
+    :func:`pyttb.cp_als`: CP decomposition via alternating least squares.
+    :func:`pyttb.gcp_opt`: Generalized CP decomposition with arbitrary losses.
+
+    Examples
+    --------
+    CP-APR assumes that each entry of the data tensor is an independent draw from a
+    Poisson distribution whose mean is given by the corresponding entry of a
+    low-rank model. Create a rank-2 :class:`pyttb.ktensor` with small entries and
+    sample a sparse count tensor from it::
+
+        >>> np.random.seed(1)
+        >>> factors = [np.random.rand(n, 2) for n in (5, 4, 3)]
+        >>> factors = [A / A.sum(axis=0) for A in factors]  # columns sum to one
+        >>> M_true = ttb.ktensor(factors, weights=np.array([25.0, 15.0]))
+        >>> X = ttb.tensor(np.random.poisson(M_true.full().data)).to_sptensor()
+        >>> X.shape
+        (5, 4, 3)
+        >>> float(X.nnz / np.prod(X.shape))  # density of the sampled counts
+        0.35
+
+    Compute a rank-2 decomposition using the default multiplicative update
+    (``"mu"``) algorithm::
+
+        >>> M, M_init, M_info = ttb.cp_apr(X, 2, maxiters=100, printitn=0)
+        >>> M.shape
+        (5, 4, 3)
+        >>> M.ncomponents
+        2
+        >>> M_info["algorithm"]
+        'mu'
+        >>> print(f"{M_info['kktViolations'][-1]:.0e}")  # final KKT violation
+        8e-05
+        >>> round(float(M_info["obj"]), 1)  # final value of the objective
+        -27.4
+
+    Use the projected damped Newton (``"pdnr"``) algorithm on the same data::
+
+        >>> M_pdnr, M_pdnr_init, M_pdnr_info = ttb.cp_apr(
+        ...     X, 2, algorithm="pdnr", maxiters=100, printitn=0
+        ... )
+        >>> M_pdnr_info["algorithm"]
+        'pdnr'
+        >>> print(f"{M_pdnr_info['kktViolations'][-1]:.0e}")
+        7e-05
+        >>> round(float(M_pdnr_info["obj"]), 1)
+        -29.1
+
+    **Tutorial**
+
+    See the :doc:`/tutorial/algorithm_cp_apr` tutorial for more examples.
     """
     # Extract the number of modes in tensor X
     N = input_tensor.ndims
@@ -107,11 +179,11 @@ def cp_apr(  # noqa: PLR0913
         )
         for n in range(N):
             if init.shape[n] != input_tensor.shape[n]:
-                assert False, f"Mode {n} of the initial guess is the wrong size"
+                raise ValueError(f"Mode {n} of the initial guess is the wrong size")
             if np.min(init.factor_matrices[n]) < 0.0:
-                assert False, f"Initial guess has negative element in mode {n}"
+                raise ValueError(f"Initial guess has negative element in mode {n}")
         if np.min(init.weights) < 0:
-            assert False, "Initial guess has a negative ktensor weight"
+            raise ValueError("Initial guess has a negative ktensor weight")
 
     elif init.lower() == "random":
         factor_matrices = []
@@ -182,7 +254,7 @@ def cp_apr(  # noqa: PLR0913
         output["algorithm"] = "pqnr"
         output["params"]["algorithm"] = "pqnr"
     else:
-        assert False, "{algorithm} is not a supported cp_als algorithm"
+        raise ValueError(f"{algorithm} is not a supported cp_apr algorithm")
 
     return M, init, output
 
@@ -1008,7 +1080,7 @@ def tt_cp_apr_pqnr(  # noqa: PLR0912,PLR0913,PLR0915
                                 lbfgsPos = lbfgsMem - 1
                             else:
                                 # Fatal error, should not happen.
-                                assert False, "ERROR: L-BFGS first iterate is bad"
+                                raise ValueError("ERROR: L-BFGS first iterate is bad")
 
                         else:
                             lbfgsPos -= 1
@@ -1197,7 +1269,7 @@ def tt_calcpi_prowsubprob(  # noqa: PLR0913
 
     See Also
     --------
-    :class:`pyttb.calculate_pi`
+    :func:`calculate_pi`
 
     """
     # TODO: this can probably be merged with general calculate pi,

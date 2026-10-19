@@ -7,7 +7,7 @@ For *all* examples in this document, the following module imports are assumed::
     >>> import numpy as np
 
 .. autofunction:: pyttb.gcp_opt
-    
+
 .. toctree::
     :glob:
 

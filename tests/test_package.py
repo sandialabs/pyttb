@@ -17,6 +17,11 @@ def test_package_smoke():
     ttb.ignore_warnings(True)
 
 
+def test_star_import():
+    """Confirm every entry in __all__ resolves"""
+    exec("from pyttb import *", {})
+
+
 def test_linting():
     """Confirm linting of the project is enforced"""
     root_dir = os.path.dirname(os.path.dirname(__file__))

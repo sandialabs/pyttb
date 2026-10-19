@@ -6,4 +6,12 @@ Reference (:mod:`pyttb`)
 
     tensor_classes.rst
     algorithms.rst
-    io.rst
+    utilities.rst
+
+Developer API
+-------------
+
+.. toctree::
+    :maxdepth: 1
+
+    pyttb_utils.rst
