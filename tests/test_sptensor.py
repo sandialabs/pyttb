@@ -1457,6 +1457,19 @@ def test_sptensor_mask(sample_sptensor):
     assert np.array_equal(mask_array, np.array([[S[0, 0]], [S[1, 0]]]))
     assert_consistent_order(sptensorInstance, mask_array)
 
+    # Mask with fewer nonzeros than the data, in a different order than the data
+    S = ttb.sptensor(
+        np.array([[0, 0, 0], [1, 1, 1], [1, 2, 0]]),
+        np.array([[1.0], [2.0], [3.0]]),
+        shape=(2, 3, 2),
+    )
+    W = ttb.sptensor(
+        np.array([[1, 2, 0], [0, 1, 1], [1, 1, 1]]),
+        np.array([[1], [1], [1]]),
+        shape=(2, 3, 2),
+    )
+    assert np.array_equal(S.mask(W), np.array([[3.0], [0.0], [2.0]]))
+
     # Mask too large
     with pytest.raises(AssertionError) as excinfo:
         sptensorInstance.mask(ttb.sptensor(np.array([]), np.array([]), (3, 3, 5)))

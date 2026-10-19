@@ -1306,7 +1306,7 @@ class sptensor:  # noqa: PLW1641
         # Assemble return array
         nvals = wsubs.shape[0]
         vals = np.zeros((nvals, 1))
-        vals[matching_indices] = self.vals[matching_indices]
+        vals[valid] = self.vals[matching_indices]
         return vals
 
     def mttkrp(
