@@ -35,6 +35,10 @@ Working with Tensors
 .. toctree::
    :maxdepth: 1
 
+   Creating Tensors<tutorial/utility_tensor_creation.ipynb>
+   Tensor Multiplication<tutorial/utility_multiplication.ipynb>
+   Collapsing and Scaling Tensors<tutorial/utility_collapse_scale.ipynb>
+   Reading and Writing Tensors (import_data, export_data)<tutorial/utility_io.ipynb>
    Creating Test Problems (create_problem)<tutorial/utility_test_problem.ipynb>
 
 Converting Between Tensors and Matrices
