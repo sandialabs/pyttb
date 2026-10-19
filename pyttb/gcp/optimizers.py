@@ -594,6 +594,8 @@ class LBFGSB:
                 function_handle,
                 gradient_handle,
             )
+            # Gradients are only flattened here, so give them the layout ktensor expects
+            grads = [np.asfortranarray(grad) for grad in grads]
             return func_val, ttb.ktensor(grads, copy=False).tovec(False)
 
         x0 = model.tovec(False)

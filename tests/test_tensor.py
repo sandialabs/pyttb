@@ -1630,7 +1630,7 @@ def test_tensor__str__():
 
 def test_tensor_mttkrp(sample_tensor_2way):
     (params, tensorInstance) = sample_tensor_2way
-    tensorInstance = ttb.tensor.from_function(np.ones, (2, 3, 4))
+    tensorInstance = ttb.tensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3, 4))
 
     # 2-way sparse tensor
     weights = np.array([2.0, 2.0])

@@ -270,9 +270,10 @@ class tensor:  # noqa: PLW1641
              [ 0.3336... -0.8540... -0.7421...]]
 
         Create a :class:`pyttb.tensor` with all entries equal to 1 using
-        :func:`numpy.ones`. Observe that we specifically specify Fortran order::
+        :func:`numpy.ones`. Observe that we again generate a vector, which is
+        reshaped using Fortran ordering::
 
-            >>> T = ttb.tensor.from_function(lambda s: np.ones(s), (2, 3, 4))
+            >>> T = ttb.tensor.from_function(lambda s: np.ones(np.prod(s)), (2, 3, 4))
             >>> print(T)
             tensor of shape (2, 3, 4) with order F
             data[:, :, 0] =
@@ -1547,7 +1548,7 @@ class tensor:  # noqa: PLW1641
                             perm_idx += 1
 
             # Create an average tensor
-            Y = ttb.tensor(np.zeros(self.shape), copy=False)
+            Y = ttb.tenzeros(self.shape)
             for i in range(total_perms):
                 Y += self.permute(sym_perms[i, :])
 
