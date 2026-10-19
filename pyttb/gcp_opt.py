@@ -69,10 +69,10 @@ def gcp_opt(  # noqa:  PLR0912,PLR0913
     Raises
     ------
     ValueError
-        If the objective is not an :class:`Objectives` member or a 3-tuple, the
-        data is not a tensor or sptensor, the optimizer is not supported or does
-        not match the type of the data, or a mask is used with an unsupported
-        data type or optimizer.
+        If the objective is not an :class:`~pyttb.gcp.handles.Objectives` member
+        or a 3-tuple, the data is not a tensor or sptensor, the optimizer is not
+        supported or does not match the type of the data, or a mask is used with
+        an unsupported data type or optimizer.
 
     See Also
     --------

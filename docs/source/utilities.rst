@@ -12,8 +12,8 @@ For *all* examples in this document, the following module imports are assumed::
     create_problem.rst
     io.rst
 
-Khatri-Rao Product (:func:`pyttb.khatrirao`)
---------------------------------------------
+Khatri-Rao Product (khatrirao)
+------------------------------
 
 .. autofunction:: pyttb.khatrirao.khatrirao
 
