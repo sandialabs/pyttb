@@ -903,12 +903,12 @@ class ktensor:
                 endpt = breakpt + 1
             else:
                 warnings.warn(f"Trouble fixing signs for mode {r}")
-                if (breakpt < RB) and (
+                if (breakpt + 1 < N) and (
                     -sort_sgn_score[breakpt] > sort_sgn_score[breakpt + 1]
                 ):
-                    endpt = breakpt + 1
+                    endpt = breakpt + 2
                 else:
-                    endpt = breakpt - 1
+                    endpt = breakpt
 
             # Flip the signs
             for i in range(endpt):
