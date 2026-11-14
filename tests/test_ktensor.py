@@ -343,6 +343,31 @@ def test_ktensor_fixsigns(sample_ktensor_2way):
         K.fixsigns(K2)
 
 
+def test_ktensor_fixsigns_odd_flips_keep_tensor():
+    # Odd number of negative sign scores must still flip columns in pairs,
+    # so the represented tensor is unchanged.
+    A = np.array([[1.0, 0.2], [0.5, 1.0], [0.3, -0.4]])
+    B = np.array([[0.8, 1.0], [0.6, -0.2], [0.1, 0.5]])
+    C = np.array([[1.0, 0.3], [0.2, 1.0]])
+    K = ttb.ktensor([A, B, C], np.array([2.0, 1.0]))
+    other = ttb.ktensor([A, B * np.array([1.0, -1.0]), C], np.array([2.0, 1.0]))
+    expected = K.full()
+    with pytest.warns(UserWarning, match="Trouble fixing signs"):
+        K.fixsigns(other)
+    assert np.allclose(K.full().double(), expected.double())
+
+    # All modes of a component disagree in sign (odd count equal to ndims)
+    rng = np.random.default_rng(0)
+    K = ttb.ktensor([rng.random((n, 3)) for n in (4, 5, 6)])
+    other = K.copy()
+    for fm in other.factor_matrices:
+        fm[:, 0] *= -1
+    expected = K.full()
+    with pytest.warns(UserWarning, match="Trouble fixing signs"):
+        K.fixsigns(other)
+    assert np.allclose(K.full().double(), expected.double())
+
+
 def test_ktensor_full(sample_ktensor_2way, sample_ktensor_3way):
     (data, K2) = sample_ktensor_2way
     assert K2.full().isequal(ttb.tensor(np.array([[29.0, 39.0], [63.0, 85.0]]), (2, 2)))
