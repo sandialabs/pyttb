@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Literal
 
 import numpy as np
@@ -69,6 +70,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         Information about the computation. Dictionary keys:
          * `params` : tuple of (stoptol, maxiters, printitn, dimorder)
          * `iters`: number of iterations performed
+         * `times`: cumulative elapsed seconds from the start of the ALS loop
+           through the end of each completed iteration
          * `normresidual`: norm of the difference between the input tensor
             and ktensor factorization
          * `fit`: value of the fitness function (fraction of tensor data
@@ -198,6 +201,8 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
     for n in range(N):
         UtU[:, :, n] = U[n].T @ U[n]
 
+    times = []
+    start = time.perf_counter()
     for iteration in range(maxiters):
         fitold = fit
 
@@ -261,6 +266,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
         if (printitn > 0) and ((divmod(iteration, printitn)[1] == 0) or (flag == 0)):
             print(f" Iter {iteration}: f = {fit:e} f-delta = {fitchange:7.1e}")
 
+        times.append(time.perf_counter() - start)
         # Check for convergence
         if flag == 0:
             break
@@ -294,6 +300,7 @@ def cp_als(  # noqa: PLR0912,PLR0913,PLR0915
             "fixsigns": fixsigns,
         },
         "iters": iteration,
+        "times": np.array(times),
         "normresidual": normresidual,
         "fit": fit,
     }

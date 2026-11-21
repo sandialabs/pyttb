@@ -3,6 +3,8 @@
 # U.S. Government retains certain rights in this software.
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import numpy as np
 import pytest
 
@@ -58,6 +60,19 @@ def test_cp_als_tensor_default_init(capsys, sample_tensor):
     (M, Minit, output) = ttb.cp_als(T, 2)
     capsys.readouterr()
     assert pytest.approx(output["fit"]) == 1
+
+
+@pytest.mark.parametrize(
+    ("maxiters", "stoptol", "expected"), [(3, 0, [1, 4, 6]), (10, np.inf, [1, 4])]
+)
+def test_cp_als_iteration_times(sample_tensor, maxiters, stoptol, expected):
+    _, tensor = sample_tensor
+    with patch("time.perf_counter", side_effect=[10, 11, 14, 16]):
+        _, _, output = ttb.cp_als(
+            tensor, 1, init="nvecs", maxiters=maxiters, stoptol=stoptol, printitn=0
+        )
+
+    np.testing.assert_array_equal(output["times"], expected)
 
 
 def test_cp_als_tensor_nvecs_init(capsys, sample_tensor):
