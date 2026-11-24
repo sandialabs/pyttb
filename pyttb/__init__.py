@@ -13,10 +13,10 @@ import warnings
 
 from pyttb.cp_als import cp_als
 from pyttb.cp_apr import cp_apr
-from pyttb.export_data import export_data
+from pyttb.export_data import export_data, export_data_bin, export_data_mat
 from pyttb.gcp_opt import gcp_opt
 from pyttb.hosvd import hosvd
-from pyttb.import_data import import_data
+from pyttb.import_data import import_data, import_data_bin, import_data_mat
 from pyttb.khatrirao import khatrirao
 from pyttb.ktensor import ktensor
 from pyttb.matlab import matlab_support
@@ -42,9 +42,13 @@ __all__ = [  # noqa: PLE0604
     cp_als.__name__,
     cp_apr.__name__,
     export_data.__name__,
+    export_data_bin.__name__,
+    export_data_mat.__name__,
     gcp_opt.__name__,
     hosvd.__name__,
     import_data.__name__,
+    import_data_bin.__name__,
+    import_data_mat.__name__,
     khatrirao.__name__,
     ktensor.__name__,
     matlab_support.__name__,

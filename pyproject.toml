@@ -115,6 +115,7 @@ warn_unused_configs = true
 [[tool.mypy.overrides]]
 module = [
     "scipy",
+    "scipy.io",
     "scipy.sparse",
     "scipy.sparse.linalg",
     "scipy.optimize",
